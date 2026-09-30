@@ -25,6 +25,7 @@ class AuthController extends Controller
         } catch (UniqueConstraintViolationException $e) {
             return $this->response->emailTaken();
         } catch (Throwable $e) {
+            Log::error('Register gagal: ' . $e->getMessage());
             return $this->response->serverError();
         }
     }
