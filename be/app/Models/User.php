@@ -9,23 +9,30 @@ use Illuminate\Notifications\Notifiable;
 
 class User extends Authenticatable
 {
+    /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable;
 
     /**
      * The attributes that are mass assignable.
      *
-     * @var array<int, string>
+     * @var list<string>
      */
     protected $fillable = [
         'name',
         'email',
         'password',
+        'email_verifikasi',
+        'status',
+        'foto',
+        'id_dealer',
+        'id_atasan',
+        'id_role',
     ];
 
     /**
      * The attributes that should be hidden for serialization.
      *
-     * @var array<int, string>
+     * @var list<string>
      */
     protected $hidden = [
         'password',
@@ -43,5 +50,18 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    public function dealer()
+    {
+        return $this->belongsTo(Dealer::class);
+    }
+    public function atasan()
+    {
+        return $this->belongsTo(User::class, 'id_atasan');
+    }
+    public function role()
+    {
+        return $this->belongsTo(Role::class);
     }
 }
