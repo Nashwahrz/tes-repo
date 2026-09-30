@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\LoginRequest;
+use App\Http\Responses\LoginResponse;
 use App\Http\Requests\RegisterRequest;
 use App\Http\Responses\RegisterResponse;
 use App\Repositories\UserRepository;
@@ -9,23 +11,48 @@ use Illuminate\Http\Request;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Throwable;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth;
 
 class AuthController extends Controller
 {
      public function __construct(
         private UserRepository $users,
-        private RegisterResponse $response,
+        private RegisterResponse $registerResponse,
+        private LoginResponse $loginResponse,
     ) {}
 
     public function register(RegisterRequest $request)
     {
         try {
             $user = $this->users->create($request->validated());
-            return $this->response->success($user);
+            return $this->registerResponse->success($user);
         } catch (UniqueConstraintViolationException $e) {
-            return $this->response->emailTaken();
+            return $this->registerResponse->emailTaken();
         } catch (Throwable $e) {
-            return $this->response->serverError();
+            return $this->registerResponse->serverError();
+        }
+    }
+    
+    public function login(LoginRequest $request)
+    {
+        try {
+            if (!Auth::attempt($request->only('email', 'password'))) {
+                return $this->loginResponse->unauthorized();
+            }
+
+            $user = Auth::user();
+
+            if (!$user->status) {
+                Auth::logout();
+                return $this->loginResponse->inactive();
+            }
+
+            $token = $user->createToken('auth_token')->plainTextToken;
+
+            return $this->loginResponse->success($user, $token);
+        } catch (Throwable $e) {
+            Log::error('Login error: ' . $e->getMessage());
+            return $this->loginResponse->serverError();
         }
     }
 
