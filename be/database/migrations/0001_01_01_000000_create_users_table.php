@@ -17,8 +17,8 @@ return new class extends Migration
             $table->string('email')->unique();
             $table->boolean('email_verifikasi')
                   ->default(false);
-            $table->boolean('status')
-                  ->default(false);
+            $table->enum('status', ['pending', 'aktif', 'nonaktif'])
+                  ->default('pending');
             $table->string('foto')
                   ->nullable();
             $table->string('password');

@@ -29,7 +29,10 @@ class AuthController extends Controller
         } catch (UniqueConstraintViolationException $e) {
             return $this->registerResponse->emailTaken();
         } catch (Throwable $e) {
-            return $this->registerResponse->serverError();
+
+            Log::error('Register gagal: ' . $e->getMessage());
+            return $this->response->serverError();
+
         }
     }
     
@@ -53,6 +56,7 @@ class AuthController extends Controller
         } catch (Throwable $e) {
             Log::error('Login error: ' . $e->getMessage());
             return $this->loginResponse->serverError();
+
         }
     }
 
