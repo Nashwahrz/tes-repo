@@ -25,7 +25,6 @@ return new class extends Migration
                 ->nullOnDelete();
 
             $table->foreignId('id_role')
-                ->nullable()
                 ->after('id')
                 ->constrained('roles')
                 ->nullOnDelete();

@@ -6,14 +6,14 @@ enum StatusUser: string
 {
     case Pending   = 'pending';
     case Aktif     = 'aktif';
-    case Nonaktif  = 'nonaktif';
+    case Ditolak  = 'ditolak';
 
     public function label(): string
     {
         return match($this) {
             StatusUser::Pending  => 'Menunggu Verifikasi',
             StatusUser::Aktif    => 'Aktif',
-            StatusUser::Nonaktif => 'Nonaktif',
+            StatusUser::Ditolak => 'Ditolak',
         };
     }
 }
