@@ -68,4 +68,10 @@ class User extends Authenticatable
     {
         return $this->belongsTo(Role::class);
     }
+
+    public function otps()
+    {
+        return $this->hasMany(Otp::class, 'id_user');
+    }
 }
+
