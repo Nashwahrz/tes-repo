@@ -16,6 +16,14 @@ class OtpResponse
         ], 200);
     }
 
+    public function alreadyVerified(): JsonResponse
+    {
+        return response()->json([
+            'success' => true,
+            'message' => 'Email sudah aktif dan terverifikasi.',
+        ], 200);
+    }
+
     public function verified(User $user): JsonResponse
     {
         return response()->json([

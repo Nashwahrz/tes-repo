@@ -31,6 +31,10 @@ class OtpController extends Controller
                 return $this->otpResponse->userNotFound();
             }
 
+            if ($user->email_verifikasi) {
+                return $this->otpResponse->alreadyVerified();
+            }
+
             $expiryMinutes = 5;
             $otp = $this->otpRepository->createOtp($user, 6, $expiryMinutes);
 
@@ -64,7 +68,7 @@ class OtpController extends Controller
                 return $this->otpResponse->invalidOrExpired();
             }
 
-            // Mark user email as verified
+           
             $user->email_verifikasi = true;
             $user->save();
 
