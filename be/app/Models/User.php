@@ -58,7 +58,7 @@ class User extends Authenticatable
 
     public function dealer()
     {
-        return $this->belongsTo(Dealer::class);
+        return $this->belongsTo(Dealer::class, 'id_dealer');
     }
     public function atasan()
     {
@@ -66,6 +66,6 @@ class User extends Authenticatable
     }
     public function role()
     {
-        return $this->belongsTo(Role::class);
+        return $this->belongsTo(Role::class, 'id_role');
     }
 }

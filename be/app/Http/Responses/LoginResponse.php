@@ -17,6 +17,7 @@ class LoginResponse
             'data'    => [
                 'id'        => $user->id,
                 'email'     => $user->email,
+                'id_role'   => $user->id_role,
             ],
             'token'   => $token,
         ], 200);
