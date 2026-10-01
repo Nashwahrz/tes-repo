@@ -3,10 +3,10 @@ import { useState } from 'react';
 import { loginUser } from '../api/authServices';
 
 function LoginPage() {
-  const [email, setEmail]       = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError]       = useState('');
-  const [loading, setLoading]   = useState(false);
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -22,15 +22,12 @@ function LoginPage() {
 
       // Redirect ke dashboard (sesuaikan)
       window.location.href = '/dashboard';
-
     } catch (err) {
       // Pesan berasal dari LoginResponse di BE:
       // 401 -> email/password salah, 403 -> akun belum aktif,
       // 422 -> validasi, 500 -> kesalahan server
       const data = err.response?.data;
-      const msg = data?.errors
-        ? Object.values(data.errors).flat().join(' ')
-        : data?.message || 'Tidak dapat terhubung ke server.';
+      const msg = data?.errors ? Object.values(data.errors).flat().join(' ') : data?.message || 'Tidak dapat terhubung ke server.';
       setError(msg);
     } finally {
       setLoading(false);
@@ -66,10 +63,18 @@ function LoginPage() {
 
         {error && <p style={{ color: 'red' }}>{error}</p>}
 
-        <button type="submit" disabled={loading} style={{ padding: '8px 24px' }}>
+        <button
+          type="submit"
+          disabled={loading}
+          style={{ padding: '8px 24px' }}
+        >
           {loading ? 'Loading...' : 'Login'}
         </button>
       </form>
+
+      <p style={{ marginTop: 16, textAlign: 'center' }}>
+        Belum punya akun? <a href="/register">Daftar di sini</a>
+      </p>
     </div>
   );
 }

@@ -1,4 +1,5 @@
 import LoginPage from './pages/LoginPage'
+import RegisterPage from './pages/RegisterPage'
 import DashboardPage from './pages/DashboardPage'
 import './App.css'
 
@@ -13,6 +14,13 @@ function App() {
       return null
     }
     return <DashboardPage />
+  }
+  if (path.startsWith('/register')) {
+    if (isLoggedIn) {
+      window.location.replace('/dashboard')
+      return null
+    }
+    return <RegisterPage />
   }
 
   if (isLoggedIn) {
