@@ -13,6 +13,8 @@ use Throwable;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use App\Enums\StatusUser;
+use App\Services\OtpService;
+use App\Http\Responses\OtpResponse;
 
 class AuthController extends Controller
 {
@@ -20,6 +22,8 @@ class AuthController extends Controller
         private UserRepository $users,
         private RegisterResponse $registerResponse,
         private LoginResponse $loginResponse,
+        private OtpService $otpService,
+        private OtpResponse $otpResponse,
     ) {}
 
     public function register(RegisterRequest $request)
@@ -45,6 +49,21 @@ class AuthController extends Controller
             }
 
             $user = Auth::user();
+
+            // Email belum diverifikasi: kirim OTP seperti alur register
+            if (!$user->email_verifikasi) {
+                Auth::logout();
+
+                try {
+                    $this->otpService->send($user);
+                    $otpSent = true;
+                } catch (Throwable $e) {
+                    Log::error('Pengiriman OTP saat login gagal: ' . $e->getMessage());
+                    $otpSent = false;
+                }
+
+                return $this->otpResponse->requiresVerification($user->email, $otpSent);
+            }
 
             if ($user->status !== StatusUser::Aktif) {
                 Auth::logout();

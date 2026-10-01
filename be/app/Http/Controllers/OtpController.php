@@ -5,17 +5,17 @@ namespace App\Http\Controllers;
 use App\Http\Requests\SendOtpRequest;
 use App\Http\Requests\VerifyOtpRequest;
 use App\Http\Responses\OtpResponse;
-use App\Mail\SendOtpMail;
 use App\Models\User;
 use App\Repositories\OtpRepository;
+use App\Services\OtpService;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Mail;
 use Throwable;
 
 class OtpController extends Controller
 {
     public function __construct(
         private OtpRepository $otpRepository,
+        private OtpService $otpService,
         private OtpResponse $otpResponse
     ) {}
 
@@ -31,10 +31,7 @@ class OtpController extends Controller
                 return $this->otpResponse->userNotFound();
             }
 
-            $expiryMinutes = 5;
-            $otp = $this->otpRepository->createOtp($user, 6, $expiryMinutes);
-
-            Mail::to($user->email)->send(new SendOtpMail($user, $otp->otp, $expiryMinutes));
+            $this->otpService->send($user);
 
             return $this->otpResponse->sent($user->email);
         } catch (Throwable $e) {

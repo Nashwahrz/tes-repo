@@ -16,6 +16,18 @@ class OtpResponse
         ], 200);
     }
 
+    public function requiresVerification(string $email, bool $otpSent): JsonResponse
+    {
+        return response()->json([
+            'success'      => false,
+            'message'      => $otpSent
+                ? 'Email Anda belum terverifikasi. Kode OTP telah dikirim ke ' . $email . '.'
+                : 'Email Anda belum terverifikasi, namun kode OTP gagal dikirim. Silakan kirim ulang.',
+            'requires_otp' => true,
+            'email'        => $email,
+        ], 403);
+    }
+
     public function verified(User $user): JsonResponse
     {
         return response()->json([
