@@ -3,6 +3,9 @@
 namespace App\Http\Requests;
 
 use App\Http\Responses\RegisterResponse;
+use App\Models\Role;
+use App\Models\User;
+use Closure;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
@@ -22,9 +25,24 @@ class RegisterRequest extends FormRequest
             'password'  => ['required', 'string', 'min:8', 'confirmed'],
             'id_dealer' => ['nullable', 'exists:dealers,id'],
             'id_atasan' => ['nullable', 'exists:users,id'],
-            'id_role'   => ['required', 'exists:roles,id'],
+            'id_role'   => [
+                'required',
+                'exists:roles,id',
+                function (string $attribute, mixed $value, Closure $fail) {
+                    $managerRole = Role::where('name', 'Manager')->first();
+
+                    if ($managerRole && (int) $value === $managerRole->id) {
+                        $managerExists = User::where('id_role', $managerRole->id)->exists();
+
+                        if ($managerExists) {
+                            $fail('Role sudah terisi');
+                        }
+                    }
+                },
+            ],
         ];
     }
+    
 
     public function messages(): array
     {

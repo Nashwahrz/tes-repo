@@ -13,7 +13,7 @@ class RegisterResponse
     public function success(User $user): JsonResponse
     {
         return response()->json([
-            'message' => 'Registrasi berhasil.',
+            'message' => 'Registrasi berhasil.Silahkan cek email anda untuk verifikasi kode otp.',
             'data'    => [
                 'id'        => $user->id,
                 'name'      => $user->name,
@@ -24,7 +24,7 @@ class RegisterResponse
                 'id_role'   => $user->id_role,
             ],
             // 'token'   => $token,
-        ], 201);
+        ], 200);
     }
     public function validationError(array $errors): JsonResponse
     {
