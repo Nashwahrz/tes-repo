@@ -12,6 +12,7 @@ use Illuminate\Database\UniqueConstraintViolationException;
 use Throwable;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
+use App\Enums\StatusUser;
 
 class AuthController extends Controller
 {
@@ -31,7 +32,7 @@ class AuthController extends Controller
         } catch (Throwable $e) {
 
             Log::error('Register gagal: ' . $e->getMessage());
-            return $this->response->serverError();
+            return $this->registerResponse->serverError();
 
         }
     }
@@ -45,9 +46,12 @@ class AuthController extends Controller
 
             $user = Auth::user();
 
-            if (!$user->status) {
+            if ($user->status !== StatusUser::Aktif) {
                 Auth::logout();
-                return $this->loginResponse->inactive();
+                return match ($user->status) {
+                    StatusUser::Nonaktif => $this->loginResponse->reject(),
+                    default              => $this->loginResponse->inactive(), // Pending
+                };
             }
 
             $token = $user->createToken('auth_token')->plainTextToken;
