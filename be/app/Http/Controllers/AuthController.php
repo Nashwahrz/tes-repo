@@ -68,7 +68,7 @@ class AuthController extends Controller
             if ($user->status !== StatusUser::Aktif) {
                 Auth::logout();
                 return match ($user->status) {
-                    StatusUser::Nonaktif => $this->loginResponse->reject(),
+                    StatusUser::Ditolak  => $this->loginResponse->reject(),
                     default              => $this->loginResponse->inactive(), // Pending
                 };
             }
