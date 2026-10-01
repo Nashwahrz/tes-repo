@@ -22,7 +22,7 @@ class RegisterRequest extends FormRequest
             'password'  => ['required', 'string', 'min:8', 'confirmed'],
             'id_dealer' => ['nullable', 'exists:dealers,id'],
             'id_atasan' => ['nullable', 'exists:users,id'],
-            'id_role'   => ['nullable', 'exists:roles,id'],
+            'id_role'   => ['required', 'exists:roles,id'],
         ];
     }
 
@@ -39,6 +39,7 @@ class RegisterRequest extends FormRequest
             'id_dealer.exists'   => 'Dealer tidak ditemukan.',
             'id_atasan.exists'   => 'Atasan tidak ditemukan.',
             'id_role.exists'     => 'Role tidak ditemukan.',
+            'id_role.required'   => 'Role wajib dipilih.',
         ];
     }
 

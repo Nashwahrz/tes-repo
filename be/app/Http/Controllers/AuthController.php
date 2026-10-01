@@ -31,7 +31,7 @@ class AuthController extends Controller
         } catch (Throwable $e) {
 
             Log::error('Register gagal: ' . $e->getMessage());
-            return $this->response->serverError();
+            return $this->registerResponse->serverError();
 
         }
     }
