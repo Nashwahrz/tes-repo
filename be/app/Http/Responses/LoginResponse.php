@@ -30,11 +30,21 @@ class LoginResponse
         ], 401);
     }
 
+    public function emailNotVerified(string $email): JsonResponse
+    {
+        return response()->json([
+            'success'        => false,
+            'code'           => 'email_not_verified',
+            'message'        => 'Email Anda belum diverifikasi. Silakan verifikasi dengan kode OTP.',
+            'email'          => $email,
+        ], 403);
+    }
+
     public function inactive(): JsonResponse
     {
         return response()->json([
             'success' => false,
-            'message' => 'Akun Anda belum aktif. Silakan hubungi administrator.',
+            'message' => 'Email Anda sudah terverifikasi, namun akun masih menunggu persetujuan (ACC) Manager.',
         ], 403);
     }
 

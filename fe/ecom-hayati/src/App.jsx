@@ -1,6 +1,7 @@
 import LoginPage from './pages/LoginPage'
 import RegisterPage from './pages/RegisterPage'
 import DashboardPage from './pages/DashboardPage'
+import OtpPage from './pages/OtpPage'
 import './App.css'
 
 function App() {
@@ -14,6 +15,9 @@ function App() {
       return null
     }
     return <DashboardPage />
+  }
+  if (path.startsWith('/otp')) {
+    return <OtpPage />
   }
   if (path.startsWith('/register')) {
     if (isLoggedIn) {

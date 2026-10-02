@@ -1,0 +1,53 @@
+.otp-boxes {
+  display: flex;
+  gap: 8px;
+  justify-content: space-between;
+  margin-bottom: 18px;
+}
+
+.otp-box {
+  width: 100%;
+  min-width: 0;
+  aspect-ratio: 1 / 1.15;
+  padding: 0;
+  font: inherit;
+  font-size: 22px;
+  font-weight: 700;
+  text-align: center;
+  color: #111;
+  background: #f1f1f1;
+  border: 1px solid transparent;
+  border-radius: 12px;
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color 0.2s, background 0.2s;
+}
+
+.otp-box:focus {
+  background: #fff;
+  border-color: #e8590c;
+}
+
+.otp-timer {
+  margin-left: 6px;
+  color: #888;
+}
+
+.otp-resend {
+  margin-left: 6px;
+  padding: 0;
+  font: inherit;
+  font-weight: 700;
+  color: #c2410c;
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+
+.otp-resend:hover {
+  text-decoration: underline;
+}
+
+a.login-secure {
+  text-decoration: none;
+}

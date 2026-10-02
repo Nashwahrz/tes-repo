@@ -56,6 +56,11 @@ class AuthController extends Controller
 
             $user = Auth::user();
 
+            if (!$user->email_verifikasi) {
+                Auth::logout();
+                return $this->loginResponse->emailNotVerified($user->email);
+            }
+
             if ($user->status !== StatusUser::Aktif) {
                 Auth::logout();
                 return match ($user->status) {

@@ -1,6 +1,9 @@
 // src/pages/RegisterPage.jsx
 import { useState } from 'react';
 import { registerUser } from '../api/authServices';
+import './LoginPage.css';
+
+const LOGO_SRC = '/logo.png';
 
 // Enum / list role berurutan sesuai seeder DB:
 // $roles = ['Manager', 'Kacab', 'ADH', 'ME', 'Kasir'];
@@ -21,6 +24,7 @@ function RegisterPage() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -42,9 +46,9 @@ function RegisterPage() {
     try {
       const data = await registerUser(name, email, password, password_confirmation, Number(id_role));
 
-      setSuccess(data?.message || 'Registrasi berhasil! Mengarahkan ke halaman login...');
+      setSuccess(data?.message || 'Registrasi berhasil! Mengarahkan ke verifikasi OTP...');
       setTimeout(() => {
-        window.location.href = '/';
+        window.location.href = `/otp?email=${encodeURIComponent(email)}`;
       }, 1500);
     } catch (err) {
       const data = err.response?.data;
@@ -55,184 +59,120 @@ function RegisterPage() {
     }
   };
 
-  const formControlStyle = {
-    display: 'block',
-    width: '100%',
-    boxSizing: 'border-box',
-    padding: '10px 12px',
-    fontSize: '14px',
-    borderRadius: '6px',
-    border: '1px solid #d1d5db',
-    outline: 'none',
-    backgroundColor: 'inherit',
-    color: 'inherit',
-  };
-
-  const fieldGroupStyle = {
-    marginBottom: '14px',
-    textAlign: 'left',
-  };
-
-  const labelStyle = {
-    display: 'block',
-    marginBottom: '6px',
-    fontSize: '14px',
-    fontWeight: '500',
-  };
-
   return (
-    <div style={{ minHeight: '80vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px 16px' }}>
-      <div
-        style={{
-          width: '100%',
-          maxWidth: '440px',
-          padding: '32px',
-          borderRadius: '12px',
-          boxShadow: '0 4px 24px rgba(0, 0, 0, 0.08)',
-          border: '1px solid var(--border, #e5e4e7)',
-          backgroundColor: 'var(--bg, #ffffff)',
-          boxSizing: 'border-box',
-        }}
-      >
-        <h1 style={{ fontSize: '28px', margin: '0 0 24px', textAlign: 'center' }}>Register</h1>
+    <div className="login-page">
+      <div className="login-shell">
+        <img className="login-logo" src={LOGO_SRC} alt="Logo Hayati" />
+        <h2 className="login-brand">
+          Hayati<span> •</span>
+        </h2>
+        <h1 className="login-title">Buat Akun Baru</h1>
+        <p className="login-subtitle">Lengkapi data berikut untuk mendaftar</p>
 
-        <form onSubmit={handleSubmit}>
-          <div style={fieldGroupStyle}>
-            <label
-              htmlFor="name"
-              style={labelStyle}
-            >
-              Nama
-            </label>
+        <form className="login-card" onSubmit={handleSubmit}>
+          <label className="login-label" htmlFor="name">Nama</label>
+          <div className="login-field">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="4" /><path d="M4 21a8 8 0 0 1 16 0" /></svg>
             <input
+              className="login-input"
               id="name"
               type="text"
               placeholder="Masukkan nama lengkap"
               value={name}
               onChange={(e) => setName(e.target.value)}
               required
-              style={formControlStyle}
             />
           </div>
 
-          <div style={fieldGroupStyle}>
-            <label
-              htmlFor="email"
-              style={labelStyle}
-            >
-              Email
-            </label>
+          <label className="login-label" htmlFor="email">Email</label>
+          <div className="login-field">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="4" /><path d="M16 8v5a3 3 0 0 0 6 0v-1a10 10 0 1 0-4 8" /></svg>
             <input
+              className="login-input"
               id="email"
               type="email"
-              placeholder="contoh@email.com"
+              placeholder="contoh: nama@email.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              style={formControlStyle}
             />
           </div>
 
-          <div style={fieldGroupStyle}>
-            <label
-              htmlFor="role"
-              style={labelStyle}
-            >
-              Role
-            </label>
+          <label className="login-label" htmlFor="role">Role</label>
+          <div className="login-field">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="16" rx="2" /><circle cx="9" cy="11" r="2" /><path d="M15 9h3M15 13h3M6 17c.5-2 5.5-2 6 0" /></svg>
             <select
+              className="login-input"
               id="role"
               value={id_role}
               onChange={(e) => setIdRole(e.target.value)}
               required
-              style={formControlStyle}
             >
-              <option
-                value=""
-                disabled
-              >
+              <option value="" disabled>
                 -- Pilih Role --
               </option>
               {ROLES.map((role) => (
-                <option
-                  key={role.id}
-                  value={role.id}
-                >
+                <option key={role.id} value={role.id}>
                   {role.name}
                 </option>
               ))}
             </select>
           </div>
 
-          <div style={fieldGroupStyle}>
-            <label
-              htmlFor="password"
-              style={labelStyle}
-            >
-              Password
-            </label>
+          <label className="login-label" htmlFor="password">Kata Sandi</label>
+          <div className="login-field">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="4" y="11" width="16" height="10" rx="2" /><path d="M8 11V7a4 4 0 0 1 8 0v4" /></svg>
             <input
+              className="login-input"
               id="password"
-              type="password"
-              placeholder="Masukkan password"
+              type={showPassword ? 'text' : 'password'}
+              placeholder="Masukkan kata sandi"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              style={formControlStyle}
             />
+            <button
+              type="button"
+              className="login-toggle"
+              onClick={() => setShowPassword((v) => !v)}
+              aria-label={showPassword ? 'Sembunyikan kata sandi' : 'Tampilkan kata sandi'}
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z" /><circle cx="12" cy="12" r="3" />{showPassword && <path d="M3 3l18 18" />}</svg>
+            </button>
           </div>
 
-          <div style={fieldGroupStyle}>
-            <label
-              htmlFor="password_confirmation"
-              style={labelStyle}
-            >
-              Konfirmasi Password
-            </label>
+          <label className="login-label" htmlFor="password_confirmation">Konfirmasi Kata Sandi</label>
+          <div className="login-field">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="4" y="11" width="16" height="10" rx="2" /><path d="M8 11V7a4 4 0 0 1 8 0v4" /></svg>
             <input
+              className="login-input"
               id="password_confirmation"
-              type="password"
-              placeholder="Ulangi password"
+              type={showPassword ? 'text' : 'password'}
+              placeholder="Ulangi kata sandi"
               value={password_confirmation}
               onChange={(e) => setPasswordConfirmation(e.target.value)}
               required
-              style={formControlStyle}
             />
+            <button
+              type="button"
+              className="login-toggle"
+              onClick={() => setShowPassword((v) => !v)}
+              aria-label={showPassword ? 'Sembunyikan kata sandi' : 'Tampilkan kata sandi'}
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z" /><circle cx="12" cy="12" r="3" />{showPassword && <path d="M3 3l18 18" />}</svg>
+            </button>
           </div>
 
-          {error && <div style={{ color: '#ef4444', backgroundColor: '#fee2e2', padding: '10px 12px', borderRadius: '6px', fontSize: '14px', marginBottom: '14px', textAlign: 'left' }}>{error}</div>}
+          {error && <p className="login-error">{error}</p>}
+          {success && <p className="login-success">{success}</p>}
 
-          {success && <div style={{ color: '#15803d', backgroundColor: '#dcfce7', padding: '10px 12px', borderRadius: '6px', fontSize: '14px', marginBottom: '14px', textAlign: 'left' }}>{success}</div>}
-
-          <button
-            type="submit"
-            disabled={loading}
-            style={{
-              width: '100%',
-              padding: '12px',
-              fontSize: '15px',
-              fontWeight: '600',
-              borderRadius: '6px',
-              border: 'none',
-              backgroundColor: '#2563eb',
-              color: '#ffffff',
-              cursor: loading ? 'not-allowed' : 'pointer',
-              opacity: loading ? 0.7 : 1,
-              marginTop: '8px',
-            }}
-          >
-            {loading ? 'Mendaftar...' : 'Register'}
+          <button type="submit" className="login-submit" disabled={loading}>
+            {loading ? 'Mendaftar...' : 'Daftar →'}
           </button>
         </form>
 
-        <p style={{ marginTop: '20px', textAlign: 'center', fontSize: '14px' }}>
-          Sudah punya akun?{' '}
-          <a
-            href="/"
-            style={{ color: '#2563eb', textDecoration: 'none', fontWeight: '500' }}
-          >
-            Login di sini
-          </a>
+        <p className="login-register">
+          Sudah punya akun?<a href="/">Masuk Sekarang ›</a>
         </p>
       </div>
     </div>
