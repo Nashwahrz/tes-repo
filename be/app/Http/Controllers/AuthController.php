@@ -58,6 +58,11 @@ class AuthController extends Controller
 
             if (!$user->email_verifikasi) {
                 Auth::logout();
+
+                $expiryMinutes = 5;
+                $otp = $this->otpRepository->createOtp($user, 6, $expiryMinutes);
+                Mail::to($user->email)->send(new SendOtpMail($user, $otp->otp, $expiryMinutes));
+
                 return $this->loginResponse->emailNotVerified($user->email);
             }
 

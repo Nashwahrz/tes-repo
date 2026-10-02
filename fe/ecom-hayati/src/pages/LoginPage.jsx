@@ -1,6 +1,6 @@
 // src/pages/LoginPage.jsx
 import { useState } from 'react';
-import { loginUser, sendOtp } from '../api/authServices';
+import { loginUser } from '../api/authServices';
 import './LoginPage.css';
 
 const LOGO_SRC = '/logo.png';
@@ -32,13 +32,8 @@ function LoginPage() {
       // 422 -> validasi, 500 -> kesalahan server
       const data = err.response?.data;
 
-      // Email belum diverifikasi -> kirim OTP otomatis lalu arahkan ke halaman OTP
+      // Email belum diverifikasi -> BE sudah mengirim OTP, arahkan ke halaman OTP
       if (data?.code === 'email_not_verified') {
-        try {
-          await sendOtp(email);
-        } catch {
-          // Gagal kirim otomatis: user tetap bisa menekan "Kirim Ulang" di halaman OTP
-        }
         window.location.href = `/otp?email=${encodeURIComponent(email)}`;
         return;
       }
