@@ -20,9 +20,9 @@ class RegisterRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name'      => ['required', 'string', 'max:255'],
+            'name'      => ['required', 'string', 'max:255', 'regex:/^[a-zA-Z\s]+$/'],
             'email'     => ['required', 'email', 'max:255', 'unique:users,email'],
-            'password'  => ['required', 'string', 'min:8', 'confirmed'],
+            'password'  => ['required', 'string', 'min:8', 'confirmed', 'regex:/[A-Z]/', 'regex:/[a-z]/', 'regex:/[^A-Za-z0-9]/'],
             'id_dealer' => ['nullable', 'exists:dealers,id'],
             'id_atasan' => ['nullable', 'exists:users,id'],
             'id_role'   => [
@@ -53,6 +53,7 @@ class RegisterRequest extends FormRequest
             'email.unique'       => 'Email sudah terdaftar.',
             'password.required'  => 'Password wajib diisi.',
             'password.min'       => 'Password minimal 8 karakter.',
+            'password.regex'     => 'Password harus mengandung huruf besar, huruf kecil, dan simbol.',
             'password.confirmed' => 'Konfirmasi password tidak cocok.',
             'id_dealer.exists'   => 'Dealer tidak ditemukan.',
             'id_atasan.exists'   => 'Atasan tidak ditemukan.',
