@@ -9,6 +9,7 @@ use Closure;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
+use Illuminate\Validation\Rules\Password;
 
 class RegisterRequest extends FormRequest
 {
@@ -22,7 +23,7 @@ class RegisterRequest extends FormRequest
         return [
             'name'      => ['required', 'string', 'max:255', 'regex:/^[a-zA-Z\s]+$/'],
             'email'     => ['required', 'email', 'max:255', 'unique:users,email'],
-            'password'  => ['required', 'string', 'min:8', 'confirmed', 'regex:/[A-Z]/', 'regex:/[a-z]/', 'regex:/[^A-Za-z0-9]/'],
+            'password'  => ['required', 'string', 'confirmed',Password::min(8)->mixedCase()->numbers()->symbols(),],
             'id_dealer' => ['nullable', 'exists:dealers,id'],
             'id_atasan' => ['nullable', 'exists:users,id'],
             'id_role'   => [
@@ -48,6 +49,7 @@ class RegisterRequest extends FormRequest
     {
         return [
             'name.required'      => 'Nama wajib diisi.',
+            'name.regex'         => 'Nama tidak boleh mengandung simbol atau angka.',
             'email.required'     => 'Email wajib diisi.',
             'email.email'        => 'Format email tidak valid.',
             'email.unique'       => 'Email sudah terdaftar.',
