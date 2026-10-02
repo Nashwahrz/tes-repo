@@ -35,7 +35,7 @@ class RegisterRequest extends FormRequest
                         $managerExists = User::where('id_role', $managerRole->id)->exists();
 
                         if ($managerExists) {
-                            $fail('Role sudah terisi');
+                            $fail('Data tidak bisa diisi');
                         }
                     }
                 },
