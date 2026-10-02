@@ -8,7 +8,6 @@ const LOGO_SRC = '/logo.png';
 // Enum / list role berurutan sesuai seeder DB:
 // $roles = ['Manager', 'Kacab', 'ADH', 'ME', 'Kasir'];
 const ROLES = [
-  { id: 1, name: 'Manager' },
   { id: 2, name: 'Kacab' },
   { id: 3, name: 'ADH' },
   { id: 4, name: 'ME' },
