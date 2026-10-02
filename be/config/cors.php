@@ -20,11 +20,13 @@ return [
     'allowed_methods' => ['*'],
 
     'allowed_origins' => [
-        'http://localhost:5173',  // Vite dev server (default)
-        'http://127.0.0.1:5173', // Alternatif localhost
+        // 'http://localhost:5173',  // Vite dev server (default)
+        // 'http://127.0.0.1:5173', // Alternatif localhost
+        '*'
     ],
 
     'allowed_origins_patterns' => [
+        '#^https?://.*\.trycloudflare\.com$#',
         '#^http://(localhost|127\.0\.0\.1):\d+$#',  // port Vite apa pun saat dev
     ],
 
