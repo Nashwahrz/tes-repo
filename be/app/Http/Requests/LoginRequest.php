@@ -9,7 +9,7 @@ use App\Http\Responses\LoginResponse;
 
 class LoginRequest extends FormRequest
 {
-     public function authorize(): bool
+    public function authorize(): bool
     {
         return true;
     }

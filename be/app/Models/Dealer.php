@@ -9,7 +9,7 @@ class Dealer extends Model
     protected $fillable = [
         'name',
         'alamat',
-        'kode'
-        
+        'latitude',
+        'longitude',
     ];
 }
