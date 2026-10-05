@@ -1,6 +1,6 @@
 // src/pages/OtpPage.jsx
 import { useEffect, useRef, useState } from 'react';
-import { sendOtp, verifyOtp } from '../api/authServices';
+import { sendOtp, verifyOtp } from '../../api/authServices';
 import './LoginPage.css';
 import './OtpPage.css';
 

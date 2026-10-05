@@ -209,3 +209,14 @@ select.login-input {
   cursor: pointer;
   appearance: none;
 }
+
+.login-field.invalid {
+  border-color: #b42318;
+  margin-bottom: 6px;
+}
+
+.field-error {
+  margin: 0 0 14px;
+  font-size: 12px;
+  color: #b42318;
+}

@@ -12,14 +12,12 @@ export const registerUser = async (name, email, password, password_confirmation,
   return response.data;
 };
 
-// export const getPendingUsers = async () => {
-//   const response = await api.get('/users/pending');
-//   return response.data.data;
-// };
+export const getUsers = async (status) => (await api.get(status ? `/users/${status}` : '/users')).data.data;
 
-// export const approveUser = async (id) => (await api.post(`/users/${id}/approve`)).data;
+export const getDealers = async () => (await api.get('/dealers')).data.data;
 
-// export const rejectUser = async (id) => (await api.post(`/users/${id}/reject`)).data;
+// status: 'aktif' | 'ditolak' | 'nonaktif'
+export const updateUserStatus = async (id, id_dealer, status) => (await api.put(`/users/${id}`, { id_dealer, status })).data;
 
 export const sendOtp = async (email) => (await api.post('/otp/send', { email })).data;
 
