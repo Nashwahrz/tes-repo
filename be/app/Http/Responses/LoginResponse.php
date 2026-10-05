@@ -55,6 +55,15 @@ class LoginResponse
             'message' => 'Akun Anda ditolak. Silakan hubungi administrator.',
         ], 403);
     }
+
+    public function nonaktif(): JsonResponse
+    {
+        return response()->json([
+            'success' => false,
+            'message' => 'Akun Anda dinonaktifkan. Silakan hubungi administrator.',
+        ], 403);
+    }
+
     public function validationError(array $errors): JsonResponse
     {
         return response()->json([
