@@ -1,6 +1,6 @@
 // src/pages/RegisterPage.jsx
 import { useState } from 'react';
-import { registerUser } from '../api/authServices';
+import { registerUser } from '../../api/authServices';
 import './LoginPage.css';
 
 const LOGO_SRC = '/logo.png';
@@ -14,6 +14,19 @@ const ROLES = [
   { id: 5, name: 'Kasir' },
 ];
 
+// Validasi sisi klien, mengikuti aturan di be/app/Http/Requests/RegisterRequest.php
+const validateName = (v) => (v && !/^[a-zA-Z\s]+$/.test(v) ? 'Nama tidak boleh mengandung simbol atau angka.' : '');
+const validateEmail = (v) => (v && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v) ? 'Format email tidak valid.' : '');
+const validatePassword = (v) => {
+  if (!v) return '';
+  const missing = [];
+  if (v.length < 8) missing.push('minimal 8 karakter');
+  if (!/[a-z]/.test(v) || !/[A-Z]/.test(v)) missing.push('huruf besar dan huruf kecil');
+  if (!/\d/.test(v)) missing.push('angka');
+  if (!/[^a-zA-Z0-9\s]/.test(v)) missing.push('simbol');
+  return missing.length ? `Password harus mengandung ${missing.join(', ')}.` : '';
+};
+
 function RegisterPage() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -25,10 +38,20 @@ function RegisterPage() {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
+  const nameError = validateName(name);
+  const emailError = validateEmail(email);
+  const passwordError = validatePassword(password);
+  const confirmError = password_confirmation && password !== password_confirmation ? 'Konfirmasi password tidak cocok.' : '';
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     setSuccess('');
+
+    if (nameError || emailError || passwordError) {
+      setError('Periksa kembali data yang Anda isi.');
+      return;
+    }
 
     if (password !== password_confirmation) {
       setError('Konfirmasi password tidak cocok.');
@@ -70,7 +93,7 @@ function RegisterPage() {
 
         <form className="login-card" onSubmit={handleSubmit}>
           <label className="login-label" htmlFor="name">Nama</label>
-          <div className="login-field">
+          <div className={`login-field${nameError ? ' invalid' : ''}`}>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="4" /><path d="M4 21a8 8 0 0 1 16 0" /></svg>
             <input
               className="login-input"
@@ -82,9 +105,10 @@ function RegisterPage() {
               required
             />
           </div>
+          {nameError && <p className="field-error">{nameError}</p>}
 
           <label className="login-label" htmlFor="email">Email</label>
-          <div className="login-field">
+          <div className={`login-field${emailError ? ' invalid' : ''}`}>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="4" /><path d="M16 8v5a3 3 0 0 0 6 0v-1a10 10 0 1 0-4 8" /></svg>
             <input
               className="login-input"
@@ -96,6 +120,7 @@ function RegisterPage() {
               required
             />
           </div>
+          {emailError && <p className="field-error">{emailError}</p>}
 
           <label className="login-label" htmlFor="role">Role</label>
           <div className="login-field">
@@ -119,7 +144,7 @@ function RegisterPage() {
           </div>
 
           <label className="login-label" htmlFor="password">Kata Sandi</label>
-          <div className="login-field">
+          <div className={`login-field${passwordError ? ' invalid' : ''}`}>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="4" y="11" width="16" height="10" rx="2" /><path d="M8 11V7a4 4 0 0 1 8 0v4" /></svg>
             <input
               className="login-input"
@@ -139,9 +164,10 @@ function RegisterPage() {
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z" /><circle cx="12" cy="12" r="3" />{showPassword && <path d="M3 3l18 18" />}</svg>
             </button>
           </div>
+          {passwordError && <p className="field-error">{passwordError}</p>}
 
           <label className="login-label" htmlFor="password_confirmation">Konfirmasi Kata Sandi</label>
-          <div className="login-field">
+          <div className={`login-field${confirmError ? ' invalid' : ''}`}>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="4" y="11" width="16" height="10" rx="2" /><path d="M8 11V7a4 4 0 0 1 8 0v4" /></svg>
             <input
               className="login-input"
@@ -161,6 +187,7 @@ function RegisterPage() {
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z" /><circle cx="12" cy="12" r="3" />{showPassword && <path d="M3 3l18 18" />}</svg>
             </button>
           </div>
+          {confirmError && <p className="field-error">{confirmError}</p>}
 
           {error && <p className="login-error">{error}</p>}
           {success && <p className="login-success">{success}</p>}

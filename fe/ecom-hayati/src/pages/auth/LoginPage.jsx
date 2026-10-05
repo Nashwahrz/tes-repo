@@ -1,6 +1,6 @@
 // src/pages/LoginPage.jsx
 import { useState } from 'react';
-import { loginUser } from '../api/authServices';
+import { loginUser } from '../../api/authServices';
 import './LoginPage.css';
 
 const LOGO_SRC = '/logo.png';
@@ -113,12 +113,13 @@ function LoginPage() {
           Belum punya akun?<a href="/register">Daftar Sekarang ›</a>
         </p>
 
-        <span className="login-secure">
+                {/* <span className="login-secure">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
           </svg>
           Enkripsi data 256-bit aman &amp; terlindungi
-        </span>
+        </span> */}
+
       </div>
     </div>
   );

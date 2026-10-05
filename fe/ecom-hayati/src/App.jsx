@@ -1,10 +1,21 @@
-import LoginPage from './pages/LoginPage'
-import RegisterPage from './pages/RegisterPage'
-import DashboardPage from './pages/DashboardPage'
-import OtpPage from './pages/OtpPage'
+import { lazy, Suspense } from 'react'
 import './App.css'
 
+// Tiap halaman dimuat hanya saat URL-nya dibuka
+const LoginPage = lazy(() => import('./pages/auth/LoginPage'))
+const RegisterPage = lazy(() => import('./pages/auth/RegisterPage'))
+const DashboardPage = lazy(() => import('./pages/dashboard/DashboardPage'))
+const OtpPage = lazy(() => import('./pages/auth/OtpPage'))
+
 function App() {
+  return (
+    <Suspense fallback={null}>
+      <Routes />
+    </Suspense>
+  )
+}
+
+function Routes() {
   const isLoggedIn = !!localStorage.getItem('token')
   const path = window.location.pathname
 
