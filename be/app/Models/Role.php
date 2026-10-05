@@ -9,4 +9,15 @@ class Role extends Model
     protected $fillable = [
         'name'
     ];
+
+    public function menus()
+    {
+        return $this->belongsToMany(Menu::class, 'role_menus', 'id_role', 'id_menu')->withTimestamps();
+    }
+
+    public function roleMenus()
+    {
+        return $this->hasMany(RoleMenu::class, 'id_role');
+    }
 }
+
