@@ -73,5 +73,27 @@ class User extends Authenticatable
     {
         return $this->hasMany(Otp::class, 'id_user');
     }
+
+    public function hasPermission(string $permission): bool
+    {
+        if (!$this->id_role || !$this->role) {
+            return false;
+        }
+
+        return $this->role->permissions()
+            ->where('nama_permission', $permission)
+            ->exists();
+    }
+
+    public function hasAnyPermission(array $permissions): bool
+    {
+        if (!$this->id_role || !$this->role) {
+            return false;
+        }
+
+        return $this->role->permissions()
+            ->whereIn('nama_permission', $permissions)
+            ->exists();
+    }
 }
 

@@ -59,7 +59,7 @@ class RoleMenuController extends Controller
     /**
      * Get assigned menus and available menus for a specific role.
      */
-    public function show(string|int $roleId)
+    public function show(int $roleId)
     {
         try {
             $role = $this->roleMenuRepository->findRoleById($roleId);
@@ -83,7 +83,7 @@ class RoleMenuController extends Controller
     /**
      * Update/sync menus assigned to a specific role.
      */
-    public function update(RoleMenuRequest $request, string|int $roleId)
+    public function update(RoleMenuRequest $request, int $roleId)
     {
         try {
             $role = $this->roleMenuRepository->findRoleById($roleId);

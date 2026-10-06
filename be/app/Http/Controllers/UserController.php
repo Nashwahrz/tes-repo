@@ -20,7 +20,7 @@ class UserController extends Controller
 
 
     
-    public function activate(ActivateUserRequest $request, string|int $id)
+    public function activate(ActivateUserRequest $request, int $id)
     {
         try {
 
