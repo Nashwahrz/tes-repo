@@ -9,6 +9,7 @@ use App\Http\Responses\RegisterResponse;
 use App\Mail\SendOtpMail;
 use App\Repositories\OtpRepository;
 use App\Repositories\UserRepository;
+use App\Services\LoginLogService;
 use Illuminate\Http\Request;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Throwable;
@@ -24,6 +25,7 @@ class AuthController extends Controller
         private OtpRepository $otpRepository,
         private RegisterResponse $registerResponse,
         private LoginResponse $loginResponse,
+        private LoginLogService $loginLogService,
     ) {}
 
     public function register(RegisterRequest $request)
@@ -50,7 +52,28 @@ class AuthController extends Controller
     public function login(LoginRequest $request)
     {
         try {
+            $ip    = $request->ip();
+            $email = $request->input('email');
+
+            if ($this->loginLogService->isLocked($ip, $email)) {
+                $seconds = $this->loginLogService->secondsUntilUnlock($ip, $email);
+                return $this->loginResponse->tooManyAttempts(
+                    $seconds,
+                    $this->loginLogService->maxAttempts()
+                );
+            }
+
             if (!Auth::attempt($request->only('email', 'password'))) {
+                $this->loginLogService->incrementAttempts($ip, $email);
+
+                if ($this->loginLogService->isLocked($ip, $email)) {
+                    $seconds = $this->loginLogService->secondsUntilUnlock($ip, $email);
+                    return $this->loginResponse->tooManyAttempts(
+                        $seconds,
+                        $this->loginLogService->maxAttempts()
+                    );
+                }
+
                 return $this->loginResponse->unauthorized();
             }
 
@@ -65,7 +88,7 @@ class AuthController extends Controller
 
                 return $this->loginResponse->emailNotVerified($user->email);
             }
-
+            
             if ($user->status !== StatusUser::Aktif) {
                 Auth::logout();
                 return match ($user->status) {
@@ -75,13 +98,16 @@ class AuthController extends Controller
                 };
             }
 
+           
+            $this->loginLogService->clearAttempts($ip, $email);
+            $this->loginLogService->log($user, $request);
+
             $token = $user->createToken('auth_token')->plainTextToken;
 
             return $this->loginResponse->success($user, $token);
         } catch (Throwable $e) {
             Log::error('Login error: ' . $e->getMessage());
             return $this->loginResponse->serverError();
-
         }
     }
 
