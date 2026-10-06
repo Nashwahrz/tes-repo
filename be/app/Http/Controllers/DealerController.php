@@ -46,7 +46,7 @@ class DealerController extends Controller
         }
     }
 
-    public function show(string|int $id)
+    public function show(int $id)
     {
         try {
             $dealer = $this->dealerRepository->findById($id);
@@ -64,7 +64,7 @@ class DealerController extends Controller
         }
     }
 
-    public function update(DealerRequest $request, string|int $id)
+    public function update(DealerRequest $request, int $id)
     {
         try {
             $dealer = $this->dealerRepository->findById($id);
@@ -86,7 +86,7 @@ class DealerController extends Controller
         }
     }
 
-    public function destroy(string|int $id)
+    public function destroy(int $id)
     {
         try {
             $dealer = $this->dealerRepository->findById($id);
