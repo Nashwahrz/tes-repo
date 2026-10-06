@@ -73,6 +73,18 @@ class LoginResponse
         ], 422);
     }
 
+    public function tooManyAttempts(int $seconds, int $maxAttempts): JsonResponse
+    {
+        $minutes = ceil($seconds / 60);
+        return response()->json([
+            'success'      => false,
+            'code'         => 'too_many_attempts',
+            'message'      => "Terlalu banyak percobaan login. Akun diblokir sementara selama {$minutes} menit.",
+            'retry_after'  => $seconds,
+            'max_attempts' => $maxAttempts,
+        ], 429);
+    }
+
     public function serverError(): JsonResponse
     {
         return response()->json([

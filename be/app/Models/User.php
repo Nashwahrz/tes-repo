@@ -74,6 +74,11 @@ class User extends Authenticatable
         return $this->hasMany(Otp::class, 'id_user');
     }
 
+    public function logUsers()
+    {
+        return $this->hasMany(LogUser::class, 'id_user');
+    }
+
     public function hasPermission(string $permission): bool
     {
         if (!$this->id_role || !$this->role) {

@@ -18,6 +18,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'menu.access' => CheckMenuAccess::class,
             'permission'  => CheckPermission::class,
         ]);
+        $middleware->trustProxies(at: '127.0.0.1');
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //

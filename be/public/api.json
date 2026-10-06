@@ -6,21 +6,19 @@
     },
     "servers": [
         {
-            "url": "http://localhost:8000/api"
+            "url": "https://speaks-alfred-technologies-gst.trycloudflare.com/api"
         }
     ],
     "security": [
         {
-            "http": []
+            "http": []  
         }
     ],
     "paths": {
         "/register": {
             "post": {
                 "operationId": "auth.register",
-                "tags": [
-                    "Auth"
-                ],
+                "tags": ["Auth"],
                 "requestBody": {
                     "required": true,
                     "content": {
@@ -47,10 +45,7 @@
                                             "const": "Terjadi kesalahan pada server. Silakan coba lagi."
                                         }
                                     },
-                                    "required": [
-                                        "success",
-                                        "message"
-                                    ]
+                                    "required": ["success", "message"]
                                 }
                             }
                         }
@@ -84,16 +79,10 @@
                                                     "maxItems": 1
                                                 }
                                             },
-                                            "required": [
-                                                "email"
-                                            ]
+                                            "required": ["email"]
                                         }
                                     },
-                                    "required": [
-                                        "success",
-                                        "message",
-                                        "errors"
-                                    ]
+                                    "required": ["success", "message", "errors"]
                                 }
                             }
                         }
@@ -125,16 +114,10 @@
                                                     "$ref": "#/components/schemas/StatusUser"
                                                 },
                                                 "id_dealer": {
-                                                    "type": [
-                                                        "integer",
-                                                        "null"
-                                                    ]
+                                                    "type": ["integer", "null"]
                                                 },
                                                 "id_atasan": {
-                                                    "type": [
-                                                        "integer",
-                                                        "null"
-                                                    ]
+                                                    "type": ["integer", "null"]
                                                 },
                                                 "id_role": {
                                                     "type": "integer"
@@ -151,10 +134,7 @@
                                             ]
                                         }
                                     },
-                                    "required": [
-                                        "message",
-                                        "data"
-                                    ]
+                                    "required": ["message", "data"]
                                 }
                             }
                         }
@@ -168,9 +148,7 @@
         "/login": {
             "post": {
                 "operationId": "auth.login",
-                "tags": [
-                    "Auth"
-                ],
+                "tags": ["Auth"],
                 "requestBody": {
                     "required": true,
                     "content": {
@@ -197,10 +175,7 @@
                                             "const": "Terjadi kesalahan pada server. Silakan coba lagi."
                                         }
                                     },
-                                    "required": [
-                                        "success",
-                                        "message"
-                                    ]
+                                    "required": ["success", "message"]
                                 }
                             }
                         }
@@ -226,20 +201,13 @@
                                                     "type": "string"
                                                 }
                                             },
-                                            "required": [
-                                                "id",
-                                                "email"
-                                            ]
+                                            "required": ["id", "email"]
                                         },
                                         "token": {
                                             "type": "string"
                                         }
                                     },
-                                    "required": [
-                                        "message",
-                                        "data",
-                                        "token"
-                                    ]
+                                    "required": ["message", "data", "token"]
                                 }
                             }
                         }
@@ -261,10 +229,7 @@
                                                     "const": "Akun Anda ditolak. Silakan hubungi administrator."
                                                 }
                                             },
-                                            "required": [
-                                                "success",
-                                                "message"
-                                            ]
+                                            "required": ["success", "message"]
                                         },
                                         {
                                             "type": "object",
@@ -277,10 +242,7 @@
                                                     "const": "Akun Anda dinonaktifkan. Silakan hubungi administrator."
                                                 }
                                             },
-                                            "required": [
-                                                "success",
-                                                "message"
-                                            ]
+                                            "required": ["success", "message"]
                                         },
                                         {
                                             "type": "object",
@@ -293,10 +255,7 @@
                                                     "const": "Email Anda sudah terverifikasi, namun akun masih menunggu persetujuan (ACC) Manager."
                                                 }
                                             },
-                                            "required": [
-                                                "success",
-                                                "message"
-                                            ]
+                                            "required": ["success", "message"]
                                         },
                                         {
                                             "type": "object",
@@ -343,10 +302,7 @@
                                             "const": "Email atau password salah."
                                         }
                                     },
-                                    "required": [
-                                        "success",
-                                        "message"
-                                    ]
+                                    "required": ["success", "message"]
                                 }
                             }
                         }
@@ -360,9 +316,7 @@
         "/dealers": {
             "get": {
                 "operationId": "dealers.index",
-                "tags": [
-                    "Dealer"
-                ],
+                "tags": ["Dealer"],
                 "responses": {
                     "500": {
                         "description": "",
@@ -379,10 +333,7 @@
                                             "const": "Terjadi kesalahan pada server. Silakan coba lagi."
                                         }
                                     },
-                                    "required": [
-                                        "success",
-                                        "message"
-                                    ]
+                                    "required": ["success", "message"]
                                 }
                             }
                         }
@@ -408,11 +359,7 @@
                                             }
                                         }
                                     },
-                                    "required": [
-                                        "success",
-                                        "message",
-                                        "data"
-                                    ]
+                                    "required": ["success", "message", "data"]
                                 }
                             }
                         }
@@ -424,9 +371,7 @@
             },
             "post": {
                 "operationId": "dealers.store",
-                "tags": [
-                    "Dealer"
-                ],
+                "tags": ["Dealer"],
                 "requestBody": {
                     "required": true,
                     "content": {
@@ -453,10 +398,7 @@
                                             "const": "Terjadi kesalahan pada server. Silakan coba lagi."
                                         }
                                     },
-                                    "required": [
-                                        "success",
-                                        "message"
-                                    ]
+                                    "required": ["success", "message"]
                                 }
                             }
                         }
@@ -490,16 +432,10 @@
                                                     "maxItems": 1
                                                 }
                                             },
-                                            "required": [
-                                                "name"
-                                            ]
+                                            "required": ["name"]
                                         }
                                     },
-                                    "required": [
-                                        "success",
-                                        "message",
-                                        "errors"
-                                    ]
+                                    "required": ["success", "message", "errors"]
                                 }
                             }
                         }
@@ -522,11 +458,7 @@
                                             "$ref": "#/components/schemas/Dealer"
                                         }
                                     },
-                                    "required": [
-                                        "success",
-                                        "message",
-                                        "data"
-                                    ]
+                                    "required": ["success", "message", "data"]
                                 }
                             }
                         }
@@ -543,9 +475,7 @@
         "/dealers/{id}": {
             "get": {
                 "operationId": "dealers.show",
-                "tags": [
-                    "Dealer"
-                ],
+                "tags": ["Dealer"],
                 "parameters": [
                     {
                         "name": "id",
@@ -572,10 +502,7 @@
                                             "const": "Terjadi kesalahan pada server. Silakan coba lagi."
                                         }
                                     },
-                                    "required": [
-                                        "success",
-                                        "message"
-                                    ]
+                                    "required": ["success", "message"]
                                 }
                             }
                         }
@@ -605,11 +532,7 @@
                                             ]
                                         }
                                     },
-                                    "required": [
-                                        "success",
-                                        "message",
-                                        "data"
-                                    ]
+                                    "required": ["success", "message", "data"]
                                 }
                             }
                         }
@@ -629,10 +552,7 @@
                                             "const": "Dealer tidak ditemukan."
                                         }
                                     },
-                                    "required": [
-                                        "success",
-                                        "message"
-                                    ]
+                                    "required": ["success", "message"]
                                 }
                             }
                         }
@@ -644,9 +564,7 @@
             },
             "put": {
                 "operationId": "dealers.update",
-                "tags": [
-                    "Dealer"
-                ],
+                "tags": ["Dealer"],
                 "parameters": [
                     {
                         "name": "id",
@@ -683,10 +601,7 @@
                                             "const": "Terjadi kesalahan pada server. Silakan coba lagi."
                                         }
                                     },
-                                    "required": [
-                                        "success",
-                                        "message"
-                                    ]
+                                    "required": ["success", "message"]
                                 }
                             }
                         }
@@ -720,16 +635,10 @@
                                                     "maxItems": 1
                                                 }
                                             },
-                                            "required": [
-                                                "name"
-                                            ]
+                                            "required": ["name"]
                                         }
                                     },
-                                    "required": [
-                                        "success",
-                                        "message",
-                                        "errors"
-                                    ]
+                                    "required": ["success", "message", "errors"]
                                 }
                             }
                         }
@@ -752,11 +661,7 @@
                                             "$ref": "#/components/schemas/Dealer"
                                         }
                                     },
-                                    "required": [
-                                        "success",
-                                        "message",
-                                        "data"
-                                    ]
+                                    "required": ["success", "message", "data"]
                                 }
                             }
                         }
@@ -776,10 +681,7 @@
                                             "const": "Dealer tidak ditemukan."
                                         }
                                     },
-                                    "required": [
-                                        "success",
-                                        "message"
-                                    ]
+                                    "required": ["success", "message"]
                                 }
                             }
                         }
@@ -794,9 +696,7 @@
             },
             "delete": {
                 "operationId": "dealers.destroy",
-                "tags": [
-                    "Dealer"
-                ],
+                "tags": ["Dealer"],
                 "parameters": [
                     {
                         "name": "id",
@@ -823,10 +723,7 @@
                                             "const": "Terjadi kesalahan pada server. Silakan coba lagi."
                                         }
                                     },
-                                    "required": [
-                                        "success",
-                                        "message"
-                                    ]
+                                    "required": ["success", "message"]
                                 }
                             }
                         }
@@ -846,10 +743,7 @@
                                             "const": "Dealer berhasil dihapus."
                                         }
                                     },
-                                    "required": [
-                                        "success",
-                                        "message"
-                                    ]
+                                    "required": ["success", "message"]
                                 }
                             }
                         }
@@ -869,10 +763,7 @@
                                             "const": "Dealer tidak ditemukan."
                                         }
                                     },
-                                    "required": [
-                                        "success",
-                                        "message"
-                                    ]
+                                    "required": ["success", "message"]
                                 }
                             }
                         }
@@ -887,9 +778,7 @@
             "post": {
                 "operationId": "otp.sendOtp",
                 "summary": "Send OTP to user's email",
-                "tags": [
-                    "Otp"
-                ],
+                "tags": ["Otp"],
                 "requestBody": {
                     "required": true,
                     "content": {
@@ -916,10 +805,7 @@
                                             "const": "Terjadi kesalahan pada server. Silakan coba lagi."
                                         }
                                     },
-                                    "required": [
-                                        "success",
-                                        "message"
-                                    ]
+                                    "required": ["success", "message"]
                                 }
                             }
                         }
@@ -940,10 +826,7 @@
                                                     "type": "string"
                                                 }
                                             },
-                                            "required": [
-                                                "success",
-                                                "message"
-                                            ]
+                                            "required": ["success", "message"]
                                         },
                                         {
                                             "type": "object",
@@ -956,10 +839,7 @@
                                                     "const": "Email sudah aktif dan terverifikasi."
                                                 }
                                             },
-                                            "required": [
-                                                "success",
-                                                "message"
-                                            ]
+                                            "required": ["success", "message"]
                                         }
                                     ]
                                 }
@@ -995,16 +875,10 @@
                                                     "maxItems": 1
                                                 }
                                             },
-                                            "required": [
-                                                "email"
-                                            ]
+                                            "required": ["email"]
                                         }
                                     },
-                                    "required": [
-                                        "success",
-                                        "message",
-                                        "errors"
-                                    ]
+                                    "required": ["success", "message", "errors"]
                                 }
                             }
                         }
@@ -1019,9 +893,7 @@
             "post": {
                 "operationId": "otp.verifyOtp",
                 "summary": "Verify the OTP code",
-                "tags": [
-                    "Otp"
-                ],
+                "tags": ["Otp"],
                 "requestBody": {
                     "required": true,
                     "content": {
@@ -1048,10 +920,7 @@
                                             "const": "Terjadi kesalahan pada server. Silakan coba lagi."
                                         }
                                     },
-                                    "required": [
-                                        "success",
-                                        "message"
-                                    ]
+                                    "required": ["success", "message"]
                                 }
                             }
                         }
@@ -1090,11 +959,7 @@
                                             ]
                                         }
                                     },
-                                    "required": [
-                                        "success",
-                                        "message",
-                                        "data"
-                                    ]
+                                    "required": ["success", "message", "data"]
                                 }
                             }
                         }
@@ -1131,16 +996,10 @@
                                                     "maxItems": 1
                                                 }
                                             },
-                                            "required": [
-                                                "email"
-                                            ]
+                                            "required": ["email"]
                                         }
                                     },
-                                    "required": [
-                                        "success",
-                                        "message",
-                                        "errors"
-                                    ]
+                                    "required": ["success", "message", "errors"]
                                 }
                             }
                         }
@@ -1152,9 +1011,7 @@
             "get": {
                 "operationId": "roleMenu.userMenus",
                 "summary": "Get menus accessible by current logged-in user according to their role",
-                "tags": [
-                    "RoleMenu"
-                ],
+                "tags": ["RoleMenu"],
                 "responses": {
                     "500": {
                         "description": "",
@@ -1171,10 +1028,7 @@
                                             "const": "Terjadi kesalahan pada server. Silakan coba lagi."
                                         }
                                     },
-                                    "required": [
-                                        "success",
-                                        "message"
-                                    ]
+                                    "required": ["success", "message"]
                                 }
                             }
                         }
@@ -1245,9 +1099,7 @@
             "get": {
                 "operationId": "roleMenu.index",
                 "summary": "Get all roles with their assigned menus and list of all available menus",
-                "tags": [
-                    "RoleMenu"
-                ],
+                "tags": ["RoleMenu"],
                 "responses": {
                     "500": {
                         "description": "",
@@ -1264,10 +1116,7 @@
                                             "const": "Terjadi kesalahan pada server. Silakan coba lagi."
                                         }
                                     },
-                                    "required": [
-                                        "success",
-                                        "message"
-                                    ]
+                                    "required": ["success", "message"]
                                 }
                             }
                         }
@@ -1302,17 +1151,10 @@
                                                     }
                                                 }
                                             },
-                                            "required": [
-                                                "roles",
-                                                "menus"
-                                            ]
+                                            "required": ["roles", "menus"]
                                         }
                                     },
-                                    "required": [
-                                        "success",
-                                        "message",
-                                        "data"
-                                    ]
+                                    "required": ["success", "message", "data"]
                                 }
                             }
                         }
@@ -1327,9 +1169,7 @@
             "get": {
                 "operationId": "roleMenu.getMenus",
                 "summary": "Get all master menus list",
-                "tags": [
-                    "RoleMenu"
-                ],
+                "tags": ["RoleMenu"],
                 "responses": {
                     "500": {
                         "description": "",
@@ -1346,10 +1186,7 @@
                                             "const": "Terjadi kesalahan pada server. Silakan coba lagi."
                                         }
                                     },
-                                    "required": [
-                                        "success",
-                                        "message"
-                                    ]
+                                    "required": ["success", "message"]
                                 }
                             }
                         }
@@ -1375,11 +1212,7 @@
                                             }
                                         }
                                     },
-                                    "required": [
-                                        "success",
-                                        "message",
-                                        "data"
-                                    ]
+                                    "required": ["success", "message", "data"]
                                 }
                             }
                         }
@@ -1394,9 +1227,7 @@
             "get": {
                 "operationId": "roleMenu.show",
                 "summary": "Get assigned menus and available menus for a specific role",
-                "tags": [
-                    "RoleMenu"
-                ],
+                "tags": ["RoleMenu"],
                 "parameters": [
                     {
                         "name": "roleId",
@@ -1423,10 +1254,7 @@
                                             "const": "Terjadi kesalahan pada server. Silakan coba lagi."
                                         }
                                     },
-                                    "required": [
-                                        "success",
-                                        "message"
-                                    ]
+                                    "required": ["success", "message"]
                                 }
                             }
                         }
@@ -1480,11 +1308,7 @@
                                             ]
                                         }
                                     },
-                                    "required": [
-                                        "success",
-                                        "message",
-                                        "data"
-                                    ]
+                                    "required": ["success", "message", "data"]
                                 }
                             }
                         }
@@ -1504,10 +1328,7 @@
                                             "const": "Role tidak ditemukan."
                                         }
                                     },
-                                    "required": [
-                                        "success",
-                                        "message"
-                                    ]
+                                    "required": ["success", "message"]
                                 }
                             }
                         }
@@ -1520,9 +1341,7 @@
             "put": {
                 "operationId": "roleMenu.update",
                 "summary": "Update/sync menus assigned to a specific role",
-                "tags": [
-                    "RoleMenu"
-                ],
+                "tags": ["RoleMenu"],
                 "parameters": [
                     {
                         "name": "roleId",
@@ -1559,10 +1378,7 @@
                                             "const": "Terjadi kesalahan pada server. Silakan coba lagi."
                                         }
                                     },
-                                    "required": [
-                                        "success",
-                                        "message"
-                                    ]
+                                    "required": ["success", "message"]
                                 }
                             }
                         }
@@ -1613,11 +1429,7 @@
                                             ]
                                         }
                                     },
-                                    "required": [
-                                        "success",
-                                        "message",
-                                        "data"
-                                    ]
+                                    "required": ["success", "message", "data"]
                                 }
                             }
                         }
@@ -1637,10 +1449,7 @@
                                             "const": "Role tidak ditemukan."
                                         }
                                     },
-                                    "required": [
-                                        "success",
-                                        "message"
-                                    ]
+                                    "required": ["success", "message"]
                                 }
                             }
                         }
@@ -1658,9 +1467,7 @@
             "get": {
                 "operationId": "rolePermission.userPermissions",
                 "summary": "Get permissions accessible by current logged-in user according to their role",
-                "tags": [
-                    "RolePermission"
-                ],
+                "tags": ["RolePermission"],
                 "responses": {
                     "500": {
                         "description": "",
@@ -1677,10 +1484,7 @@
                                             "const": "Terjadi kesalahan pada server. Silakan coba lagi."
                                         }
                                     },
-                                    "required": [
-                                        "success",
-                                        "message"
-                                    ]
+                                    "required": ["success", "message"]
                                 }
                             }
                         }
@@ -1751,9 +1555,7 @@
             "get": {
                 "operationId": "rolePermission.index",
                 "summary": "Get all roles with their assigned permissions and list of all available permissions",
-                "tags": [
-                    "RolePermission"
-                ],
+                "tags": ["RolePermission"],
                 "responses": {
                     "500": {
                         "description": "",
@@ -1770,10 +1572,7 @@
                                             "const": "Terjadi kesalahan pada server. Silakan coba lagi."
                                         }
                                     },
-                                    "required": [
-                                        "success",
-                                        "message"
-                                    ]
+                                    "required": ["success", "message"]
                                 }
                             }
                         }
@@ -1808,17 +1607,10 @@
                                                     }
                                                 }
                                             },
-                                            "required": [
-                                                "roles",
-                                                "permissions"
-                                            ]
+                                            "required": ["roles", "permissions"]
                                         }
                                     },
-                                    "required": [
-                                        "success",
-                                        "message",
-                                        "data"
-                                    ]
+                                    "required": ["success", "message", "data"]
                                 }
                             }
                         }
@@ -1833,9 +1625,7 @@
             "get": {
                 "operationId": "rolePermission.getPermissions",
                 "summary": "Get all master permissions list",
-                "tags": [
-                    "RolePermission"
-                ],
+                "tags": ["RolePermission"],
                 "responses": {
                     "500": {
                         "description": "",
@@ -1852,10 +1642,7 @@
                                             "const": "Terjadi kesalahan pada server. Silakan coba lagi."
                                         }
                                     },
-                                    "required": [
-                                        "success",
-                                        "message"
-                                    ]
+                                    "required": ["success", "message"]
                                 }
                             }
                         }
@@ -1881,11 +1668,7 @@
                                             }
                                         }
                                     },
-                                    "required": [
-                                        "success",
-                                        "message",
-                                        "data"
-                                    ]
+                                    "required": ["success", "message", "data"]
                                 }
                             }
                         }
@@ -1900,9 +1683,7 @@
             "get": {
                 "operationId": "rolePermission.show",
                 "summary": "Get assigned permissions and available permissions for a specific role",
-                "tags": [
-                    "RolePermission"
-                ],
+                "tags": ["RolePermission"],
                 "parameters": [
                     {
                         "name": "roleId",
@@ -1929,10 +1710,7 @@
                                             "const": "Terjadi kesalahan pada server. Silakan coba lagi."
                                         }
                                     },
-                                    "required": [
-                                        "success",
-                                        "message"
-                                    ]
+                                    "required": ["success", "message"]
                                 }
                             }
                         }
@@ -1986,11 +1764,7 @@
                                             ]
                                         }
                                     },
-                                    "required": [
-                                        "success",
-                                        "message",
-                                        "data"
-                                    ]
+                                    "required": ["success", "message", "data"]
                                 }
                             }
                         }
@@ -2010,10 +1784,7 @@
                                             "const": "Role tidak ditemukan."
                                         }
                                     },
-                                    "required": [
-                                        "success",
-                                        "message"
-                                    ]
+                                    "required": ["success", "message"]
                                 }
                             }
                         }
@@ -2026,9 +1797,7 @@
             "put": {
                 "operationId": "rolePermission.update",
                 "summary": "Update/sync permissions assigned to a specific role",
-                "tags": [
-                    "RolePermission"
-                ],
+                "tags": ["RolePermission"],
                 "parameters": [
                     {
                         "name": "roleId",
@@ -2065,10 +1834,7 @@
                                             "const": "Terjadi kesalahan pada server. Silakan coba lagi."
                                         }
                                     },
-                                    "required": [
-                                        "success",
-                                        "message"
-                                    ]
+                                    "required": ["success", "message"]
                                 }
                             }
                         }
@@ -2119,11 +1885,7 @@
                                             ]
                                         }
                                     },
-                                    "required": [
-                                        "success",
-                                        "message",
-                                        "data"
-                                    ]
+                                    "required": ["success", "message", "data"]
                                 }
                             }
                         }
@@ -2143,10 +1905,7 @@
                                             "const": "Role tidak ditemukan."
                                         }
                                     },
-                                    "required": [
-                                        "success",
-                                        "message"
-                                    ]
+                                    "required": ["success", "message"]
                                 }
                             }
                         }
@@ -2163,9 +1922,7 @@
         "/users": {
             "get": {
                 "operationId": "user.index",
-                "tags": [
-                    "User"
-                ],
+                "tags": ["User"],
                 "parameters": [
                     {
                         "name": "status",
@@ -2191,10 +1948,7 @@
                                             "const": "Terjadi kesalahan pada server. Silakan coba lagi."
                                         }
                                     },
-                                    "required": [
-                                        "success",
-                                        "message"
-                                    ]
+                                    "required": ["success", "message"]
                                 }
                             }
                         }
@@ -2220,11 +1974,7 @@
                                             }
                                         }
                                     },
-                                    "required": [
-                                        "success",
-                                        "message",
-                                        "data"
-                                    ]
+                                    "required": ["success", "message", "data"]
                                 }
                             }
                         }
@@ -2238,9 +1988,7 @@
         "/users/pending": {
             "get": {
                 "operationId": "user.pendingUsers",
-                "tags": [
-                    "User"
-                ],
+                "tags": ["User"],
                 "responses": {
                     "500": {
                         "description": "",
@@ -2257,10 +2005,7 @@
                                             "const": "Terjadi kesalahan pada server. Silakan coba lagi."
                                         }
                                     },
-                                    "required": [
-                                        "success",
-                                        "message"
-                                    ]
+                                    "required": ["success", "message"]
                                 }
                             }
                         }
@@ -2286,11 +2031,7 @@
                                             }
                                         }
                                     },
-                                    "required": [
-                                        "success",
-                                        "message",
-                                        "data"
-                                    ]
+                                    "required": ["success", "message", "data"]
                                 }
                             }
                         }
@@ -2304,9 +2045,7 @@
         "/users/aktif": {
             "get": {
                 "operationId": "user.aktifUsers",
-                "tags": [
-                    "User"
-                ],
+                "tags": ["User"],
                 "responses": {
                     "500": {
                         "description": "",
@@ -2323,10 +2062,7 @@
                                             "const": "Terjadi kesalahan pada server. Silakan coba lagi."
                                         }
                                     },
-                                    "required": [
-                                        "success",
-                                        "message"
-                                    ]
+                                    "required": ["success", "message"]
                                 }
                             }
                         }
@@ -2352,11 +2088,7 @@
                                             }
                                         }
                                     },
-                                    "required": [
-                                        "success",
-                                        "message",
-                                        "data"
-                                    ]
+                                    "required": ["success", "message", "data"]
                                 }
                             }
                         }
@@ -2370,9 +2102,7 @@
         "/users/ditolak": {
             "get": {
                 "operationId": "user.ditolakUsers",
-                "tags": [
-                    "User"
-                ],
+                "tags": ["User"],
                 "responses": {
                     "500": {
                         "description": "",
@@ -2389,10 +2119,7 @@
                                             "const": "Terjadi kesalahan pada server. Silakan coba lagi."
                                         }
                                     },
-                                    "required": [
-                                        "success",
-                                        "message"
-                                    ]
+                                    "required": ["success", "message"]
                                 }
                             }
                         }
@@ -2418,11 +2145,7 @@
                                             }
                                         }
                                     },
-                                    "required": [
-                                        "success",
-                                        "message",
-                                        "data"
-                                    ]
+                                    "required": ["success", "message", "data"]
                                 }
                             }
                         }
@@ -2436,9 +2159,7 @@
         "/users/nonaktif": {
             "get": {
                 "operationId": "user.nonaktifUsers",
-                "tags": [
-                    "User"
-                ],
+                "tags": ["User"],
                 "responses": {
                     "500": {
                         "description": "",
@@ -2455,10 +2176,7 @@
                                             "const": "Terjadi kesalahan pada server. Silakan coba lagi."
                                         }
                                     },
-                                    "required": [
-                                        "success",
-                                        "message"
-                                    ]
+                                    "required": ["success", "message"]
                                 }
                             }
                         }
@@ -2484,11 +2202,7 @@
                                             }
                                         }
                                     },
-                                    "required": [
-                                        "success",
-                                        "message",
-                                        "data"
-                                    ]
+                                    "required": ["success", "message", "data"]
                                 }
                             }
                         }
@@ -2502,9 +2216,7 @@
         "/users/{id}": {
             "put": {
                 "operationId": "user.activate",
-                "tags": [
-                    "User"
-                ],
+                "tags": ["User"],
                 "parameters": [
                     {
                         "name": "id",
@@ -2541,10 +2253,7 @@
                                             "const": "Terjadi kesalahan pada server. Silakan coba lagi."
                                         }
                                     },
-                                    "required": [
-                                        "success",
-                                        "message"
-                                    ]
+                                    "required": ["success", "message"]
                                 }
                             }
                         }
@@ -2582,16 +2291,10 @@
                                                     "type": "boolean"
                                                 },
                                                 "id_dealer": {
-                                                    "type": [
-                                                        "integer",
-                                                        "null"
-                                                    ]
+                                                    "type": ["integer", "null"]
                                                 },
                                                 "dealer": {
-                                                    "type": [
-                                                        "object",
-                                                        "null"
-                                                    ],
+                                                    "type": ["object", "null"],
                                                     "properties": {
                                                         "id": {
                                                             "type": "integer"
@@ -2613,10 +2316,7 @@
                                                     "type": "integer"
                                                 },
                                                 "role": {
-                                                    "type": [
-                                                        "object",
-                                                        "null"
-                                                    ],
+                                                    "type": ["object", "null"],
                                                     "properties": {
                                                         "id": {
                                                             "type": "integer"
@@ -2625,22 +2325,13 @@
                                                             "type": "string"
                                                         }
                                                     },
-                                                    "required": [
-                                                        "id",
-                                                        "name"
-                                                    ]
+                                                    "required": ["id", "name"]
                                                 },
                                                 "id_atasan": {
-                                                    "type": [
-                                                        "integer",
-                                                        "null"
-                                                    ]
+                                                    "type": ["integer", "null"]
                                                 },
                                                 "atasan": {
-                                                    "type": [
-                                                        "object",
-                                                        "null"
-                                                    ],
+                                                    "type": ["object", "null"],
                                                     "properties": {
                                                         "id": {
                                                             "type": "integer"
@@ -2649,10 +2340,7 @@
                                                             "type": "string"
                                                         }
                                                     },
-                                                    "required": [
-                                                        "id",
-                                                        "name"
-                                                    ]
+                                                    "required": ["id", "name"]
                                                 }
                                             },
                                             "required": [
@@ -2670,11 +2358,7 @@
                                             ]
                                         }
                                     },
-                                    "required": [
-                                        "success",
-                                        "message",
-                                        "data"
-                                    ]
+                                    "required": ["success", "message", "data"]
                                 }
                             }
                         }
@@ -2694,10 +2378,7 @@
                                             "const": "User tidak ditemukan."
                                         }
                                     },
-                                    "required": [
-                                        "success",
-                                        "message"
-                                    ]
+                                    "required": ["success", "message"]
                                 }
                             }
                         }
@@ -2730,9 +2411,7 @@
                         "$ref": "#/components/schemas/StatusUser"
                     }
                 },
-                "required": [
-                    "id_dealer"
-                ],
+                "required": ["id_dealer"],
                 "title": "ActivateUserRequest"
             },
             "Dealer": {
@@ -2754,17 +2433,11 @@
                         "type": "string"
                     },
                     "created_at": {
-                        "type": [
-                            "string",
-                            "null"
-                        ],
+                        "type": ["string", "null"],
                         "format": "date-time"
                     },
                     "updated_at": {
-                        "type": [
-                            "string",
-                            "null"
-                        ],
+                        "type": ["string", "null"],
                         "format": "date-time"
                     }
                 },
@@ -2800,12 +2473,7 @@
                         "maximum": 180
                     }
                 },
-                "required": [
-                    "name",
-                    "alamat",
-                    "latitude",
-                    "longitude"
-                ],
+                "required": ["name", "alamat", "latitude", "longitude"],
                 "title": "DealerRequest"
             },
             "LoginRequest": {
@@ -2820,10 +2488,7 @@
                         "type": "string"
                     }
                 },
-                "required": [
-                    "email",
-                    "password"
-                ],
+                "required": ["email", "password"],
                 "title": "LoginRequest"
             },
             "Menu": {
@@ -2845,17 +2510,11 @@
                         "type": "boolean"
                     },
                     "created_at": {
-                        "type": [
-                            "string",
-                            "null"
-                        ],
+                        "type": ["string", "null"],
                         "format": "date-time"
                     },
                     "updated_at": {
-                        "type": [
-                            "string",
-                            "null"
-                        ],
+                        "type": ["string", "null"],
                         "format": "date-time"
                     }
                 },
@@ -2880,17 +2539,11 @@
                         "type": "string"
                     },
                     "created_at": {
-                        "type": [
-                            "string",
-                            "null"
-                        ],
+                        "type": ["string", "null"],
                         "format": "date-time"
                     },
                     "updated_at": {
-                        "type": [
-                            "string",
-                            "null"
-                        ],
+                        "type": ["string", "null"],
                         "format": "date-time"
                     }
                 },
@@ -2919,16 +2572,10 @@
                         "type": "string"
                     },
                     "id_dealer": {
-                        "type": [
-                            "integer",
-                            "null"
-                        ]
+                        "type": ["integer", "null"]
                     },
                     "id_atasan": {
-                        "type": [
-                            "integer",
-                            "null"
-                        ]
+                        "type": ["integer", "null"]
                     },
                     "id_role": {
                         "type": "integer"
@@ -2956,26 +2603,15 @@
                         "type": "string"
                     },
                     "created_at": {
-                        "type": [
-                            "string",
-                            "null"
-                        ],
+                        "type": ["string", "null"],
                         "format": "date-time"
                     },
                     "updated_at": {
-                        "type": [
-                            "string",
-                            "null"
-                        ],
+                        "type": ["string", "null"],
                         "format": "date-time"
                     }
                 },
-                "required": [
-                    "id",
-                    "name",
-                    "created_at",
-                    "updated_at"
-                ],
+                "required": ["id", "name", "created_at", "updated_at"],
                 "title": "Role"
             },
             "RoleMenuRequest": {
@@ -2988,9 +2624,7 @@
                         }
                     }
                 },
-                "required": [
-                    "menu_ids"
-                ],
+                "required": ["menu_ids"],
                 "title": "RoleMenuRequest"
             },
             "RolePermissionRequest": {
@@ -3003,9 +2637,7 @@
                         }
                     }
                 },
-                "required": [
-                    "permission_ids"
-                ],
+                "required": ["permission_ids"],
                 "title": "RolePermissionRequest"
             },
             "SendOtpRequest": {
@@ -3016,19 +2648,12 @@
                         "format": "email"
                     }
                 },
-                "required": [
-                    "email"
-                ],
+                "required": ["email"],
                 "title": "SendOtpRequest"
             },
             "StatusUser": {
                 "type": "string",
-                "enum": [
-                    "pending",
-                    "aktif",
-                    "ditolak",
-                    "nonaktif"
-                ],
+                "enum": ["pending", "aktif", "ditolak", "nonaktif"],
                 "title": "StatusUser"
             },
             "User": {
@@ -3050,36 +2675,21 @@
                         "$ref": "#/components/schemas/StatusUser"
                     },
                     "foto": {
-                        "type": [
-                            "string",
-                            "null"
-                        ]
+                        "type": ["string", "null"]
                     },
                     "created_at": {
-                        "type": [
-                            "string",
-                            "null"
-                        ],
+                        "type": ["string", "null"],
                         "format": "date-time"
                     },
                     "updated_at": {
-                        "type": [
-                            "string",
-                            "null"
-                        ],
+                        "type": ["string", "null"],
                         "format": "date-time"
                     },
                     "id_dealer": {
-                        "type": [
-                            "integer",
-                            "null"
-                        ]
+                        "type": ["integer", "null"]
                     },
                     "id_atasan": {
-                        "type": [
-                            "integer",
-                            "null"
-                        ]
+                        "type": ["integer", "null"]
                     },
                     "id_role": {
                         "type": "integer"
@@ -3113,10 +2723,7 @@
                         "maxLength": 6
                     }
                 },
-                "required": [
-                    "email",
-                    "otp"
-                ],
+                "required": ["email", "otp"],
                 "title": "VerifyOtpRequest"
             }
         },
@@ -3143,10 +2750,7 @@
                                     }
                                 }
                             },
-                            "required": [
-                                "message",
-                                "errors"
-                            ]
+                            "required": ["message", "errors"]
                         }
                     }
                 }
@@ -3163,9 +2767,7 @@
                                     "description": "Error overview."
                                 }
                             },
-                            "required": [
-                                "message"
-                            ]
+                            "required": ["message"]
                         }
                     }
                 }
