@@ -26,8 +26,12 @@ class ActivateUserRequest extends FormRequest
      */
     public function rules(): array
     {
+        $isDitolak = $this->input('status') === StatusUser::Ditolak->value;
+
         return [
-            'id_dealer' => ['required', 'integer', 'exists:dealers,id'],
+            'id_dealer' => $isDitolak
+                ? ['nullable', 'integer', 'exists:dealers,id']
+                : ['required', 'integer', 'exists:dealers,id'],
             'status'    => ['sometimes', Rule::enum(StatusUser::class)],
         ];
     }

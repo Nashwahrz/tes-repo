@@ -7,6 +7,9 @@
     "servers": [
         {
             "url": "https://speaks-alfred-technologies-gst.trycloudflare.com/api"
+        },
+        {
+            "url": "http://localhost:8000/api"
         }
     ],
     "security": [

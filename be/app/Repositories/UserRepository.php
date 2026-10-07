@@ -27,7 +27,7 @@ class UserRepository
     /**
      * Activate user account and assign dealer ID.
      */
-    public function activateUser(User $user, int $dealerId, StatusUser $status = StatusUser::Aktif): User
+    public function activateUser(User $user, ?int $dealerId, StatusUser $status = StatusUser::Aktif): User
     {
         $user->update([
             'id_dealer' => $dealerId,

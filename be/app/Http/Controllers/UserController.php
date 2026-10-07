@@ -34,16 +34,19 @@ class UserController extends Controller
                 ? StatusUser::tryFrom($request->status) ?? StatusUser::Aktif
                 : StatusUser::Aktif;
 
+            $isDitolak = $status === StatusUser::Ditolak;
+
             $updatedUser = $this->userRepository->activateUser(
                 $user,
-                (int) $request->id_dealer,
+                $isDitolak ? null : (int) $request->id_dealer,
                 $status
             );
 
-            return $this->userResponse->success(
-                $updatedUser,
-                'Akun user berhasil diaktifkan dan ID dealer berhasil ditambahkan.'
-            );
+            $message = $isDitolak
+                ? 'Akun user berhasil ditolak.'
+                : 'Akun user berhasil diaktifkan dan ID dealer berhasil ditambahkan.';
+
+            return $this->userResponse->success($updatedUser, $message);
         } catch (Throwable $e) {
             Log::error('Aktivasi user gagal: ' . $e->getMessage(), [
                 'trace' => $e->getTraceAsString(),
