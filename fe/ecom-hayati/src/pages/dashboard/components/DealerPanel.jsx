@@ -1,6 +1,8 @@
 // src/pages/DealerPanel.jsx
-// UI CRUD dealer. Saat ini perubahan hanya ada di state lokal (belum memanggil API /dealers).
+
+// UI CRUD dealer, terhubung ke API /dealers.
 import { lazy, Suspense, useState } from 'react';
+import { createDealer, updateDealer, deleteDealer, errorMessage } from '../../../api/authServices';
 
 // Leaflet (JS + CSS) hanya dimuat saat form dealer dibuka
 const MapPicker = lazy(() => import('./MapPicker'));
@@ -30,14 +32,16 @@ function validate(form, others) {
   return errors;
 }
 
-function DealerPanel({ dealers }) {
-  const [rows, setRows] = useState(dealers);
+// dealers & onDealersChange dikelola DashboardPage; can = permission dealers.* milik user
+function DealerPanel({ dealers: rows, onDealersChange, can }) {
   const [editing, setEditing] = useState(null); // null | 'new' | dealer
   const [form, setForm] = useState(EMPTY);
   const [touched, setTouched] = useState({});
   const [toDelete, setToDelete] = useState(null);
   const [query, setQuery] = useState('');
   const [success, setSuccess] = useState('');
+  const [error, setError] = useState('');
+  const [saving, setSaving] = useState(false);
 
   const isNew = editing === 'new';
   const others = rows.filter((d) => d.id !== editing?.id);
@@ -49,6 +53,7 @@ function DealerPanel({ dealers }) {
 
   const openForm = (dealer) => {
     setSuccess('');
+    setError('');
     setTouched({});
     setForm(dealer === 'new' ? EMPTY : {
       name: dealer.name,
@@ -71,7 +76,7 @@ function DealerPanel({ dealers }) {
     setTouched((t) => ({ ...t, [key]: true }));
   };
 
-  const handleSave = (e) => {
+  const handleSave = async (e) => {
     e.preventDefault();
     setTouched({ name: true, alamat: true, latitude: true, longitude: true });
     if (hasError) return;
@@ -83,20 +88,39 @@ function DealerPanel({ dealers }) {
       longitude: form.longitude,
     };
 
-    if (isNew) {
-      setRows((list) => [...list, { id: `tmp-${Date.now()}`, ...data }]);
-      setSuccess(`Dealer ${data.name} ditambahkan.`);
-    } else {
-      setRows((list) => list.map((d) => (d.id === editing.id ? { ...d, ...data } : d)));
-      setSuccess(`Dealer ${data.name} diperbarui.`);
+    setSaving(true);
+    setError('');
+    try {
+      if (isNew) {
+        const res = await createDealer(data);
+        onDealersChange((list) => [...list, res.data]);
+        setSuccess(`Dealer ${data.name} ditambahkan.`);
+      } else {
+        const res = await updateDealer(editing.id, data);
+        onDealersChange((list) => list.map((d) => (d.id === editing.id ? res.data : d)));
+        setSuccess(`Dealer ${data.name} diperbarui.`);
+      }
+      closeForm();
+    } catch (err) {
+      setError(errorMessage(err));
+    } finally {
+      setSaving(false);
     }
-    closeForm();
   };
 
-  const handleDelete = () => {
-    setRows((list) => list.filter((d) => d.id !== toDelete.id));
-    setSuccess(`Dealer ${toDelete.name} dihapus.`);
-    setToDelete(null);
+  const handleDelete = async () => {
+    setSaving(true);
+    setError('');
+    try {
+      await deleteDealer(toDelete.id);
+      onDealersChange((list) => list.filter((d) => d.id !== toDelete.id));
+      setSuccess(`Dealer ${toDelete.name} dihapus.`);
+    } catch (err) {
+      setError(errorMessage(err));
+    } finally {
+      setSaving(false);
+      setToDelete(null);
+    }
   };
 
   const field = (key, label, props = {}) => {
@@ -121,11 +145,9 @@ function DealerPanel({ dealers }) {
           <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l1-5h16l1 5" /><path d="M4 9v11h16V9" /><path d="M9 20v-6h6v6" /></svg>
           Data Dealer
         </h3>
-        <button className="dash-btn solid" onClick={() => openForm('new')}>+ Tambah Dealer</button>
+        {can.tambah && <button className="dash-btn solid" onClick={() => openForm('new')}>+ Tambah Dealer</button>}
       </div>
       <p className="dash-card-desc">Kelola dealer: nama, alamat, dan koordinat lokasi.</p>
-
-      <p className="dash-alert info">Tampilan saja: perubahan belum tersimpan ke server.</p>
 
       <input
         className="dash-input dash-input-search"
@@ -136,6 +158,7 @@ function DealerPanel({ dealers }) {
       />
 
       {success && <p className="dash-alert success">{success}</p>}
+      {error && !editing && <p className="dash-alert error">{error}</p>}
 
       {visible.length === 0 ? (
         <p className="dash-empty">{q ? 'Dealer tidak ditemukan.' : 'Belum ada data dealer.'}</p>
@@ -148,7 +171,7 @@ function DealerPanel({ dealers }) {
                 <th>Alamat</th>
                 <th>Latitude</th>
                 <th>Longitude</th>
-                <th>Aksi</th>
+                {(can.ubah || can.hapus) && <th>Aksi</th>}
               </tr>
             </thead>
             <tbody>
@@ -158,12 +181,14 @@ function DealerPanel({ dealers }) {
                   <td>{d.alamat}</td>
                   <td>{d.latitude}</td>
                   <td>{d.longitude}</td>
-                  <td>
-                    <div className="dash-actions">
-                      <button className="dash-btn outline" onClick={() => openForm(d)}>Ubah</button>
-                      <button className="dash-btn soft" onClick={() => setToDelete(d)}>Hapus</button>
-                    </div>
-                  </td>
+                  {(can.ubah || can.hapus) && (
+                    <td>
+                      <div className="dash-actions">
+                        {can.ubah && <button className="dash-btn outline" onClick={() => openForm(d)}>Ubah</button>}
+                        {can.hapus && <button className="dash-btn soft" onClick={() => setToDelete(d)}>Hapus</button>}
+                      </div>
+                    </td>
+                  )}
                 </tr>
               ))}
             </tbody>
@@ -175,6 +200,7 @@ function DealerPanel({ dealers }) {
         <div className="dash-modal-bg" onClick={closeForm}>
           <form className="dash-modal" onClick={(e) => e.stopPropagation()} onSubmit={handleSave} noValidate>
             <h3>{isNew ? 'Tambah Dealer' : 'Ubah Dealer'}</h3>
+            {error && <p className="dash-alert error">{error}</p>}
             {field('name', 'Nama Dealer', { placeholder: 'Contoh: Hayati Motor Pusat' })}
             {field('alamat', 'Alamat', { textarea: true, placeholder: 'Alamat lengkap dealer' })}
             <div className="dash-form-group">
@@ -190,7 +216,7 @@ function DealerPanel({ dealers }) {
             </div>
             <div className="dash-modal-actions">
               <button type="button" className="dash-btn outline" onClick={closeForm}>Batal</button>
-              <button type="submit" className="dash-btn solid">Simpan</button>
+              <button type="submit" className="dash-btn solid" disabled={saving}>{saving ? 'Menyimpan...' : 'Simpan'}</button>
             </div>
           </form>
         </div>
@@ -203,7 +229,7 @@ function DealerPanel({ dealers }) {
             <p className="dash-card-desc">Yakin ingin menghapus <strong>{toDelete.name}</strong>? Tindakan ini tidak dapat dibatalkan.</p>
             <div className="dash-modal-actions">
               <button className="dash-btn outline" onClick={() => setToDelete(null)}>Batal</button>
-              <button className="dash-btn solid" onClick={handleDelete}>Ya, Hapus</button>
+              <button className="dash-btn solid" onClick={handleDelete} disabled={saving}>Ya, Hapus</button>
             </div>
           </div>
         </div>

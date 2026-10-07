@@ -1,18 +1,19 @@
 // src/pages/DashboardPage.jsx
 import { lazy, Suspense, useEffect, useState } from 'react';
-import { getUsers, getDealers } from '../../api/authServices';
+import { getUsers, getDealers, getUserMenus, getUserPermissions } from '../../api/authServices';
 import './DashboardPage.css';
 
 // Panel hanya dimuat saat menunya dibuka
 const AccUserPanel = lazy(() => import('./components/AccUserPanel'));
 const DealerPanel = lazy(() => import('./components/DealerPanel'));
+const RoleAccessPanel = lazy(() => import('./components/RoleAccessPanel'));
 
 const LOGO_SRC = '/logo.png';
-const ROLE_ACC = 1; // id_role yang boleh meng-ACC akun
 const MENU_HOME = 'Ringkasan';
 const MENU_PRODUK = 'Produk';
 const MENU_DEALER = 'Dealer';
 const MENU_ACC = 'Audit Log & Akses';
+const MENU_ROLE = 'Role & Hak Akses';
 
 // Produk dipertahankan walau endpoint BE-nya belum ada
 const MENUS = [MENU_HOME, MENU_PRODUK];
@@ -32,6 +33,7 @@ const MENU_ICONS = {
   [MENU_PRODUK]: 'box',
   [MENU_DEALER]: 'store',
   [MENU_ACC]: 'shield',
+  [MENU_ROLE]: 'shield',
 };
 
 const Icon = ({ name, size = 16 }) => (
@@ -58,15 +60,19 @@ const readCache = (userId) => {
   }
 };
 
-const writeCache = (userId, users, dealers) => {
+const writeCache = (userId, users, dealers, access) => {
   try {
-    sessionStorage.setItem(CACHE_KEY, JSON.stringify({ userId, users, dealers }));
+    sessionStorage.setItem(CACHE_KEY, JSON.stringify({ userId, users, dealers, access }));
   } catch {
     // storage penuh/diblokir: abaikan
   }
 };
 
-const isManager = (list, userId) => list.find((u) => u.id === userId)?.id_role === ROLE_ACC;
+// Hak akses dari BE: url menu (role-menus) & nama permission (role-permissions)
+const toAccess = (menus, permissions) => ({
+  menus: menus.map((m) => m.url),
+  permissions: permissions.map((p) => p.nama_permission),
+});
 
 function DashboardPage() {
   let user;
@@ -77,14 +83,13 @@ function DashboardPage() {
   }
 
   const [cached] = useState(() => readCache(user?.id));
-  const [canAcc, setCanAcc] = useState(() => (cached ? isManager(cached.users, user?.id) : false));
+  const [access, setAccess] = useState(cached?.access ?? { menus: [], permissions: [] });
   const [users, setUsers] = useState(cached?.users ?? []);
   const [dealers, setDealers] = useState(cached?.dealers ?? []);
   const [loading, setLoading] = useState(!cached);
   const [menu, setMenu] = useState(MENU_HOME);
   const [query, setQuery] = useState('');
 
-  // Login hanya mengembalikan id & email, jadi id_role dicari dari daftar user.
   useEffect(() => {
     let active = true;
     // Dua request jalan paralel; hasilnya dipakai bersama oleh semua tampilan
@@ -92,14 +97,15 @@ function DashboardPage() {
     Promise.all([
       getUsers().catch(() => null),
       getDealers().catch(() => null),
-    ]).then(([userList, dealerList]) => {
+      getUserMenus().catch(() => null),
+      getUserPermissions().catch(() => null),
+    ]).then(([userList, dealerList, menuList, permList]) => {
       if (!active) return;
-      if (userList) {
-        setUsers(userList);
-        setCanAcc(isManager(userList, user?.id));
-      }
+      const newAccess = menuList && permList ? toAccess(menuList, permList) : null;
+      if (userList) setUsers(userList);
       if (dealerList) setDealers(dealerList);
-      if (userList && dealerList) writeCache(user?.id, userList, dealerList);
+      if (newAccess) setAccess(newAccess);
+      if (userList && dealerList && newAccess) writeCache(user?.id, userList, dealerList, newAccess);
       setLoading(false);
     });
     return () => { active = false; };
@@ -121,8 +127,21 @@ function DashboardPage() {
     ? dealers.filter((d) => `${d.name} ${d.alamat}`.toLowerCase().includes(q))
     : dealers;
 
-  // Dealer dan Audit Log & Akses hanya untuk id_role 1
-  const menus = canAcc ? [...MENUS, MENU_DEALER, MENU_ACC] : MENUS;
+  // Menu sidebar & tombol aksi mengikuti menu/permission role dari BE
+  const hasMenu = (url) => access.menus.includes(url);
+  const can = (perm) => access.permissions.includes(perm);
+  const canDealer = hasMenu('dealers') && can('dealers.lihat');
+  const canAcc = hasMenu('users') && can('users.lihat') && can('users.aktivasi');
+  const canRoleMenu = hasMenu('role-menus') && can('role-menus.kelola');
+  const canRolePerm = hasMenu('role-menus') && can('role-permissions.kelola');
+  const canRole = canRoleMenu || canRolePerm;
+
+  const menus = [
+    ...MENUS,
+    ...(canDealer ? [MENU_DEALER] : []),
+    ...(canAcc ? [MENU_ACC] : []),
+    ...(canRole ? [MENU_ROLE] : []),
+  ];
   const initial = (user?.email || '?').charAt(0).toUpperCase();
   const name = user?.email?.split('@')[0] || 'Pengguna';
 
@@ -157,7 +176,7 @@ function DashboardPage() {
           <div className="dash-avatar">{initial}</div>
           <div className="dash-side-user">
             <strong>{name}</strong>
-            <small>{canAcc ? 'Manager' : 'Pengguna'}</small>
+            <small>Pengguna</small>
           </div>
           <button className="dash-logout" onClick={handleLogout}>Keluar</button>
         </div>
@@ -210,15 +229,27 @@ function DashboardPage() {
             </div>
           )}
 
-          {menu === MENU_DEALER && canAcc && (
+          {menu === MENU_DEALER && canDealer && (
             <div className="dash-card">
               {loading ? (
                 <p className="dash-empty">Memuat...</p>
               ) : (
                 <Suspense fallback={<p className="dash-empty">Memuat...</p>}>
-                  <DealerPanel dealers={dealers} />
+                  <DealerPanel
+                    dealers={dealers}
+                    can={{ tambah: can('dealers.tambah'), ubah: can('dealers.ubah'), hapus: can('dealers.hapus') }}
+                    onDealersChange={(update) => setDealers((list) => update(list))}
+                  />
                 </Suspense>
               )}
+            </div>
+          )}
+
+          {menu === MENU_ROLE && canRole && (
+            <div className="dash-card">
+              <Suspense fallback={<p className="dash-empty">Memuat...</p>}>
+                <RoleAccessPanel canMenu={canRoleMenu} canPermission={canRolePerm} />
+              </Suspense>
             </div>
           )}
 
@@ -226,7 +257,7 @@ function DashboardPage() {
             <>
               <div className="dash-hello">
                 <div>
-                  <h1>Halo, {name}{canAcc ? ' (Manager)' : ''}</h1>
+                  <h1>Halo, {name}</h1>
                   <p>Pantau jaringan dealer motor dan status akun pengguna dalam satu tampilan.</p>
                 </div>
                 {canAcc && (
@@ -248,7 +279,7 @@ function DashboardPage() {
                 </div>
                 <div className="dash-hero-actions">
                   {canAcc && <button className="dash-btn light" onClick={() => setMenu(MENU_ACC)}>Audit Log &amp; Akses</button>}
-                  {canAcc && <button className="dash-btn ghost" onClick={() => setMenu(MENU_DEALER)}>Lihat Dealer →</button>}
+                  {canDealer && <button className="dash-btn ghost" onClick={() => setMenu(MENU_DEALER)}>Lihat Dealer →</button>}
                 </div>
               </section>
 
@@ -277,7 +308,7 @@ function DashboardPage() {
                   <p className="dash-card-desc">Validasi akun baru sebelum diberi akses ke sistem.</p>
 
                   {!canAcc ? (
-                    <p className="dash-empty">Hanya Manager yang dapat meng-ACC akun.</p>
+                    <p className="dash-empty">Anda tidak memiliki akses untuk meng-ACC akun.</p>
                   ) : pending.length === 0 ? (
                     <p className="dash-empty">Tidak ada akun yang menunggu persetujuan.</p>
                   ) : (
