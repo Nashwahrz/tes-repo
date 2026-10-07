@@ -22,7 +22,7 @@ const TABS = {
   },
 };
 
-function RoleAccessPanel({ canMenu, canPermission }) {
+function RoleAccessPanel({ canMenu, canPermission, onSaved }) {
   const tabs = Object.keys(TABS).filter((k) => (k === 'menu' ? canMenu : canPermission));
   const [tab, setTab] = useState(tabs[0]);
   const [data, setData] = useState(null); // { roles, <itemsKey>: [] }
@@ -32,6 +32,7 @@ function RoleAccessPanel({ canMenu, canPermission }) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [confirming, setConfirming] = useState(false);
 
   const cfg = TABS[tab];
   const idsOf = (role) => (role[cfg.itemsKey] ?? []).map((i) => i.id);
@@ -71,6 +72,7 @@ function RoleAccessPanel({ canMenu, canPermission }) {
   };
 
   const handleSave = async () => {
+    setConfirming(false);
     setSaving(true);
     setError('');
     setSuccess('');
@@ -82,6 +84,7 @@ function RoleAccessPanel({ canMenu, canPermission }) {
         roles: d.roles.map((r) => (r.id === roleId ? { ...r, [cfg.itemsKey]: res.data[cfg.itemsKey] } : r)),
       }));
       setSuccess(`Hak akses ${cfg.label.toLowerCase()} untuk role ${res.data.name} disimpan.`);
+      onSaved?.(); // hak akses user yang sedang login bisa ikut berubah
     } catch (err) {
       setError(errorMessage(err));
     } finally {
@@ -158,11 +161,26 @@ function RoleAccessPanel({ canMenu, canPermission }) {
           </div>
 
           <div className="dash-modal-actions">
-            <button className="dash-btn solid" onClick={handleSave} disabled={saving || !dirty}>
+            <button className="dash-btn solid" onClick={() => setConfirming(true)} disabled={saving || !dirty}>
               {saving ? 'Menyimpan...' : 'Simpan Perubahan'}
             </button>
           </div>
         </>
+      )}
+
+      {confirming && role && (
+        <div className="dash-modal-bg" onClick={() => setConfirming(false)}>
+          <div className="dash-modal" onClick={(e) => e.stopPropagation()}>
+            <h3>Simpan Perubahan</h3>
+            <p className="dash-card-desc">
+              Yakin ingin mengubah hak akses {cfg.label.toLowerCase()} untuk role <strong>{role.name}</strong>?
+            </p>
+            <div className="dash-modal-actions">
+              <button className="dash-btn outline" onClick={() => setConfirming(false)}>Batal</button>
+              <button className="dash-btn solid" onClick={handleSave}>Ya, Simpan</button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
