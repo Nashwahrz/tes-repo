@@ -30,6 +30,27 @@ export const updateDealer = async (id, payload) => (await api.put(`/dealers/${id
 
 export const deleteDealer = async (id) => (await api.delete(`/dealers/${id}`)).data;
 
+// Konsumen / dokumen KTP (BE: /konsumens, butuh permission konsumens.*)
+// status: 'pending' | 'diterima' | 'ditolak' (kosong = semua)
+export const getKonsumens = async (status) =>
+  (await api.get('/konsumens/status', { params: status ? { status } : {} })).data.data;
+
+// payload: FormData (ada file foto_ktp, jadi dikirim multipart)
+export const createKonsumen = async (payload) =>
+  (await api.post('/konsumens', payload, { headers: { 'Content-Type': 'multipart/form-data' } })).data;
+
+export const deleteKonsumen = async (id) => (await api.delete(`/konsumens/${id}`)).data;
+
+// OCR KTP: kirim gambar, terima field hasil baca (nik, name, tgl_lahir, dst.)
+export const scanKtp = async (file) => {
+  const fd = new FormData();
+  fd.append('foto_ktp', file);
+  return (await api.post('/konsumens/scan-ktp', fd, { headers: { 'Content-Type': 'multipart/form-data' }, timeout: 60000 })).data.data;
+};
+
+// Foto KTP disimpan di disk public BE (butuh `php artisan storage:link`)
+export const ktpUrl = (path) => (path ? `${api.defaults.baseURL.replace(/\/api\/?$/, '')}/storage/${path}` : '');
+
 // Menu & permission milik user yang sedang login
 export const getUserMenus = async () => (await api.get('/role-menus/user-menus')).data.data;
 

@@ -6,12 +6,14 @@ import './DashboardPage.css';
 // Panel hanya dimuat saat menunya dibuka
 const AccUserPanel = lazy(() => import('./components/AccUserPanel'));
 const DealerPanel = lazy(() => import('./components/DealerPanel'));
+const KonsumenPanel = lazy(() => import('./components/KonsumenPanel'));
 const RoleAccessPanel = lazy(() => import('./components/RoleAccessPanel'));
 
 const LOGO_SRC = '/logo.png';
 const MENU_HOME = 'Ringkasan';
 const MENU_PRODUK = 'Produk';
 const MENU_DEALER = 'Dealer';
+const MENU_KONSUMEN = 'Konsumen';
 const MENU_ACC = 'Audit Log & Akses';
 const MENU_ROLE = 'Role & Hak Akses';
 
@@ -23,6 +25,7 @@ const PATHS = {
   box: <><path d="M21 8l-9-5-9 5 9 5 9-5z" /><path d="M3 8v8l9 5 9-5V8" /></>,
   store: <><path d="M3 9l1-5h16l1 5" /><path d="M4 9v11h16V9" /><path d="M9 20v-6h6v6" /></>,
   shield: <><path d="M9 12l2 2 4-4" /><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z" /></>,
+  id: <><rect x="3" y="5" width="18" height="14" rx="2" /><path d="M7 10h4M7 14h6" /><circle cx="16" cy="11" r="1.5" /></>,
   check: <><circle cx="12" cy="12" r="9" /><path d="M8 12l3 3 5-6" /></>,
   clock: <><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></>,
   off: <><circle cx="12" cy="12" r="9" /><path d="M5.6 5.6l12.8 12.8" /></>,
@@ -32,6 +35,7 @@ const MENU_ICONS = {
   [MENU_HOME]: 'grid',
   [MENU_PRODUK]: 'box',
   [MENU_DEALER]: 'store',
+  [MENU_KONSUMEN]: 'id',
   [MENU_ACC]: 'shield',
   [MENU_ROLE]: 'shield',
 };
@@ -132,6 +136,7 @@ function DashboardPage() {
   const hasMenu = (url) => access.menus.includes(url);
   const can = (perm) => access.permissions.includes(perm);
   const canDealer = hasMenu('dealers') && can('dealers.lihat');
+  const canKonsumen = hasMenu('konsumens') && can('konsumens.lihat');
   const canAcc = hasMenu('users') && can('users.lihat') && can('users.aktivasi');
   const canRoleMenu = hasMenu('role-menus') && can('role-menus.kelola');
   const canRolePerm = hasMenu('role-menus') && can('role-permissions.kelola');
@@ -141,6 +146,7 @@ function DashboardPage() {
     ...(hasMenu(MENU_URL[MENU_HOME]) ? [MENU_HOME] : []),
     ...(hasMenu(MENU_URL[MENU_PRODUK]) ? [MENU_PRODUK] : []),
     ...(canDealer ? [MENU_DEALER] : []),
+    ...(canKonsumen ? [MENU_KONSUMEN] : []),
     ...(canAcc ? [MENU_ACC] : []),
     ...(canRole ? [MENU_ROLE] : []),
   ];
@@ -273,6 +279,17 @@ function DashboardPage() {
                   />
                 </Suspense>
               )}
+            </div>
+          )}
+
+          {menu === MENU_KONSUMEN && canKonsumen && (
+            <div className="dash-card">
+              <Suspense fallback={<p className="dash-empty">Memuat...</p>}>
+                <KonsumenPanel
+                  userId={user?.id}
+                  can={{ tambah: can('konsumens.tambah'), hapus: can('konsumens.hapus'), scan: can('konsumens.scan') }}
+                />
+              </Suspense>
             </div>
           )}
 
