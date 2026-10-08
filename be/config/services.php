@@ -30,5 +30,8 @@ return [
             'channel' => env('SLACK_BOT_USER_DEFAULT_CHANNEL'),
         ],
     ],
-
+    'ocr_space' => [
+        'key' => env('APP_KEY_OCR'),
+        'url' => env('URL_OCR', 'https://api.ocr.space/parse/image'),
+    ],
 ];
