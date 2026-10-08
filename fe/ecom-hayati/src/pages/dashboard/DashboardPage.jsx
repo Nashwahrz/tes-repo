@@ -15,8 +15,8 @@ const MENU_DEALER = 'Dealer';
 const MENU_ACC = 'Audit Log & Akses';
 const MENU_ROLE = 'Role & Hak Akses';
 
-// Produk dipertahankan walau endpoint BE-nya belum ada
-const MENUS = [MENU_HOME, MENU_PRODUK];
+// Url menu BE yang mengendalikan tiap menu sidebar (Produk dipertahankan walau endpoint BE-nya belum ada)
+const MENU_URL = { [MENU_HOME]: 'dashboard', [MENU_PRODUK]: 'daftar-motor' };
 
 const PATHS = {
   grid: <><rect x="3" y="3" width="7" height="7" rx="1" /><rect x="14" y="3" width="7" height="7" rx="1" /><rect x="3" y="14" width="7" height="7" rx="1" /><rect x="14" y="14" width="7" height="7" rx="1" /></>,
@@ -87,8 +87,9 @@ function DashboardPage() {
   const [users, setUsers] = useState(cached?.users ?? []);
   const [dealers, setDealers] = useState(cached?.dealers ?? []);
   const [loading, setLoading] = useState(!cached);
-  const [menu, setMenu] = useState(MENU_HOME);
+  const [menuState, setMenu] = useState(MENU_HOME);
   const [query, setQuery] = useState('');
+  const [confirmLogout, setConfirmLogout] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -137,11 +138,28 @@ function DashboardPage() {
   const canRole = canRoleMenu || canRolePerm;
 
   const menus = [
-    ...MENUS,
+    ...(hasMenu(MENU_URL[MENU_HOME]) ? [MENU_HOME] : []),
+    ...(hasMenu(MENU_URL[MENU_PRODUK]) ? [MENU_PRODUK] : []),
     ...(canDealer ? [MENU_DEALER] : []),
     ...(canAcc ? [MENU_ACC] : []),
     ...(canRole ? [MENU_ROLE] : []),
   ];
+  // Menu yang aktif harus masih diizinkan; kalau hak akses berubah, pindah ke menu pertama yang tersedia.
+  // Sebelum hak akses termuat (menus kosong) tetap tampilkan Ringkasan.
+  const menu = menus.length === 0 || menus.includes(menuState) ? menuState : menus[0];
+
+  // Muat ulang menu & permission setelah hak akses role diubah
+  const refreshAccess = async () => {
+    try {
+      const [menuList, permList] = await Promise.all([getUserMenus(), getUserPermissions()]);
+      const next = toAccess(menuList, permList);
+      setAccess(next);
+      writeCache(user?.id, users, dealers, next);
+    } catch {
+      // gagal: hak akses lama dipertahankan sampai halaman dimuat ulang
+    }
+  };
+
   const initial = (user?.email || '?').charAt(0).toUpperCase();
   const name = user?.email?.split('@')[0] || 'Pengguna';
 
@@ -178,9 +196,22 @@ function DashboardPage() {
             <strong>{name}</strong>
             <small>Pengguna</small>
           </div>
-          <button className="dash-logout" onClick={handleLogout}>Keluar</button>
+          <button className="dash-logout" onClick={() => setConfirmLogout(true)}>Keluar</button>
         </div>
       </aside>
+
+      {confirmLogout && (
+        <div className="dash-modal-bg" onClick={() => setConfirmLogout(false)}>
+          <div className="dash-modal" onClick={(e) => e.stopPropagation()}>
+            <h3>Keluar</h3>
+            <p className="dash-card-desc">Yakin ingin keluar dari akun ini?</p>
+            <div className="dash-modal-actions">
+              <button className="dash-btn outline" onClick={() => setConfirmLogout(false)}>Batal</button>
+              <button className="dash-btn solid" onClick={handleLogout}>Ya, Keluar</button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="dash-main">
         <header className="dash-top">
@@ -248,7 +279,7 @@ function DashboardPage() {
           {menu === MENU_ROLE && canRole && (
             <div className="dash-card">
               <Suspense fallback={<p className="dash-empty">Memuat...</p>}>
-                <RoleAccessPanel canMenu={canRoleMenu} canPermission={canRolePerm} />
+                <RoleAccessPanel canMenu={canRoleMenu} canPermission={canRolePerm} onSaved={refreshAccess} />
               </Suspense>
             </div>
           )}

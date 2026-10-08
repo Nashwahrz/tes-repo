@@ -1,9 +1,11 @@
 // src/pages/LoginPage.jsx
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { loginUser } from '../../api/authServices';
 import './LoginPage.css';
 
 const LOGO_SRC = '/logo.png';
+
+const formatWait = (sec) => `${String(Math.floor(sec / 60)).padStart(2, '0')}:${String(sec % 60).padStart(2, '0')}`;
 
 function LoginPage() {
   const [email, setEmail] = useState('');
@@ -11,9 +13,28 @@ function LoginPage() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [blockedUntil, setBlockedUntil] = useState(0); // epoch ms; 0 = tidak diblokir
+  const [now, setNow] = useState(() => Date.now());
+
+  // Hitung mundur selama diblokir (BE mengirim retry_after dalam detik)
+  useEffect(() => {
+    if (!blockedUntil) return undefined;
+    const id = setInterval(() => {
+      const t = Date.now();
+      setNow(t);
+      if (t >= blockedUntil) {
+        setBlockedUntil(0);
+        setError('');
+      }
+    }, 500);
+    return () => clearInterval(id);
+  }, [blockedUntil]);
+
+  const waitSec = blockedUntil ? Math.max(0, Math.ceil((blockedUntil - now) / 1000)) : 0;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (waitSec > 0) return;
     setError('');
     setLoading(true);
 
@@ -35,6 +56,14 @@ function LoginPage() {
       // Email belum diverifikasi -> BE sudah mengirim OTP, arahkan ke halaman OTP
       if (data?.code === 'email_not_verified') {
         window.location.href = `/otp?email=${encodeURIComponent(email)}`;
+        return;
+      }
+
+      // Terlalu banyak percobaan: blokir tombol sampai retry_after habis
+      if (data?.code === 'too_many_attempts' && data.retry_after) {
+        setNow(Date.now());
+        setBlockedUntil(Date.now() + data.retry_after * 1000);
+        setError(data.message);
         return;
       }
 
@@ -103,9 +132,10 @@ function LoginPage() {
           </div>
 
           {error && <p className="login-error">{error}</p>}
+          {/* {waitSec > 0 && <p className="login-error">Coba lagi dalam {formatWait(waitSec)}.</p>} */}
 
-          <button type="submit" className="login-submit" disabled={loading}>
-            {loading ? 'Memproses...' : 'Masuk →'}
+          <button type="submit" className="login-submit" disabled={loading || waitSec > 0}>
+            {loading ? 'Memproses...' : waitSec > 0 ? `Coba lagi dalam ${formatWait(waitSec)}` : 'Masuk →'}
           </button>
         </form>
 

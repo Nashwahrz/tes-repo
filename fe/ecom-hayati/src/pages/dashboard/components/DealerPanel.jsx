@@ -42,6 +42,7 @@ function DealerPanel({ dealers: rows, onDealersChange, can }) {
   const [success, setSuccess] = useState('');
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
+  const [confirmSave, setConfirmSave] = useState(false);
 
   const isNew = editing === 'new';
   const others = rows.filter((d) => d.id !== editing?.id);
@@ -76,10 +77,16 @@ function DealerPanel({ dealers: rows, onDealersChange, can }) {
     setTouched((t) => ({ ...t, [key]: true }));
   };
 
-  const handleSave = async (e) => {
+  // Submit form hanya memvalidasi lalu meminta konfirmasi; penyimpanan ada di handleSave
+  const handleSubmit = (e) => {
     e.preventDefault();
     setTouched({ name: true, alamat: true, latitude: true, longitude: true });
     if (hasError) return;
+    setConfirmSave(true);
+  };
+
+  const handleSave = async () => {
+    setConfirmSave(false);
 
     const data = {
       name: form.name.trim(),
@@ -198,7 +205,7 @@ function DealerPanel({ dealers: rows, onDealersChange, can }) {
 
       {editing && (
         <div className="dash-modal-bg" onClick={closeForm}>
-          <form className="dash-modal" onClick={(e) => e.stopPropagation()} onSubmit={handleSave} noValidate>
+          <form className="dash-modal" onClick={(e) => e.stopPropagation()} onSubmit={handleSubmit} noValidate>
             <h3>{isNew ? 'Tambah Dealer' : 'Ubah Dealer'}</h3>
             {error && <p className="dash-alert error">{error}</p>}
             {field('name', 'Nama Dealer', { placeholder: 'Contoh: Hayati Motor Pusat' })}
@@ -219,6 +226,21 @@ function DealerPanel({ dealers: rows, onDealersChange, can }) {
               <button type="submit" className="dash-btn solid" disabled={saving}>{saving ? 'Menyimpan...' : 'Simpan'}</button>
             </div>
           </form>
+        </div>
+      )}
+
+      {confirmSave && (
+        <div className="dash-modal-bg" onClick={() => setConfirmSave(false)}>
+          <div className="dash-modal" onClick={(e) => e.stopPropagation()}>
+            <h3>{isNew ? 'Tambah Dealer' : 'Simpan Perubahan'}</h3>
+            <p className="dash-card-desc">
+              Yakin ingin {isNew ? 'menambahkan dealer' : 'menyimpan perubahan dealer'} <strong>{form.name.trim()}</strong>?
+            </p>
+            <div className="dash-modal-actions">
+              <button className="dash-btn outline" onClick={() => setConfirmSave(false)}>Batal</button>
+              <button className="dash-btn solid" onClick={handleSave}>{isNew ? 'Ya, Tambah' : 'Ya, Simpan'}</button>
+            </div>
+          </div>
         </div>
       )}
 
