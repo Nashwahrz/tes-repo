@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DealerController;
+use App\Http\Controllers\KonsumenController;
 use App\Http\Controllers\OtpController;
 use App\Http\Controllers\RoleMenuController;
 use App\Http\Controllers\RolePermissionController;
@@ -59,6 +60,15 @@ use Illuminate\Support\Facades\Route;
                 Route::get('/{roleId}', [RolePermissionController::class, 'show']);
                 Route::put('/{roleId}', [RolePermissionController::class, 'update']);
             });
+        });
+        Route::prefix('konsumens')->middleware('menu.access:konsumens')->group(function () {
+            Route::post('/scan-ktp', [KonsumenController::class, 'scanKtp'])->middleware('permission:konsumens.scan');
+            Route::get('/', [KonsumenController::class, 'index'])->middleware('permission:konsumens.lihat');
+            Route::post('/', [KonsumenController::class, 'store'])->middleware('permission:konsumens.tambah');
+            Route::get('/status', [KonsumenController::class, 'status'])->middleware('permission:konsumens.lihat');
+            Route::get('/{id}', [KonsumenController::class, 'show'])->middleware('permission:konsumens.lihat');
+            Route::put('/{id}', [KonsumenController::class, 'update'])->middleware('permission:konsumens.ubah');
+            Route::delete('/{id}', [KonsumenController::class, 'destroy'])->middleware('permission:konsumens.hapus');
         });
 
     });

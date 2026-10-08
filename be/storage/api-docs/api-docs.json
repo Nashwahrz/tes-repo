@@ -6,15 +6,15 @@
     },
     "servers": [
         {
-            "url": "https://speaks-alfred-technologies-gst.trycloudflare.com/api"
+            "url": "http://localhost:8000/api"
         },
         {
-            "url": "http://localhost:8000/api"
+            "url": "https://expanded-system-serious-fame.trycloudflare.com/api"
         }
     ],
     "security": [
         {
-            "http": []  
+            "http": []
         }
     ],
     "paths": {
@@ -310,6 +310,42 @@
                             }
                         }
                     },
+                    "429": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "code": {
+                                            "type": "string",
+                                            "const": "too_many_attempts"
+                                        },
+                                        "message": {
+                                            "type": "string"
+                                        },
+                                        "retry_after": {
+                                            "type": "integer"
+                                        },
+                                        "max_attempts": {
+                                            "type": "integer",
+                                            "const": 5
+                                        }
+                                    },
+                                    "required": [
+                                        "success",
+                                        "code",
+                                        "message",
+                                        "retry_after",
+                                        "max_attempts"
+                                    ]
+                                }
+                            }
+                        }
+                    },
                     "422": {
                         "$ref": "#/components/responses/ValidationException"
                     }
@@ -318,7 +354,7 @@
         },
         "/dealers": {
             "get": {
-                "operationId": "dealers.index",
+                "operationId": "dealer.index",
                 "tags": ["Dealer"],
                 "responses": {
                     "500": {
@@ -373,7 +409,7 @@
                 }
             },
             "post": {
-                "operationId": "dealers.store",
+                "operationId": "dealer.store",
                 "tags": ["Dealer"],
                 "requestBody": {
                     "required": true,
@@ -477,7 +513,7 @@
         },
         "/dealers/{id}": {
             "get": {
-                "operationId": "dealers.show",
+                "operationId": "dealer.show",
                 "tags": ["Dealer"],
                 "parameters": [
                     {
@@ -566,7 +602,7 @@
                 }
             },
             "put": {
-                "operationId": "dealers.update",
+                "operationId": "dealer.update",
                 "tags": ["Dealer"],
                 "parameters": [
                     {
@@ -698,7 +734,7 @@
                 }
             },
             "delete": {
-                "operationId": "dealers.destroy",
+                "operationId": "dealer.destroy",
                 "tags": ["Dealer"],
                 "parameters": [
                     {
@@ -764,6 +800,618 @@
                                         "message": {
                                             "type": "string",
                                             "const": "Dealer tidak ditemukan."
+                                        }
+                                    },
+                                    "required": ["success", "message"]
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/konsumens/scan-ktp": {
+            "post": {
+                "operationId": "konsumen.scanKtp",
+                "tags": ["Konsumen"],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "foto_ktp": {
+                                        "type": "string",
+                                        "format": "binary",
+                                        "contentMediaType": "application/octet-stream",
+                                        "description": "Maximum file size: 2048 kilobytes."
+                                    }
+                                },
+                                "required": ["foto_ktp"]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "500": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": ["success", "message"]
+                                }
+                            }
+                        }
+                    },
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "const": "KTP berhasil dipindai."
+                                        },
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "raw_text": {
+                                                    "anyOf": [
+                                                        {
+                                                            "type": "string"
+                                                        },
+                                                        {
+                                                            "type": "string",
+                                                            "enum": [""]
+                                                        }
+                                                    ]
+                                                },
+                                                "nik": {
+                                                    "type": "string"
+                                                },
+                                                "name": {
+                                                    "type": "string"
+                                                },
+                                                "tmp_lahir": {
+                                                    "type": "string"
+                                                },
+                                                "tgl_lahir": {
+                                                    "type": "string"
+                                                },
+                                                "jenis_kelamin": {
+                                                    "type": "string",
+                                                    "const": "Perempuan"
+                                                },
+                                                "alamat": {
+                                                    "type": "string"
+                                                },
+                                                "rt": {
+                                                    "type": "string"
+                                                },
+                                                "rw": {
+                                                    "type": "string"
+                                                },
+                                                "desa_kelurahan": {
+                                                    "type": "string"
+                                                },
+                                                "kecamatan": {
+                                                    "type": "string"
+                                                },
+                                                "kabupaten_kota": {
+                                                    "type": "string"
+                                                },
+                                                "provinsi": {
+                                                    "type": "string"
+                                                },
+                                                "agama": {
+                                                    "type": "string",
+                                                    "const": "Konghucu"
+                                                },
+                                                "status_perkawinan": {
+                                                    "type": "string",
+                                                    "const": "Cerai Mati"
+                                                },
+                                                "pekerjaan": {
+                                                    "type": "string"
+                                                },
+                                                "kewarganegaraan": {
+                                                    "type": "string",
+                                                    "enum": ["WNA", "WNI"]
+                                                }
+                                            },
+                                            "required": [
+                                                "raw_text",
+                                                "nik",
+                                                "name",
+                                                "tmp_lahir",
+                                                "tgl_lahir",
+                                                "jenis_kelamin",
+                                                "alamat",
+                                                "rt",
+                                                "rw",
+                                                "desa_kelurahan",
+                                                "kecamatan",
+                                                "kabupaten_kota",
+                                                "provinsi",
+                                                "agama",
+                                                "status_perkawinan",
+                                                "pekerjaan",
+                                                "kewarganegaraan"
+                                            ]
+                                        }
+                                    },
+                                    "required": ["success", "message", "data"]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/konsumens": {
+            "get": {
+                "operationId": "konsumen.index",
+                "tags": ["Konsumen"],
+                "responses": {
+                    "500": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "const": "Terjadi kesalahan pada server. Silakan coba lagi."
+                                        }
+                                    },
+                                    "required": ["success", "message"]
+                                }
+                            }
+                        }
+                    },
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "const": "Data konsumen berhasil diambil."
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/Konsumen"
+                                            }
+                                        }
+                                    },
+                                    "required": ["success", "message", "data"]
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            },
+            "post": {
+                "operationId": "konsumen.store",
+                "tags": ["Konsumen"],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/KonsumenRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "500": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "const": "Terjadi kesalahan pada server. Silakan coba lagi."
+                                        }
+                                    },
+                                    "required": ["success", "message"]
+                                }
+                            }
+                        }
+                    },
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "const": "Data konsumen berhasil disimpan."
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/Konsumen"
+                                        }
+                                    },
+                                    "required": ["success", "message", "data"]
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    }
+                }
+            }
+        },
+        "/konsumens/status": {
+            "get": {
+                "operationId": "konsumen.status",
+                "tags": ["Konsumen"],
+                "parameters": [
+                    {
+                        "name": "status",
+                        "in": "query",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "500": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "const": "Terjadi kesalahan pada server. Silakan coba lagi."
+                                        }
+                                    },
+                                    "required": ["success", "message"]
+                                }
+                            }
+                        }
+                    },
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "const": "Daftar konsumen berhasil diambil."
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/Konsumen"
+                                            }
+                                        }
+                                    },
+                                    "required": ["success", "message", "data"]
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/konsumens/{id}": {
+            "get": {
+                "operationId": "konsumen.show",
+                "tags": ["Konsumen"],
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "500": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "const": "Terjadi kesalahan pada server. Silakan coba lagi."
+                                        }
+                                    },
+                                    "required": ["success", "message"]
+                                }
+                            }
+                        }
+                    },
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "const": "Detail konsumen berhasil ditemukan."
+                                        },
+                                        "data": {
+                                            "anyOf": [
+                                                {
+                                                    "$ref": "#/components/schemas/Konsumen"
+                                                },
+                                                {
+                                                    "type": "null"
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    "required": ["success", "message", "data"]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "const": "Data konsumen tidak ditemukan."
+                                        }
+                                    },
+                                    "required": ["success", "message"]
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            },
+            "put": {
+                "operationId": "konsumen.update",
+                "tags": ["Konsumen"],
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/KonsumenRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "500": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "const": "Terjadi kesalahan pada server. Silakan coba lagi."
+                                        }
+                                    },
+                                    "required": ["success", "message"]
+                                }
+                            }
+                        }
+                    },
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "const": "Data konsumen berhasil diperbarui."
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/Konsumen"
+                                        }
+                                    },
+                                    "required": ["success", "message", "data"]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "const": "Data konsumen tidak ditemukan."
+                                        }
+                                    },
+                                    "required": ["success", "message"]
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    }
+                }
+            },
+            "delete": {
+                "operationId": "konsumen.destroy",
+                "tags": ["Konsumen"],
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "500": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "const": "Terjadi kesalahan pada server. Silakan coba lagi."
+                                        }
+                                    },
+                                    "required": ["success", "message"]
+                                }
+                            }
+                        }
+                    },
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "const": "Data konsumen berhasil dihapus."
+                                        }
+                                    },
+                                    "required": ["success", "message"]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "const": "Data konsumen tidak ditemukan."
                                         }
                                     },
                                     "required": ["success", "message"]
@@ -1469,7 +2117,6 @@
         "/role-permissions/user-permissions": {
             "get": {
                 "operationId": "rolePermission.userPermissions",
-                "summary": "Get permissions accessible by current logged-in user according to their role",
                 "tags": ["RolePermission"],
                 "responses": {
                     "500": {
@@ -1557,7 +2204,6 @@
         "/role-permissions": {
             "get": {
                 "operationId": "rolePermission.index",
-                "summary": "Get all roles with their assigned permissions and list of all available permissions",
                 "tags": ["RolePermission"],
                 "responses": {
                     "500": {
@@ -1627,7 +2273,6 @@
         "/role-permissions/permissions": {
             "get": {
                 "operationId": "rolePermission.getPermissions",
-                "summary": "Get all master permissions list",
                 "tags": ["RolePermission"],
                 "responses": {
                     "500": {
@@ -1685,7 +2330,6 @@
         "/role-permissions/{roleId}": {
             "get": {
                 "operationId": "rolePermission.show",
-                "summary": "Get assigned permissions and available permissions for a specific role",
                 "tags": ["RolePermission"],
                 "parameters": [
                     {
@@ -1799,7 +2443,6 @@
             },
             "put": {
                 "operationId": "rolePermission.update",
-                "summary": "Update/sync permissions assigned to a specific role",
                 "tags": ["RolePermission"],
                 "parameters": [
                     {
@@ -1918,6 +2561,44 @@
                     },
                     "422": {
                         "$ref": "#/components/responses/ValidationException"
+                    }
+                }
+            }
+        },
+        "/documentation": {
+            "get": {
+                "operationId": "l5-swagger.default.api",
+                "summary": "Handles the API request and renders the Swagger documentation view",
+                "tags": ["Swagger"],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/oauth2-callback": {
+            "get": {
+                "operationId": "l5-swagger.default.oauth2_callback",
+                "summary": "Handles the OAuth2 callback and retrieves the required file for the redirect",
+                "tags": ["Swagger"],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -2273,7 +2954,10 @@
                                         },
                                         "message": {
                                             "type": "string",
-                                            "const": "Akun user berhasil diaktifkan dan ID dealer berhasil ditambahkan."
+                                            "enum": [
+                                                "Akun user berhasil ditolak.",
+                                                "Akun user berhasil diaktifkan dan ID dealer berhasil ditambahkan."
+                                            ]
                                         },
                                         "data": {
                                             "type": "object",
@@ -2479,6 +3163,227 @@
                 "required": ["name", "alamat", "latitude", "longitude"],
                 "title": "DealerRequest"
             },
+            "JenisKelamin": {
+                "type": "string",
+                "enum": ["Laki-laki", "Perempuan"],
+                "title": "JenisKelamin"
+            },
+            "Konsumen": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "integer"
+                    },
+                    "id_me": {
+                        "type": "integer"
+                    },
+                    "nik": {
+                        "type": ["string", "null"]
+                    },
+                    "name": {
+                        "type": ["string", "null"]
+                    },
+                    "tmp_lahir": {
+                        "type": ["string", "null"]
+                    },
+                    "tgl_lahir": {
+                        "type": ["string", "null"],
+                        "format": "date-time"
+                    },
+                    "jenis_kelamin": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/JenisKelamin"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "alamat": {
+                        "type": ["string", "null"]
+                    },
+                    "rt": {
+                        "type": ["string", "null"]
+                    },
+                    "rw": {
+                        "type": ["string", "null"]
+                    },
+                    "desa_kelurahan": {
+                        "type": ["string", "null"]
+                    },
+                    "kecamatan": {
+                        "type": ["string", "null"]
+                    },
+                    "kabupaten_kota": {
+                        "type": ["string", "null"]
+                    },
+                    "provinsi": {
+                        "type": ["string", "null"]
+                    },
+                    "agama": {
+                        "type": ["string", "null"]
+                    },
+                    "status_perkawinan": {
+                        "type": ["string", "null"]
+                    },
+                    "pekerjaan": {
+                        "type": ["string", "null"]
+                    },
+                    "kewarganegaraan": {
+                        "type": ["string", "null"]
+                    },
+                    "no_telp": {
+                        "type": ["string", "null"]
+                    },
+                    "email": {
+                        "type": ["string", "null"]
+                    },
+                    "foto_ktp": {
+                        "type": "string"
+                    },
+                    "status": {
+                        "$ref": "#/components/schemas/StatusKonsumen"
+                    },
+                    "catatan_penolakan": {
+                        "type": ["string", "null"]
+                    },
+                    "diverifikasi_oleh": {
+                        "type": ["integer", "null"]
+                    },
+                    "created_at": {
+                        "type": ["string", "null"],
+                        "format": "date-time"
+                    },
+                    "updated_at": {
+                        "type": ["string", "null"],
+                        "format": "date-time"
+                    }
+                },
+                "required": [
+                    "id",
+                    "id_me",
+                    "nik",
+                    "name",
+                    "tmp_lahir",
+                    "tgl_lahir",
+                    "jenis_kelamin",
+                    "alamat",
+                    "rt",
+                    "rw",
+                    "desa_kelurahan",
+                    "kecamatan",
+                    "kabupaten_kota",
+                    "provinsi",
+                    "agama",
+                    "status_perkawinan",
+                    "pekerjaan",
+                    "kewarganegaraan",
+                    "no_telp",
+                    "email",
+                    "foto_ktp",
+                    "status",
+                    "catatan_penolakan",
+                    "diverifikasi_oleh",
+                    "created_at",
+                    "updated_at"
+                ],
+                "title": "Konsumen"
+            },
+            "KonsumenRequest": {
+                "type": "object",
+                "properties": {
+                    "id_me": {
+                        "type": "integer"
+                    },
+                    "foto_ktp": {
+                        "type": "string",
+                        "format": "binary",
+                        "contentMediaType": "application/octet-stream",
+                        "description": "Maximum file size: 2048 kilobytes."
+                    },
+                    "nik": {
+                        "type": ["string", "null"]
+                    },
+                    "name": {
+                        "type": ["string", "null"],
+                        "maxLength": 255
+                    },
+                    "tmp_lahir": {
+                        "type": ["string", "null"],
+                        "maxLength": 100
+                    },
+                    "tgl_lahir": {
+                        "type": ["string", "null"],
+                        "format": "date-time"
+                    },
+                    "jenis_kelamin": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/JenisKelamin"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "alamat": {
+                        "type": ["string", "null"],
+                        "maxLength": 255
+                    },
+                    "rt": {
+                        "type": ["string", "null"],
+                        "maxLength": 3
+                    },
+                    "rw": {
+                        "type": ["string", "null"],
+                        "maxLength": 3
+                    },
+                    "desa_kelurahan": {
+                        "type": ["string", "null"],
+                        "maxLength": 100
+                    },
+                    "kecamatan": {
+                        "type": ["string", "null"],
+                        "maxLength": 100
+                    },
+                    "kabupaten_kota": {
+                        "type": ["string", "null"],
+                        "maxLength": 100
+                    },
+                    "provinsi": {
+                        "type": ["string", "null"],
+                        "maxLength": 100
+                    },
+                    "agama": {
+                        "type": ["string", "null"],
+                        "maxLength": 50
+                    },
+                    "status_perkawinan": {
+                        "type": ["string", "null"],
+                        "maxLength": 50
+                    },
+                    "pekerjaan": {
+                        "type": ["string", "null"],
+                        "maxLength": 100
+                    },
+                    "kewarganegaraan": {
+                        "type": ["string", "null"],
+                        "maxLength": 50
+                    },
+                    "no_telp": {
+                        "type": ["string", "null"],
+                        "maxLength": 20
+                    },
+                    "email": {
+                        "type": ["string", "null"],
+                        "format": "email",
+                        "maxLength": 255
+                    }
+                },
+                "required": ["id_me", "foto_ktp"],
+                "title": "KonsumenRequest"
+            },
             "LoginRequest": {
                 "type": "object",
                 "properties": {
@@ -2653,6 +3558,11 @@
                 },
                 "required": ["email"],
                 "title": "SendOtpRequest"
+            },
+            "StatusKonsumen": {
+                "type": "string",
+                "enum": ["pending", "diterima", "ditolak"],
+                "title": "StatusKonsumen"
             },
             "StatusUser": {
                 "type": "string",

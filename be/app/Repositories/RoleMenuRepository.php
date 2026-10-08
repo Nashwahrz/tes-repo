@@ -8,9 +8,7 @@ use Illuminate\Database\Eloquent\Collection;
 
 class RoleMenuRepository
 {
-    /**
-     * Get all roles with their assigned menus.
-     */
+         
     public function getAllRolesWithMenus(): Collection
     {
         return Role::with(['menus' => function ($query) {
@@ -18,9 +16,6 @@ class RoleMenuRepository
         }])->get();
     }
 
-    /**
-     * Find a role by its ID with assigned menus.
-     */
     public function findRoleById(int|string $id): ?Role
     {
         return Role::with(['menus' => function ($query) {
@@ -28,9 +23,7 @@ class RoleMenuRepository
         }])->find($id);
     }
 
-    /**
-     * Get all master menus sorted by sequence (urutan).
-     */
+    
     public function getAllMenus(bool $onlyActive = false): Collection
     {
         $query = Menu::orderBy('urutan', 'asc');
@@ -42,9 +35,6 @@ class RoleMenuRepository
         return $query->get();
     }
 
-    /**
-     * Get assigned active menus for a specific role ID.
-     */
     public function getMenusByRoleId(int|string $roleId): Collection
     {
         $role = Role::find($roleId);
@@ -59,12 +49,7 @@ class RoleMenuRepository
             ->get();
     }
 
-    /**
-     * Sync menu IDs assigned to a role.
-     *
-     * @param Role $role
-     * @param array<int> $menuIds
-     */
+
     public function syncRoleMenus(Role $role, array $menuIds): Role
     {
         $role->menus()->sync($menuIds);

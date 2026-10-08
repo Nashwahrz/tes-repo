@@ -20,6 +20,7 @@ class RoleMenuSeeder extends Seeder
                 'users',
                 'role-menus',
                 'dealers',
+                'konsumens',
             ],
             'Kacab' => [
                 'dashboard',
@@ -27,6 +28,7 @@ class RoleMenuSeeder extends Seeder
                 'daftar-konsumen',
                 'penjualan',
                 'laporan-penjualan',
+                'konsumens'
             ],
             'ADH' => [
                 'dashboard',
@@ -35,17 +37,20 @@ class RoleMenuSeeder extends Seeder
                 'penjualan',
                 'laporan-penjualan',
                 'users',
+                'konsumens',
             ],
             'ME' => [
                 'dashboard',
                 'daftar-motor',
                 'daftar-konsumen',
                 'penjualan',
+                'konsumens'
             ],
             'Kasir' => [
                 'dashboard',
                 'daftar-konsumen',
                 'penjualan',
+                'konsumens'
             ],
         ];
 

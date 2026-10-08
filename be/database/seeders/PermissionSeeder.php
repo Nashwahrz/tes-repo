@@ -24,6 +24,11 @@ class PermissionSeeder extends Seeder
             'users.aktivasi',   
             'role-menus.kelola',       
             'role-permissions.kelola',  
+            'konsumens.lihat',
+            'konsumens.tambah',
+            'konsumens.ubah',
+            'konsumens.hapus',
+            'konsumens.scan',
         ];
         $rows = array_map(fn ($nama) => [
             'nama_permission' => $nama,
