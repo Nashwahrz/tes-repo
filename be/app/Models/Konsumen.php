@@ -16,6 +16,8 @@ class Konsumen extends Model
         'tgl_lahir',
         'jenis_kelamin',
         'alamat',
+        'latitude',
+        'longitude',
         'rt',
         'rw',
         'desa_kelurahan',
@@ -39,6 +41,8 @@ class Konsumen extends Model
             'tgl_lahir'     => 'date',
             'jenis_kelamin' => JenisKelamin::class,
             'status'        => StatusKonsumen::class,
+            'latitude'      => 'decimal:7',
+            'longitude'     => 'decimal:7',
         ];
     }
     public function me()

@@ -2,6 +2,7 @@
 
 use App\Http\Middleware\CheckMenuAccess;
 use App\Http\Middleware\CheckPermission;
+use App\Http\Middleware\ForceJsonResponse;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -19,6 +20,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'permission'  => CheckPermission::class,
         ]);
         $middleware->trustProxies(at: '127.0.0.1');
+        $middleware->api(prepend: ForceJsonResponse::class);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //
