@@ -34,13 +34,18 @@ const STATUS_LABEL = { pending: 'Menunggu', aktif: 'Aktif', nonaktif: 'Nonaktif'
 // users & dealers dimuat sekali oleh DashboardPage; tab hanya memfilter di sisi klien
 function AccUserPanel({ users: allUsers, dealers, loading, onUserUpdated }) {
   const [tab, setTab] = useState('semua');
+  const [query, setQuery] = useState('');
   const [pick, setPick] = useState(null); // { user, status, doneLabel, label } saat popup pilih dealer terbuka
   const [pickDealer, setPickDealer] = useState('');
   const [busyId, setBusyId] = useState(null);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
-  const users = tab === 'semua' ? allUsers : allUsers.filter((u) => u.status === tab);
+  const byStatus = tab === 'semua' ? allUsers : allUsers.filter((u) => u.status === tab);
+  const q = query.trim().toLowerCase();
+  const users = q
+    ? byStatus.filter((u) => `${u.name} ${u.email} ${u.role?.name ?? ''}`.toLowerCase().includes(q))
+    : byStatus;
 
   const switchTab = (key) => {
     setTab(key);
@@ -88,12 +93,19 @@ function AccUserPanel({ users: allUsers, dealers, loading, onUserUpdated }) {
       </div>
       <p className="dash-card-desc">Pantau akses pengguna dan kelola status akun.</p>
 
-      <div className="dash-tabs">
-        {TABS.filter((t) => SHOW_LOG_TAB || t.key !== 'log').map((t) => (
-          <button key={t.key} className={`dash-tab${tab === t.key ? ' active' : ''}`} onClick={() => switchTab(t.key)}>
-            {t.label}
-          </button>
-        ))}
+      <div className="dash-toolbar">
+        <input
+          className="dash-input dash-input-search"
+          type="search"
+          placeholder="Cari nama, email, atau role..."
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+        />
+        <select className="dash-input dash-select-filter" value={tab} onChange={(e) => switchTab(e.target.value)}>
+          {TABS.filter((t) => SHOW_LOG_TAB || t.key !== 'log').map((t) => (
+            <option key={t.key} value={t.key}>{t.key === 'semua' ? 'Semua status' : t.label}</option>
+          ))}
+        </select>
       </div>
 
       {error && <p className="dash-alert error">{error}</p>}
@@ -133,7 +145,7 @@ function AccUserPanel({ users: allUsers, dealers, loading, onUserUpdated }) {
       ) : loading ? (
         <p className="dash-empty">Memuat...</p>
       ) : users.length === 0 ? (
-        <p className="dash-empty">{current.empty}</p>
+        <p className="dash-empty">{q ? 'Akun tidak ditemukan.' : current.empty}</p>
       ) : (
         <div className="dash-table-wrap">
           <table className="dash-table">

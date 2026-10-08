@@ -215,7 +215,7 @@ function DealerPanel({ dealers: rows, onDealersChange, can }) {
               <Suspense fallback={<div className="dash-map" />}>
                 <MapPicker latitude={form.latitude} longitude={form.longitude} onPick={handlePick} />
               </Suspense>
-              <p className="dash-map-hint">Klik peta untuk menentukan titik lokasi dealer.</p>
+              <p className="dash-map-hint">Cari alamat, klik peta, atau geser marker untuk menentukan titik lokasi dealer.</p>
             </div>
             <div className="dash-form-row">
               {field('latitude', 'Latitude', { numeric: true, placeholder: '-6.2088' })}
