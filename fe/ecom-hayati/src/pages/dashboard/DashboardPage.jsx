@@ -55,6 +55,7 @@ const rupiah = (n) => `Rp ${new Intl.NumberFormat('id-ID').format(n)}`;
 
 // Cache per-sesi tab: dashboard langsung tampil dari data terakhir, lalu diperbarui di latar belakang
 const CACHE_KEY = 'dash-cache';
+const MENU_KEY = 'dash-menu';
 
 const readCache = (userId) => {
   try {
@@ -92,7 +93,12 @@ function DashboardPage() {
   const [users, setUsers] = useState(cached?.users ?? []);
   const [dealers, setDealers] = useState(cached?.dealers ?? []);
   const [loading, setLoading] = useState(!cached);
-  const [menuState, setMenu] = useState(MENU_HOME);
+  // Menu terakhir dibuka disimpan per tab supaya refresh tidak kembali ke Ringkasan
+  const [menuState, setMenuState] = useState(() => sessionStorage.getItem(MENU_KEY) || MENU_HOME);
+  const setMenu = (m) => {
+    setMenuState(m);
+    sessionStorage.setItem(MENU_KEY, m);
+  };
   const [query, setQuery] = useState('');
   const [confirmLogout, setConfirmLogout] = useState(false);
 
@@ -174,6 +180,7 @@ function DashboardPage() {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     sessionStorage.removeItem(CACHE_KEY);
+    sessionStorage.removeItem(MENU_KEY);
     window.location.href = '/';
   };
 
