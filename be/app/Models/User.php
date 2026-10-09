@@ -4,11 +4,15 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use App\Enums\StatusUser;
+use App\Models\Scopes\DealerScope;
+use Illuminate\Database\Eloquent\Attributes\ScopedBy;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 
+#[ScopedBy([DealerScope::class])]
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
@@ -99,6 +103,12 @@ class User extends Authenticatable
         return $this->role->permissions()
             ->whereIn('nama_permission', $permissions)
             ->exists();
+    }
+    protected function email(): Attribute
+    {
+        return Attribute::make(
+            set: fn(string $value) => strtolower(trim($value)),
+        );
     }
 }
 

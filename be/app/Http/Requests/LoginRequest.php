@@ -37,4 +37,14 @@ class LoginRequest extends FormRequest
             app(LoginResponse::class)->validationError($validator->errors()->toArray())
         );
     }
+
+    protected function prepareForValidation(): void
+    {
+        if ($this->has('email')) {
+            $this->merge([
+                'email' => strtolower(trim($this->email)),
+            ]);
+        }
+    }
+
 }
