@@ -26,6 +26,7 @@ const PATHS = {
   store: <><path d="M3 9l1-5h16l1 5" /><path d="M4 9v11h16V9" /><path d="M9 20v-6h6v6" /></>,
   shield: <><path d="M9 12l2 2 4-4" /><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z" /></>,
   id: <><rect x="3" y="5" width="18" height="14" rx="2" /><path d="M7 10h4M7 14h6" /><circle cx="16" cy="11" r="1.5" /></>,
+  logout: <><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><path d="M16 17l5-5-5-5" /><path d="M21 12H9" /></>,
   check: <><circle cx="12" cy="12" r="9" /><path d="M8 12l3 3 5-6" /></>,
   clock: <><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></>,
   off: <><circle cx="12" cy="12" r="9" /><path d="M5.6 5.6l12.8 12.8" /></>,
@@ -202,7 +203,10 @@ function DashboardPage() {
             <strong>{name}</strong>
             <small>Pengguna</small>
           </div>
-          <button className="dash-logout" onClick={() => setConfirmLogout(true)}>Keluar</button>
+          <button className="dash-logout" onClick={() => setConfirmLogout(true)} title="Keluar dari akun">
+            <Icon name="logout" size={15} />
+            Keluar
+          </button>
         </div>
       </aside>
 

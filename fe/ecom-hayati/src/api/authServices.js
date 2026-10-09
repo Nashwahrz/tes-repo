@@ -17,7 +17,13 @@ export const getUsers = async (status) => (await api.get(status ? `/users/${stat
 export const getDealers = async () => (await api.get('/dealers')).data.data;
 
 // status: 'aktif' | 'ditolak' | 'nonaktif'
-export const updateUserStatus = async (id, id_dealer, status) => (await api.put(`/users/${id}`, { id_dealer, status })).data;
+// id_atasan opsional; BE menimpa id_atasan dengan null bila tidak dikirim
+export const updateUserStatus = async (id, id_dealer, status, id_atasan = null) =>
+  (await api.put(`/users/${id}`, { id_dealer, id_atasan, status })).data;
+
+// Calon atasan menurut role (Kasir→ADH, ME→Kacab, ADH/Kacab→Manager); id_dealer menyaring atasan se-dealer
+export const getAtasanOptions = async (id_role, id_dealer) =>
+  (await api.get('/users/atasan-options', { params: { id_role, ...(id_dealer ? { id_dealer } : {}) } })).data.data;
 
 export const sendOtp = async (email) => (await api.post('/otp/send', { email })).data;
 

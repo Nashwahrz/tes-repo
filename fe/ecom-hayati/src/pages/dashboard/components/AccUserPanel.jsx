@@ -1,6 +1,6 @@
 // src/pages/AccUserPanel.jsx
-import { useState } from 'react';
-import { updateUserStatus } from '../../../api/authServices';
+import { useEffect, useState } from 'react';
+import { getAtasanOptions, updateUserStatus } from '../../../api/authServices';
 
 const TABS = [
   { key: 'semua', label: 'Semua', empty: 'Belum ada akun.' },
@@ -20,16 +20,21 @@ const ACCESS_LOGS = [];
 // Aksi per tab: [label tombol, status tujuan, kata kerja untuk pesan sukses]
 const ACTIONS = {
   pending: [['Setujui', 'aktif', 'disetujui'], ['Tolak', 'ditolak', 'ditolak']],
-  aktif: [['Nonaktifkan', 'nonaktif', 'dinonaktifkan']],
+  aktif: [['Atur', 'aktif', 'diperbarui'], ['Nonaktifkan', 'nonaktif', 'dinonaktifkan']],
   nonaktif: [['Aktifkan', 'aktif', 'diaktifkan']],
   ditolak: [['Setujui', 'aktif', 'disetujui']],
 };
 
 // Akun Manager tidak boleh dinonaktifkan
 const PROTECTED_ROLE = 'Manager';
-const actionsFor = (u) => (ACTIONS[u.status] ?? []).filter(([, status]) => !(status === 'nonaktif' && u.role?.name === PROTECTED_ROLE));
+// Atur (ubah dealer & atasan akun aktif) tidak berlaku untuk Manager, yang tidak punya atasan
+const actionsFor = (u) => (ACTIONS[u.status] ?? []).filter(([, status]) => {
+  if (u.role?.name !== PROTECTED_ROLE) return true;
+  return u.status === 'aktif' ? false : status !== 'nonaktif';
+});
 
 const STATUS_LABEL = { pending: 'Menunggu', aktif: 'Aktif', nonaktif: 'Nonaktif', ditolak: 'Ditolak' };
+
 
 // users & dealers dimuat sekali oleh DashboardPage; tab hanya memfilter di sisi klien
 function AccUserPanel({ users: allUsers, dealers, loading, onUserUpdated }) {
@@ -37,6 +42,9 @@ function AccUserPanel({ users: allUsers, dealers, loading, onUserUpdated }) {
   const [query, setQuery] = useState('');
   const [pick, setPick] = useState(null); // { user, status, doneLabel, label } saat popup pilih dealer terbuka
   const [pickDealer, setPickDealer] = useState('');
+  const [pickAtasan, setPickAtasan] = useState('');
+  const [atasanOptions, setAtasanOptions] = useState([]);
+  const [loadedKey, setLoadedKey] = useState(''); // kombinasi role+dealer yang daftar atasannya sudah dimuat
   const [busyId, setBusyId] = useState(null);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -54,12 +62,34 @@ function AccUserPanel({ users: allUsers, dealers, loading, onUserUpdated }) {
 
   };
 
-  const submit = async (user, dealerId, status, doneLabel) => {
+  // Daftar atasan dimuat ulang saat popup aktivasi dibuka atau dealer diganti
+  const pickUserId = pick?.user.id;
+  const pickRoleId = pick?.user.role?.id ?? pick?.user.id_role;
+  const needAtasan = pick?.status === 'aktif';
+  const isEdit = needAtasan && pick.user.status === 'aktif'; // akun sudah aktif, hanya ubah dealer/atasan
+  const atasanKey = `${pickRoleId}-${pickDealer}`;
+  const loadingAtasan = needAtasan && loadedKey !== atasanKey;
+  useEffect(() => {
+    if (!needAtasan) return undefined;
+    let cancelled = false;
+    getAtasanOptions(pickRoleId, pickDealer)
+      .then((list) => {
+        if (cancelled) return;
+        setAtasanOptions(list);
+        // Pertahankan atasan terpilih hanya bila masih ada di daftar
+        setPickAtasan((cur) => (list.some((a) => String(a.id) === cur) ? cur : ''));
+      })
+      .catch(() => { if (!cancelled) setAtasanOptions([]); })
+      .finally(() => { if (!cancelled) setLoadedKey(atasanKey); });
+    return () => { cancelled = true; };
+  }, [needAtasan, pickUserId, pickRoleId, pickDealer, atasanKey]);
+
+  const submit = async (user, dealerId, status, doneLabel, atasanId) => {
     setError('');
     setSuccess('');
     setBusyId(user.id);
     try {
-      const res = await updateUserStatus(user.id, dealerId ? Number(dealerId) : null, status);
+      const res = await updateUserStatus(user.id, dealerId ? Number(dealerId) : null, status, atasanId ? Number(atasanId) : null);
       onUserUpdated({ ...user, ...res.data });
       setSuccess(`Akun ${user.name} ${doneLabel}.`);
       setPick(null);
@@ -77,6 +107,8 @@ function AccUserPanel({ users: allUsers, dealers, loading, onUserUpdated }) {
     setError('');
     setSuccess('');
     setPickDealer(user.id_dealer ? String(user.id_dealer) : '');
+    setPickAtasan(user.id_atasan ? String(user.id_atasan) : '');
+    setAtasanOptions([]);
     setPick({ user, label, status, doneLabel });
   };
 
@@ -153,6 +185,8 @@ function AccUserPanel({ users: allUsers, dealers, loading, onUserUpdated }) {
               <tr>
                 <th>Pengguna</th>
                 <th>Role</th>
+                <th>Dealer</th>
+                <th>Atasan</th>
                 {tab === 'semua' && <th>Status</th>}
                 <th>Aksi</th>
               </tr>
@@ -164,20 +198,29 @@ function AccUserPanel({ users: allUsers, dealers, loading, onUserUpdated }) {
                     <strong className="dash-cell-name">{u.name}</strong>
                     <small className="dash-cell-sub">{u.email}</small>
                   </td>
-                  <td><span className="dash-tag">{u.role?.name ?? '-'}</span></td>
-                  {tab === 'semua' && <td><span className="dash-tag">{STATUS_LABEL[u.status] ?? u.status}</span></td>}
+                  <td>{u.role?.name ?? '-'}</td>
+                  <td className="acc-muted">{u.dealer?.name ?? '-'}</td>
+                  <td className="acc-muted">{u.atasan?.name ?? '-'}</td>
+                  {tab === 'semua' && <td><span className={`dash-status ${u.status}`}>{STATUS_LABEL[u.status] ?? u.status}</span></td>}
                   <td>
                     <div className="dash-actions">
-                      {actionsFor(u).map(([label, status, done], i) => (
-                        <button
-                          key={status}
-                          className={`dash-btn ${i === 0 ? 'solid' : 'outline'}`}
-                          disabled={busyId === u.id}
-                          onClick={() => handleAction(u, label, status, done)}
-                        >
-                          {label}
-                        </button>
-                      ))}
+                      {actionsFor(u).map(([label, status, done]) => {
+                        const isAtur = status === 'aktif' && u.status === 'aktif';
+                        return (
+                          <button
+                            key={status}
+                            className={isAtur ? 'acc-icon-btn' : `acc-btn ${status === 'aktif' ? 'primary' : 'danger'}`}
+                            title={isAtur ? 'Atur dealer & atasan' : label}
+                            aria-label={isAtur ? 'Atur dealer & atasan' : label}
+                            disabled={busyId === u.id}
+                            onClick={() => handleAction(u, label, status, done)}
+                          >
+                            {isAtur ? (
+                              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9" /><path d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4z" /></svg>
+                            ) : label}
+                          </button>
+                        );
+                      })}
                     </div>
                   </td>
                 </tr>
@@ -190,19 +233,47 @@ function AccUserPanel({ users: allUsers, dealers, loading, onUserUpdated }) {
       {pick && (
         <div className="dash-modal-bg" onClick={() => setPick(null)}>
           <div className="dash-modal" onClick={(e) => e.stopPropagation()}>
-            <h3>{pick.label} Akun</h3>
-            <p className="dash-card-desc">
-              Yakin ingin {pick.label.toLowerCase()} akun <strong>{pick.user.name}</strong> ({pick.user.email})?
-              {pick.status === 'aktif' && ' Pilih dealer untuk akun ini.'}
-            </p>
+            <div className="dash-modal-head">
+              <h3>{isEdit ? 'Atur Dealer & Atasan' : `${pick.label} Akun`}</h3>
+              <button className="dash-modal-close" aria-label="Tutup" onClick={() => setPick(null)}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><path d="M6 6l12 12M18 6L6 18" /></svg>
+              </button>
+            </div>
+            <p className="acc-who"><strong>{pick.user.name}</strong> · {pick.user.role?.name ?? '-'} · {pick.user.email}</p>
+            {!isEdit && (
+              <p className="dash-card-desc">
+                {pick.status === 'aktif' ? 'Pilih dealer dan atasan sebelum mengaktifkan akun ini.' : `Yakin ingin ${pick.label.toLowerCase()} akun ini?`}
+              </p>
+            )}
             {error && <p className="dash-alert error">{error}</p>}
             {pick.status === 'aktif' && (
               <div className="dash-form-group">
-                <label htmlFor="acc-dealer">Dealer</label>
-                <select id="acc-dealer" className="dash-select" value={pickDealer} onChange={(e) => setPickDealer(e.target.value)}>
+                <label htmlFor="acc-dealer">Dealer <span className="acc-req">*</span></label>
+                <select id="acc-dealer" className="dash-select full" value={pickDealer} onChange={(e) => setPickDealer(e.target.value)}>
                   <option value="" disabled>Pilih dealer</option>
                   {dealers.map((d) => (
                     <option key={d.id} value={d.id}>{d.name}</option>
+                  ))}
+                </select>
+              </div>
+            )}
+            {pick.status === 'aktif' && (
+              <div className="dash-form-group">
+                <label htmlFor="acc-atasan">Atasan <span className="acc-opt">(opsional)</span></label>
+                <select
+                  id="acc-atasan"
+                  className="dash-select full"
+                  value={pickAtasan}
+                  disabled={loadingAtasan}
+                  onChange={(e) => setPickAtasan(e.target.value)}
+                >
+                  <option value="">
+                    {loadingAtasan ? 'Memuat...' : atasanOptions.length === 0 ? 'Tidak ada pilihan atasan' : 'Tanpa atasan'}
+                  </option>
+                  {atasanOptions.map((a) => (
+                    <option key={a.id} value={a.id}>
+                      {a.name}{a.role?.name ? ` (${a.role.name}${a.dealer?.name ? ` - ${a.dealer.name}` : ''})` : ''}
+                    </option>
                   ))}
                 </select>
               </div>
@@ -212,9 +283,9 @@ function AccUserPanel({ users: allUsers, dealers, loading, onUserUpdated }) {
               <button
                 className="dash-btn solid"
                 disabled={(pick.status === 'aktif' && !pickDealer) || busyId === pick.user.id}
-                onClick={() => submit(pick.user, pick.status === 'aktif' ? pickDealer : pick.user.id_dealer, pick.status, pick.doneLabel)}
+                onClick={() => submit(pick.user, pick.status === 'aktif' ? pickDealer : pick.user.id_dealer, pick.status, pick.doneLabel, pick.status === 'aktif' ? pickAtasan : pick.user.id_atasan)}
               >
-                {busyId === pick.user.id ? 'Menyimpan...' : `Ya, ${pick.label}`}
+                {busyId === pick.user.id ? 'Menyimpan...' : isEdit ? 'Simpan' : `Ya, ${pick.label}`}
               </button>
             </div>
           </div>

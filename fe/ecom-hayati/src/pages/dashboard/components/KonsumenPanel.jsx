@@ -1,17 +1,20 @@
 // src/pages/dashboard/components/KonsumenPanel.jsx
 // UI konsumen (dokumen KTP): lihat, tambah, hapus. Data tidak bisa diedit; yang ditolak diinput ulang.
 // Termasuk + OCR KTP, terhubung ke API /konsumens.
-import { useEffect, useRef, useState } from 'react';
+import { lazy, Suspense, useEffect, useRef, useState } from 'react';
 import {
   getKonsumens, createKonsumen, deleteKonsumen, scanKtp, ktpUrl, errorMessage,
 } from '../../../api/authServices';
+
+// Leaflet (JS + CSS) hanya dimuat saat form dibuka
+const MapPicker = lazy(() => import('./MapPicker'));
 
 const STATUS_LABEL = { pending: 'Menunggu Verifikasi', diterima: 'Diterima', ditolak: 'Ditolak' };
 const AGAMA = ['Islam', 'Kristen', 'Katolik', 'Hindu', 'Buddha', 'Konghucu'];
 const KAWIN = ['Belum Kawin', 'Kawin', 'Cerai Hidup', 'Cerai Mati'];
 
 const EMPTY = {
-  nik: '', name: '', tmp_lahir: '', tgl_lahir: '', jenis_kelamin: '', alamat: '', rt: '', rw: '',
+  nik: '', name: '', tmp_lahir: '', tgl_lahir: '', jenis_kelamin: '', alamat: '', latitude: '', longitude: '', rt: '', rw: '',
   desa_kelurahan: '', kecamatan: '', kabupaten_kota: '', provinsi: '', agama: '', status_perkawinan: '',
   pekerjaan: '', kewarganegaraan: 'WNI', no_telp: '', email: '',
 };
@@ -25,14 +28,31 @@ const toForm = (k) => Object.fromEntries(FIELDS.map((f) => {
   return [f, v];
 }));
 
-// Validasi mengikuti be/app/Http/Requests/KonsumenRequest.php
+// Label field untuk pesan wajib diisi
+const LABELS = {
+  nik: 'NIK', name: 'Nama', tmp_lahir: 'Tempat lahir', tgl_lahir: 'Tanggal lahir', jenis_kelamin: 'Jenis kelamin',
+  alamat: 'Alamat', latitude: 'Latitude', longitude: 'Longitude', rt: 'RT', rw: 'RW', desa_kelurahan: 'Kelurahan/Desa',
+  kecamatan: 'Kecamatan', kabupaten_kota: 'Kabupaten/Kota', provinsi: 'Provinsi', agama: 'Agama',
+  status_perkawinan: 'Status perkawinan', pekerjaan: 'Pekerjaan', kewarganegaraan: 'Kewarganegaraan',
+  no_telp: 'No. telp', email: 'Email',
+};
+
+// Validasi mengikuti be/app/Http/Requests/KonsumenRequest.php (semua field wajib)
 function validate(form, file) {
   const e = {};
   if (!file) e.foto_ktp = 'Foto KTP wajib diunggah.';
-  if (form.nik && !/^\d{16}$/.test(form.nik)) e.nik = 'NIK harus terdiri dari 16 digit angka.';
-  if (form.email && !/^\S+@\S+\.\S+$/.test(form.email)) e.email = 'Format email tidak valid.';
+  FIELDS.forEach((k) => {
+    if (!String(form[k]).trim()) e[k] = `${LABELS[k]} wajib diisi.`;
+  });
+  if (!e.nik && !/^\d{16}$/.test(form.nik)) e.nik = 'NIK harus terdiri dari 16 digit angka.';
+  if (!e.email && !/^\S+@\S+\.\S+$/.test(form.email)) e.email = 'Format email tidak valid.';
+  [['latitude', 90], ['longitude', 180]].forEach(([k, max]) => {
+    if (e[k]) return;
+    const n = Number(form[k]);
+    if (Number.isNaN(n) || Math.abs(n) > max) e[k] = `${LABELS[k]} harus berupa angka antara -${max} dan ${max}.`;
+  });
   [['name', 255], ['tmp_lahir', 100], ['alamat', 255], ['rt', 3], ['rw', 3], ['no_telp', 20]].forEach(([k, max]) => {
-    if (form[k].length > max) e[k] = `Maksimal ${max} karakter.`;
+    if (!e[k] && form[k].length > max) e[k] = `Maksimal ${max} karakter.`;
   });
   return e;
 }
@@ -103,6 +123,11 @@ function KonsumenPanel({ can, userId }) {
   };
   const closeForm = () => { setFormOpen(false); setPicked(null); };
 
+  const handlePick = (lat, lng) => {
+    setForm((f) => ({ ...f, latitude: String(lat), longitude: String(lng) }));
+    setTouched((t) => ({ ...t, latitude: true, longitude: true }));
+  };
+
   const setField = (key) => (e) => {
     setForm((f) => ({ ...f, [key]: e.target.value }));
     setTouched((t) => ({ ...t, [key]: true }));
@@ -163,7 +188,12 @@ function KonsumenPanel({ can, userId }) {
     setConfirmSave(false);
     const fd = new FormData();
     fd.append('id_me', userId);
-    FIELDS.forEach((k) => { if (form[k] !== '') fd.append(k, form[k].trim?.() ?? form[k]); });
+    FIELDS.forEach((k) => {
+      let v = String(form[k]).trim();
+      // BE memakai aturan decimal:7 -> harus tepat 7 angka di belakang koma
+      if (k === 'latitude' || k === 'longitude') v = Number(v).toFixed(7);
+      fd.append(k, v);
+    });
     if (file) fd.append('foto_ktp', file);
 
     setSaving(true);
@@ -216,7 +246,7 @@ function KonsumenPanel({ can, userId }) {
     const id = `konsumen-${key}`;
     return (
       <div className="dash-form-group">
-        <label htmlFor={id}>{label}</label>
+        <label htmlFor={id}>{label} *</label>
         {props.options ? (
           <select id={id} className={cls} value={form[key]} onChange={setField(key)}>
             <option value="">- Pilih -</option>
@@ -316,13 +346,19 @@ function KonsumenPanel({ can, userId }) {
       {detail && (
         <div className="dash-modal-bg" onClick={() => setDetail(null)}>
           <div className="dash-modal" onClick={(e) => e.stopPropagation()}>
-            <h3>Detail Konsumen</h3>
+            <div className="dash-modal-head">
+              <h3>Detail Konsumen</h3>
+              <button type="button" className="dash-modal-close" onClick={() => setDetail(null)} aria-label="Tutup" title="Tutup">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M6 6l12 12M18 6L6 18" /></svg>
+              </button>
+            </div>
             <img className="dash-ktp-big" src={ktpUrl(detail.foto_ktp)} alt="Foto KTP" />
             <dl className="dash-detail">
               {[
                 ['NIK', detail.nik], ['Nama', detail.name],
                 ['Tempat, Tgl Lahir', [detail.tmp_lahir, detail.tgl_lahir && String(detail.tgl_lahir).slice(0, 10)].filter(Boolean).join(', ')],
                 ['Jenis Kelamin', detail.jenis_kelamin], ['Alamat', detail.alamat],
+                ['Koordinat', detail.latitude && detail.longitude ? `${detail.latitude}, ${detail.longitude}` : ''],
                 ['RT/RW', [detail.rt, detail.rw].filter(Boolean).join('/')],
                 ['Kel/Desa', detail.desa_kelurahan], ['Kecamatan', detail.kecamatan],
                 ['Kab/Kota', detail.kabupaten_kota], ['Provinsi', detail.provinsi],
@@ -337,9 +373,6 @@ function KonsumenPanel({ can, userId }) {
               <div><dt>Status</dt><dd>{statusTag(detail.status)}</dd></div>
               {detail.status === 'ditolak' && <div><dt>Catatan Penolakan</dt><dd>{detail.catatan_penolakan || '-'}</dd></div>}
             </dl>
-            <div className="dash-modal-actions">
-              <button className="dash-btn outline" onClick={() => setDetail(null)}>Tutup</button>
-            </div>
           </div>
         </div>
       )}
@@ -380,6 +413,17 @@ function KonsumenPanel({ can, userId }) {
               {field('agama', 'Agama', { options: AGAMA })}
             </div>
             {field('alamat', 'Alamat')}
+            <div className="dash-form-group">
+              <label>Lokasi di Peta *</label>
+              <Suspense fallback={<div className="dash-map" />}>
+                <MapPicker latitude={form.latitude} longitude={form.longitude} onPick={handlePick} />
+              </Suspense>
+              <p className="dash-map-hint">Cari alamat, klik peta, atau geser marker untuk menentukan titik lokasi konsumen.</p>
+            </div>
+            <div className="dash-form-row">
+              {field('latitude', 'Latitude', { numeric: true, placeholder: '-0.9471000' })}
+              {field('longitude', 'Longitude', { numeric: true, placeholder: '100.4172000' })}
+            </div>
             <div className="dash-form-row">
               {field('rt', 'RT', { max: 3, numeric: true })}
               {field('rw', 'RW', { max: 3, numeric: true })}
