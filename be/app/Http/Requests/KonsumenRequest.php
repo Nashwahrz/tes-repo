@@ -11,23 +11,38 @@ class KonsumenRequest extends FormRequest
     /**
      * Determine if the user is authorized to make this request.
      */
-    public function authorize(): bool
-    {
-        return true;
-    }
 
     /**
      * Get the validation rules that apply to the request.
      *
      * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
      */
+
+    // public function authorize(): bool
+    // {
+    //     return $this->user()?->role()->where('name', 'ME')->exists() ?? false;
+    // }
+
+    // protected function prepareForValidation(): void
+    // {
+    //     $this->merge([
+    //         'id_me' => $this->user()?->id,
+    //     ]);
+    // }
     public function rules(): array
     {
         $isUpdate = $this->isMethod('put') || $this->isMethod('patch');
         $konsumenId = $this->route('id') ?? $this->route('konsumen');
 
         return [
-            'id_me'             => ['required', 'exists:users,id'],
+            'id_me'             => [
+                                        'required',
+                                        Rule::exists('users', 'id')->where(function ($query) {
+                                            $query->whereIn('id_role', function ($sub) {
+                                                $sub->select('id')->from('roles')->where('name', 'ME');
+                                            });
+                                        }),
+                                    ],
             'foto_ktp'          => [$isUpdate ? 'nullable' : 'required', 'image', 'mimes:jpg,jpeg,png', 'max:2048'],
             'nik'               => ['required', 'string', 'digits:16', Rule::unique('konsumens', 'nik')->ignore($konsumenId)],
             'name'              => ['required', 'string', 'max:255'],
@@ -58,6 +73,7 @@ class KonsumenRequest extends FormRequest
             'required' => ':attribute wajib diisi.',
             'id_me.required'    => 'ID ME wajib diisi.',
             'id_me.exists'      => 'ID ME tidak terdaftar.',
+            'id_me.role'        => 'Anda tidak memiliki akses untuk melakukan ini.',
             'foto_ktp.required' => 'Foto KTP wajib diunggah.',
             'foto_ktp.image'    => 'File harus berupa gambar.',
             'foto_ktp.mimes'    => 'Format file harus JPG, JPEG, atau PNG.',
@@ -67,7 +83,27 @@ class KonsumenRequest extends FormRequest
             'nik.regex'        => 'NIK tidak boleh mengandung huruf atau simbol.',
             'tgl_lahir.date'    => 'Format tanggal lahir tidak valid.',
             'email.email'       => 'Format email tidak valid.',
+            'email.unique'        => 'Email sudah terdaftar.',
+            'email.required'    => 'Email wajib diisi.',
+            'no_telp.max'         => 'Nomor telepon maksimal 20 digit.',
+            'latitude.required' => 'Latitude wajib diisi.',
+            'latitude.decimal'  => 'Latitude harus berupa angka desimal.',
+            'longitude.required' => 'Longitude wajib diisi.',
+            'longitude.decimal'  => 'Longitude harus berupa angka desimal.',
+            'no_telp.required'    => 'Nomor telepon wajib diisi.',
+            'rt.max'              => 'RT maksimal 3 digit.',
+            'rw.max'              => 'RW maksimal 3 digit.',
+            'desa_kelurahan.max'  => 'Desa/kelurahan maksimal 100 karakter.',
+            'kecamatan.max'       => 'Kecamatan maksimal 100 karakter.',
+            'kabupaten_kota.max'  => 'Kabupaten/kota maksimal 100 karakter.',
+            'provinsi.max'        => 'Provinsi maksimal 100 karakter.',
+            'agama.max'           => 'Agama maksimal 50 karakter.',
+            'status_perkawinan.max' => 'Status perkawinan maksimal 50 karakter.',
+            'pekerjaan.max'       => 'Pekerjaan maksimal 100 karakter.',
+            'kewarganegaraan.max' => 'Kewarganegaraan maksimal 50 karakter.',
+            
         ];
+        
     }
 }
 

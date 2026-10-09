@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Enums\StatusUser;
 use App\Http\Requests\ActivateUserRequest;
+use App\Http\Requests\GetAtasanOptionsRequest;
 use App\Http\Responses\UserResponse;
 use App\Models\Role;
 use App\Repositories\UserRepository;
@@ -38,17 +39,39 @@ class UserController extends Controller
 
             $updatedUser = $this->userRepository->activateUser(
                 $user,
-                $isDitolak ? null : (int) $request->id_dealer,
+                $isDitolak ? null : ($request->filled('id_dealer') ? (int) $request->id_dealer : null),
+                $isDitolak ? null : ($request->filled('id_atasan') ? (int) $request->id_atasan : null),
                 $status
             );
 
             $message = $isDitolak
                 ? 'Akun user berhasil ditolak.'
-                : 'Akun user berhasil diaktifkan dan ID dealer berhasil ditambahkan.';
+                : 'Akun user berhasil diaktifkan.';
 
             return $this->userResponse->success($updatedUser, $message);
         } catch (Throwable $e) {
             Log::error('Aktivasi user gagal: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            return $this->userResponse->serverError();
+        }
+    }
+
+    public function getAtasanOptions(GetAtasanOptionsRequest $request)
+    {
+        try {
+            $role = Role::find($request->id_role);
+            if (!$role) {
+                return $this->userResponse->notFound('Role tidak ditemukan.');
+            }
+
+            $dealerId = $request->filled('id_dealer') ? (int) $request->id_dealer : null;
+            $atasanOptions = $this->userRepository->getAtasanOptions($role, $dealerId);
+
+            return $this->userResponse->list($atasanOptions, 'Daftar pilihan atasan berhasil diambil.');
+        } catch (Throwable $e) {
+            Log::error('Gagal mengambil daftar pilihan atasan: ' . $e->getMessage(), [
                 'trace' => $e->getTraceAsString(),
             ]);
 
