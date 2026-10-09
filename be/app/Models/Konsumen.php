@@ -4,8 +4,11 @@ namespace App\Models;
 
 use App\Enums\JenisKelamin;
 use App\Enums\StatusKonsumen;
+use App\Models\Scopes\KonsumenDealerScope;
+use Illuminate\Database\Eloquent\Attributes\ScopedBy;
 use Illuminate\Database\Eloquent\Model;
 
+#[ScopedBy([KonsumenDealerScope::class])]
 class Konsumen extends Model
 {
     protected $fillable = [

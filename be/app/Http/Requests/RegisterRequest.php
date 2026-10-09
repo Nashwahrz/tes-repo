@@ -70,4 +70,13 @@ class RegisterRequest extends FormRequest
             app(RegisterResponse::class)->validationError($validator->errors()->toArray())
         );
     }
+    protected function prepareForValidation(): void
+    {
+        if ($this->has('email')) {
+            $this->merge([
+                'email' => strtolower(trim($this->email)),
+            ]);
+        }
+    }
+
 }
