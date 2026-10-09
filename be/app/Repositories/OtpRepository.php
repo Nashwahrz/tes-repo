@@ -8,7 +8,7 @@ use Carbon\Carbon;
 
 class OtpRepository
 {
-        public function createOtp(User $user, int $length = 6, int $expiryMinutes = 5): Otp
+    public function createOtp(User $user, int $length = 6, int $expiryMinutes = 5): Otp
     {
       
         $this->deleteUserOtps($user->id);

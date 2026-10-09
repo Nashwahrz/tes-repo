@@ -37,6 +37,7 @@ use Illuminate\Support\Facades\Route;
             Route::get('/aktif', [UserController::class, 'aktifUsers'])->middleware('permission:users.lihat');
             Route::get('/ditolak', [UserController::class, 'ditolakUsers'])->middleware('permission:users.lihat');
             Route::get('/nonaktif', [UserController::class, 'nonaktifUsers'])->middleware('permission:users.lihat');
+            Route::get('/atasan-options', [UserController::class, 'getAtasanOptions'])->middleware('permission:users.lihat');
             Route::put('/{id}', [UserController::class, 'activate'])->middleware('permission:users.aktivasi');
         });
 

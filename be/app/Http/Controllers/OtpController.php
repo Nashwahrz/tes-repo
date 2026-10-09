@@ -72,7 +72,7 @@ class OtpController extends Controller
             $user->email_verifikasi = true;
             $user->save();
 
-            // Clear used OTP
+    
             $this->otpRepository->deleteUserOtps($user->id);
 
             return $this->otpResponse->verified($user);

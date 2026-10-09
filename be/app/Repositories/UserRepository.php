@@ -6,6 +6,8 @@ use App\Enums\StatusUser;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Collection;
 
+use App\Models\Role;
+
 class UserRepository
 {
     /**
@@ -25,16 +27,49 @@ class UserRepository
     }
 
     /**
-     * Activate user account and assign dealer ID.
+     * Activate user account, assign dealer ID and atasan ID.
      */
-    public function activateUser(User $user, ?int $dealerId, StatusUser $status = StatusUser::Aktif): User
+    public function activateUser(User $user, ?int $dealerId, ?int $atasanId, StatusUser $status = StatusUser::Aktif): User
     {
         $user->update([
             'id_dealer' => $dealerId,
+            'id_atasan' => $atasanId,
             'status'    => $status,
         ]);
 
         return $user->fresh(['role', 'dealer', 'atasan']);
+    }
+
+    /**
+     * Get atasan options based on role and dealer.
+     */
+    public function getAtasanOptions(Role $role, ?int $dealerId = null): Collection
+    {
+        $roleName = strtoupper($role->name);
+
+        $targetRoles = match ($roleName) {
+            'Kasir' => ['ADH'],
+            'ME'    => ['Kacab'],
+            'ADH'   => ['Manager'],
+            'Kacab' => ['Manager'],
+            default => [],
+        };
+
+        if (empty($targetRoles)) {
+            return new Collection();
+        }
+
+        $query = User::with(['role:id,name', 'dealer:id,name'])
+            ->whereHas('role', function ($q) use ($targetRoles) {
+                $q->whereIn('name', $targetRoles);
+            })
+            ->where('status', StatusUser::Aktif);
+
+        if ($dealerId && !in_array('Manager', $targetRoles)) {
+            $query->where('id_dealer', $dealerId);
+        }
+
+        return $query->get();
     }
 
     /**
