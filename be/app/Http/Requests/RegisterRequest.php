@@ -5,6 +5,8 @@ namespace App\Http\Requests;
 use App\Http\Responses\RegisterResponse;
 use App\Models\Role;
 use App\Models\User;
+use App\Rules\AllowedEmailDomain;
+use App\Rules\UniqueManagerRole;
 use Closure;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
@@ -22,25 +24,11 @@ class RegisterRequest extends FormRequest
     {
         return [
             'name'      => ['required', 'string', 'max:255', 'regex:/^[a-zA-Z\s]+$/'],
-            'email'     => ['required', 'email', 'max:255', 'unique:users,email'],
+            'email'     => ['required', 'email', 'max:255', 'unique:users,email',new AllowedEmailDomain()],
             'password'  => ['required', 'string', 'confirmed',Password::min(8)->mixedCase()->numbers()->symbols(),],
             'id_dealer' => ['nullable', 'exists:dealers,id'],
             'id_atasan' => ['nullable', 'exists:users,id'],
-            'id_role'   => [
-                'required',
-                'exists:roles,id',
-                function (string $attribute, mixed $value, Closure $fail) {
-                    $managerRole = Role::where('name', 'Manager')->first();
-
-                    if ($managerRole && (int) $value === $managerRole->id) {
-                        $managerExists = User::where('id_role', $managerRole->id)->exists();
-
-                        if ($managerExists) {
-                            $fail('Data tidak bisa diisi');
-                        }
-                    }
-                },
-            ],
+            'id_role'   => ['required','exists:roles,id',new UniqueManagerRole()],
         ];
     }
     

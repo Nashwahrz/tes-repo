@@ -29,27 +29,6 @@ class AuthController extends Controller
         private LoginLogService $loginLogService,
     ) {}
 
-    #[OA\Post(
-        path: '/api/auth/register',
-        summary: 'Register a new user',
-        tags: ['Auth'],
-        requestBody: new OA\RequestBody(
-            required: true,
-            content: new OA\JsonContent(
-                required: ['name', 'email', 'password'],
-                properties: [
-                    new OA\Property(property: 'name', type: 'string', example: 'John Doe'),
-                    new OA\Property(property: 'email', type: 'string', format: 'email', example: 'john@example.com'),
-                    new OA\Property(property: 'password', type: 'string', format: 'password', example: 'secret123'),
-                ]
-            )
-        ),
-        responses: [
-            new OA\Response(response: 201, description: 'User registered successfully'),
-            new OA\Response(response: 422, description: 'Validation error'),
-            new OA\Response(response: 500, description: 'Server error'),
-        ]
-    )]
     public function register(RegisterRequest $request)
     {
         try {
@@ -71,27 +50,6 @@ class AuthController extends Controller
         }
     }
     
-    #[OA\Post(
-        path: '/api/auth/login',
-        summary: 'Login user and get token',
-        tags: ['Auth'],
-        requestBody: new OA\RequestBody(
-            required: true,
-            content: new OA\JsonContent(
-                required: ['email', 'password'],
-                properties: [
-                    new OA\Property(property: 'email', type: 'string', format: 'email', example: 'john@example.com'),
-                    new OA\Property(property: 'password', type: 'string', format: 'password', example: 'secret123'),
-                ]
-            )
-        ),
-        responses: [
-            new OA\Response(response: 200, description: 'Login successful, returns token'),
-            new OA\Response(response: 401, description: 'Invalid credentials'),
-            new OA\Response(response: 429, description: 'Too many attempts'),
-            new OA\Response(response: 500, description: 'Server error'),
-        ]
-    )]
     public function login(LoginRequest $request)
     {
         try {

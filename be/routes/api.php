@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DealerController;
+use App\Http\Controllers\EmailWhiteListController;
 use App\Http\Controllers\KonsumenController;
 use App\Http\Controllers\OtpController;
 use App\Http\Controllers\RoleMenuController;
@@ -71,6 +72,13 @@ use Illuminate\Support\Facades\Route;
             Route::put('/{id}', [KonsumenController::class, 'update'])->middleware('permission:konsumens.ubah');
             Route::delete('/{id}', [KonsumenController::class, 'destroy'])->middleware('permission:konsumens.hapus');
             Route::put('/activate/{id}', [KonsumenController::class, 'activate'])->middleware('permission:konsumens.lihat');
+        });
+        Route::prefix('email-whitelists')->middleware('menu.access:email-whitelists')->group(function () {
+            Route::get('/', [EmailWhiteListController::class, 'index'])->middleware('permission:email-whitelists.lihat');
+            Route::post('/', [EmailWhiteListController::class, 'store'])->middleware('permission:email-whitelists.tambah');
+            Route::get('/{id}', [EmailWhiteListController::class, 'show'])->middleware('permission:email-whitelists.lihat');
+            Route::put('/{id}', [EmailWhiteListController::class, 'update'])->middleware('permission:email-whitelists.ubah');
+            Route::delete('/{id}', [EmailWhiteListController::class, 'destroy'])->middleware('permission:email-whitelists.hapus');
         });
 
     });

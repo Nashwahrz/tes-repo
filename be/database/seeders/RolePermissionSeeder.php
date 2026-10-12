@@ -30,6 +30,10 @@ class RolePermissionSeeder extends Seeder
                 'konsumens.ubah',
                 'konsumens.hapus',
                 'konsumens.scan',
+                'email-whitelists.lihat',
+                'email-whitelists.tambah',
+                'email-whitelists.ubah',
+                'email-whitelists.hapus',
             ],
             'Kacab' => [
                 'dealers.lihat',
