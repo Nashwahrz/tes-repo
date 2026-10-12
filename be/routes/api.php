@@ -70,6 +70,7 @@ use Illuminate\Support\Facades\Route;
             Route::get('/{id}', [KonsumenController::class, 'show'])->middleware('permission:konsumens.lihat');
             Route::put('/{id}', [KonsumenController::class, 'update'])->middleware('permission:konsumens.ubah');
             Route::delete('/{id}', [KonsumenController::class, 'destroy'])->middleware('permission:konsumens.hapus');
+            Route::put('/activate/{id}', [KonsumenController::class, 'activate'])->middleware('permission:konsumens.lihat');
         });
 
     });

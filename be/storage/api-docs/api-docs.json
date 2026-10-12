@@ -7,6 +7,9 @@
     "servers": [
         {
             "url": "http://localhost:8000/api"
+        },
+        {
+            "url": "https://expect-delivered-governance-grace.trycloudflare.com/api"
         }
     ],
     "security": [
@@ -1418,6 +1421,106 @@
                     },
                     "401": {
                         "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/konsumens/activate/{id}": {
+            "put": {
+                "operationId": "konsumen.activate",
+                "tags": ["Konsumen"],
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ActiveKonsumenRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "500": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "const": "Terjadi kesalahan pada server. Silakan coba lagi."
+                                        }
+                                    },
+                                    "required": ["success", "message"]
+                                }
+                            }
+                        }
+                    },
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "enum": [
+                                                "Akun Konsumen berhasil ditolak.",
+                                                "Akun Konsumen berhasil diterima."
+                                            ]
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/Konsumen"
+                                        }
+                                    },
+                                    "required": ["success", "message", "data"]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "const": "User tidak ditemukan."
+                                        }
+                                    },
+                                    "required": ["success", "message"]
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
                     }
                 }
             }
@@ -3204,6 +3307,23 @@
                 },
                 "required": ["id_dealer"],
                 "title": "ActivateUserRequest"
+            },
+            "ActiveKonsumenRequest": {
+                "type": "object",
+                "properties": {
+                    "catatan_penolakan": {
+                        "type": "string",
+                        "maxLength": 255
+                    },
+                    "diverifikasi_oleh": {
+                        "type": "integer"
+                    },
+                    "status": {
+                        "$ref": "#/components/schemas/StatusKonsumen"
+                    }
+                },
+                "required": ["catatan_penolakan", "diverifikasi_oleh"],
+                "title": "ActiveKonsumenRequest"
             },
             "Dealer": {
                 "type": "object",
