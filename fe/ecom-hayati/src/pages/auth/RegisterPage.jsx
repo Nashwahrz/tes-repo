@@ -21,7 +21,9 @@ const validatePassword = (v) => {
   if (!v) return '';
   const missing = [];
   if (v.length < 8) missing.push('minimal 8 karakter');
-  if (!/[a-z]/.test(v) || !/[A-Z]/.test(v)) missing.push('huruf besar dan huruf kecil');
+  if (!/[a-z]/.test(v) && !/[A-Z]/.test(v)) missing.push('huruf besar dan huruf kecil');
+  if (!/[a-z]/.test(v)) missing.push('huruf kecil');
+  if (!/[A-Z]/.test(v)) missing.push('huruf besar');
   if (!/\d/.test(v)) missing.push('angka');
   if (!/[^a-zA-Z0-9\s]/.test(v)) missing.push('simbol');
   return missing.length ? `Password harus mengandung ${missing.join(', ')}.` : '';

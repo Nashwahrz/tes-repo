@@ -46,4 +46,13 @@ class KonsumenRepository
 
         return $query->get();
     }
+    public function activateKonsumen(Konsumen $konsumen, ?int $diverifikasi_oleh, string|null $catatan_penolakan, StatusKonsumen $status): Konsumen
+    {
+        $konsumen->update([
+            'diverifikasi_oleh' => $diverifikasi_oleh,
+            'catatan_penolakan' => $catatan_penolakan,
+            'status'    => $status
+        ]);
+        return $konsumen->fresh(['me', 'verifiedBy']);
+    }
 }

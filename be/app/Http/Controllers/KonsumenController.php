@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Enums\StatusKonsumen;
+use App\Http\Requests\ActiveKonsumenRequest;
 use App\Http\Requests\KonsumenRequest;
 use App\Http\Responses\KonsumenResponse;
 use App\Repositories\KonsumenRepository;
@@ -147,6 +148,44 @@ class KonsumenController extends Controller
             return $this->konsumenResponse->deleted();
         } catch (Throwable $e) {
             Log::error('Gagal menghapus konsumen: ' . $e->getMessage());
+            return $this->konsumenResponse->serverError();
+        }
+    }
+    public function activate(ActiveKonsumenRequest $request, int $id)
+    {
+        try {
+
+            $konsumen = $this->konsumenRepository->findById($id);
+
+            if (!$konsumen) {
+                return $this->konsumenResponse->notFound('Konsumen tidak ditemukan.');
+            }
+
+            $status = $request->filled('status')
+                ? StatusKonsumen::tryFrom($request->status) ?? StatusKonsumen::Diterima
+                : StatusKonsumen::Diterima;
+
+            $isDiterima = $status === StatusKonsumen::Diterima;
+            
+            $diverifikasi_oleh = auth()->id();
+
+            $updatedKonsumen = $this->konsumenRepository->activateKonsumen(
+                $konsumen,
+                $diverifikasi_oleh ,
+                $isDiterima ? null : ($request->input('catatan_penolakan') ? : null),
+                $status
+            );
+
+            $message = $isDiterima
+                ? 'Akun Konsumen berhasil diterima.'
+                : 'Akun Konsumen berhasil ditolak.';
+
+            return $this->konsumenResponse->success($updatedKonsumen, $message);
+        } catch (Throwable $e) {
+            Log::error('Aktivasi Konsumen gagal: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString(),
+            ]);
+
             return $this->konsumenResponse->serverError();
         }
     }
