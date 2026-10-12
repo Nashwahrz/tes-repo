@@ -32,6 +32,8 @@ const PATHS = {
   chart: <><path d="M3 3v18h18" /><path d="M7 15l4-4 3 3 5-6" /></>,
   check: <><circle cx="12" cy="12" r="9" /><path d="M8 12l3 3 5-6" /></>,
   clock: <><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></>,
+  menu: <><path d="M4 6h16M4 12h16M4 18h16" /></>,
+  close: <><path d="M6 6l12 12M18 6L6 18" /></>,
   off: <><circle cx="12" cy="12" r="9" /><path d="M5.6 5.6l12.8 12.8" /></>,
 };
 
@@ -110,6 +112,15 @@ function DashboardPage() {
   }, []);
   const [query, setQuery] = useState('');
   const [confirmLogout, setConfirmLogout] = useState(false);
+  const [navOpen, setNavOpen] = useState(false); // menu samping terbuka (hanya berpengaruh di layar kecil)
+
+  // Esc menutup menu samping
+  useEffect(() => {
+    if (!navOpen) return undefined;
+    const onKey = (e) => { if (e.key === 'Escape') setNavOpen(false); };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [navOpen]);
 
   useEffect(() => {
     let active = true;
@@ -231,7 +242,8 @@ function DashboardPage() {
 
   return (
     <div className="dash">
-      <aside className="dash-side">
+      {navOpen && <div className="dash-scrim" onClick={() => setNavOpen(false)} />}
+      <aside className={`dash-side${navOpen ? ' open' : ''}`}>
         <div className="dash-brand">
           <img src={LOGO_SRC} alt="Logo Hayati" />
           <div>
@@ -239,10 +251,19 @@ function DashboardPage() {
             <small>Management Workspace</small>
           </div>
         </div>
+        <button
+          type="button"
+          className="dash-burger"
+          aria-label={navOpen ? 'Tutup menu' : 'Buka menu'}
+          aria-expanded={navOpen}
+          onClick={() => setNavOpen((o) => !o)}
+        >
+          <Icon name={navOpen ? 'close' : 'menu'} size={20} />
+        </button>
 
         <ul className="dash-menu">
           {menus.map((m) => (
-            <li key={m} className={`dash-menu-item${menu === m ? ' active' : ''}`} onClick={() => setMenu(m)}>
+            <li key={m} className={`dash-menu-item${menu === m ? ' active' : ''}`} onClick={() => { setMenu(m); setNavOpen(false); }}>
               <Icon name={MENU_ICONS[m]} size={17} />
               {m}
             </li>
@@ -255,7 +276,7 @@ function DashboardPage() {
             <strong>{name}</strong>
             <small>{myRole ? `${myRole}${myDealer ? ` · ${myDealer}` : ''}` : 'Pengguna'}</small>
           </div>
-          <button className="dash-logout" onClick={() => setConfirmLogout(true)} title="Keluar dari akun">
+          <button className="dash-logout" onClick={() => { setNavOpen(false); setConfirmLogout(true); }} title="Keluar dari akun">
             <Icon name="logout" size={15} />
             Keluar
           </button>

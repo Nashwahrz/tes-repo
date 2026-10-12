@@ -220,3 +220,12 @@ select.login-input {
   font-size: 12px;
   color: #b42318;
 }
+
+/* Ponsel kecil: kartu lebih lapang agar isi tidak terjepit */
+@media (max-width: 400px) {
+  .login-page { padding: 16px 10px; }
+  .login-shell { padding: 26px 16px 20px; border-radius: 16px; }
+  .login-card { padding: 16px 12px; }
+  .login-brand { font-size: 24px; }
+  .login-title { font-size: 20px; }
+}

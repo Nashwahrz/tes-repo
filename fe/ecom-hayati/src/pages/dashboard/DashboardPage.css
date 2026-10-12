@@ -337,6 +337,7 @@
 
 .dash-select {
   min-width: 170px;
+  color: var(--ink);
   padding: 8px 10px;
   font: inherit;
   font-size: 12px;
@@ -690,3 +691,100 @@ select.dash-input, .dash-select {
 .dash-verify { display: flex; gap: 6px; margin-top: 8px; }
 .dash-table td .dash-actions { flex-wrap: nowrap; }
 .dash-table td .dash-actions .dash-btn { white-space: nowrap; }
+
+/* =====================================================================
+   Responsif
+   - <= 900px (tablet/ponsel): sidebar menjadi bilah atas yang menempel, menu bisa digeser ke samping
+   - <= 640px (ponsel): form, modal, tabel, dan filter disesuaikan agar tidak terpotong
+   ===================================================================== */
+/* Tombol menu & lapisan penutup hanya dipakai di layar kecil */
+.dash-burger, .dash-scrim { display: none; }
+
+@media (max-width: 900px) {
+  /* Sidebar menjadi bilah atas: logo + tombol menu. Menu dan akun tersembunyi sampai tombol ditekan. */
+  .dash-side {
+    position: sticky;
+    top: 0;
+    z-index: 40;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    align-self: stretch;
+    width: 100%;
+    padding: 10px 14px;
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+    box-shadow: var(--shadow-sm);
+  }
+  .dash-brand { padding: 0; }
+  .dash-burger {
+    display: grid;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+    margin-left: auto;
+    color: var(--accent);
+    background: var(--tint);
+    border: 1px solid var(--tint-line);
+    border-radius: 10px;
+    cursor: pointer;
+  }
+  .dash-burger:focus-visible { outline: none; box-shadow: var(--ring); }
+  .dash-menu, .dash-side-foot { display: none; }
+  .dash-side.open .dash-menu {
+    display: block;
+    flex: 0 0 100%;
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid var(--line);
+  }
+  .dash-side.open .dash-menu-item { padding: 12px; margin-bottom: 4px; }
+  .dash-side.open .dash-side-foot { display: flex; flex: 0 0 100%; box-sizing: border-box; margin-top: 8px; }
+  .dash-side.open .dash-logout { padding: 11px 12px; }
+  .dash-scrim { display: block; position: fixed; inset: 0; z-index: 30; background: rgba(0, 0, 0, 0.35); }
+
+  /* Bilah atas sudah ditempati sidebar; header biasa mengalir di bawahnya */
+  .dash-top { position: static; padding: 10px 14px; }
+  .dash-content { padding: 16px 14px 32px; }
+  .dash-hello, .dash-hero { padding: 18px 18px; }
+  .dash-table { min-width: 620px; }
+}
+
+@media (max-width: 640px) {
+  .dash-card { padding: 14px; }
+  .dash-hello h1 { font-size: 19px; }
+  .dash-hero h2 { font-size: 24px; }
+  .dash-hero-actions { width: 100%; }
+  .dash-hero-actions .dash-btn { flex: 1; text-align: center; }
+  .dash-card-head { flex-wrap: wrap; }
+  .dash-row { flex-wrap: wrap; }
+
+  /* Filter & pencarian memenuhi lebar */
+  .dash-toolbar > * { flex: 1 1 100%; min-width: 0; }
+  .dash-input-search, .dash-toolbar .dash-input-search { max-width: none; width: 100%; }
+  .dash-select-filter { width: 100%; min-width: 0; }
+  .dash-toolbar input[type='date'].dash-select-filter { flex: 1 1 calc(50% - 5px); }
+  .dash-tabs { max-width: 100%; overflow-x: auto; }
+
+  /* Form & modal */
+  .dash-modal-bg { padding: 8px; }
+  .dash-modal { padding: 16px; max-height: 94vh; }
+  .dash-form-row { flex-direction: column; gap: 0; }
+  .dash-modal-actions { flex-wrap: wrap; }
+  .dash-modal-actions .dash-btn { flex: 1; }
+  .dash-detail > div { flex-direction: column; gap: 2px; }
+  .dash-detail dt { width: auto; }
+  .dash-map { height: 210px; }
+  .dash-ktp-big { max-height: 180px; }
+
+  .dash-toast { bottom: 14px; max-width: calc(100vw - 24px); }
+}
+
+@media (max-width: 400px) {
+  .dash-stats { grid-template-columns: 1fr; }
+  .dash-brand small { display: none; }
+}
+
+/* Mode gelap OS: pastikan teks & dropdown tetap terbaca (latar kontrol terang, teks gelap) */
+.dash select, .dash input, .dash textarea { color: var(--ink); }
+.dash select option { color: var(--ink); background: #fff; }
