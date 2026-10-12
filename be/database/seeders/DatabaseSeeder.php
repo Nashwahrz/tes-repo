@@ -16,6 +16,7 @@ class DatabaseSeeder extends Seeder
             RoleMenuSeeder::class,
             RolePermissionSeeder::class,
             ManagerSeeder::class,
+            EmailWhiteListSeeder::class,
         ]);
     }
 }

@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use App\Enums\JenisKelamin;
+use App\Rules\UserHasRole;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -35,14 +36,7 @@ class KonsumenRequest extends FormRequest
         $konsumenId = $this->route('id') ?? $this->route('konsumen');
 
         return [
-            'id_me'             => [
-                                        'required',
-                                        Rule::exists('users', 'id')->where(function ($query) {
-                                            $query->whereIn('id_role', function ($sub) {
-                                                $sub->select('id')->from('roles')->where('name', 'ME');
-                                            });
-                                        }),
-                                    ],
+            'id_me'             => ['required', new UserHasRole('ME')],
             'foto_ktp'          => [$isUpdate ? 'nullable' : 'required', 'image', 'mimes:jpg,jpeg,png', 'max:2048'],
             'nik'               => ['required', 'string', 'digits:16', Rule::unique('konsumens', 'nik')->ignore($konsumenId)],
             'name'              => ['required', 'string', 'max:255'],

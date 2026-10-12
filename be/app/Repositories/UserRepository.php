@@ -10,25 +10,16 @@ use App\Models\Role;
 
 class UserRepository
 {
-    /**
-     * Create a new user.
-     */
     public function create(array $data): User
     {
         return User::create(collect($data)->except('password_confirmation')->toArray());
     }
 
-    /**
-     * Find user by ID with relations.
-     */
     public function findById(int|string $id): ?User
     {
         return User::with(['role', 'dealer', 'atasan'])->find($id);
     }
 
-    /**
-     * Activate user account, assign dealer ID and atasan ID.
-     */
     public function activateUser(User $user, ?int $dealerId, ?int $atasanId, StatusUser $status = StatusUser::Aktif): User
     {
         $user->update([
@@ -40,9 +31,6 @@ class UserRepository
         return $user->fresh(['role', 'dealer', 'atasan']);
     }
 
-    /**
-     * Get atasan options based on role and dealer.
-     */
     public function getAtasanOptions(Role $role, ?int $dealerId = null): Collection
     {
     
@@ -71,9 +59,6 @@ class UserRepository
         return $query->get();
     }
 
-    /**
-     * Get list of users with optional status filter.
-     */
     public function getUsers(?StatusUser $status = null): Collection
     {
         $query = User::with(['role', 'dealer', 'atasan']);

@@ -23,6 +23,7 @@ class MenuSeeder extends Seeder
             ['nama_menu' => 'Role & Hak Akses', 'url' => 'role-menus',        'urutan' => 7, 'status' => true],
             ['nama_menu' => 'Daftar Dealer',    'url' => 'dealers',           'urutan' => 8, 'status' => true],
             ['nama_menu' => 'Daftar Konsumen',  'url' => 'konsumens',         'urutan' => 9, 'status' => true],
+            ['nama_menu' => 'Email WhiteList',    'url' => 'email-whitelists',  'urutan' => 10, 'status' => true],
         ];
          $menus = array_map(fn ($m) => $m + [
                 'created_at' => $now,
