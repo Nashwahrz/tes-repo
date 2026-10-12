@@ -37,7 +37,7 @@ const STATUS_LABEL = { pending: 'Menunggu', aktif: 'Aktif', nonaktif: 'Nonaktif'
 
 
 // users & dealers dimuat sekali oleh DashboardPage; tab hanya memfilter di sisi klien
-function AccUserPanel({ users: allUsers, dealers, loading, onUserUpdated }) {
+function AccUserPanel({ users: allUsers, dealers, scopeNote, loading, onUserUpdated }) {
   const [tab, setTab] = useState('semua');
   const [query, setQuery] = useState('');
   const [pick, setPick] = useState(null); // { user, status, doneLabel, label } saat popup pilih dealer terbuka
@@ -123,7 +123,10 @@ function AccUserPanel({ users: allUsers, dealers, loading, onUserUpdated }) {
         </h3>
         <span className="dash-badge">{tab === 'log' ? `${ACCESS_LOGS.length} log` : loading ? '...' : `${users.length} akun`}</span>
       </div>
-      <p className="dash-card-desc">Pantau akses pengguna dan kelola status akun.</p>
+      <p className="dash-card-desc">
+        Pantau akses pengguna dan kelola status akun.
+        {scopeNote && ` ${scopeNote} Akun yang belum memiliki dealer hanya terlihat oleh Manager.`}
+      </p>
 
       <div className="dash-toolbar">
         <input

@@ -104,22 +104,23 @@ function DashboardPage() {
 
   useEffect(() => {
     let active = true;
-    // Dua request jalan paralel; hasilnya dipakai bersama oleh semua tampilan
-    // null = request gagal: data lama (cache) dipertahankan
-    Promise.all([
-      getUsers().catch(() => null),
-      getDealers().catch(() => null),
-      getUserMenus().catch(() => null),
-      getUserPermissions().catch(() => null),
-    ]).then(([userList, dealerList, menuList, permList]) => {
-      if (!active) return;
-      const newAccess = menuList && permList ? toAccess(menuList, permList) : null;
-      if (userList) setUsers(userList);
-      if (dealerList) setDealers(dealerList);
-      if (newAccess) setAccess(newAccess);
-      if (userList && dealerList && newAccess) writeCache(user?.id, userList, dealerList, newAccess);
-      setLoading(false);
-    });
+    // Hak akses dimuat dulu: /users hanya boleh dipanggil role dengan users.lihat
+    // (ME/Kasir tidak punya, jadi dilewati agar tidak 403). null = request gagal: data lama (cache) dipertahankan
+    Promise.all([getUserMenus().catch(() => null), getUserPermissions().catch(() => null)])
+      .then(async ([menuList, permList]) => {
+        const newAccess = menuList && permList ? toAccess(menuList, permList) : null;
+        const canUsers = newAccess ? newAccess.permissions.includes('users.lihat') : true;
+        const [userList, dealerList] = await Promise.all([
+          canUsers ? getUsers().catch(() => null) : [],
+          getDealers().catch(() => null),
+        ]);
+        if (!active) return;
+        if (userList) setUsers(userList);
+        if (dealerList) setDealers(dealerList);
+        if (newAccess) setAccess(newAccess);
+        if (userList && dealerList && newAccess) writeCache(user?.id, userList, dealerList, newAccess);
+        setLoading(false);
+      });
     return () => { active = false; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -127,8 +128,16 @@ function DashboardPage() {
   const count = (status) => users.filter((u) => u.status === status).length;
   const pending = users.filter((u) => u.status === 'pending');
 
+  // BE membatasi dealer/akun/konsumen ke dealer milik user non-Manager (scope per dealer).
+  // Role & dealer sendiri diambil dari daftar users karena respons login hanya memuat id & email.
+  const me = users.find((u) => u.id === user?.id);
+  const myRole = me?.role?.name ?? null;
+  const myDealer = me?.dealer?.name ?? null;
+  const scoped = !!me && myRole !== 'Manager' && !!me.id_dealer;
+  const scopeNote = scoped ? `Data dibatasi pada dealer Anda${myDealer ? `: ${myDealer}` : ''}.` : '';
+
   const stats = [
-    { icon: 'store', label: 'Total Dealer', value: dealers.length, unit: 'Dealer' },
+    { icon: 'store', label: scoped ? 'Dealer Anda' : 'Total Dealer', value: dealers.length, unit: 'Dealer' },
     { icon: 'check', label: 'Akun Aktif', value: count('aktif'), unit: 'Akun' },
     { icon: 'clock', label: 'Menunggu Persetujuan', value: count('pending'), unit: 'Akun', tag: count('pending') > 0 ? 'Perlu Tindakan' : null },
     { icon: 'off', label: 'Akun Nonaktif', value: count('nonaktif'), unit: 'Akun' },
@@ -208,7 +217,7 @@ function DashboardPage() {
           <div className="dash-avatar">{initial}</div>
           <div className="dash-side-user">
             <strong>{name}</strong>
-            <small>Pengguna</small>
+            <small>{myRole ? `${myRole}${myDealer ? ` · ${myDealer}` : ''}` : 'Pengguna'}</small>
           </div>
           <button className="dash-logout" onClick={() => setConfirmLogout(true)} title="Keluar dari akun">
             <Icon name="logout" size={15} />
@@ -244,7 +253,7 @@ function DashboardPage() {
           />
           <div className="dash-top-right">
             <div>
-              Total Dealer
+              {scoped ? 'Dealer Anda' : 'Total Dealer'}
               <strong>{dealers.length}</strong>
             </div>
             <div>
@@ -261,6 +270,7 @@ function DashboardPage() {
                 <AccUserPanel
                   users={users}
                   dealers={dealers}
+                  scopeNote={scopeNote}
                   loading={loading}
                   onUserUpdated={(updated) => setUsers((list) => list.map((u) => (u.id === updated.id ? updated : u)))}
                 />
@@ -285,7 +295,8 @@ function DashboardPage() {
                 <Suspense fallback={<p className="dash-empty">Memuat...</p>}>
                   <DealerPanel
                     dealers={dealers}
-                    can={{ tambah: can('dealers.tambah'), ubah: can('dealers.ubah'), hapus: can('dealers.hapus') }}
+                    scopeNote={scopeNote}
+                    can={{ tambah: can('dealers.tambah') && !scoped, ubah: can('dealers.ubah'), hapus: can('dealers.hapus') }}
                     onDealersChange={(update) => setDealers((list) => update(list))}
                   />
                 </Suspense>
@@ -298,6 +309,7 @@ function DashboardPage() {
               <Suspense fallback={<p className="dash-empty">Memuat...</p>}>
                 <KonsumenPanel
                   userId={user?.id}
+                  role={myRole}
                   can={{ tambah: can('konsumens.tambah'), hapus: can('konsumens.hapus'), scan: can('konsumens.scan') }}
                 />
               </Suspense>
@@ -317,7 +329,7 @@ function DashboardPage() {
               <div className="dash-hello">
                 <div>
                   <h1>Halo, {name}</h1>
-                  <p>Pantau jaringan dealer motor dan status akun pengguna dalam satu tampilan.</p>
+                  <p>Pantau jaringan dealer motor dan status akun pengguna dalam satu tampilan. {scopeNote}</p>
                 </div>
                 {canAcc && (
                   <button className="dash-btn solid" onClick={() => setMenu(MENU_ACC)}>Audit Log &amp; Akses</button>

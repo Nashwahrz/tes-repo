@@ -57,7 +57,12 @@ function validate(form, file) {
   return e;
 }
 
-function KonsumenPanel({ can, userId }) {
+// BE hanya menerima id_me milik user berrole ME. Role diketahui dari daftar user (butuh users.lihat);
+// bila role tidak diketahui tombol tetap tampil dan penolakan BE diterjemahkan ke pesan yang jelas.
+const ROLE_PENGINPUT = 'ME';
+
+function KonsumenPanel({ can: access, userId, role }) {
+  const can = { ...access, tambah: access.tambah && (!role || role === ROLE_PENGINPUT) };
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('');
@@ -204,7 +209,9 @@ function KonsumenPanel({ can, userId }) {
       closeForm();
       reload();
     } catch (err) {
-      setError(errorMessage(err));
+      setError(err.response?.data?.errors?.id_me
+        ? `Hanya akun dengan role ${ROLE_PENGINPUT} yang dapat menambah data konsumen.`
+        : errorMessage(err));
     } finally {
       setSaving(false);
     }

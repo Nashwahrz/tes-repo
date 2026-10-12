@@ -1,14 +1,17 @@
 // src/api/authService.js
 import api from './axios';
 
+// BE menyimpan email dalam huruf kecil tanpa spasi; samakan di sisi FE
+const normEmail = (email) => (email ?? '').trim().toLowerCase();
+
 export const loginUser = async (email, password) => {
-  const response = await api.post('/login', { email, password });
+  const response = await api.post('/login', { email: normEmail(email), password });
   return response.data;
   // response.data = { message, data: { id, email }, token }
 };
 
 export const registerUser = async (name, email, password, password_confirmation, id_role) => {
-  const response = await api.post('/register', { name, email, password, password_confirmation, id_role });
+  const response = await api.post('/register', { name, email: normEmail(email), password, password_confirmation, id_role });
   return response.data;
 };
 
@@ -25,9 +28,9 @@ export const updateUserStatus = async (id, id_dealer, status, id_atasan = null) 
 export const getAtasanOptions = async (id_role, id_dealer) =>
   (await api.get('/users/atasan-options', { params: { id_role, ...(id_dealer ? { id_dealer } : {}) } })).data.data;
 
-export const sendOtp = async (email) => (await api.post('/otp/send', { email })).data;
+export const sendOtp = async (email) => (await api.post('/otp/send', { email: normEmail(email) })).data;
 
-export const verifyOtp = async (email, otp) => (await api.post('/otp/verify', { email, otp })).data;
+export const verifyOtp = async (email, otp) => (await api.post('/otp/verify', { email: normEmail(email), otp })).data;
 
 // Dealer (BE: /dealers, butuh permission dealers.*)
 export const createDealer = async (payload) => (await api.post('/dealers', payload)).data;

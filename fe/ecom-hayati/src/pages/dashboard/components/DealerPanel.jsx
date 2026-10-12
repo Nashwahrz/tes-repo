@@ -33,7 +33,7 @@ function validate(form, others) {
 }
 
 // dealers & onDealersChange dikelola DashboardPage; can = permission dealers.* milik user
-function DealerPanel({ dealers: rows, onDealersChange, can }) {
+function DealerPanel({ dealers: rows, onDealersChange, can, scopeNote }) {
   const [editing, setEditing] = useState(null); // null | 'new' | dealer
   const [form, setForm] = useState(EMPTY);
   const [touched, setTouched] = useState({});
@@ -154,7 +154,7 @@ function DealerPanel({ dealers: rows, onDealersChange, can }) {
         </h3>
         {can.tambah && <button className="dash-btn solid" onClick={() => openForm('new')}>+ Tambah Dealer</button>}
       </div>
-      <p className="dash-card-desc">Kelola dealer: nama, alamat, dan koordinat lokasi.</p>
+      <p className="dash-card-desc">Kelola dealer: nama, alamat, dan koordinat lokasi. {scopeNote}</p>
 
       <input
         className="dash-input dash-input-search"
