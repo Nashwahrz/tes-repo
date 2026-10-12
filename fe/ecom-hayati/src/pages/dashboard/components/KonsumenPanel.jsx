@@ -4,7 +4,7 @@
 import { lazy, Suspense, useEffect, useRef, useState } from 'react';
 import Toast from './Toast';
 import {
-  getKonsumens, createKonsumen, deleteKonsumen, scanKtp, ktpUrl, errorMessage,
+  getKonsumens, createKonsumen, deleteKonsumen, verifyKonsumen, scanKtp, ktpUrl, errorMessage,
 } from '../../../api/authServices';
 
 // Leaflet (JS + CSS) hanya dimuat saat form dibuka
@@ -73,7 +73,8 @@ function KonsumenPanel({ can: access, userId, role }) {
   const [error, setError] = useState('');
 
   const [formOpen, setFormOpen] = useState(false);
-  const [toRedo, setToRedo] = useState(null); // konsumen ditolak yang akan diinput ulang
+  const [toRedo, setToRedo] = useState(null); // konsumen ditolak yang akan diinput ulang (menunggu konfirmasi)
+  const [redoSource, setRedoSource] = useState(null); // konsumen ditolak yang akan diganti saat data baru disimpan
   const [form, setForm] = useState(EMPTY);
   const [file, setFile] = useState(null);
   const [preview, setPreview] = useState('');
@@ -83,6 +84,8 @@ function KonsumenPanel({ can: access, userId, role }) {
   const [scanNote, setScanNote] = useState('');
   const [confirmSave, setConfirmSave] = useState(false);
   const [toDelete, setToDelete] = useState(null);
+  const [toVerify, setToVerify] = useState(null); // { konsumen, status: 'diterima' | 'ditolak' }
+  const [catatan, setCatatan] = useState('');
   const [detail, setDetail] = useState(null);
   const fileRef = useRef(null);
   const scanNoteRef = useRef(null);
@@ -133,7 +136,7 @@ function KonsumenPanel({ can: access, userId, role }) {
     setForm(prefill ? toForm(prefill) : EMPTY);
     setFormOpen(true);
   };
-  const closeForm = () => { setFormOpen(false); setPicked(null); };
+  const closeForm = () => { setFormOpen(false); setPicked(null); setRedoSource(null); };
 
   const handlePick = (lat, lng) => {
     setForm((f) => ({ ...f, latitude: String(lat), longitude: String(lng) }));
@@ -216,14 +219,59 @@ function KonsumenPanel({ can: access, userId, role }) {
     setSaving(true);
     setError('');
     try {
+      // Input ulang: data lama baru dihapus saat menyimpan, bukan saat formulir dibuka (batal tidak menghapus apa pun).
+      // NIK harus unik: bila NIK sama, data lama harus dihapus dulu; bila beda, data baru dibuat dulu supaya tidak ada data hilang bila gagal.
+      const replacing = redoSource;
+      const sameNik = replacing && String(replacing.nik) === String(form.nik).trim();
+      if (replacing && sameNik) {
+        await deleteKonsumen(replacing.id);
+        setRedoSource(null);
+      }
       await createKonsumen(fd);
-      setSuccess(`Data konsumen ${form.name || form.nik || ''} ditambahkan.`);
+      let oldNotDeleted = false;
+      if (replacing && !sameNik) {
+        try { await deleteKonsumen(replacing.id); } catch { oldNotDeleted = true; }
+      }
+      setSuccess(oldNotDeleted
+        ? `Data konsumen ${form.name || form.nik || ''} ditambahkan, tetapi data lama yang ditolak belum terhapus. Hapus manual dari daftar.`
+        : `Data konsumen ${form.name || form.nik || ''} ditambahkan.`);
       closeForm();
       reload();
     } catch (err) {
       setError(err.response?.data?.errors?.id_me
         ? `Hanya akun dengan role ${ROLE_PENGINPUT} yang dapat menambah data konsumen.`
         : errorMessage(err));
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const openVerify = (konsumen, status) => {
+    setCatatan('');
+    setError('');
+    setToVerify({ konsumen, status });
+  };
+
+  // Verifikasi (terima/tolak); BE mengembalikan konsumen terbaru
+  const handleVerify = async () => {
+    const { konsumen, status } = toVerify;
+    const note = catatan.trim();
+    if (status === 'ditolak' && !note) {
+      setError('Catatan penolakan wajib diisi.');
+      return;
+    }
+    setSaving(true);
+    setError('');
+    try {
+      const res = await verifyKonsumen(konsumen.id, status, note);
+      // Bila sedang memfilter status tertentu, baris yang statusnya berubah keluar dari daftar
+      setRows((list) => list
+        .map((k) => (k.id === konsumen.id ? res.data : k))
+        .filter((k) => !filter || k.status === filter));
+      setSuccess(`Data konsumen ${konsumen.name || konsumen.nik || ''} ${status === 'diterima' ? 'diterima' : 'ditolak'}.`);
+      setToVerify(null);
+    } catch (err) {
+      setError(errorMessage(err));
     } finally {
       setSaving(false);
     }
@@ -244,20 +292,11 @@ function KonsumenPanel({ can: access, userId, role }) {
     }
   };
 
-  // Data ditolak tidak bisa diedit: hapus data lama (NIK harus unik), lalu isi ulang dari data tersebut
-  const handleRedo = async () => {
-    setSaving(true);
-    setError('');
-    try {
-      await deleteKonsumen(toRedo.id);
-      setRows((list) => list.filter((k) => k.id !== toRedo.id));
-      openForm(toRedo);
-    } catch (err) {
-      setError(errorMessage(err));
-    } finally {
-      setSaving(false);
-      setToRedo(null);
-    }
+  // Data ditolak tidak bisa diedit: formulir diisi ulang dari data tersebut; data lama baru diganti saat disimpan (lihat handleSave)
+  const handleRedo = () => {
+    setRedoSource(toRedo);
+    openForm(toRedo);
+    setToRedo(null);
   };
 
   const field = (key, label, props = {}) => {
@@ -345,6 +384,12 @@ function KonsumenPanel({ can: access, userId, role }) {
                   <td>
                     {statusTag(k.status)}
                     {k.status === 'ditolak' && k.catatan_penolakan && <small className="dash-note">{k.catatan_penolakan}</small>}
+                    {can.verifikasi && k.status === 'pending' && k.id_me !== userId && (
+                      <div className="dash-verify">
+                        <button className="dash-btn sm ok" onClick={() => openVerify(k, 'diterima')}>✓ Terima</button>
+                        <button className="dash-btn sm reject" onClick={() => openVerify(k, 'ditolak')}>✕ Tolak</button>
+                      </div>
+                    )}
                   </td>
                   <td>
                     <div className="dash-actions">
@@ -416,7 +461,7 @@ function KonsumenPanel({ can: access, userId, role }) {
                 )}
               </div>
               {scanNote && (
-                <p ref={scanNoteRef} className={`dash-alert dash-alert-big ${scanNote.ok ? 'success' : 'warning'}`} role="status">
+                <p ref={scanNoteRef} className={`dash-alert dash-alert-big ${scanNote.ok ? 'yellow' : 'warning'}`} role="status">
                   <strong>{scanNote.ok ? '✓' : '!'}</strong> {scanNote.text}
                 </p>
               )}
@@ -499,17 +544,52 @@ function KonsumenPanel({ can: access, userId, role }) {
         </div>
       )}
 
+      {toVerify && (
+        <div className="dash-modal-bg" onClick={() => !saving && setToVerify(null)}>
+          <div className="dash-modal" onClick={(e) => e.stopPropagation()}>
+            <h3>{toVerify.status === 'diterima' ? 'Terima Konsumen' : 'Tolak Konsumen'}</h3>
+            <p className="dash-card-desc">
+              {toVerify.status === 'diterima'
+                ? <>Yakin menerima data <strong>{toVerify.konsumen.name || toVerify.konsumen.nik}</strong>? Pastikan data dan foto KTP sudah diperiksa.</>
+                : <>Data <strong>{toVerify.konsumen.name || toVerify.konsumen.nik}</strong> akan ditolak. Tulis alasan penolakan agar penginput dapat memperbaikinya.</>}
+            </p>
+            {toVerify.status === 'ditolak' && (
+              <div className="dash-form-group">
+                <label htmlFor="konsumen-catatan">Catatan penolakan *</label>
+                <textarea
+                  id="konsumen-catatan"
+                  className="dash-input"
+                  rows={3}
+                  maxLength={255}
+                  value={catatan}
+                  onChange={(e) => setCatatan(e.target.value)}
+                  placeholder="Contoh: Foto KTP buram, NIK tidak sesuai"
+                  autoFocus
+                />
+                <small className="dash-map-hint">{catatan.length}/255</small>
+              </div>
+            )}
+            <div className="dash-modal-actions">
+              <button className="dash-btn outline" onClick={() => setToVerify(null)} disabled={saving}>Batal</button>
+              <button className="dash-btn solid" onClick={handleVerify} disabled={saving || (toVerify.status === 'ditolak' && !catatan.trim())}>
+                {saving ? 'Memproses...' : toVerify.status === 'diterima' ? 'Ya, Terima' : 'Ya, Tolak'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {toRedo && (
         <div className="dash-modal-bg" onClick={() => setToRedo(null)}>
           <div className="dash-modal" onClick={(e) => e.stopPropagation()}>
             <h3>Input Ulang</h3>
             <p className="dash-card-desc">
               Data <strong>{toRedo.name || toRedo.nik || 'konsumen ini'}</strong> ditolak dan tidak bisa diedit.
-              Data lama akan dihapus, lalu formulir terisi ulang dengan data tersebut. Unggah foto KTP yang baru dan simpan.
+              Formulir akan terisi ulang dengan data tersebut. Unggah foto KTP yang baru lalu simpan; data lama baru diganti setelah Anda menyimpan, jadi membatalkan tidak menghapus apa pun.
             </p>
             <div className="dash-modal-actions">
               <button className="dash-btn outline" onClick={() => setToRedo(null)}>Batal</button>
-              <button className="dash-btn solid" onClick={handleRedo} disabled={saving}>Ya, Input Ulang</button>
+              <button className="dash-btn solid" onClick={handleRedo}>Ya, Input Ulang</button>
             </div>
           </div>
         </div>

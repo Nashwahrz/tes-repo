@@ -16,6 +16,10 @@ const RoleAccessPanel = lazy(() => import('./components/RoleAccessPanel'));
 const LOGO_SRC = '/logo.png';
 
 // Url menu BE yang mengendalikan tiap menu sidebar (Produk dipertahankan walau endpoint BE-nya belum ada)
+// Siapa yang boleh memverifikasi konsumen. BE hanya mewajibkan konsumens.lihat (semua role punya), jadi FE yang membatasi.
+// Role hanya diketahui bila user boleh melihat daftar user; bila tidak, pakai users.lihat sebagai petunjuk atasan.
+const VERIFIER_ROLES = ['Manager', 'Kacab', 'ADH'];
+
 const MENU_URL = { [MENU_HOME]: 'dashboard', [MENU_PRODUK]: 'daftar-motor' };
 
 const PATHS = {
@@ -181,6 +185,8 @@ function DashboardPage() {
         : []),
     ] : []),
   ];
+
+  const canVerifyKonsumen = canKonsumen && (myRole ? VERIFIER_ROLES.includes(myRole) : can('users.lihat'));
 
   const menus = [
     ...(hasMenu(MENU_URL[MENU_HOME]) ? [MENU_HOME] : []),
@@ -353,7 +359,7 @@ function DashboardPage() {
                 <KonsumenPanel
                   userId={user?.id}
                   role={myRole}
-                  can={{ tambah: can('konsumens.tambah'), hapus: can('konsumens.hapus'), scan: can('konsumens.scan') }}
+                  can={{ tambah: can('konsumens.tambah'), hapus: can('konsumens.hapus'), scan: can('konsumens.scan'), verifikasi: canVerifyKonsumen }}
                 />
               </Suspense>
             </div>

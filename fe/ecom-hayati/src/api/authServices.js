@@ -48,6 +48,11 @@ export const getKonsumens = async (status) =>
 export const createKonsumen = async (payload) =>
   (await api.post('/konsumens', payload, { headers: { 'Content-Type': 'multipart/form-data' } })).data;
 
+// Verifikasi konsumen oleh atasan (BE: PUT /konsumens/activate/{id}).
+// status: 'diterima' | 'ditolak'; catatan_penolakan wajib (maks 255 karakter) bila ditolak
+export const verifyKonsumen = async (id, status, catatan_penolakan) =>
+  (await api.put(`/konsumens/activate/${id}`, { status, ...(status === 'ditolak' ? { catatan_penolakan } : {}) })).data;
+
 export const deleteKonsumen = async (id) => (await api.delete(`/konsumens/${id}`)).data;
 
 // OCR KTP: kirim gambar, terima field hasil baca (nik, name, tgl_lahir, dst.)
@@ -59,6 +64,12 @@ export const scanKtp = async (file) => {
 
 // Foto KTP disimpan di disk public BE (butuh `php artisan storage:link`)
 export const ktpUrl = (path) => (path ? `${api.defaults.baseURL.replace(/\/api\/?$/, '')}/storage/${path}` : '');
+
+// Log login pengguna (tabel log_users). BE mencatat log saat login, tetapi belum menyediakan endpoint pembacanya;
+// FE memakai GET /log-users. Bentuk data per baris:
+// { id, id_user, user?: { name, email }, ip_address, browser, platform, device, city, region, country,
+//   latitude, longitude, logged_in_at }
+export const getLoginLogs = async () => (await api.get('/log-users')).data.data;
 
 // Menu & permission milik user yang sedang login
 export const getUserMenus = async () => (await api.get('/role-menus/user-menus')).data.data;

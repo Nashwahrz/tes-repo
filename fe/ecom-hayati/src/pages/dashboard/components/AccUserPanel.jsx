@@ -1,7 +1,7 @@
 // src/pages/AccUserPanel.jsx
 import { useEffect, useState } from 'react';
 import Toast from './Toast';
-import { getAtasanOptions, updateUserStatus } from '../../../api/authServices';
+import { getAtasanOptions, getLoginLogs, updateUserStatus } from '../../../api/authServices';
 
 const TABS = [
   { key: 'semua', label: 'Semua', empty: 'Belum ada akun.' },
@@ -12,11 +12,12 @@ const TABS = [
   { key: 'log', label: 'Log Akses' },
 ];
 
-// Tab Log Akses disembunyikan sampai BE mencatat & menyediakan data sessions
-const SHOW_LOG_TAB = false;
+// Tab Log Akses menampilkan log login (log_users) dari GET /log-users
+const SHOW_LOG_TAB = true;
 
-// Belum ada endpoint log akses di BE; isi dari tabel sessions (ip_address, latitude, longitude, user_agent, last_activity)
-const ACCESS_LOGS = [];
+const waktu = (t) => (t ? new Date(t).toLocaleString('id-ID', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '-');
+const lokasi = (l) => [l.city, l.region, l.country].filter(Boolean).join(', ');
+const perangkat = (l) => [l.browser, l.platform, l.device].filter(Boolean).join(' · ');
 
 // Aksi per tab: [label tombol, status tujuan, kata kerja untuk pesan sukses]
 const ACTIONS = {
@@ -49,6 +50,15 @@ function AccUserPanel({ users: allUsers, dealers, scopeNote, loading, onUserUpda
   const [busyId, setBusyId] = useState(null);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  // Log login dimuat saat tab Log Akses pertama dibuka: status 'idle' | 'loading' | 'ready' | 'unavailable' | 'error'
+  const [logs, setLogs] = useState({ status: 'idle', rows: [] });
+
+  const loadLogs = () => {
+    setLogs((l) => ({ ...l, status: 'loading' }));
+    getLoginLogs()
+      .then((rows) => setLogs({ status: 'ready', rows: Array.isArray(rows) ? rows : [] }))
+      .catch((err) => setLogs({ status: [404, 405].includes(err.response?.status) ? 'unavailable' : 'error', rows: [] }));
+  };
 
   // Terbaru di atas: BE tidak mengurutkan, id auto-increment mengikuti urutan akun masuk
   const byStatus = (tab === 'semua' ? allUsers : allUsers.filter((u) => u.status === tab)).toSorted((a, b) => b.id - a.id);
@@ -61,8 +71,13 @@ function AccUserPanel({ users: allUsers, dealers, scopeNote, loading, onUserUpda
     setTab(key);
     setError('');
     setSuccess('');
-
+    if (key === 'log' && (logs.status === 'idle' || logs.status === 'error')) loadLogs();
   };
+
+  // Log terbaru di atas, dicari lewat nama/email pengguna, IP, lokasi, atau perangkat
+  const visibleLogs = logs.rows
+    .toSorted((a, b) => new Date(b.logged_in_at) - new Date(a.logged_in_at))
+    .filter((l) => !q || `${l.user?.name ?? ''} ${l.user?.email ?? ''} ${l.ip_address} ${lokasi(l)} ${perangkat(l)}`.toLowerCase().includes(q));
 
   // Daftar atasan dimuat ulang saat popup aktivasi dibuka atau dealer diganti
   const pickUserId = pick?.user.id;
@@ -123,7 +138,7 @@ function AccUserPanel({ users: allUsers, dealers, scopeNote, loading, onUserUpda
           <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 12l2 2 4-4" /><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z" /></svg>
           Audit Log &amp; Akses
         </h3>
-        <span className="dash-badge">{tab === 'log' ? `${ACCESS_LOGS.length} log` : loading ? '...' : `${users.length} akun`}</span>
+        <span className="dash-badge">{tab === 'log' ? `${visibleLogs.length} log` : loading ? '...' : `${users.length} akun`}</span>
       </div>
       <p className="dash-card-desc">
         Pantau akses pengguna dan kelola status akun.
@@ -134,7 +149,7 @@ function AccUserPanel({ users: allUsers, dealers, scopeNote, loading, onUserUpda
         <input
           className="dash-input dash-input-search"
           type="search"
-          placeholder="Cari nama, email, atau role..."
+          placeholder={tab === 'log' ? 'Cari pengguna, IP, lokasi, atau perangkat...' : 'Cari nama, email, atau role...'}
           value={query}
           onChange={(e) => setQuery(e.target.value)}
         />
@@ -149,36 +164,46 @@ function AccUserPanel({ users: allUsers, dealers, scopeNote, loading, onUserUpda
       <Toast kind="success" message={success} onClose={() => setSuccess('')} />
 
       {tab === 'log' ? (
-        <div className="dash-table-wrap">
-          <table className="dash-table">
-            <thead>
-              <tr>
-                <th>Pengguna</th>
-                <th>Alamat IP</th>
-                <th>Lokasi</th>
-                <th>Perangkat</th>
-                <th>Waktu</th>
-              </tr>
-            </thead>
-            <tbody>
-              {ACCESS_LOGS.length === 0 ? (
+        logs.status === 'loading' || logs.status === 'idle' ? (
+          <p className="dash-empty">Memuat...</p>
+        ) : logs.status === 'unavailable' ? (
+          <p className="dash-empty">Log akses belum tersedia dari server (endpoint <code>/log-users</code> belum ada di backend).</p>
+        ) : logs.status === 'error' ? (
+          <p className="dash-empty">Gagal memuat log akses. <button className="dash-btn soft sm" onClick={loadLogs}>Coba lagi</button></p>
+        ) : visibleLogs.length === 0 ? (
+          <p className="dash-empty">{q ? 'Log tidak ditemukan.' : 'Belum ada data log akses.'}</p>
+        ) : (
+          <div className="dash-table-wrap">
+            <table className="dash-table">
+              <thead>
                 <tr>
-                  <td colSpan={5} className="dash-empty-cell">Belum ada data log akses.</td>
+                  <th>Pengguna</th>
+                  <th>Alamat IP</th>
+                  <th>Lokasi</th>
+                  <th>Perangkat</th>
+                  <th>Waktu</th>
                 </tr>
-              ) : (
-                ACCESS_LOGS.map((l) => (
+              </thead>
+              <tbody>
+                {visibleLogs.map((l) => (
                   <tr key={l.id}>
-                    <td>{l.user}</td>
-                    <td>{l.ip}</td>
-                    <td>{l.latitude}, {l.longitude}</td>
-                    <td>{l.device}</td>
-                    <td>{l.time}</td>
+                    <td>
+                      <strong className="dash-cell-name">{l.user?.name ?? `Pengguna #${l.id_user}`}</strong>
+                      {l.user?.email && <small className="dash-note">{l.user.email}</small>}
+                    </td>
+                    <td>{l.ip_address}</td>
+                    <td>
+                      {lokasi(l) || '-'}
+                      {l.latitude != null && l.longitude != null && <small className="dash-note">{l.latitude}, {l.longitude}</small>}
+                    </td>
+                    <td>{perangkat(l) || '-'}</td>
+                    <td>{waktu(l.logged_in_at)}</td>
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )
       ) : loading ? (
         <p className="dash-empty">Memuat...</p>
       ) : users.length === 0 ? (

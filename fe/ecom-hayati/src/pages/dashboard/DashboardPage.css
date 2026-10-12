@@ -360,7 +360,9 @@
 .dash-alert-big strong { flex: none; display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 50%; color: #fff; font-size: 13px; }
 .dash-alert-big.success strong { background: #079455; }
 .dash-alert-big.warning strong { background: #dc6803; }
-@keyframes dash-notice { 0% { transform: scale(0.97); box-shadow: 0 0 0 0 rgba(7, 148, 85, 0.45); } 60% { transform: scale(1.01); box-shadow: 0 0 0 8px rgba(7, 148, 85, 0); } 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(7, 148, 85, 0); } }
+.dash-alert-big.yellow { --pulse: 234, 179, 8; color: #713f12; background: #fefce8; border: 1px solid #fde047; }
+.dash-alert-big.yellow strong { background: #ca8a04; }
+@keyframes dash-notice { 0% { transform: scale(0.97); box-shadow: 0 0 0 0 rgba(var(--pulse, 7, 148, 85), 0.45); } 60% { transform: scale(1.01); box-shadow: 0 0 0 8px rgba(var(--pulse, 7, 148, 85), 0); } 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(var(--pulse, 7, 148, 85), 0); } }
 .dash-alert.info { color: #475467; background: #f2f4f7; border: 1px solid #e4e7ec; }
 
 .dash-input {
@@ -678,3 +680,13 @@ select.dash-input, .dash-select {
 .dash-toast-close { flex: none; padding: 0 2px; font-size: 20px; line-height: 1; color: inherit; background: none; border: 0; cursor: pointer; opacity: 0.6; }
 .dash-toast-close:hover { opacity: 1; }
 @keyframes dash-toast-in { from { opacity: 0; transform: translate(-50%, 12px); } to { opacity: 1; transform: translate(-50%, 0); } }
+
+/* ---------- Tabel konsumen: tombol verifikasi di kolom status, aksi lain tetap rapi ---------- */
+.dash-btn.sm { padding: 5px 10px; font-size: 12px; border-radius: 8px; white-space: nowrap; }
+.dash-btn.ok { color: #fff; background: #079455; }
+.dash-btn.ok:not(:disabled):hover { background: #067647; }
+.dash-btn.reject { color: #b42318; background: #fff; border: 1px solid #fda29b; }
+.dash-btn.reject:not(:disabled):hover { background: #fef3f2; border-color: #d92d20; }
+.dash-verify { display: flex; gap: 6px; margin-top: 8px; }
+.dash-table td .dash-actions { flex-wrap: nowrap; }
+.dash-table td .dash-actions .dash-btn { white-space: nowrap; }
