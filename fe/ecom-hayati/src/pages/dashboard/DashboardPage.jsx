@@ -218,8 +218,9 @@ function DashboardPage() {
     }
   };
 
-  const initial = (user?.email || '?').charAt(0).toUpperCase();
-  const name = user?.email?.split('@')[0] || 'Pengguna';
+ 
+  const name = me?.name || user?.email?.split('@')[0] || 'Pengguna';
+  const initial = name.charAt(0).toUpperCase();
 
   const handleLogout = () => {
     localStorage.removeItem('token');
