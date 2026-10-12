@@ -1,21 +1,19 @@
 // src/pages/DashboardPage.jsx
 import { lazy, Suspense, useEffect, useState } from 'react';
-import { getUsers, getDealers, getUserMenus, getUserPermissions } from '../../api/authServices';
+import { getUsers, getDealers, getKonsumens, getUserMenus, getUserPermissions } from '../../api/authServices';
+import {
+  MENU_HOME, MENU_PRODUK, MENU_PENJUALAN, MENU_DEALER, MENU_KONSUMEN, MENU_ACC, MENU_ROLE, MENU_PATHS, menuFromPath,
+} from './menuPaths';
 import './DashboardPage.css';
 
 // Panel hanya dimuat saat menunya dibuka
 const AccUserPanel = lazy(() => import('./components/AccUserPanel'));
 const DealerPanel = lazy(() => import('./components/DealerPanel'));
 const KonsumenPanel = lazy(() => import('./components/KonsumenPanel'));
+const PenjualanPanel = lazy(() => import('./components/PenjualanPanel'));
 const RoleAccessPanel = lazy(() => import('./components/RoleAccessPanel'));
 
 const LOGO_SRC = '/logo.png';
-const MENU_HOME = 'Ringkasan';
-const MENU_PRODUK = 'Produk';
-const MENU_DEALER = 'Dealer';
-const MENU_KONSUMEN = 'Konsumen';
-const MENU_ACC = 'Audit Log & Akses';
-const MENU_ROLE = 'Role & Hak Akses';
 
 // Url menu BE yang mengendalikan tiap menu sidebar (Produk dipertahankan walau endpoint BE-nya belum ada)
 const MENU_URL = { [MENU_HOME]: 'dashboard', [MENU_PRODUK]: 'daftar-motor' };
@@ -27,6 +25,7 @@ const PATHS = {
   shield: <><path d="M9 12l2 2 4-4" /><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z" /></>,
   id: <><rect x="3" y="5" width="18" height="14" rx="2" /><path d="M7 10h4M7 14h6" /><circle cx="16" cy="11" r="1.5" /></>,
   logout: <><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><path d="M16 17l5-5-5-5" /><path d="M21 12H9" /></>,
+  chart: <><path d="M3 3v18h18" /><path d="M7 15l4-4 3 3 5-6" /></>,
   check: <><circle cx="12" cy="12" r="9" /><path d="M8 12l3 3 5-6" /></>,
   clock: <><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></>,
   off: <><circle cx="12" cy="12" r="9" /><path d="M5.6 5.6l12.8 12.8" /></>,
@@ -35,6 +34,7 @@ const PATHS = {
 const MENU_ICONS = {
   [MENU_HOME]: 'grid',
   [MENU_PRODUK]: 'box',
+  [MENU_PENJUALAN]: 'chart',
   [MENU_DEALER]: 'store',
   [MENU_KONSUMEN]: 'id',
   [MENU_ACC]: 'shield',
@@ -55,7 +55,6 @@ const rupiah = (n) => `Rp ${new Intl.NumberFormat('id-ID').format(n)}`;
 
 // Cache per-sesi tab: dashboard langsung tampil dari data terakhir, lalu diperbarui di latar belakang
 const CACHE_KEY = 'dash-cache';
-const MENU_KEY = 'dash-menu';
 
 const readCache = (userId) => {
   try {
@@ -66,9 +65,9 @@ const readCache = (userId) => {
   }
 };
 
-const writeCache = (userId, users, dealers, access) => {
+const writeCache = (userId, users, dealers, access, konsumens) => {
   try {
-    sessionStorage.setItem(CACHE_KEY, JSON.stringify({ userId, users, dealers, access }));
+    sessionStorage.setItem(CACHE_KEY, JSON.stringify({ userId, users, dealers, access, konsumens }));
   } catch {
     // storage penuh/diblokir: abaikan
   }
@@ -92,13 +91,19 @@ function DashboardPage() {
   const [access, setAccess] = useState(cached?.access ?? { menus: [], permissions: [] });
   const [users, setUsers] = useState(cached?.users ?? []);
   const [dealers, setDealers] = useState(cached?.dealers ?? []);
+  const [konsumens, setKonsumens] = useState(cached?.konsumens ?? []);
   const [loading, setLoading] = useState(!cached);
-  // Menu terakhir dibuka disimpan per tab supaya refresh tidak kembali ke Ringkasan
-  const [menuState, setMenuState] = useState(() => sessionStorage.getItem(MENU_KEY) || MENU_HOME);
+  // Menu aktif mengikuti URL (lihat menuPaths.js); pindah menu = pushState, back/forward lewat popstate
+  const [menuState, setMenuState] = useState(() => menuFromPath(window.location.pathname) ?? MENU_HOME);
   const setMenu = (m) => {
     setMenuState(m);
-    sessionStorage.setItem(MENU_KEY, m);
+    if (window.location.pathname !== MENU_PATHS[m]) window.history.pushState(null, '', MENU_PATHS[m]);
   };
+  useEffect(() => {
+    const onPop = () => setMenuState(menuFromPath(window.location.pathname) ?? MENU_HOME);
+    window.addEventListener('popstate', onPop);
+    return () => window.removeEventListener('popstate', onPop);
+  }, []);
   const [query, setQuery] = useState('');
   const [confirmLogout, setConfirmLogout] = useState(false);
 
@@ -109,16 +114,19 @@ function DashboardPage() {
     Promise.all([getUserMenus().catch(() => null), getUserPermissions().catch(() => null)])
       .then(async ([menuList, permList]) => {
         const newAccess = menuList && permList ? toAccess(menuList, permList) : null;
-        const canUsers = newAccess ? newAccess.permissions.includes('users.lihat') : true;
-        const [userList, dealerList] = await Promise.all([
-          canUsers ? getUsers().catch(() => null) : [],
-          getDealers().catch(() => null),
+        // Endpoint dipanggil hanya bila menu + permission-nya dimiliki role (selain itu pasti 403)
+        const allowed = (menu, perm) => !newAccess || (newAccess.menus.includes(menu) && newAccess.permissions.includes(perm));
+        const [userList, dealerList, konsumenList] = await Promise.all([
+          allowed('users', 'users.lihat') ? getUsers().catch(() => null) : [],
+          allowed('dealers', 'dealers.lihat') ? getDealers().catch(() => null) : [],
+          allowed('konsumens', 'konsumens.lihat') ? getKonsumens().catch(() => null) : [],
         ]);
         if (!active) return;
         if (userList) setUsers(userList);
         if (dealerList) setDealers(dealerList);
+        if (konsumenList) setKonsumens(konsumenList);
         if (newAccess) setAccess(newAccess);
-        if (userList && dealerList && newAccess) writeCache(user?.id, userList, dealerList, newAccess);
+        if (userList && dealerList && konsumenList && newAccess) writeCache(user?.id, userList, dealerList, newAccess, konsumenList);
         setLoading(false);
       });
     return () => { active = false; };
@@ -126,6 +134,7 @@ function DashboardPage() {
   }, []);
 
   const count = (status) => users.filter((u) => u.status === status).length;
+  const countKonsumen = (status) => konsumens.filter((k) => k.status === status).length;
   const pending = users.filter((u) => u.status === 'pending');
 
   // BE membatasi dealer/akun/konsumen ke dealer milik user non-Manager (scope per dealer).
@@ -136,13 +145,6 @@ function DashboardPage() {
   const scoped = !!me && myRole !== 'Manager' && !!me.id_dealer;
   const scopeNote = scoped ? `Data dibatasi pada dealer Anda${myDealer ? `: ${myDealer}` : ''}.` : '';
 
-  const stats = [
-    { icon: 'store', label: scoped ? 'Dealer Anda' : 'Total Dealer', value: dealers.length, unit: 'Dealer' },
-    { icon: 'check', label: 'Akun Aktif', value: count('aktif'), unit: 'Akun' },
-    { icon: 'clock', label: 'Menunggu Persetujuan', value: count('pending'), unit: 'Akun', tag: count('pending') > 0 ? 'Perlu Tindakan' : null },
-    { icon: 'off', label: 'Akun Nonaktif', value: count('nonaktif'), unit: 'Akun' },
-  ];
-
   const q = query.trim().toLowerCase();
   const filteredDealers = q
     ? dealers.filter((d) => `${d.name} ${d.alamat}`.toLowerCase().includes(q))
@@ -152,15 +154,38 @@ function DashboardPage() {
   const hasMenu = (url) => access.menus.includes(url);
   const can = (perm) => access.permissions.includes(perm);
   const canDealer = hasMenu('dealers') && can('dealers.lihat');
+  const canUsers = hasMenu('users') && can('users.lihat');
+  const canSales = hasMenu('penjualan');
   const canKonsumen = hasMenu('konsumens') && can('konsumens.lihat');
   const canAcc = hasMenu('users') && can('users.lihat') && can('users.aktivasi');
   const canRoleMenu = hasMenu('role-menus') && can('role-menus.kelola');
   const canRolePerm = hasMenu('role-menus') && can('role-permissions.kelola');
   const canRole = canRoleMenu || canRolePerm;
 
+  // Kartu ringkasan hanya untuk data yang boleh dilihat role
+  const stats = [
+    ...(canDealer ? [{ icon: 'store', label: scoped ? 'Dealer Anda' : 'Total Dealer', value: dealers.length, unit: 'Dealer' }] : []),
+    ...(canUsers ? [
+      { icon: 'check', label: 'Akun Aktif', value: count('aktif'), unit: 'Akun' },
+      { icon: 'clock', label: 'Menunggu Persetujuan', value: count('pending'), unit: 'Akun', tag: count('pending') > 0 ? 'Perlu Tindakan' : null },
+      { icon: 'off', label: 'Akun Nonaktif', value: count('nonaktif'), unit: 'Akun' },
+    ] : []),
+    // Data konsumen sudah dibatasi BE sesuai dealer user; "Input Anda" hanya untuk yang menginput (bukan Manager)
+    ...(canKonsumen ? [
+      { icon: 'id', label: 'Total Konsumen', value: konsumens.length, unit: 'Konsumen' },
+      { icon: 'clock', label: 'Konsumen Menunggu', value: countKonsumen('pending'), unit: 'Konsumen' },
+      { icon: 'check', label: 'Konsumen Diterima', value: countKonsumen('diterima'), unit: 'Konsumen' },
+      { icon: 'off', label: 'Konsumen Ditolak', value: countKonsumen('ditolak'), unit: 'Konsumen' },
+      ...(myRole !== 'Manager' && can('konsumens.tambah')
+        ? [{ icon: 'id', label: 'Input Anda', value: konsumens.filter((k) => k.id_me === user?.id).length, unit: 'Konsumen' }]
+        : []),
+    ] : []),
+  ];
+
   const menus = [
     ...(hasMenu(MENU_URL[MENU_HOME]) ? [MENU_HOME] : []),
     ...(hasMenu(MENU_URL[MENU_PRODUK]) ? [MENU_PRODUK] : []),
+    ...(canSales ? [MENU_PENJUALAN] : []),
     ...(canDealer ? [MENU_DEALER] : []),
     ...(canKonsumen ? [MENU_KONSUMEN] : []),
     ...(canAcc ? [MENU_ACC] : []),
@@ -170,13 +195,18 @@ function DashboardPage() {
   // Sebelum hak akses termuat (menus kosong) tetap tampilkan Ringkasan.
   const menu = menus.length === 0 || menus.includes(menuState) ? menuState : menus[0];
 
+  // URL harus sama dengan menu yang benar-benar tampil (mis. path menu yang tidak diizinkan role)
+  useEffect(() => {
+    if (window.location.pathname !== MENU_PATHS[menu]) window.history.replaceState(null, '', MENU_PATHS[menu]);
+  }, [menu]);
+
   // Muat ulang menu & permission setelah hak akses role diubah
   const refreshAccess = async () => {
     try {
       const [menuList, permList] = await Promise.all([getUserMenus(), getUserPermissions()]);
       const next = toAccess(menuList, permList);
       setAccess(next);
-      writeCache(user?.id, users, dealers, next);
+      writeCache(user?.id, users, dealers, next, konsumens);
     } catch {
       // gagal: hak akses lama dipertahankan sampai halaman dimuat ulang
     }
@@ -189,7 +219,6 @@ function DashboardPage() {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     sessionStorage.removeItem(CACHE_KEY);
-    sessionStorage.removeItem(MENU_KEY);
     window.location.href = '/';
   };
 
@@ -241,6 +270,7 @@ function DashboardPage() {
 
       <div className="dash-main">
         <header className="dash-top">
+          {canDealer ? (
           <input
             className="dash-search"
             type="search"
@@ -251,15 +281,20 @@ function DashboardPage() {
               setMenu(MENU_HOME);
             }}
           />
+          ) : <div />}
           <div className="dash-top-right">
-            <div>
-              {scoped ? 'Dealer Anda' : 'Total Dealer'}
-              <strong>{dealers.length}</strong>
-            </div>
-            <div>
-              Akun Aktif
-              <strong>{count('aktif')}</strong>
-            </div>
+            {canDealer && (
+              <div>
+                {scoped ? 'Dealer Anda' : 'Total Dealer'}
+                <strong>{dealers.length}</strong>
+              </div>
+            )}
+            {canUsers && (
+              <div>
+                Akun Aktif
+                <strong>{count('aktif')}</strong>
+              </div>
+            )}
           </div>
         </header>
 
@@ -284,6 +319,14 @@ function DashboardPage() {
                 <h3><Icon name="box" size={17} /> Produk</h3>
               </div>
               <p className="dash-empty">Fitur produk belum tersedia.</p>
+            </div>
+          )}
+
+          {menu === MENU_PENJUALAN && canSales && (
+            <div className="dash-card">
+              <Suspense fallback={<p className="dash-empty">Memuat...</p>}>
+                <PenjualanPanel scopeNote={scopeNote} />
+              </Suspense>
             </div>
           )}
 
@@ -329,13 +372,14 @@ function DashboardPage() {
               <div className="dash-hello">
                 <div>
                   <h1>Halo, {name}</h1>
-                  <p>Pantau jaringan dealer motor dan status akun pengguna dalam satu tampilan. {scopeNote}</p>
+                  <p>{canDealer || canUsers ? `Pantau ${[canDealer && 'jaringan dealer motor', canUsers && 'status akun pengguna'].filter(Boolean).join(' dan ')} dalam satu tampilan.` : 'Pilih menu di samping untuk mulai bekerja.'} {scopeNote}</p>
                 </div>
                 {canAcc && (
                   <button className="dash-btn solid" onClick={() => setMenu(MENU_ACC)}>Audit Log &amp; Akses</button>
                 )}
               </div>
 
+              {canSales && (
               <section className="dash-hero">
                 <div>
                   <span className="dash-chip">Penjualan Motor</span>
@@ -350,10 +394,13 @@ function DashboardPage() {
                 </div>
                 <div className="dash-hero-actions">
                   {canAcc && <button className="dash-btn light" onClick={() => setMenu(MENU_ACC)}>Audit Log &amp; Akses</button>}
+                  {canSales && <button className="dash-btn light" onClick={() => setMenu(MENU_PENJUALAN)}>Lihat Penjualan</button>}
                   {canDealer && <button className="dash-btn ghost" onClick={() => setMenu(MENU_DEALER)}>Lihat Dealer →</button>}
                 </div>
               </section>
+              )}
 
+              {stats.length > 0 && (
               <section className="dash-stats">
                 {stats.map((s) => (
                   <div className="dash-stat" key={s.label}>
@@ -369,18 +416,18 @@ function DashboardPage() {
                   </div>
                 ))}
               </section>
+              )}
 
               <section className="dash-grid">
+                {canAcc && (
                 <div className="dash-card">
                   <div className="dash-card-head">
                     <h3><Icon name="shield" size={17} /> Otorisasi Akun</h3>
-                    {canAcc && <span className="dash-badge">{pending.length} Tertunda</span>}
+                    <span className="dash-badge">{pending.length} Tertunda</span>
                   </div>
                   <p className="dash-card-desc">Validasi akun baru sebelum diberi akses ke sistem.</p>
 
-                  {!canAcc ? (
-                    <p className="dash-empty">Anda tidak memiliki akses untuk meng-ACC akun.</p>
-                  ) : pending.length === 0 ? (
+                  {pending.length === 0 ? (
                     <p className="dash-empty">Tidak ada akun yang menunggu persetujuan.</p>
                   ) : (
                     <>
@@ -402,7 +449,9 @@ function DashboardPage() {
                     </>
                   )}
                 </div>
+                )}
 
+                {canDealer && (
                 <div className="dash-card">
                   <div className="dash-card-head">
                     <h3><Icon name="store" size={17} /> Jaringan Dealer</h3>
@@ -424,6 +473,27 @@ function DashboardPage() {
                     ))
                   )}
                 </div>
+                )}
+
+                {!canAcc && !canDealer && (
+                <div className="dash-card">
+                  <div className="dash-card-head">
+                    <h3><Icon name="grid" size={17} /> Menu Anda</h3>
+                  </div>
+                  <p className="dash-card-desc">Fitur yang tersedia untuk akun Anda.</p>
+                  {menus.filter((m) => m !== MENU_HOME).length === 0 ? (
+                    <p className="dash-empty">Belum ada menu yang dapat diakses.</p>
+                  ) : (
+                    menus.filter((m) => m !== MENU_HOME).map((m) => (
+                      <div className="dash-row" key={m}>
+                        <span className="dash-row-icon"><Icon name={MENU_ICONS[m]} size={15} /></span>
+                        <div className="dash-row-body">{m}</div>
+                        <button className="dash-btn soft" onClick={() => setMenu(m)}>Buka</button>
+                      </div>
+                    ))
+                  )}
+                </div>
+                )}
               </section>
             </>
           )}

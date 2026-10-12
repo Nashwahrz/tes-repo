@@ -2,6 +2,7 @@
 // UI konsumen (dokumen KTP): lihat, tambah, hapus. Data tidak bisa diedit; yang ditolak diinput ulang.
 // Termasuk + OCR KTP, terhubung ke API /konsumens.
 import { lazy, Suspense, useEffect, useRef, useState } from 'react';
+import Toast from './Toast';
 import {
   getKonsumens, createKonsumen, deleteKonsumen, scanKtp, ktpUrl, errorMessage,
 } from '../../../api/authServices';
@@ -84,6 +85,7 @@ function KonsumenPanel({ can: access, userId, role }) {
   const [toDelete, setToDelete] = useState(null);
   const [detail, setDetail] = useState(null);
   const fileRef = useRef(null);
+  const scanNoteRef = useRef(null);
 
   // Muat daftar saat filter berubah atau reloadKey naik (setelah simpan)
   useEffect(() => {
@@ -99,6 +101,11 @@ function KonsumenPanel({ can: access, userId, role }) {
 
   // Pratinjau foto yang baru dipilih; URL lama dilepas saat diganti, ditutup, atau panel ditinggalkan
   const previewRef = useRef('');
+
+  // Hasil pindai muncul tepat di bawah tombol; pastikan terlihat walau form sedang di-scroll
+  useEffect(() => {
+    if (scanNote) scanNoteRef.current?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  }, [scanNote]);
   const setPicked = (f) => {
     if (previewRef.current) URL.revokeObjectURL(previewRef.current);
     previewRef.current = f ? URL.createObjectURL(f) : '';
@@ -164,17 +171,17 @@ function KonsumenPanel({ can: access, userId, role }) {
     setScanNote('');
     try {
       const data = await scanKtp(file);
-      let filled = 0;
+      // Hitung field terbaca di luar updater setForm (updater dijalankan React belum tentu langsung)
+      const readable = FIELDS.filter((k) => data[k]);
       setForm((f) => {
         const next = { ...f };
-        FIELDS.forEach((k) => {
-          if (data[k]) { next[k] = String(data[k]); filled += 1; }
-        });
+        readable.forEach((k) => { next[k] = String(data[k]); });
         return next;
       });
       setTouched((t) => ({ ...t, nik: true }));
-      setScanNote(`KTP dipindai. Periksa kembali hasilnya sebelum menyimpan.`);
-      if (!filled) setScanNote('KTP dipindai, tetapi tidak ada data yang terbaca. Isi manual.');
+      setScanNote(readable.length
+        ? { ok: true, text: `KTP berhasil dipindai: ${readable.length} data terisi otomatis. Periksa kembali hasilnya sebelum menyimpan.` }
+        : { ok: false, text: 'KTP dipindai, tetapi tidak ada data yang terbaca. Isi data secara manual.' });
     } catch (err) {
       setError(errorMessage(err));
     } finally {
@@ -185,7 +192,12 @@ function KonsumenPanel({ can: access, userId, role }) {
   const handleSubmit = (e) => {
     e.preventDefault();
     setTouched(Object.fromEntries([...FIELDS, 'foto_ktp'].map((k) => [k, true])));
-    if (hasError) return;
+    if (hasError) {
+      // Pesan kesalahan tiap kolom ada di dalam form; bawa kolom pertama yang salah ke layar
+      const first = ['foto_ktp', ...FIELDS].find((k) => errors[k]);
+      document.getElementById(`konsumen-${first}`)?.scrollIntoView({ block: 'center', behavior: 'smooth' });
+      return;
+    }
     setConfirmSave(true);
   };
 
@@ -303,8 +315,8 @@ function KonsumenPanel({ can: access, userId, role }) {
         </select>
       </div>
 
-      {success && <p className="dash-alert success">{success}</p>}
-      {error && !formOpen && <p className="dash-alert error">{error}</p>}
+      <Toast kind="success" message={success} onClose={() => setSuccess('')} />
+      <Toast kind="error" message={error} onClose={() => setError('')} />
 
       {loading ? (
         <p className="dash-empty">Memuat...</p>
@@ -388,10 +400,8 @@ function KonsumenPanel({ can: access, userId, role }) {
         <div className="dash-modal-bg" onClick={closeForm}>
           <form className="dash-modal wide" onClick={(e) => e.stopPropagation()} onSubmit={handleSubmit} noValidate>
             <h3>Tambah Konsumen</h3>
-            {error && <p className="dash-alert error">{error}</p>}
-            {scanNote && <p className="dash-alert info">{scanNote}</p>}
 
-            <div className="dash-form-group">
+            <div className="dash-form-group" id="konsumen-foto_ktp">
               <label>Foto KTP *</label>
               {shownPreview && <img className="dash-ktp-big" src={shownPreview} alt="Pratinjau KTP" />}
               <input ref={fileRef} type="file" accept="image/png,image/jpeg" hidden onChange={handleFile} />
@@ -405,6 +415,11 @@ function KonsumenPanel({ can: access, userId, role }) {
                   </button>
                 )}
               </div>
+              {scanNote && (
+                <p ref={scanNoteRef} className={`dash-alert dash-alert-big ${scanNote.ok ? 'success' : 'warning'}`} role="status">
+                  <strong>{scanNote.ok ? '✓' : '!'}</strong> {scanNote.text}
+                </p>
+              )}
               <p className="dash-map-hint">JPG/PNG, maksimal 2MB.{can.scan && ' Pilih foto baru untuk memakai OCR.'}</p>
               {touched.foto_ktp && errors.foto_ktp && <p className="dash-field-error">{errors.foto_ktp}</p>}
             </div>
@@ -423,7 +438,15 @@ function KonsumenPanel({ can: access, userId, role }) {
             <div className="dash-form-group">
               <label>Lokasi di Peta *</label>
               <Suspense fallback={<div className="dash-map" />}>
-                <MapPicker latitude={form.latitude} longitude={form.longitude} onPick={handlePick} />
+                <MapPicker
+                  latitude={form.latitude}
+                  longitude={form.longitude}
+                  onPick={handlePick}
+                  desa={form.desa_kelurahan}
+                  kabupaten={form.kabupaten_kota}
+                  kecamatan={form.kecamatan}
+                  provinsi={form.provinsi}
+                />
               </Suspense>
               <p className="dash-map-hint">Cari alamat, klik peta, atau geser marker untuk menentukan titik lokasi konsumen.</p>
             </div>

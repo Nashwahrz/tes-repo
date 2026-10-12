@@ -1,5 +1,6 @@
 // src/pages/AccUserPanel.jsx
 import { useEffect, useState } from 'react';
+import Toast from './Toast';
 import { getAtasanOptions, updateUserStatus } from '../../../api/authServices';
 
 const TABS = [
@@ -49,7 +50,8 @@ function AccUserPanel({ users: allUsers, dealers, scopeNote, loading, onUserUpda
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
-  const byStatus = tab === 'semua' ? allUsers : allUsers.filter((u) => u.status === tab);
+  // Terbaru di atas: BE tidak mengurutkan, id auto-increment mengikuti urutan akun masuk
+  const byStatus = (tab === 'semua' ? allUsers : allUsers.filter((u) => u.status === tab)).toSorted((a, b) => b.id - a.id);
   const q = query.trim().toLowerCase();
   const users = q
     ? byStatus.filter((u) => `${u.name} ${u.email} ${u.role?.name ?? ''}`.toLowerCase().includes(q))
@@ -143,8 +145,8 @@ function AccUserPanel({ users: allUsers, dealers, scopeNote, loading, onUserUpda
         </select>
       </div>
 
-      {error && <p className="dash-alert error">{error}</p>}
-      {success && <p className="dash-alert success">{success}</p>}
+      <Toast kind="error" message={error} onClose={() => setError('')} />
+      <Toast kind="success" message={success} onClose={() => setSuccess('')} />
 
       {tab === 'log' ? (
         <div className="dash-table-wrap">
@@ -248,7 +250,6 @@ function AccUserPanel({ users: allUsers, dealers, scopeNote, loading, onUserUpda
                 {pick.status === 'aktif' ? 'Pilih dealer dan atasan sebelum mengaktifkan akun ini.' : `Yakin ingin ${pick.label.toLowerCase()} akun ini?`}
               </p>
             )}
-            {error && <p className="dash-alert error">{error}</p>}
             {pick.status === 'aktif' && (
               <div className="dash-form-group">
                 <label htmlFor="acc-dealer">Dealer <span className="acc-req">*</span></label>

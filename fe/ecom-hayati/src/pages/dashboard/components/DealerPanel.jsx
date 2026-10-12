@@ -2,6 +2,7 @@
 
 // UI CRUD dealer, terhubung ke API /dealers.
 import { lazy, Suspense, useState } from 'react';
+import Toast from './Toast';
 import { createDealer, updateDealer, deleteDealer, errorMessage } from '../../../api/authServices';
 
 // Leaflet (JS + CSS) hanya dimuat saat form dealer dibuka
@@ -81,7 +82,12 @@ function DealerPanel({ dealers: rows, onDealersChange, can, scopeNote }) {
   const handleSubmit = (e) => {
     e.preventDefault();
     setTouched({ name: true, alamat: true, latitude: true, longitude: true });
-    if (hasError) return;
+    if (hasError) {
+      // Pesan kesalahan tiap kolom ada di dalam form; bawa kolom pertama yang salah ke layar
+      const first = ['name', 'alamat', 'latitude', 'longitude'].find((k) => errors[k]);
+      document.getElementById(`dealer-${first}`)?.scrollIntoView({ block: 'center', behavior: 'smooth' });
+      return;
+    }
     setConfirmSave(true);
   };
 
@@ -164,8 +170,8 @@ function DealerPanel({ dealers: rows, onDealersChange, can, scopeNote }) {
         onChange={(e) => setQuery(e.target.value)}
       />
 
-      {success && <p className="dash-alert success">{success}</p>}
-      {error && !editing && <p className="dash-alert error">{error}</p>}
+      <Toast kind="success" message={success} onClose={() => setSuccess('')} />
+      <Toast kind="error" message={error} onClose={() => setError('')} />
 
       {visible.length === 0 ? (
         <p className="dash-empty">{q ? 'Dealer tidak ditemukan.' : 'Belum ada data dealer.'}</p>
@@ -207,7 +213,6 @@ function DealerPanel({ dealers: rows, onDealersChange, can, scopeNote }) {
         <div className="dash-modal-bg" onClick={closeForm}>
           <form className="dash-modal" onClick={(e) => e.stopPropagation()} onSubmit={handleSubmit} noValidate>
             <h3>{isNew ? 'Tambah Dealer' : 'Ubah Dealer'}</h3>
-            {error && <p className="dash-alert error">{error}</p>}
             {field('name', 'Nama Dealer', { placeholder: 'Contoh: Hayati Motor Pusat' })}
             {field('alamat', 'Alamat', { textarea: true, placeholder: 'Alamat lengkap dealer' })}
             <div className="dash-form-group">

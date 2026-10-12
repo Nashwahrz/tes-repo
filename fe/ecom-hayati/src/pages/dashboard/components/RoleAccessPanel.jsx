@@ -1,8 +1,16 @@
 // Kelola hak akses role: menu (/role-menus) dan permission (/role-permissions)
 import { useEffect, useState } from 'react';
+import Toast from './Toast';
 import {
   getRoleMenus, updateRoleMenus, getRolePermissions, updateRolePermissions, errorMessage,
 } from '../../../api/authServices';
+
+// Menu BE yang belum dipakai FE: disembunyikan dari daftar centang. Id-nya tetap ada di state `selected`,
+// jadi hak yang sudah tersimpan tidak hilang saat role disimpan. Hapus dari daftar ini untuk menampilkannya lagi.
+const UNUSED_MENU_URLS = [
+  'daftar-konsumen', // duplikat "Daftar Konsumen"; menu yang dipakai FE/BE adalah 'konsumens'
+  // 'laporan-penjualan', // belum ada halamannya di FE (buka komentar bila ingin disembunyikan juga)
+];
 
 // Konfigurasi per tab; field BE: roles[].menus / roles[].permissions
 const TABS = {
@@ -93,7 +101,7 @@ function RoleAccessPanel({ canMenu, canPermission, onSaved }) {
   };
 
   const role = data?.roles.find((r) => r.id === roleId);
-  const items = data?.[cfg.itemsKey] ?? [];
+  const items = (data?.[cfg.itemsKey] ?? []).filter((i) => !UNUSED_MENU_URLS.includes(i.url));
   const dirty = role && [...selected].sort().join() !== idsOf(role).sort().join();
 
   return (
@@ -116,8 +124,8 @@ function RoleAccessPanel({ canMenu, canPermission, onSaved }) {
         </div>
       )}
 
-      {error && <p className="dash-alert error">{error}</p>}
-      {success && <p className="dash-alert success">{success}</p>}
+      <Toast kind="error" message={error} onClose={() => setError('')} />
+      <Toast kind="success" message={success} onClose={() => setSuccess('')} />
 
       {loading ? (
         <p className="dash-empty">Memuat...</p>

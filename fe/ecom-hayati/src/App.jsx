@@ -1,4 +1,5 @@
 import { lazy, Suspense } from 'react'
+import { isDashboardPath } from './pages/dashboard/menuPaths'
 import './App.css'
 
 // Tiap halaman dimuat hanya saat URL-nya dibuka
@@ -19,7 +20,7 @@ function Routes() {
   const isLoggedIn = !!localStorage.getItem('token')
   const path = window.location.pathname
 
-  if (path.startsWith('/dashboard')) {
+  if (isDashboardPath(path)) {
     // Dashboard hanya untuk user yang sudah login (BE hanya memberi token jika status aktif)
     if (!isLoggedIn) {
       window.location.replace('/')

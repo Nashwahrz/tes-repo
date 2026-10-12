@@ -354,6 +354,13 @@
 
 
 /* ---------- Form & modal (Dealer) ---------- */
+.dash-alert.warning { color: #93370d; background: #fffaeb; border: 1px solid #fedf89; }
+/* Pesan penting (mis. hasil OCR): lebih besar, tebal, dengan ikon, dan berkedip sekali agar terlihat */
+.dash-alert-big { display: flex; align-items: flex-start; gap: 10px; padding: 14px 16px; margin: 12px 0 0; font-size: 14px; font-weight: 600; line-height: 1.4; animation: dash-notice 0.9s ease-out; }
+.dash-alert-big strong { flex: none; display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 50%; color: #fff; font-size: 13px; }
+.dash-alert-big.success strong { background: #079455; }
+.dash-alert-big.warning strong { background: #dc6803; }
+@keyframes dash-notice { 0% { transform: scale(0.97); box-shadow: 0 0 0 0 rgba(7, 148, 85, 0.45); } 60% { transform: scale(1.01); box-shadow: 0 0 0 8px rgba(7, 148, 85, 0); } 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(7, 148, 85, 0); } }
 .dash-alert.info { color: #475467; background: #f2f4f7; border: 1px solid #e4e7ec; }
 
 .dash-input {
@@ -659,3 +666,15 @@ select.dash-input, .dash-select {
 .acc-btn:disabled, .acc-icon-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 .acc-icon-btn { display: grid; place-items: center; width: 30px; height: 30px; color: var(--muted); background: none; border: 0; border-radius: 6px; cursor: pointer; transition: color 0.15s, background 0.15s; }
 .acc-icon-btn:hover { color: var(--accent); background: var(--tint); }
+
+/* ---------- Toast: pesan melayang di bawah layar, di atas modal ---------- */
+.dash-toast { position: fixed; left: 50%; bottom: 28px; transform: translateX(-50%); z-index: 100; display: flex; align-items: flex-start; gap: 10px; width: max-content; max-width: min(520px, calc(100vw - 32px)); padding: 12px 14px; font-size: 13px; font-weight: 600; line-height: 1.4; border-radius: 12px; box-shadow: 0 10px 30px rgba(16, 24, 40, 0.22); animation: dash-toast-in 0.25s ease-out; }
+.dash-toast.error { color: #7a271a; background: #fef3f2; border: 1px solid #fda29b; }
+.dash-toast.success { color: #054f31; background: #ecfdf3; border: 1px solid #75e0a7; }
+.dash-toast-icon { flex: none; display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 50%; color: #fff; font-size: 13px; }
+.dash-toast.error .dash-toast-icon { background: #d92d20; }
+.dash-toast.success .dash-toast-icon { background: #079455; }
+.dash-toast-text { flex: 1; word-break: break-word; }
+.dash-toast-close { flex: none; padding: 0 2px; font-size: 20px; line-height: 1; color: inherit; background: none; border: 0; cursor: pointer; opacity: 0.6; }
+.dash-toast-close:hover { opacity: 1; }
+@keyframes dash-toast-in { from { opacity: 0; transform: translate(-50%, 12px); } to { opacity: 1; transform: translate(-50%, 0); } }

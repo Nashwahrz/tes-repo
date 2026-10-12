@@ -40,7 +40,66 @@ const toLabel = (p) =>
     .filter((v, idx, arr) => v && arr.indexOf(v) === idx)
     .join(', ');
 
-function MapPicker({ latitude, longitude, onPick }) {
+// Samakan tulisan nama wilayah: buang awalan Kota/Kabupaten/Provinsi, huruf kecil, tanpa spasi/tanda baca ("Batubara" = "Batu Bara")
+const squash = (t) => t.toLowerCase().replace(/[^a-z0-9]/g, '');
+const norm = (t) => squash(t.toLowerCase().replace(/^(kota|kabupaten|kab\.?|kecamatan|kec\.?|provinsi|prov\.?|dki|di|daerah khusus ibukota|daerah istimewa)\s+/, ''));
+
+// Zoom bila hasil tidak punya batas wilayah (extent), menurut tingkat wilayahnya
+const LEVEL_ZOOM = { desa: 14, kecamatan: 13, kabupaten: 11, provinsi: 8 };
+
+// Cache hasil pencarian per kalimat (selama halaman terbuka): mengedit kolom lain tidak memanggil ulang layanan
+const photonCache = new Map();
+
+// Photon publik kadang lambat/gagal sesaat: coba maksimal 2 kali, hasil hanya di-cache bila berhasil
+async function photonSearch(q, signal) {
+  if (photonCache.has(q)) return photonCache.get(q);
+  let lastErr;
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    try {
+      const res = await fetch(`https://photon.komoot.io/api/?limit=5&osm_tag=place&q=${encodeURIComponent(q)}`, { signal });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const features = (await res.json()).features ?? [];
+      photonCache.set(q, features);
+      return features;
+    } catch (err) {
+      if (err.name === 'AbortError') throw err;
+      lastErr = err;
+    }
+  }
+  throw lastErr;
+}
+
+// Cari titik tengah wilayah. Semua tingkat dicari bersamaan (satu kali tunggu), lalu dipilih yang paling rinci
+// yang cocok: desa -> kecamatan -> kabupaten/kota -> provinsi. Kolom kosong dilewati; kolom yang terisi harus ikut
+// cocok pada hasil, supaya tidak salah tebak (mis. "Air Putih" di kabupaten lain).
+// Mengembalikan { lat, lon, extent, label, level }, null bila tidak ada yang cocok; melempar error bila layanan gagal.
+async function geocodeArea({ desa, kecamatan, kabupaten, provinsi }, signal) {
+  const candidates = [
+    desa && { level: 'desa', parts: [desa, kecamatan, kabupaten, provinsi], must: [desa, kecamatan, kabupaten] },
+    kecamatan && { level: 'kecamatan', parts: [kecamatan, kabupaten, provinsi], must: [kecamatan, kabupaten] },
+    kabupaten && { level: 'kabupaten', parts: [kabupaten, provinsi], must: [kabupaten] },
+    provinsi && { level: 'provinsi', parts: [provinsi], must: [provinsi] },
+  ].filter(Boolean);
+
+  const settled = await Promise.allSettled(candidates.map(({ parts }) => photonSearch(parts.filter(Boolean).join(', '), signal)));
+  if (signal.aborted) throw new DOMException('Aborted', 'AbortError');
+
+  for (let n = 0; n < candidates.length; n += 1) {
+    if (settled[n].status !== 'fulfilled') continue;
+    const { level, parts, must } = candidates[n];
+    const f = settled[n].value.find((x) => {
+      const hay = squash(Object.values(x.properties).join(' '));
+      return must.filter(Boolean).every((m) => hay.includes(norm(m)));
+    });
+    if (f) return { lat: f.geometry.coordinates[1], lon: f.geometry.coordinates[0], extent: f.properties.extent, label: parts.filter(Boolean).join(', '), level };
+  }
+  // Tidak ada yang cocok: bila ada tingkat yang gagal diminta, itu error layanan (bukan "tidak ditemukan")
+  if (settled.some((r) => r.status === 'rejected')) throw settled.find((r) => r.status === 'rejected').reason;
+  return null;
+}
+
+// desa/kecamatan/kabupaten/provinsi (opsional): wilayah dari form; peta diarahkan ke sana dan pencarian diprioritaskan di sekitarnya
+function MapPicker({ latitude, longitude, onPick, desa = '', kecamatan = '', kabupaten = '', provinsi = '' }) {
   const elRef = useRef(null);
   const mapRef = useRef(null);
   const markerRef = useRef(null);
@@ -50,6 +109,10 @@ function MapPicker({ latitude, longitude, onPick }) {
   const [status, setStatus] = useState('');
   const skipSearchRef = useRef(false);
   const skipReverseRef = useRef('');
+  const [foundArea, setArea] = useState(null); // { lat, lon, label } hasil geocode terakhir
+  const [areaStatus, setAreaStatus] = useState('');
+  const hasRegion = [desa, kecamatan, kabupaten, provinsi].some((v) => v.trim().length >= 3);
+  const area = hasRegion ? foundArea : null; // semua wilayah dikosongkan -> wilayah tidak dipakai
 
   useEffect(() => {
     onPickRef.current = onPick;
@@ -152,6 +215,42 @@ function MapPicker({ latitude, longitude, onPick }) {
     mapRef.current?.setView([lat, lng], PICK_ZOOM);
   };
 
+  // Wilayah diisi (kabupaten/kota, kecamatan, provinsi) -> arahkan peta ke sana.
+  // Hanya menggeser tampilan; titik koordinat yang sudah dipilih tidak diubah.
+  useEffect(() => {
+    if (!hasRegion) return undefined;
+    const ctrl = new AbortController();
+    const timer = setTimeout(async () => {
+      setAreaStatus('Mencari wilayah di peta...');
+      try {
+        const found = await geocodeArea(
+          { desa: desa.trim(), kecamatan: kecamatan.trim(), kabupaten: kabupaten.trim(), provinsi: provinsi.trim() },
+          ctrl.signal,
+        );
+        setArea(found);
+        setAreaStatus(found ? '' : 'Wilayah tidak ditemukan di peta; pilih lokasi secara manual.');
+        const map = mapRef.current;
+        if (!found || !map || markerRef.current) return;
+        map.invalidateSize(); // ukuran peta bisa belum final saat modal baru terbuka
+        if (found.extent) {
+          const [minLon, maxLat, maxLon, minLat] = found.extent;
+          map.fitBounds([[minLat, minLon], [maxLat, maxLon]], { maxZoom: 14 });
+        } else {
+          map.setView([found.lat, found.lon], LEVEL_ZOOM[found.level]);
+        }
+      } catch (err) {
+        if (err.name !== 'AbortError') {
+          setArea(null);
+          setAreaStatus('Gagal memuat wilayah dari layanan peta. Ubah salah satu kolom wilayah untuk mencoba lagi.');
+        }
+      }
+    }, 800);
+    return () => {
+      clearTimeout(timer);
+      ctrl.abort();
+    };
+  }, [desa, kecamatan, kabupaten, provinsi]); // eslint-disable-line react-hooks/exhaustive-deps
+
   // Saran otomatis (debounce) lewat Photon (OpenStreetMap, tahan salah ketik), dibatasi Sumatera Barat
   useEffect(() => {
     const q = query.trim();
@@ -163,7 +262,9 @@ function MapPicker({ latitude, longitude, onPick }) {
     const timer = setTimeout(async () => {
       setStatus('Mencari...');
       try {
-        const url = `https://photon.komoot.io/api/?limit=8&lat=${DEFAULT_CENTER[0]}&lon=${DEFAULT_CENTER[1]}&bbox=${SUMBAR_BBOX}&q=${encodeURIComponent(q)}`;
+        // Ada wilayah dari form: prioritaskan di sekitarnya (tanpa batas Sumbar). Tanpa wilayah: batasi Sumatera Barat.
+        const bias = area ? `lat=${area.lat}&lon=${area.lon}&location_bias_scale=0.8` : `lat=${DEFAULT_CENTER[0]}&lon=${DEFAULT_CENTER[1]}&bbox=${SUMBAR_BBOX}`;
+        const url = `https://photon.komoot.io/api/?limit=8&${bias}&q=${encodeURIComponent(q)}`;
         const res = await fetch(url, { signal: ctrl.signal });
         const json = await res.json();
         const data = (json.features || []).map((f, i) => {
@@ -180,7 +281,7 @@ function MapPicker({ latitude, longitude, onPick }) {
       clearTimeout(timer);
       ctrl.abort();
     };
-  }, [query]);
+  }, [query, area]);
 
   // Koordinat berubah (klik peta, geser marker, lokasi saya, ketik manual) -> isi kotak dengan alamatnya
   useEffect(() => {
@@ -255,6 +356,8 @@ function MapPicker({ latitude, longitude, onPick }) {
         />
         <button type="button" onClick={useMyLocation}>📍 Lokasi saya</button>
       </div>
+      {hasRegion && areaStatus && <p className="dash-map-hint">{areaStatus}</p>}
+      {area && <p className="dash-map-hint">Pencarian diprioritaskan di sekitar: {area.label}</p>}
       {status && <p className="dash-map-hint">{status}</p>}
       {results.length > 0 && (
         <ul className="dash-map-results">
