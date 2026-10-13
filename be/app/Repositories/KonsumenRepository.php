@@ -5,6 +5,7 @@ namespace App\Repositories;
 use App\Enums\StatusKonsumen;
 use App\Models\Konsumen;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
 class KonsumenRepository
 {
@@ -36,15 +37,29 @@ class KonsumenRepository
     {
         return (bool) $konsumen->delete();
     }
-    public function getStatus(?StatusKonsumen $status = null): Collection
+    // public function getStatus(?StatusKonsumen $status = null): Collection
+    // {
+    //     $query = Konsumen::with(['me', 'verifiedBy']);
+
+    //     if ($status) {
+    //         $query->where('status', $status);
+    //     }
+
+    //     return $query->get();
+    // }
+
+    public function getStatus(?StatusKonsumen $status = null, int $perPage = 10, ?string $search = null): LengthAwarePaginator
     {
-        $query = Konsumen::with(['me', 'verifiedBy']);
-
-        if ($status) {
-            $query->where('status', $status);
-        }
-
-        return $query->get();
+        return Konsumen::with(['me', 'verifiedBy'])
+            ->when($status, fn ($q) => $q->where('status', $status))
+            ->when($search, function ($q) use ($search) {
+                $q->where(function ($q) use ($search) {
+                    $q->where('name', 'like', "%{$search}%")
+                    ->orWhere('nik', 'like', "%{$search}%");
+                });
+            })
+            ->latest('id')
+            ->paginate($perPage);
     }
     public function activateKonsumen(Konsumen $konsumen, ?int $diverifikasi_oleh, string|null $catatan_penolakan, StatusKonsumen $status): Konsumen
     {
@@ -55,4 +70,19 @@ class KonsumenRepository
         ]);
         return $konsumen->fresh(['me', 'verifiedBy']);
     }
+
+    public function paginate(int $perPage = 10, ?string $search = null): LengthAwarePaginator
+    {
+        return Konsumen::query()
+            ->when($search, function ($q) use ($search) {
+                $q->where(function ($q) use ($search) {
+                    $q->where('name', 'like', "%{$search}%")
+                    ->orWhere('nik', 'like', "%{$search}%");
+                });
+            })
+            ->latest('id')
+            ->paginate($perPage);
+    }
+
+    
 }

@@ -6,10 +6,12 @@ use App\Enums\StatusUser;
 use App\Http\Requests\ActivateUserRequest;
 use App\Http\Requests\GetAtasanOptionsRequest;
 use App\Http\Responses\UserResponse;
+use App\Mail\SendActivateUser;
 use App\Models\Role;
 use App\Repositories\UserRepository;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Mail;
 use Throwable;
 
 class UserController extends Controller
@@ -47,7 +49,7 @@ class UserController extends Controller
             $message = $isDitolak
                 ? 'Akun user berhasil ditolak.'
                 : 'Akun user berhasil diaktifkan.';
-
+            Mail::to($user->email)->send(new SendActivateUser($user));
             return $this->userResponse->success($updatedUser, $message);
         } catch (Throwable $e) {
             Log::error('Aktivasi user gagal: ' . $e->getMessage(), [

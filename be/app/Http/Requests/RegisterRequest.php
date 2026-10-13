@@ -26,8 +26,8 @@ class RegisterRequest extends FormRequest
             'name'      => ['required', 'string', 'max:255', 'regex:/^[a-zA-Z\s]+$/'],
             'email'     => ['required', 'email', 'max:255', 'unique:users,email',new AllowedEmailDomain()],
             'password'  => ['required', 'string', 'confirmed',Password::min(8)->mixedCase()->numbers()->symbols(),],
-            'id_dealer' => ['nullable', 'exists:dealers,id'],
-            'id_atasan' => ['nullable', 'exists:users,id'],
+            // 'id_dealer' => ['nullable', 'exists:dealers,id'],
+            // 'id_atasan' => ['nullable', 'exists:users,id'],
             'id_role'   => ['required','exists:roles,id',new UniqueManagerRole()],
         ];
     }
@@ -45,8 +45,8 @@ class RegisterRequest extends FormRequest
             'password.min'       => 'Password minimal 8 karakter.',
             'password.regex'     => 'Password harus mengandung huruf besar, huruf kecil, dan simbol.',
             'password.confirmed' => 'Konfirmasi password tidak cocok.',
-            'id_dealer.exists'   => 'Dealer tidak ditemukan.',
-            'id_atasan.exists'   => 'Atasan tidak ditemukan.',
+            // 'id_dealer.exists'   => 'Dealer tidak ditemukan.',
+            // 'id_atasan.exists'   => 'Atasan tidak ditemukan.',
             'id_role.exists'     => 'Role tidak ditemukan.',
             'id_role.required'   => 'Role wajib dipilih.',
         ];
