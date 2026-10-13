@@ -86,7 +86,10 @@ function KonsumenPanel({ can: access, userId, role }) {
   const [toDelete, setToDelete] = useState(null);
   const [toVerify, setToVerify] = useState(null); // { konsumen, status: 'diterima' | 'ditolak' }
   const [catatan, setCatatan] = useState('');
-  const [detail, setDetail] = useState(null);
+  const [detailRow, setDetailRow] = useState(null);
+  // Detail ikut memakai data terbaru (URL foto baru) setelah daftar dimuat ulang
+  const detail = detailRow ? rows.find((r) => r.id === detailRow.id) ?? detailRow : null;
+  const setDetail = setDetailRow;
   const fileRef = useRef(null);
   const scanNoteRef = useRef(null);
 
@@ -101,6 +104,14 @@ function KonsumenPanel({ can: access, userId, role }) {
   }, [filter, reloadKey]);
 
   const reload = () => { setLoading(true); setReloadKey((n) => n + 1); };
+
+  // URL foto dari BE kedaluwarsa dalam 10 menit: bila gambar gagal dimuat, ambil ulang daftar (paling sering sekali per 30 detik)
+  const lastPhotoRefresh = useRef(0);
+  const refreshExpiredPhotos = () => {
+    if (Date.now() - lastPhotoRefresh.current < 30000) return;
+    lastPhotoRefresh.current = Date.now();
+    setReloadKey((n) => n + 1);
+  };
 
   // Pratinjau foto yang baru dipilih; URL lama dilepas saat diganti, ditutup, atau panel ditinggalkan
   const previewRef = useRef('');
@@ -377,7 +388,7 @@ function KonsumenPanel({ can: access, userId, role }) {
             <tbody>
               {visible.map((k) => (
                 <tr key={k.id}>
-                  <td><img className="dash-ktp-thumb" src={ktpUrl(k.foto_ktp)} alt="KTP" loading="lazy" /></td>
+                  <td><img className="dash-ktp-thumb" src={ktpUrl(k)} alt="KTP" loading="lazy" onError={refreshExpiredPhotos} /></td>
                   <td>{k.nik || '-'}</td>
                   <td><strong className="dash-cell-name">{k.name || '-'}</strong></td>
                   <td>{k.no_telp || '-'}</td>
@@ -416,7 +427,7 @@ function KonsumenPanel({ can: access, userId, role }) {
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M6 6l12 12M18 6L6 18" /></svg>
               </button>
             </div>
-            <img className="dash-ktp-big" src={ktpUrl(detail.foto_ktp)} alt="Foto KTP" />
+            <img className="dash-ktp-big" src={ktpUrl(detail)} alt="Foto KTP" onError={refreshExpiredPhotos} />
             <dl className="dash-detail">
               {[
                 ['NIK', detail.nik], ['Nama', detail.name],

@@ -41,8 +41,15 @@ export const deleteDealer = async (id) => (await api.delete(`/dealers/${id}`)).d
 
 // Konsumen / dokumen KTP (BE: /konsumens, butuh permission konsumens.*)
 // status: 'pending' | 'diterima' | 'ditolak' (kosong = semua)
-export const getKonsumens = async (status) =>
-  (await api.get('/konsumens/status', { params: status ? { status } : {} })).data.data;
+// BE membagi hasil per halaman ({ data: { data: [...], last_page } }); semua halaman diambil lalu digabung jadi satu array
+export const getKonsumens = async (status) => {
+  const fetchPage = async (page) =>
+    (await api.get('/konsumens/status', { params: { ...(status ? { status } : {}), page } })).data.data;
+  const first = await fetchPage(1);
+  if (Array.isArray(first)) return first;
+  const rest = await Promise.all(Array.from({ length: Math.max((first.last_page ?? 1) - 1, 0) }, (_, i) => fetchPage(i + 2)));
+  return [first, ...rest].flatMap((p) => p.data);
+};
 
 // payload: FormData (ada file foto_ktp, jadi dikirim multipart)
 export const createKonsumen = async (payload) =>
@@ -72,8 +79,9 @@ export const scanKtp = async (file) => {
   return (await api.post('/konsumens/scan-ktp', fd, { headers: { 'Content-Type': 'multipart/form-data' }, timeout: 60000 })).data.data;
 };
 
-// Foto KTP disimpan di disk public BE (butuh `php artisan storage:link`)
-export const ktpUrl = (path) => (path ? `${api.defaults.baseURL.replace(/\/api\/?$/, '')}/storage/${path}` : '');
+// Foto KTP disimpan di disk privat BE; foto_ktp_url berupa URL bertanda tangan relatif yang berlaku 10 menit
+export const ktpUrl = (konsumen) =>
+  (konsumen?.foto_ktp_url ? `${api.defaults.baseURL.replace(/\/api\/?$/, '')}${konsumen.foto_ktp_url}` : '');
 
 // Log login pengguna (tabel log_users). BE mencatat log saat login, tetapi belum menyediakan endpoint pembacanya;
 // FE memakai GET /log-users. Bentuk data per baris:
