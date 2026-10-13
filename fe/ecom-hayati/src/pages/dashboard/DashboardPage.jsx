@@ -2,7 +2,7 @@
 import { lazy, Suspense, useEffect, useState } from 'react';
 import { getUsers, getDealers, getKonsumens, getUserMenus, getUserPermissions } from '../../api/authServices';
 import {
-  MENU_HOME, MENU_PRODUK, MENU_PENJUALAN, MENU_DEALER, MENU_KONSUMEN, MENU_ACC, MENU_ROLE, MENU_PATHS, menuFromPath,
+  MENU_HOME, MENU_PRODUK, MENU_PENJUALAN, MENU_DEALER, MENU_KONSUMEN, MENU_ACC, MENU_ROLE, MENU_WHITELIST, MENU_PATHS, menuFromPath,
 } from './menuPaths';
 import './DashboardPage.css';
 
@@ -11,6 +11,7 @@ const AccUserPanel = lazy(() => import('./components/AccUserPanel'));
 const DealerPanel = lazy(() => import('./components/DealerPanel'));
 const KonsumenPanel = lazy(() => import('./components/KonsumenPanel'));
 const PenjualanPanel = lazy(() => import('./components/PenjualanPanel'));
+const EmailWhitelistPanel = lazy(() => import('./components/EmailWhitelistPanel'));
 const RoleAccessPanel = lazy(() => import('./components/RoleAccessPanel'));
 
 const LOGO_SRC = '/logo.png';
@@ -30,6 +31,7 @@ const PATHS = {
   id: <><rect x="3" y="5" width="18" height="14" rx="2" /><path d="M7 10h4M7 14h6" /><circle cx="16" cy="11" r="1.5" /></>,
   logout: <><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><path d="M16 17l5-5-5-5" /><path d="M21 12H9" /></>,
   chart: <><path d="M3 3v18h18" /><path d="M7 15l4-4 3 3 5-6" /></>,
+  mail: <><rect x="3" y="5" width="18" height="14" rx="2" /><path d="M3 7l9 6 9-6" /></>,
   check: <><circle cx="12" cy="12" r="9" /><path d="M8 12l3 3 5-6" /></>,
   clock: <><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></>,
   menu: <><path d="M4 6h16M4 12h16M4 18h16" /></>,
@@ -45,6 +47,7 @@ const MENU_ICONS = {
   [MENU_KONSUMEN]: 'id',
   [MENU_ACC]: 'shield',
   [MENU_ROLE]: 'shield',
+  [MENU_WHITELIST]: 'mail',
 };
 
 const Icon = ({ name, size = 16 }) => (
@@ -176,6 +179,7 @@ function DashboardPage() {
   const canRoleMenu = hasMenu('role-menus') && can('role-menus.kelola');
   const canRolePerm = hasMenu('role-menus') && can('role-permissions.kelola');
   const canRole = canRoleMenu || canRolePerm;
+  const canWhitelist = hasMenu('email-whitelists') && can('email-whitelists.lihat');
 
   // Kartu ringkasan hanya untuk data yang boleh dilihat role
   const stats = [
@@ -207,6 +211,7 @@ function DashboardPage() {
     ...(canKonsumen ? [MENU_KONSUMEN] : []),
     ...(canAcc ? [MENU_ACC] : []),
     ...(canRole ? [MENU_ROLE] : []),
+    ...(canWhitelist ? [MENU_WHITELIST] : []),
   ];
   // Menu yang aktif harus masih diizinkan; kalau hak akses berubah, pindah ke menu pertama yang tersedia.
   // Sebelum hak akses termuat (menus kosong) tetap tampilkan Ringkasan.
@@ -382,6 +387,18 @@ function DashboardPage() {
                   userId={user?.id}
                   role={myRole}
                   can={{ tambah: can('konsumens.tambah'), hapus: can('konsumens.hapus'), scan: can('konsumens.scan'), verifikasi: canVerifyKonsumen }}
+                />
+              </Suspense>
+            </div>
+          )}
+
+          {menu === MENU_WHITELIST && canWhitelist && (
+            <div className="dash-card">
+              <Suspense fallback={<p className="dash-empty">Memuat...</p>}>
+                <EmailWhitelistPanel
+                  userId={user?.id}
+                  users={users}
+                  can={{ tambah: can('email-whitelists.tambah'), ubah: can('email-whitelists.ubah'), hapus: can('email-whitelists.hapus') }}
                 />
               </Suspense>
             </div>

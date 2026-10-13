@@ -788,3 +788,7 @@ select.dash-input, .dash-select {
 /* Mode gelap OS: pastikan teks & dropdown tetap terbaca (latar kontrol terang, teks gelap) */
 .dash select, .dash input, .dash textarea { color: var(--ink); }
 .dash select option { color: var(--ink); background: #fff; }
+
+/* Kotak centang berlabel (form whitelist) */
+.dash-check { display: flex; align-items: center; gap: 8px; margin: 0; font-weight: 500; cursor: pointer; }
+.dash-check input { width: 16px; height: 16px; accent-color: var(--accent); }

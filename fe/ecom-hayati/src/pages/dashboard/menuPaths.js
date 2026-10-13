@@ -6,6 +6,7 @@ export const MENU_DEALER = 'Dealer';
 export const MENU_KONSUMEN = 'Konsumen';
 export const MENU_ACC = 'Audit Log & Akses';
 export const MENU_ROLE = 'Role & Hak Akses';
+export const MENU_WHITELIST = 'Email Whitelist';
 
 export const MENU_PATHS = {
   [MENU_HOME]: '/dashboard',
@@ -15,6 +16,7 @@ export const MENU_PATHS = {
   [MENU_KONSUMEN]: '/konsumen',
   [MENU_ACC]: '/audit-akses',
   [MENU_ROLE]: '/role-akses',
+  [MENU_WHITELIST]: '/email-whitelist',
 };
 
 const normalize = (path) => (path.length > 1 ? path.replace(/\/+$/, '') : path);
