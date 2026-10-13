@@ -6,7 +6,9 @@ use App\Enums\JenisKelamin;
 use App\Enums\StatusKonsumen;
 use App\Models\Scopes\KonsumenDealerScope;
 use Illuminate\Database\Eloquent\Attributes\ScopedBy;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\URL;
 
 #[ScopedBy([KonsumenDealerScope::class])]
 class Konsumen extends Model
@@ -38,6 +40,7 @@ class Konsumen extends Model
         'catatan_penolakan',
         'diverifikasi_oleh',
     ];
+    protected $appends = ['foto_ktp_url'];
     protected function casts(): array
     {
         return [
@@ -47,6 +50,21 @@ class Konsumen extends Model
             'latitude'      => 'decimal:7',
             'longitude'     => 'decimal:7',
         ];
+    }
+    protected function fotoKtpUrl(): Attribute
+    {
+        return Attribute::get(function () {
+            if (!$this->foto_ktp || !$this->exists) {
+                return null;
+            }
+
+            return URL::temporarySignedRoute(
+                'konsumens.foto-ktp',
+                now()->addMinutes(10),
+                ['id' => $this->getKey()],
+                false
+            );
+        });
     }
     public function me()
     {

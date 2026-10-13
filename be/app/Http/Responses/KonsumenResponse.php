@@ -4,6 +4,7 @@ namespace App\Http\Responses;
 
 use App\Models\Konsumen;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 class KonsumenResponse
 {
@@ -68,5 +69,21 @@ class KonsumenResponse
             'success' => false,
             'message' => $message,
         ], 500);
+    }
+    public function paginated(LengthAwarePaginator $paginator, string $message = 'Data konsumen berhasil diambil.')
+    {
+        return response()->json([
+            'success' => true,
+            'message' => $message,
+            'data'    => $paginator->items(),
+            'meta'    => [
+                'current_page' => $paginator->currentPage(),
+                'per_page'     => $paginator->perPage(),
+                'total'        => $paginator->total(),
+                'last_page'    => $paginator->lastPage(),
+                'from'         => $paginator->firstItem(),
+                'to'           => $paginator->lastItem(),
+            ],
+        ]);
     }
 }

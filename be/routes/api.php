@@ -21,6 +21,9 @@ use Illuminate\Support\Facades\Route;
         Route::post('/send', [OtpController::class, 'sendOtp']);
         Route::post('/verify', [OtpController::class, 'verifyOtp']);
     });
+    Route::get('/konsumens/{id}/foto-ktp', [KonsumenController::class, 'fotoKtp'])
+            ->name('konsumens.foto-ktp')
+            ->middleware('signed:relative');
 
     Route::middleware('auth:sanctum')->group(function () {
         
