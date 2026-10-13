@@ -32,6 +32,14 @@ class VerifyOtpRequest extends FormRequest
             'otp.size'       => 'Kode OTP harus 6 digit.',
         ];
     }
+    protected function prepareForValidation(): void
+    {
+        if ($this->has('email')) {
+            $this->merge([
+                'email' => strtolower(trim($this->email)),
+            ]);
+        }
+    }
 
     protected function failedValidation(Validator $validator): void
     {
@@ -39,4 +47,5 @@ class VerifyOtpRequest extends FormRequest
             app(OtpResponse::class)->validationError($validator->errors()->toArray())
         );
     }
+
 }
