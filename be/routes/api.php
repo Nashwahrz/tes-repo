@@ -74,7 +74,7 @@ use Illuminate\Support\Facades\Route;
             Route::get('/{id}', [KonsumenController::class, 'show'])->middleware('permission:konsumens.lihat');
             Route::put('/{id}', [KonsumenController::class, 'update'])->middleware('permission:konsumens.ubah');
             Route::delete('/{id}', [KonsumenController::class, 'destroy'])->middleware('permission:konsumens.hapus');
-            Route::put('/activate/{id}', [KonsumenController::class, 'activate'])->middleware('permission:konsumens.lihat');
+            Route::put('/activate/{id}', [KonsumenController::class, 'activate'])->middleware('permission:konsumens.aktivasi');
         });
         Route::prefix('email-whitelists')->middleware('menu.access:email-whitelists')->group(function () {
             Route::get('/', [EmailWhiteListController::class, 'index'])->middleware('permission:email-whitelists.lihat');

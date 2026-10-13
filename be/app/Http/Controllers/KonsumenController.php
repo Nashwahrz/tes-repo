@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Enums\StatusKonsumen;
 use App\Http\Requests\ActiveKonsumenRequest;
 use App\Http\Requests\KonsumenRequest;
+use App\Http\Requests\ScanKtpRequest;
 use App\Http\Responses\KonsumenResponse;
 use App\Models\Konsumen;
 use App\Repositories\KonsumenRepository;
@@ -58,12 +59,8 @@ class KonsumenController extends Controller
     }
 
    
-    public function scanKtp(Request $request)
+    public function scanKtp(ScanKtpRequest $request)
     {
-        $request->validate([
-            'foto_ktp' => ['required', 'image', 'mimes:jpg,jpeg,png', 'max:2048'],
-        ]);
-
         try {
             $extractedData = $this->ktpOcrService->extractKtp($request->file('foto_ktp'));
 
