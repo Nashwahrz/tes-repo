@@ -30,6 +30,7 @@ class PermissionSeeder extends Seeder
             'konsumens.hapus',
             'konsumens.scan',
             'konsumens.aktivasi',
+            'konsumens.logs',
             'email-whitelists.lihat',
             'email-whitelists.tambah',
             'email-whitelists.ubah',

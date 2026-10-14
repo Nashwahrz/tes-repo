@@ -75,6 +75,7 @@ class UserRepository
     {
         return User::query()
             ->with(['role', 'dealer', 'atasan'])
+            ->where('email_verifikasi', true)
             ->when($status, fn ($q) => $q->where('status', $status))
             ->when($search, fn ($q) => $q->where('name', 'like', "%{$search}%"))
             ->latest('id')

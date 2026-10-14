@@ -4,8 +4,10 @@ namespace App\Repositories;
 
 use App\Enums\StatusKonsumen;
 use App\Models\Konsumen;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Spatie\Activitylog\Models\Activity;
 
 class KonsumenRepository
 {
@@ -83,6 +85,36 @@ class KonsumenRepository
             ->latest('id')
             ->paginate($perPage);
     }
+    public function getAllLogs(int $perPage = 10, ?string $search = null): LengthAwarePaginator
+    {
+        $logs = Activity::query()
+            ->where('subject_type', Konsumen::class)
+            ->with(['causer:id,name', 'subject'])
+            ->when($search, fn ($q) => $q->where('description', 'like', "%{$search}%"))
+            ->latest()
+            ->paginate($perPage);
 
-    
+        $this->attachUsersMap($logs);
+
+        return $logs;
+    }
+    private function attachUsersMap(LengthAwarePaginator $logs): void
+    {
+        $userIds = $logs->getCollection()
+            ->flatMap(fn ($log) => [
+                data_get($log->properties, 'old.id_me'),
+                data_get($log->properties, 'attributes.id_me'),
+                data_get($log->properties, 'old.diverifikasi_oleh'),
+                data_get($log->properties, 'attributes.diverifikasi_oleh'),
+            ])
+            ->filter()
+            ->unique()
+            ->values();
+
+        $users = User::whereIn('id', $userIds)->pluck('name', 'id');
+
+        $logs->getCollection()->each(
+            fn ($log) => $log->setRelation('users_map', $users)
+        );
+    }    
 }

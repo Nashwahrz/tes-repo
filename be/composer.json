@@ -10,7 +10,8 @@
         "dedoc/scramble": "^0.13.47",
         "laravel/framework": "^11.0",
         "laravel/sanctum": "^4.0",
-        "laravel/tinker": "^2.9"
+        "laravel/tinker": "^2.9",
+        "spatie/laravel-activitylog": "^4.12"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",
