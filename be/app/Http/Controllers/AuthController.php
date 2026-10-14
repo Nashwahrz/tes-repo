@@ -74,7 +74,7 @@ class AuthController extends Controller
                         $this->loginLogService->maxAttempts()
                     );
                 }
-
+ 
                 return $this->loginResponse->unauthorized();
             }
 

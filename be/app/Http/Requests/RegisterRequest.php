@@ -6,7 +6,7 @@ use App\Http\Responses\RegisterResponse;
 use App\Models\Role;
 use App\Models\User;
 use App\Rules\AllowedEmailDomain;
-use App\Rules\UniqueManagerRole;
+use App\Rules\UniqueSuperAdminRole;
 use Closure;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
@@ -28,7 +28,7 @@ class RegisterRequest extends FormRequest
             'password'  => ['required', 'string', 'confirmed',Password::min(8)->mixedCase()->numbers()->symbols(),],
             // 'id_dealer' => ['nullable', 'exists:dealers,id'],
             // 'id_atasan' => ['nullable', 'exists:users,id'],
-            'id_role'   => ['required','exists:roles,id',new UniqueManagerRole()],
+            'id_role'   => ['required','exists:roles,id',new UniqueSuperAdminRole()],
         ];
     }
     

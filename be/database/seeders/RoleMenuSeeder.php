@@ -11,7 +11,7 @@ class RoleMenuSeeder extends Seeder
     public function run(): void
     {
         $akses = [
-            'Manager' => [
+            'Super Admin' => [
                 'dashboard',
                 'daftar-motor',
                 'daftar-konsumen',

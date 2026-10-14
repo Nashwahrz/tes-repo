@@ -37,8 +37,8 @@ class UserRepository
         $targetRoles = match ($role->name) {
             'Kasir' => ['ADH'],
             'ME'    => ['Kacab'],
-            'ADH'   => ['Manager'],
-            'Kacab' => ['Manager'],
+            'ADH'   => ['Super Admin'],
+            'Kacab' => ['Super Admin'],
             default => [],
         };
 
@@ -52,7 +52,7 @@ class UserRepository
             })
             ->where('status', StatusUser::Aktif);
 
-        if ($dealerId && !in_array('Manager', $targetRoles)) {
+        if ($dealerId && !in_array('Super Admin', $targetRoles)) {
             $query->where('id_dealer', $dealerId);
         }
 
