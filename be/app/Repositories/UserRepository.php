@@ -7,6 +7,7 @@ use App\Models\User;
 use Illuminate\Database\Eloquent\Collection;
 
 use App\Models\Role;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 class UserRepository
 {
@@ -68,5 +69,16 @@ class UserRepository
         }
 
         return $query->get();
+    }
+
+    public function paginate(?StatusUser $status = null, int $perPage = 10, ?string $search = null): LengthAwarePaginator
+    {
+        return User::query()
+            ->with(['role', 'dealer', 'atasan'])
+            ->when($status, fn ($q) => $q->where('status', $status))
+            ->when($search, fn ($q) => $q->where('name', 'like', "%{$search}%"))
+            ->latest('id')
+            ->paginate($perPage)
+            ->withQueryString();
     }
 }

@@ -20,7 +20,7 @@ class DealerController extends Controller
     public function index()
     {
         try {
-            $dealers = $this->dealerRepository->all();
+            $dealers = $this->dealerRepository->paginate();
             return $this->dealerResponse->list($dealers);
         } catch (Throwable $e) {
             Log::error('Gagal mengambil data dealer: ' . $e->getMessage(), [
