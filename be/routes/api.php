@@ -71,10 +71,18 @@ use Illuminate\Support\Facades\Route;
             Route::get('/', [KonsumenController::class, 'index'])->middleware('permission:konsumens.lihat');
             Route::post('/', [KonsumenController::class, 'store'])->middleware('permission:konsumens.tambah');
             Route::get('/status', [KonsumenController::class, 'status'])->middleware('permission:konsumens.lihat');
+            Route::get('/logs', [KonsumenController::class, 'logs'])->middleware('permission:konsumens.logs');
             Route::get('/{id}', [KonsumenController::class, 'show'])->middleware('permission:konsumens.lihat');
-            Route::put('/{id}', [KonsumenController::class, 'update'])->middleware('permission:konsumens.ubah');
+            // Route::put('/{id}', [KonsumenController::class, 'update'])->middleware('permission:konsumens.ubah');
+            Route::put('/{id}', [KonsumenController::class, 'update'])
+                    ->whereNumber('id')
+                    ->middleware('permission:konsumens.ubah');
+            Route::post('/{id}/update', [KonsumenController::class, 'update'])
+                    ->whereNumber('id')
+                    ->middleware('permission:konsumens.ubah');
             Route::delete('/{id}', [KonsumenController::class, 'destroy'])->middleware('permission:konsumens.hapus');
             Route::put('/activate/{id}', [KonsumenController::class, 'activate'])->middleware('permission:konsumens.aktivasi');
+           
         });
         Route::prefix('email-whitelists')->middleware('menu.access:email-whitelists')->group(function () {
             Route::get('/', [EmailWhiteListController::class, 'index'])->middleware('permission:email-whitelists.lihat');

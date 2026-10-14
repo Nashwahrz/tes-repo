@@ -6,6 +6,7 @@ use App\Enums\StatusKonsumen;
 use App\Http\Requests\ActiveKonsumenRequest;
 use App\Http\Requests\KonsumenRequest;
 use App\Http\Requests\ScanKtpRequest;
+use App\Http\Resources\ActivityLogResource;
 use App\Http\Responses\KonsumenResponse;
 use App\Models\Konsumen;
 use App\Repositories\KonsumenRepository;
@@ -211,6 +212,20 @@ class KonsumenController extends Controller
         }
 
         abort(404, 'Berkas fisik foto KTP tidak ditemukan di server.');
+    }
+
+    public function logs(Request $request)
+    {
+        try {
+            $perPage = min(max((int) $request->query('per_page', 10), 1), 100);
+
+            return ActivityLogResource::collection(
+                $this->konsumenRepository->getAllLogs($perPage, $request->query('search'))
+            );
+        } catch (Throwable $e) {
+            Log::error('Gagal mengambil log konsumen: ' . $e->getMessage());
+            return $this->konsumenResponse->serverError();
+        }
     }
 }
 
