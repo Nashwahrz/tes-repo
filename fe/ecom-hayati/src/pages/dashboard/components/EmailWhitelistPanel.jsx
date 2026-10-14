@@ -5,6 +5,7 @@ import {
   getEmailWhitelists, createEmailWhitelist, updateEmailWhitelist, deleteEmailWhitelist, errorMessage,
 } from '../../../api/authServices';
 import Toast from './Toast';
+import Loading, { Spin } from './Loading';
 import IconButton from './IconButton';
 
 const EMPTY = { domain: '@', is_active: true };
@@ -142,7 +143,7 @@ function EmailWhitelistPanel({ can, userId, users = [] }) {
       </div>
 
       {loading ? (
-        <p className="dash-empty">Memuat...</p>
+        <Loading rows={4} />
       ) : visible.length === 0 ? (
         <p className="dash-empty">{q ? 'Domain tidak ditemukan.' : 'Belum ada domain di whitelist. Semua pendaftaran akan ditolak.'}</p>
       ) : (
@@ -205,7 +206,7 @@ function EmailWhitelistPanel({ can, userId, users = [] }) {
             </div>
             <div className="dash-modal-actions">
               <button type="button" className="dash-btn outline" onClick={closeForm} disabled={saving}>Batal</button>
-              <button type="submit" className="dash-btn solid" disabled={saving}>{saving ? 'Menyimpan...' : 'Simpan'}</button>
+              <button type="submit" className="dash-btn solid" disabled={saving}>{saving ? <><Spin />Menyimpan...</> : 'Simpan'}</button>
             </div>
           </form>
         </div>

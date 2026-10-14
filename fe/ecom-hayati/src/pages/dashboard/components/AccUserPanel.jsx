@@ -1,6 +1,7 @@
 // src/pages/AccUserPanel.jsx
 import { useEffect, useState } from 'react';
 import Toast from './Toast';
+import Loading, { Spin } from './Loading';
 import Pager from './Pager';
 import IconButton from './IconButton';
 import { getAtasanOptions, getLoginLogs, updateUserStatus } from '../../../api/authServices';
@@ -68,8 +69,8 @@ function AccUserPanel({ users: allUsers, dealers, scopeNote, canActivate, loadin
   };
 
   // Terbaru di atas: BE tidak mengurutkan, id auto-increment mengikuti urutan akun masuk
-  // Hanya akun yang emailnya sudah terverifikasi (email_verifikasi true) yang ditampilkan
-  const verified = allUsers.filter((u) => u.email_verifikasi);
+  // allUsers sudah hanya berisi akun dengan email terverifikasi (disaring di DashboardPage)
+  const verified = allUsers;
   const counts = { semua: verified.length };
   for (const u of verified) counts[u.status] = (counts[u.status] ?? 0) + 1;
   const byStatus = (tab === 'semua' ? verified : verified.filter((u) => u.status === tab)).toSorted((a, b) => b.id - a.id);
@@ -198,7 +199,7 @@ function AccUserPanel({ users: allUsers, dealers, scopeNote, canActivate, loadin
 
       {tab === 'log' ? (
         logs.status === 'loading' || logs.status === 'idle' ? (
-          <p className="dash-empty">Memuat...</p>
+          <Loading rows={5} />
         ) : logs.status === 'unavailable' ? (
           <p className="dash-empty">Log akses belum tersedia dari server (endpoint <code>/log-users</code> belum ada di backend).</p>
         ) : logs.status === 'error' ? (
@@ -239,7 +240,7 @@ function AccUserPanel({ users: allUsers, dealers, scopeNote, canActivate, loadin
           </>
         )
       ) : loading ? (
-        <p className="dash-empty">Memuat...</p>
+        <Loading rows={5} />
       ) : users.length === 0 ? (
         <p className="dash-empty">{q ? 'Akun tidak ditemukan.' : current.empty}</p>
       ) : (
@@ -354,7 +355,7 @@ function AccUserPanel({ users: allUsers, dealers, scopeNote, canActivate, loadin
                 disabled={(pick.status === 'aktif' && !pickDealer) || busyId === pick.user.id}
                 onClick={() => submit(pick.user, pick.status === 'aktif' ? pickDealer : pick.user.id_dealer, pick.status, pick.doneLabel, pick.status === 'aktif' ? pickAtasan : pick.user.id_atasan)}
               >
-                {busyId === pick.user.id ? 'Menyimpan...' : isEdit ? 'Simpan' : `Ya, ${pick.label}`}
+                {busyId === pick.user.id ? <><Spin />Menyimpan...</> : isEdit ? 'Simpan' : `Ya, ${pick.label}`}
               </button>
             </div>
           </div>

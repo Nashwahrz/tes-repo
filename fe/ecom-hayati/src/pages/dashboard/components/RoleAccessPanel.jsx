@@ -1,6 +1,7 @@
 // Kelola hak akses role: menu (/role-menus) dan permission (/role-permissions)
 import { useEffect, useState } from 'react';
 import Toast from './Toast';
+import Loading, { Spin } from './Loading';
 import {
   getRoleMenus, updateRoleMenus, getRolePermissions, updateRolePermissions, errorMessage,
 } from '../../../api/authServices';
@@ -128,7 +129,7 @@ function RoleAccessPanel({ canMenu, canPermission, onSaved }) {
       <Toast kind="success" message={success} onClose={() => setSuccess('')} />
 
       {loading ? (
-        <p className="dash-empty">Memuat...</p>
+        <Loading rows={4} />
       ) : !data || data.roles.length === 0 ? (
         <p className="dash-empty">Belum ada data role.</p>
       ) : (
@@ -170,7 +171,7 @@ function RoleAccessPanel({ canMenu, canPermission, onSaved }) {
 
           <div className="dash-modal-actions">
             <button className="dash-btn solid" onClick={() => setConfirming(true)} disabled={saving || !dirty}>
-              {saving ? 'Menyimpan...' : 'Simpan Perubahan'}
+              {saving ? <><Spin />Menyimpan...</> : 'Simpan Perubahan'}
             </button>
           </div>
         </>

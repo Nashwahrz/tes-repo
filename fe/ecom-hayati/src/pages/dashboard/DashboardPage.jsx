@@ -1,9 +1,10 @@
 // src/pages/DashboardPage.jsx
-import { lazy, Suspense, useEffect, useState } from 'react';
+import { lazy, Suspense, useEffect, useRef, useState } from 'react';
 import { getUsers, getDealers, getKonsumenTotal, getKonsumenStatusTotals, getUserMenus, getUserPermissions } from '../../api/authServices';
 import {
   MENU_HOME, MENU_PRODUK, MENU_PENJUALAN, MENU_DEALER, MENU_KONSUMEN, MENU_ACC, MENU_ROLE, MENU_WHITELIST, MENU_PATHS, menuFromPath,
 } from './menuPaths';
+import Loading from './components/Loading';
 import { SALES_PROTOTYPE, salesFor, totalSales } from './salesPrototype';
 import './DashboardPage.css';
 
@@ -96,7 +97,9 @@ function DashboardPage() {
 
   const [cached] = useState(() => readCache(user?.id));
   const [access, setAccess] = useState(cached?.access ?? { menus: [], permissions: [] });
-  const [users, setUsers] = useState(cached?.users ?? []);
+  const [allUsers, setUsers] = useState(cached?.users ?? []);
+  // Akun yang emailnya belum terverifikasi (email_verifikasi false) tidak ditampilkan di mana pun: daftar, hitungan, maupun Otorisasi Akun
+  const users = allUsers.filter((u) => u.email_verifikasi);
   const [dealers, setDealers] = useState(cached?.dealers ?? []);
   // total konsumen; pending/ditolak hanya dimuat untuk role yang kartu ringkasannya perlu dilengkapi (null = belum dimuat)
   const [konsumenStats, setKonsumenStats] = useState(cached?.konsumenStats ?? { total: 0, pending: null, ditolak: null });
@@ -137,7 +140,8 @@ function DashboardPage() {
         // Endpoint dipanggil hanya bila menu + permission-nya dimiliki role (selain itu pasti 403)
         const allowed = (menu, perm) => !newAccess || (newAccess.menus.includes(menu) && newAccess.permissions.includes(perm));
         // Role tanpa akses dealer/akun hanya punya kartu konsumen, jadi kartunya dilengkapi dengan status konsumen
-        const needStatus = allowed('konsumens', 'konsumens.lihat') && !(allowed('dealers', 'dealers.lihat') && allowed('users', 'users.lihat'));
+        // Pemverifikasi juga butuh jumlah pending untuk lencana sidebar
+        const needStatus = allowed('konsumens', 'konsumens.lihat') && (allowed('konsumens', 'konsumens.aktivasi') || !(allowed('dealers', 'dealers.lihat') && allowed('users', 'users.lihat')));
         const [userList, dealerList, countList, statusTotals] = await Promise.all([
           allowed('users', 'users.lihat') ? getUsers().catch(() => null) : [],
           allowed('dealers', 'dealers.lihat') ? getDealers().catch(() => null) : [],
@@ -151,10 +155,10 @@ function DashboardPage() {
         if (countList) {
           setKonsumenStats(nextStats);
           setRecentKonsumen(countList.rows);
-          // BE hanya menerima id_me milik role ME, jadi pemilik data ini pasti ME; nama diambil dari relasi `me`
+          // id_me = penginput (role apa pun yang punya konsumens.tambah); nama & dealer diambil dari relasi `me`
           const mine = countList.rows.find((k) => k.id_me === user?.id && k.me?.name);
           if (mine) {
-            const info = { name: mine.me.name, role: 'ME', id_dealer: mine.me.id_dealer ?? null };
+            const info = { name: mine.me.name, role: selfInfo?.role ?? user?.role ?? null, id_dealer: mine.me.id_dealer ?? null };
             setSelfInfo(info);
             localStorage.setItem('user', JSON.stringify({ ...user, ...info }));
           }
@@ -223,6 +227,82 @@ function DashboardPage() {
 
   const canVerifyKonsumen = canKonsumen && can('konsumens.aktivasi');
 
+  // Lencana sidebar: jumlah data yang menunggu tindakan user ini
+  const badges = {
+    [MENU_ACC]: canActivate ? pending.length : 0,
+    [MENU_KONSUMEN]: canVerifyKonsumen ? konsumenStats.pending ?? 0 : 0,
+  };
+  // Penanda perubahan data di sidebar (titik tanpa angka): tanda tangan terakhir yang sudah dilihat disimpan per user & menu.
+  // Perubahan terdeteksi lewat pengecekan berkala; titik hilang saat menu dibuka.
+  const [changed, setChanged] = useState({});
+  const latestSig = useRef({});
+  const seenKey = (m) => `seen:${user?.id}:${m}`;
+  const markSeen = (m, sig) => {
+    latestSig.current[m] = sig;
+    try { localStorage.setItem(seenKey(m), sig); } catch { /* penyimpanan penuh: abaikan */ }
+    setChanged((c) => (c[m] ? { ...c, [m]: false } : c));
+  };
+  const accSig = (list) => list.filter((u) => u.email_verifikasi && u.status === 'pending').map((u) => u.id).sort().join(',');
+  const konsumenSig = (t) => `${t.pending}|${t.ditolak}`;
+
+  const refreshKonsumenStats = () => {
+    getKonsumenStatusTotals()
+      .then((t) => { setKonsumenStats((s) => ({ ...s, ...t })); markSeen(MENU_KONSUMEN, konsumenSig(t)); })
+      .catch(() => {});
+  };
+  const [konsumenKey, setKonsumenKey] = useState(0); // naik = panel konsumen dimuat ulang
+
+  const watchAcc = canAcc;
+  const watchKonsumen = canKonsumen;
+  useEffect(() => {
+    if (!watchAcc && !watchKonsumen) return undefined;
+    let active = true;
+    const note = (m, sig) => {
+      latestSig.current[m] = sig;
+      const seen = localStorage.getItem(seenKey(m));
+      if (seen === null) localStorage.setItem(seenKey(m), sig); // pertama kali: jadikan acuan, bukan perubahan
+      else if (seen !== sig) setChanged((c) => (c[m] ? c : { ...c, [m]: true }));
+    };
+    const check = async () => {
+      if (document.hidden) return;
+      if (watchKonsumen) {
+        try {
+          const t = await getKonsumenStatusTotals();
+          if (!active) return;
+          setKonsumenStats((s) => ({ ...s, ...t }));
+          note(MENU_KONSUMEN, konsumenSig(t));
+        } catch { /* gagal: coba lagi pada pengecekan berikutnya */ }
+      }
+      if (watchAcc) {
+        try {
+          // Cek ringan: hanya akun pending; daftar lengkap dimuat ulang hanya bila ada perubahan
+          const sig = accSig(await getUsers('pending'));
+          if (!active) return;
+          if (latestSig.current[MENU_ACC] !== undefined && latestSig.current[MENU_ACC] !== sig) {
+            const list = await getUsers();
+            if (!active) return;
+            setUsers(list);
+          }
+          note(MENU_ACC, sig);
+        } catch { /* gagal: coba lagi pada pengecekan berikutnya */ }
+      }
+    };
+    check();
+    const timer = setInterval(check, 30000);
+    document.addEventListener('visibilitychange', check);
+    return () => { active = false; clearInterval(timer); document.removeEventListener('visibilitychange', check); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [watchAcc, watchKonsumen]);
+
+  // Membuka menu yang bertanda: tandai sudah dilihat dan muat ulang datanya
+  const openMenu = (m) => {
+    setMenu(m);
+    setNavOpen(false);
+    if (!changed[m]) return;
+    markSeen(m, latestSig.current[m] ?? '');
+    if (m === MENU_KONSUMEN) setKonsumenKey((k) => k + 1);
+  };
+
   const menus = [
     ...(hasMenu(MENU_URL[MENU_HOME]) ? [MENU_HOME] : []),
     ...(hasMenu(MENU_URL[MENU_PRODUK]) ? [MENU_PRODUK] : []),
@@ -289,9 +369,11 @@ function DashboardPage() {
 
         <ul className="dash-menu">
           {menus.map((m) => (
-            <li key={m} className={`dash-menu-item${menu === m ? ' active' : ''}`} onClick={() => { setMenu(m); setNavOpen(false); }}>
+            <li key={m} className={`dash-menu-item${menu === m ? ' active' : ''}`} onClick={() => openMenu(m)}>
               <Icon name={MENU_ICONS[m]} size={17} />
+              {changed[m] && <span className="dash-menu-dot" title="Ada perubahan data" />}
               {m}
+              {badges[m] > 0 && <span className="dash-menu-badge" title={`${badges[m]} menunggu`}>{badges[m] > 99 ? '99+' : badges[m]}</span>}
             </li>
           ))}
         </ul>
@@ -341,14 +423,18 @@ function DashboardPage() {
         <div className="dash-content">
           {menu === MENU_ACC && canAcc && (
             <div className="dash-card">
-              <Suspense fallback={<p className="dash-empty">Memuat...</p>}>
+              <Suspense fallback={<Loading rows={4} />}>
                 <AccUserPanel
                   users={users}
                   dealers={dealers}
                   scopeNote={scopeNote}
                   canActivate={canActivate}
                   loading={loading}
-                  onUserUpdated={(updated) => setUsers((list) => list.map((u) => (u.id === updated.id ? updated : u)))}
+                  onUserUpdated={(updated) => {
+                    const next = allUsers.map((u) => (u.id === updated.id ? updated : u));
+                    setUsers(next);
+                    markSeen(MENU_ACC, accSig(next));
+                  }}
                 />
               </Suspense>
             </div>
@@ -365,7 +451,7 @@ function DashboardPage() {
 
           {menu === MENU_PENJUALAN && canSales && (
             <div className="dash-card">
-              <Suspense fallback={<p className="dash-empty">Memuat...</p>}>
+              <Suspense fallback={<Loading rows={4} />}>
                 <PenjualanPanel scopeNote={scopeNote} />
               </Suspense>
             </div>
@@ -374,9 +460,9 @@ function DashboardPage() {
           {menu === MENU_DEALER && canDealer && (
             <div className="dash-card">
               {loading ? (
-                <p className="dash-empty">Memuat...</p>
+                <Loading rows={4} />
               ) : (
-                <Suspense fallback={<p className="dash-empty">Memuat...</p>}>
+                <Suspense fallback={<Loading rows={4} />}>
                   <DealerPanel
                     dealers={dealers}
                     scopeNote={scopeNote}
@@ -390,9 +476,13 @@ function DashboardPage() {
 
           {menu === MENU_KONSUMEN && canKonsumen && (
             <div className="dash-card">
-              <Suspense fallback={<p className="dash-empty">Memuat...</p>}>
+              <Suspense fallback={<Loading rows={4} />}>
                 <KonsumenPanel
+                  key={konsumenKey}
+                  dealers={dealers}
+                  myDealerId={myDealerId}
                   userId={user?.id}
+                  onChanged={refreshKonsumenStats}
                   can={{ tambah: can('konsumens.tambah'), ubah: can('konsumens.ubah'), hapus: can('konsumens.hapus'), scan: can('konsumens.scan'), verifikasi: canVerifyKonsumen }}
                 />
               </Suspense>
@@ -401,7 +491,7 @@ function DashboardPage() {
 
           {menu === MENU_WHITELIST && canWhitelist && (
             <div className="dash-card">
-              <Suspense fallback={<p className="dash-empty">Memuat...</p>}>
+              <Suspense fallback={<Loading rows={4} />}>
                 <EmailWhitelistPanel
                   userId={user?.id}
                   users={users}
@@ -413,7 +503,7 @@ function DashboardPage() {
 
           {menu === MENU_ROLE && canRole && (
             <div className="dash-card">
-              <Suspense fallback={<p className="dash-empty">Memuat...</p>}>
+              <Suspense fallback={<Loading rows={4} />}>
                 <RoleAccessPanel canMenu={canRoleMenu} canPermission={canRolePerm} onSaved={refreshAccess} />
               </Suspense>
             </div>
@@ -514,7 +604,7 @@ function DashboardPage() {
                   </div>
                   <p className="dash-card-desc">Data konsumen yang terakhir masuk.</p>
                   {recentKonsumen === null ? (
-                    <p className="dash-empty">Memuat...</p>
+                    <Loading rows={4} />
                   ) : recentKonsumen.length === 0 ? (
                     <p className="dash-empty">Belum ada data konsumen.</p>
                   ) : (

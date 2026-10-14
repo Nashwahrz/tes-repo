@@ -87,6 +87,13 @@ export const getKonsumenStatusTotals = async () => {
 export const createKonsumen = async (payload) =>
   (await api.post('/konsumens', payload, { headers: { 'Content-Type': 'multipart/form-data' } })).data;
 
+// Ubah data konsumen (BE: PUT /konsumens/{id}). PHP tidak membaca multipart pada PUT, jadi dikirim POST + _method=PUT.
+// foto_ktp opsional saat ubah (tanpa foto, foto lama dipakai)
+export const updateKonsumen = async (id, payload) => {
+  payload.append('_method', 'PUT');
+  return (await api.post(`/konsumens/${id}`, payload, { headers: { 'Content-Type': 'multipart/form-data' } })).data;
+};
+
 // Whitelist domain email untuk registrasi (BE: /email-whitelists, permission email-whitelists.*)
 // payload: { domain: '@gmail.com', is_active: true, created_by: <id user> }; domain wajib berawalan @ dan unik
 export const getEmailWhitelists = async () => (await api.get('/email-whitelists')).data.data;

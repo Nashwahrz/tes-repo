@@ -3,10 +3,11 @@
 // Termasuk + OCR KTP, terhubung ke API /konsumens.
 import { lazy, Suspense, useEffect, useRef, useState } from 'react';
 import Toast from './Toast';
+import Loading, { Spin } from './Loading';
 import Pager from './Pager';
 import IconButton from './IconButton';
 import {
-  getKonsumens, getKonsumenPage, createKonsumen, deleteKonsumen, verifyKonsumen, scanKtp, ktpUrl, errorMessage,
+  getKonsumens, getKonsumenPage, createKonsumen, updateKonsumen, deleteKonsumen, verifyKonsumen, scanKtp, ktpUrl, errorMessage,
 } from '../../../api/authServices';
 
 // Leaflet (JS + CSS) hanya dimuat saat form dibuka
@@ -41,9 +42,9 @@ const LABELS = {
 };
 
 // Validasi mengikuti be/app/Http/Requests/KonsumenRequest.php (semua field wajib)
-function validate(form, file) {
+function validate(form, file, needFoto) {
   const e = {};
-  if (!file) e.foto_ktp = 'Foto KTP wajib diunggah.';
+  if (needFoto && !file) e.foto_ktp = 'Foto KTP wajib diunggah.';
   FIELDS.forEach((k) => {
     if (!String(form[k]).trim()) e[k] = `${LABELS[k]} wajib diisi.`;
   });
@@ -60,15 +61,18 @@ function validate(form, file) {
   return e;
 }
 
-// Tombol Input Ulang tampil bila user punya permission konsumens.tambah + hapus + ubah (diatur di Role & Hak Akses).
-// BE hanya menerima id_me milik user berrole ME; tombol tetap tampil untuk role lain dan
-// penolakan BE saat menyimpan diterjemahkan ke pesan yang jelas.
-const ROLE_PENGINPUT = 'ME';
-
-function KonsumenPanel({ can, userId }) {
+// onChanged: dipanggil setelah data berubah (tambah/ubah/verifikasi/hapus) agar lencana di sidebar ikut diperbarui
+// dealers & myDealerId: filter dealer tampil untuk semua role. Awalnya hanya konsumen dealer user sendiri; "Semua dealer" menampilkan lintas dealer.
+function KonsumenPanel({ can, userId, onChanged, dealers = [], myDealerId = null }) {
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('');
+  const [dealerFilter, setDealerFilter] = useState(myDealerId != null ? String(myDealerId) : ''); // id dealer penginput; kosong = semua dealer
+  const dealerPicked = useRef(false); // true setelah user memilih sendiri, agar bawaan tidak menimpa pilihan
+  // Dealer user bisa baru diketahui setelah daftar akun termuat: jadikan bawaan selama belum memilih
+  useEffect(() => {
+    if (!dealerPicked.current && myDealerId != null) setDealerFilter(String(myDealerId));
+  }, [myDealerId]);
   const [reloadKey, setReloadKey] = useState(0);
   const [page, setPage] = useState(1);
   const [meta, setMeta] = useState(null); // info halaman dari BE; null saat mencari (semua data dimuat)
@@ -77,8 +81,7 @@ function KonsumenPanel({ can, userId }) {
   const [error, setError] = useState('');
 
   const [formOpen, setFormOpen] = useState(false);
-  const [toRedo, setToRedo] = useState(null); // konsumen ditolak yang akan diinput ulang (menunggu konfirmasi)
-  const [redoSource, setRedoSource] = useState(null); // konsumen ditolak yang akan diganti saat data baru disimpan
+  const [editing, setEditing] = useState(null); // konsumen yang sedang diubah (null = menambah baru)
   const [form, setForm] = useState(EMPTY);
   const [file, setFile] = useState(null);
   const [preview, setPreview] = useState('');
@@ -99,11 +102,15 @@ function KonsumenPanel({ can, userId }) {
 
   // Muat satu halaman saat filter/halaman berubah atau reloadKey naik (setelah simpan).
  
+  // Dealer konsumen = dealer penginputnya (relasi `me`); BE belum menyaring per dealer, jadi filter dijalankan di FE pada seluruh data
+  const dealerOf = (k) => k.me?.id_dealer;
+  const dealerName = (k) => dealers.find((d) => d.id === dealerOf(k))?.name;
   const searching = query.trim() !== '';
+  const loadAll = searching || dealerFilter !== '';
   useEffect(() => {
     let active = true;
-    const load = searching
-      ? getKonsumens(filter).then((data) => ({ rows: data, meta: null }))
+    const load = loadAll
+      ? getKonsumens(filter).then((data) => ({ rows: dealerFilter ? data.filter((k) => String(dealerOf(k)) === dealerFilter) : data, meta: null }))
       : getKonsumenPage(filter, page);
     load
       .then((res) => {
@@ -120,7 +127,7 @@ function KonsumenPanel({ can, userId }) {
       })
       .catch((err) => { if (active) { setError(errorMessage(err)); setLoading(false); } });
     return () => { active = false; };
-  }, [filter, page, reloadKey, searching]);
+  }, [filter, dealerFilter, page, reloadKey, loadAll]);
 
   const reload = () => { setLoading(true); setReloadKey((n) => n + 1); };
 
@@ -147,17 +154,18 @@ function KonsumenPanel({ can, userId }) {
   };
   useEffect(() => () => { if (previewRef.current) URL.revokeObjectURL(previewRef.current); }, []);
 
-  const errors = formOpen ? validate(form, file) : {};
+  const errors = formOpen ? validate(form, file, !editing) : {};
   const hasError = Object.keys(errors).length > 0;
-  const shownPreview = file ? preview : '';
+  const shownPreview = file ? preview : editing ? ktpUrl(editing) : '';
 
   const q = query.trim().toLowerCase();
   const visible = q
     ? rows.filter((k) => `${k.name ?? ''} ${k.nik ?? ''} ${k.no_telp ?? ''}`.toLowerCase().includes(q))
     : rows;
 
-  // prefill: data konsumen lama (input ulang); foto selalu harus diunggah lagi
+  // prefill: data konsumen yang diubah; foto lama dipakai bila tidak memilih foto baru
   const openForm = (prefill) => {
+    setEditing(prefill ?? null);
     setSuccess('');
     setError('');
     setTouched({});
@@ -166,7 +174,7 @@ function KonsumenPanel({ can, userId }) {
     setForm(prefill ? toForm(prefill) : EMPTY);
     setFormOpen(true);
   };
-  const closeForm = () => { setFormOpen(false); setPicked(null); setRedoSource(null); };
+  const closeForm = () => { setFormOpen(false); setPicked(null); setEditing(null); };
 
   const handlePick = (lat, lng) => {
     setForm((f) => ({ ...f, latitude: String(lat), longitude: String(lng) }));
@@ -237,7 +245,7 @@ function KonsumenPanel({ can, userId }) {
   const handleSave = async () => {
     setConfirmSave(false);
     const fd = new FormData();
-    fd.append('id_me', userId);
+    fd.append('id_me', editing?.id_me ?? userId);
     FIELDS.forEach((k) => {
       let v = String(form[k]).trim();
       // BE memakai aturan decimal:7 -> harus tepat 7 angka di belakang koma
@@ -249,28 +257,14 @@ function KonsumenPanel({ can, userId }) {
     setSaving(true);
     setError('');
     try {
-      // Input ulang: data lama baru dihapus saat menyimpan, bukan saat formulir dibuka (batal tidak menghapus apa pun).
-      // NIK harus unik: bila NIK sama, data lama harus dihapus dulu; bila beda, data baru dibuat dulu supaya tidak ada data hilang bila gagal.
-      const replacing = redoSource;
-      const sameNik = replacing && String(replacing.nik) === String(form.nik).trim();
-      if (replacing && sameNik) {
-        await deleteKonsumen(replacing.id);
-        setRedoSource(null);
-      }
-      await createKonsumen(fd);
-      let oldNotDeleted = false;
-      if (replacing && !sameNik) {
-        try { await deleteKonsumen(replacing.id); } catch { oldNotDeleted = true; }
-      }
-      setSuccess(oldNotDeleted
-        ? `Data konsumen ${form.name || form.nik || ''} ditambahkan, tetapi data lama yang ditolak belum terhapus. Hapus manual dari daftar.`
-        : `Data konsumen ${form.name || form.nik || ''} ditambahkan.`);
+      if (editing) await updateKonsumen(editing.id, fd);
+      else await createKonsumen(fd);
+      setSuccess(`Data konsumen ${form.name || form.nik || ''} ${editing ? 'diperbarui' : 'ditambahkan'}.`);
       closeForm();
       reload();
+      onChanged?.();
     } catch (err) {
-      setError(err.response?.data?.errors?.id_me
-        ? `Hanya akun dengan role ${ROLE_PENGINPUT} yang dapat menambah data konsumen.`
-        : errorMessage(err));
+      setError(errorMessage(err));
     } finally {
       setSaving(false);
     }
@@ -300,6 +294,7 @@ function KonsumenPanel({ can, userId }) {
         .filter((k) => !filter || k.status === filter));
       setSuccess(`Data konsumen ${konsumen.name || konsumen.nik || ''} ${status === 'diterima' ? 'diterima' : 'ditolak'}.`);
       setToVerify(null);
+      onChanged?.();
     } catch (err) {
       setError(errorMessage(err));
     } finally {
@@ -314,19 +309,13 @@ function KonsumenPanel({ can, userId }) {
       await deleteKonsumen(toDelete.id);
       setRows((list) => list.filter((k) => k.id !== toDelete.id));
       setSuccess(`Data konsumen ${toDelete.name || toDelete.nik || ''} dihapus.`);
+      onChanged?.();
     } catch (err) {
       setError(errorMessage(err));
     } finally {
       setSaving(false);
       setToDelete(null);
     }
-  };
-
-  // Data ditolak tidak bisa diedit: formulir diisi ulang dari data tersebut; data lama baru diganti saat disimpan (lihat handleSave)
-  const handleRedo = () => {
-    setRedoSource(toRedo);
-    openForm(toRedo);
-    setToRedo(null);
   };
 
   const field = (key, label, props = {}) => {
@@ -382,13 +371,22 @@ function KonsumenPanel({ can, userId }) {
           <option value="">Semua status</option>
           {Object.entries(STATUS_LABEL).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
         </select>
+        {(dealers.length > 0 || myDealerId != null) && (
+          <select className="dash-input dash-select-filter" value={dealerFilter} aria-label="Filter dealer" onChange={(e) => { dealerPicked.current = true; setLoading(true); setPage(1); setDealerFilter(e.target.value); }}>
+            <option value="">Semua dealer</option>
+            {/* Role tanpa akses daftar dealer (mis. ME) hanya mendapat pilihan dealernya sendiri */}
+            {dealers.length > 0
+              ? dealers.map((d) => <option key={d.id} value={d.id}>{d.name}{d.id === myDealerId ? ' (dealer Anda)' : ''}</option>)
+              : <option value={myDealerId}>Dealer saya</option>}
+          </select>
+        )}
       </div>
 
       <Toast kind="success" message={success} onClose={() => setSuccess('')} />
       <Toast kind="error" message={error} onClose={() => setError('')} />
 
       {loading ? (
-        <p className="dash-empty">Memuat...</p>
+        <Loading rows={5} />
       ) : visible.length === 0 ? (
         <p className="dash-empty">{q || filter ? 'Konsumen tidak ditemukan.' : 'Belum ada data konsumen.'}</p>
       ) : (
@@ -405,22 +403,18 @@ function KonsumenPanel({ can, userId }) {
             </thead>
             <tbody>
               {visible.map((k) => (
-                <tr key={k.id}>
+                <tr key={k.id} className={k.status === 'ditolak' ? 'row-rejected' : undefined}>
                   <td>
                     <strong className="dash-cell-name">{k.name || '-'}</strong>
-                    <small className="dash-cell-sub">NIK {k.nik || '-'}</small>
+                    <small className="dash-cell-sub">NIK {k.nik || '-'}{dealerName(k) && ` · ${dealerName(k)}`}</small>
                   </td>
                   <td>{k.no_telp || '-'}</td>
                   <td>
                     {statusTag(k.status)}
-                    {k.status === 'ditolak' && k.catatan_penolakan && <small className="dash-note" title={k.catatan_penolakan}>{k.catatan_penolakan}</small>}
-                    {k.status === 'ditolak' && can.tambah && can.hapus && can.ubah && (
-                      <button type="button" className="dash-link konsumen-redo" onClick={() => setToRedo(k)}>Input ulang</button>
-                    )}
                   </td>
                   {can.verifikasi && (
                     <td>
-                      {k.status === 'pending' && k.id_me !== userId ? (
+                      {k.status === 'pending' ? (
                         <div className="dash-verify">
                           <IconButton icon="check" label="Terima" tone="ok" onClick={() => openVerify(k, 'diterima')} />
                           <IconButton icon="close" label="Tolak" tone="danger" onClick={() => openVerify(k, 'ditolak')} />
@@ -463,6 +457,9 @@ function KonsumenPanel({ can, userId }) {
                 {(detail.verified_by?.name ?? detail.verifiedBy?.name) && (
                   <small>Ditolak oleh {detail.verified_by?.name ?? detail.verifiedBy?.name}</small>
                 )}
+                {can.ubah && (
+                  <button type="button" className="dash-btn sm outline konsumen-reject-edit" onClick={() => { setDetail(null); openForm(detail); }}>Ubah Data</button>
+                )}
               </div>
             )}
             <img className="dash-ktp-big" src={ktpUrl(detail)} alt="Foto KTP" onError={refreshExpiredPhotos} />
@@ -478,6 +475,7 @@ function KonsumenPanel({ can, userId }) {
                 ['Agama', detail.agama], ['Status Perkawinan', detail.status_perkawinan],
                 ['Pekerjaan', detail.pekerjaan], ['Kewarganegaraan', detail.kewarganegaraan],
                 ['No. Telp', detail.no_telp], ['Email', detail.email],
+                ['Dealer', dealerName(detail)],
                 ['Didaftarkan oleh', detail.me?.name ?? detail.me?.email],
                 ['Diverifikasi oleh', detail.verified_by?.name ?? detail.verifiedBy?.name],
               ].map(([l, v]) => (
@@ -492,10 +490,10 @@ function KonsumenPanel({ can, userId }) {
       {formOpen && (
         <div className="dash-modal-bg" onClick={closeForm}>
           <form className="dash-modal wide" onClick={(e) => e.stopPropagation()} onSubmit={handleSubmit} noValidate>
-            <h3>Tambah Konsumen</h3>
+            <h3>{editing ? 'Ubah Konsumen' : 'Tambah Konsumen'}</h3>
 
             <div className="dash-form-group" id="konsumen-foto_ktp">
-              <label>Foto KTP *</label>
+              <label>Foto KTP{!editing && ' *'}</label>
               {shownPreview && <img className="dash-ktp-big" src={shownPreview} alt="Pratinjau KTP" />}
               <input ref={fileRef} type="file" accept="image/png,image/jpeg" hidden onChange={handleFile} />
               <div className="dash-actions">
@@ -504,7 +502,7 @@ function KonsumenPanel({ can, userId }) {
                 </button>
                 {can.scan && (
                   <button type="button" className="dash-btn soft" onClick={handleScan} disabled={!file || scanning}>
-                    {scanning ? 'Memindai...' : 'Pindai KTP (OCR)'}
+                    {scanning ? <><Spin />Memindai...</> : 'Pindai KTP (OCR)'}
                   </button>
                 )}
               </div>
@@ -513,7 +511,7 @@ function KonsumenPanel({ can, userId }) {
                   <strong>{scanNote.ok ? '✓' : '!'}</strong> {scanNote.text}
                 </p>
               )}
-              <p className="dash-map-hint">JPG/PNG, maksimal 2MB.{can.scan && ' Pilih foto baru untuk memakai OCR.'}</p>
+              <p className="dash-map-hint">JPG/PNG, maksimal 2MB.{editing && ' Kosongkan bila foto tidak diganti.'}{can.scan && ' Pilih foto baru untuk memakai OCR.'}</p>
               {touched.foto_ktp && errors.foto_ktp && <p className="dash-field-error">{errors.foto_ktp}</p>}
             </div>
 
@@ -571,7 +569,7 @@ function KonsumenPanel({ can, userId }) {
 
             <div className="dash-modal-actions">
               <button type="button" className="dash-btn outline" onClick={closeForm}>Batal</button>
-              <button type="submit" className="dash-btn solid" disabled={saving}>{saving ? 'Menyimpan...' : 'Simpan'}</button>
+              <button type="submit" className="dash-btn solid" disabled={saving}>{saving ? <><Spin />Menyimpan...</> : 'Simpan'}</button>
             </div>
           </form>
         </div>
@@ -580,13 +578,13 @@ function KonsumenPanel({ can, userId }) {
       {confirmSave && (
         <div className="dash-modal-bg" onClick={() => setConfirmSave(false)}>
           <div className="dash-modal" onClick={(e) => e.stopPropagation()}>
-            <h3>Tambah Konsumen</h3>
+            <h3>{editing ? 'Simpan Perubahan' : 'Tambah Konsumen'}</h3>
             <p className="dash-card-desc">
-              Yakin ingin menambahkan konsumen <strong>{form.name.trim() || form.nik || 'ini'}</strong>?
+              Yakin ingin {editing ? 'menyimpan perubahan data' : 'menambahkan'} konsumen <strong>{form.name.trim() || form.nik || 'ini'}</strong>?
             </p>
             <div className="dash-modal-actions">
               <button className="dash-btn outline" onClick={() => setConfirmSave(false)}>Batal</button>
-              <button className="dash-btn solid" onClick={handleSave}>Ya, Tambah</button>
+              <button className="dash-btn solid" onClick={handleSave}>{editing ? 'Ya, Simpan' : 'Ya, Tambah'}</button>
             </div>
           </div>
         </div>
@@ -601,6 +599,11 @@ function KonsumenPanel({ can, userId }) {
                 ? <>Yakin menerima data <strong>{toVerify.konsumen.name || toVerify.konsumen.nik}</strong>? Pastikan data dan foto KTP sudah diperiksa.</>
                 : <>Data <strong>{toVerify.konsumen.name || toVerify.konsumen.nik}</strong> akan ditolak. Tulis alasan penolakan agar penginput dapat memperbaikinya.</>}
             </p>
+            {toVerify.konsumen.id_me === userId && (
+              <p className="dash-alert warning" role="alert">
+                <strong>!</strong> Data ini diinput oleh Anda sendiri. Apakah Anda yakin ingin {toVerify.status === 'diterima' ? 'menerima' : 'menolak'} data tersebut?
+              </p>
+            )}
             {toVerify.status === 'ditolak' && (
               <div className="dash-form-group">
                 <label htmlFor="konsumen-catatan">Catatan penolakan *</label>
@@ -620,24 +623,8 @@ function KonsumenPanel({ can, userId }) {
             <div className="dash-modal-actions">
               <button className="dash-btn outline" onClick={() => setToVerify(null)} disabled={saving}>Batal</button>
               <button className="dash-btn solid" onClick={handleVerify} disabled={saving || (toVerify.status === 'ditolak' && !catatan.trim())}>
-                {saving ? 'Memproses...' : toVerify.status === 'diterima' ? 'Ya, Terima' : 'Ya, Tolak'}
+                {saving ? <><Spin />Memproses...</> : toVerify.status === 'diterima' ? 'Ya, Terima' : 'Ya, Tolak'}
               </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {toRedo && (
-        <div className="dash-modal-bg" onClick={() => setToRedo(null)}>
-          <div className="dash-modal" onClick={(e) => e.stopPropagation()}>
-            <h3>Input Ulang</h3>
-            <p className="dash-card-desc">
-              Data <strong>{toRedo.name || toRedo.nik || 'konsumen ini'}</strong> ditolak dan tidak bisa diedit.
-              Formulir akan terisi ulang dengan data tersebut. Unggah foto KTP yang baru lalu simpan; data lama baru diganti setelah Anda menyimpan, jadi membatalkan tidak menghapus apa pun.
-            </p>
-            <div className="dash-modal-actions">
-              <button className="dash-btn outline" onClick={() => setToRedo(null)}>Batal</button>
-              <button className="dash-btn solid" onClick={handleRedo}>Ya, Input Ulang</button>
             </div>
           </div>
         </div>

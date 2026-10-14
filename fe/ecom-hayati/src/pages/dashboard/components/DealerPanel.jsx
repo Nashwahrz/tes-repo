@@ -3,6 +3,7 @@
 // UI CRUD dealer, terhubung ke API /dealers.
 import { lazy, Suspense, useState } from 'react';
 import Toast from './Toast';
+import { Spin } from './Loading';
 import IconButton from './IconButton';
 import { createDealer, updateDealer, deleteDealer, errorMessage } from '../../../api/authServices';
 
@@ -227,7 +228,7 @@ function DealerPanel({ dealers: rows, onDealersChange, can, scopeNote }) {
             </div>
             <div className="dash-modal-actions">
               <button type="button" className="dash-btn outline" onClick={closeForm}>Batal</button>
-              <button type="submit" className="dash-btn solid" disabled={saving}>{saving ? 'Menyimpan...' : 'Simpan'}</button>
+              <button type="submit" className="dash-btn solid" disabled={saving}>{saving ? <><Spin />Menyimpan...</> : 'Simpan'}</button>
             </div>
           </form>
         </div>
