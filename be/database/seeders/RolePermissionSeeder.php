@@ -45,6 +45,7 @@ class RolePermissionSeeder extends Seeder
                 'konsumens.ubah',
                 'konsumens.hapus',
                 'konsumens.scan',
+                'konsumens.aktivasi'
             ],
             'ADH' => [
                 'dealers.lihat',
