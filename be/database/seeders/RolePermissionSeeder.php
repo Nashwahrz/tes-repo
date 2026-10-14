@@ -16,7 +16,7 @@ class RolePermissionSeeder extends Seeder
         $now = now();
 
         $akses = [
-            'Manager' => [
+            'Super Admin' => [
                 'dealers.lihat',
                 'dealers.tambah',
                 'dealers.ubah',

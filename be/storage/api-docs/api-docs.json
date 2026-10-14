@@ -290,7 +290,7 @@
                                                 },
                                                 "message": {
                                                     "type": "string",
-                                                    "const": "Email Anda sudah terverifikasi, namun akun masih menunggu persetujuan (ACC) Manager."
+                                                    "const": "Email Anda sudah terverifikasi, namun akun masih menunggu persetujuan (ACC) Super Admin."
                                                 }
                                             },
                                             "required": [
@@ -1494,18 +1494,7 @@
                     "content": {
                         "multipart/form-data": {
                             "schema": {
-                                "type": "object",
-                                "properties": {
-                                    "foto_ktp": {
-                                        "type": "string",
-                                        "format": "binary",
-                                        "contentMediaType": "application/octet-stream",
-                                        "description": "Maximum file size: 2048 kilobytes."
-                                    }
-                                },
-                                "required": [
-                                    "foto_ktp"
-                                ]
+                                "$ref": "#/components/schemas/ScanKtpRequest"
                             }
                         }
                     }
@@ -1649,11 +1638,11 @@
                             }
                         }
                     },
-                    "422": {
-                        "$ref": "#/components/responses/ValidationException"
-                    },
                     "401": {
                         "$ref": "#/components/responses/AuthenticationException"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
                     }
                 }
             }
@@ -5071,6 +5060,21 @@
                     "permission_ids"
                 ],
                 "title": "RolePermissionRequest"
+            },
+            "ScanKtpRequest": {
+                "type": "object",
+                "properties": {
+                    "foto_ktp": {
+                        "type": "string",
+                        "format": "binary",
+                        "contentMediaType": "application/octet-stream",
+                        "description": "Maximum file size: 2048 kilobytes."
+                    }
+                },
+                "required": [
+                    "foto_ktp"
+                ],
+                "title": "ScanKtpRequest"
             },
             "SendOtpRequest": {
                 "type": "object",

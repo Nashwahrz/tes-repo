@@ -21,7 +21,7 @@ class KonsumenDealerScope implements Scope
                 ? $user->role?->name
                 : $user->role()->value('name');
 
-            if ($roleName !== 'Manager' && $user->id_dealer) {
+            if ($roleName !== 'Super Admin' && $user->id_dealer) {
                 $builder->whereHas('me', function ($query) use ($user) {
                     $query->where('id_dealer', $user->id_dealer);
                 });

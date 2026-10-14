@@ -65,9 +65,9 @@ class UserResponse
     }
 
     /**
-     * Return forbidden response for non-manager.
+     * Return forbidden response for non-.
      */
-    public function forbidden(string $message = 'Akses ditolak. Hanya Manager yang dapat melakukan tindakan ini.'): JsonResponse
+    public function forbidden(string $message = 'Akses ditolak. Hanya  yang dapat melakukan tindakan ini.'): JsonResponse
     {
         return response()->json([
             'success' => false,

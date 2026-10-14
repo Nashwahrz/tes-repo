@@ -44,7 +44,7 @@ class LoginResponse
     {
         return response()->json([
             'success' => false,
-            'message' => 'Email Anda sudah terverifikasi, namun akun masih menunggu persetujuan (ACC) Manager.',
+            'message' => 'Email Anda sudah terverifikasi, namun akun masih menunggu persetujuan (ACC) Super Admin.',
         ], 403);
     }
 
