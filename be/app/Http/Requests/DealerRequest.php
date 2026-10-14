@@ -33,7 +33,7 @@ class DealerRequest extends FormRequest
                 'required',
                 'string',
                 'max:255',
-                Rule::unique('dealers', 'name')->ignore($dealerId),
+               Rule::unique('dealers', 'name')->ignore($dealerId),
             ],
             'alamat'    => ['required', 'string'],
             'latitude'  => ['required', 'numeric', 'between:-90,90'],

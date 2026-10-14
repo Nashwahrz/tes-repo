@@ -35,7 +35,9 @@ class UserRepository
     public function getAtasanOptions(Role $role, ?int $dealerId = null): Collection
     {
     
-        $targetRoles = match ($role->name) {
+        $roleName = $role->getAttribute('name');
+
+        $targetRoles = match ($roleName) {
             'Kasir' => ['ADH'],
             'ME'    => ['Kacab'],
             'ADH'   => ['Super Admin'],
