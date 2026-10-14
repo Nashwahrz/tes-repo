@@ -3,8 +3,9 @@
 // Termasuk + OCR KTP, terhubung ke API /konsumens.
 import { lazy, Suspense, useEffect, useRef, useState } from 'react';
 import Toast from './Toast';
+import Pager from './Pager';
 import {
-  getKonsumens, createKonsumen, deleteKonsumen, verifyKonsumen, scanKtp, ktpUrl, errorMessage,
+  getKonsumens, getKonsumenPage, createKonsumen, deleteKonsumen, verifyKonsumen, scanKtp, ktpUrl, errorMessage,
 } from '../../../api/authServices';
 
 // Leaflet (JS + CSS) hanya dimuat saat form dibuka
@@ -58,6 +59,8 @@ function validate(form, file) {
   return e;
 }
 
+// Tombol Input Ulang tampil bila user punya permission konsumens.tambah + hapus + ubah (diatur di Role & Hak Akses)
+// dan, bila role diketahui, role-nya ME. Tanpa ketiga permission itu tombolnya tidak muncul.
 // BE hanya menerima id_me milik user berrole ME. Role diketahui dari daftar user (butuh users.lihat);
 // bila role tidak diketahui tombol tetap tampil dan penolakan BE diterjemahkan ke pesan yang jelas.
 const ROLE_PENGINPUT = 'ME';
@@ -68,6 +71,8 @@ function KonsumenPanel({ can: access, userId, role }) {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('');
   const [reloadKey, setReloadKey] = useState(0);
+  const [page, setPage] = useState(1);
+  const [meta, setMeta] = useState(null); // info halaman dari BE; null saat mencari (semua data dimuat)
   const [query, setQuery] = useState('');
   const [success, setSuccess] = useState('');
   const [error, setError] = useState('');
@@ -93,15 +98,30 @@ function KonsumenPanel({ can: access, userId, role }) {
   const fileRef = useRef(null);
   const scanNoteRef = useRef(null);
 
-  // Muat daftar saat filter berubah atau reloadKey naik (setelah simpan)
+  // Muat satu halaman saat filter/halaman berubah atau reloadKey naik (setelah simpan).
+ 
+  const searching = query.trim() !== '';
   useEffect(() => {
     let active = true;
-    getKonsumens(filter)
-      .then((data) => { if (active) { setRows(data); setError(''); } })
-      .catch((err) => { if (active) setError(errorMessage(err)); })
-      .finally(() => { if (active) setLoading(false); });
+    const load = searching
+      ? getKonsumens(filter).then((data) => ({ rows: data, meta: null }))
+      : getKonsumenPage(filter, page);
+    load
+      .then((res) => {
+        if (!active) return;
+        // Halaman terakhir baru saja kosong (data dihapus): mundur ke halaman terakhir yang ada
+        if (res.meta && res.rows.length === 0 && page > 1) {
+          setPage(Math.max(res.meta.lastPage, 1));
+          return;
+        }
+        setRows(res.rows);
+        setMeta(res.meta);
+        setError('');
+        setLoading(false);
+      })
+      .catch((err) => { if (active) { setError(errorMessage(err)); setLoading(false); } });
     return () => { active = false; };
-  }, [filter, reloadKey]);
+  }, [filter, page, reloadKey, searching]);
 
   const reload = () => { setLoading(true); setReloadKey((n) => n + 1); };
 
@@ -359,7 +379,7 @@ function KonsumenPanel({ can: access, userId, role }) {
           value={query}
           onChange={(e) => setQuery(e.target.value)}
         />
-        <select className="dash-input dash-select-filter" value={filter} onChange={(e) => { setLoading(true); setFilter(e.target.value); }}>
+        <select className="dash-input dash-select-filter" value={filter} onChange={(e) => { setLoading(true); setPage(1); setFilter(e.target.value); }}>
           <option value="">Semua status</option>
           {Object.entries(STATUS_LABEL).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
         </select>
@@ -374,38 +394,43 @@ function KonsumenPanel({ can: access, userId, role }) {
         <p className="dash-empty">{q || filter ? 'Konsumen tidak ditemukan.' : 'Belum ada data konsumen.'}</p>
       ) : (
         <div className="dash-table-wrap">
-          <table className="dash-table">
+          <table className="dash-table konsumen-table">
             <thead>
               <tr>
-                <th>KTP</th>
-                <th>NIK</th>
+                <th className="col-nik">NIK</th>
                 <th>Nama</th>
-                <th>No. Telp</th>
-                <th>Status</th>
-                <th>Aksi</th>
+                <th className="col-telp">No. Telp</th>
+                <th className="col-status">Status</th>
+                {can.verifikasi && <th className="col-verif">Verifikasi</th>}
+                <th className="col-aksi">Aksi</th>
               </tr>
             </thead>
             <tbody>
               {visible.map((k) => (
                 <tr key={k.id}>
-                  <td><img className="dash-ktp-thumb" src={ktpUrl(k)} alt="KTP" loading="lazy" onError={refreshExpiredPhotos} /></td>
                   <td>{k.nik || '-'}</td>
                   <td><strong className="dash-cell-name">{k.name || '-'}</strong></td>
                   <td>{k.no_telp || '-'}</td>
                   <td>
                     {statusTag(k.status)}
-                    {k.status === 'ditolak' && k.catatan_penolakan && <small className="dash-note">{k.catatan_penolakan}</small>}
-                    {can.verifikasi && k.status === 'pending' && k.id_me !== userId && (
-                      <div className="dash-verify">
-                        <button className="dash-btn sm ok" onClick={() => openVerify(k, 'diterima')}>✓ Terima</button>
-                        <button className="dash-btn sm reject" onClick={() => openVerify(k, 'ditolak')}>✕ Tolak</button>
-                      </div>
-                    )}
+                    {k.status === 'ditolak' && k.catatan_penolakan && <small className="dash-note" title={k.catatan_penolakan}>{k.catatan_penolakan}</small>}
                   </td>
+                  {can.verifikasi && (
+                    <td>
+                      {k.status === 'pending' && k.id_me !== userId ? (
+                        <div className="dash-verify">
+                          <button className="dash-btn sm ok" onClick={() => openVerify(k, 'diterima')}>✓ Terima</button>
+                          <button className="dash-btn sm reject" onClick={() => openVerify(k, 'ditolak')}>✕ Tolak</button>
+                        </div>
+                      ) : (
+                        <span className="acc-muted">-</span>
+                      )}
+                    </td>
+                  )}
                   <td>
                     <div className="dash-actions">
                       <button className="dash-btn outline" onClick={() => setDetail(k)}>Detail</button>
-                      {k.status === 'ditolak' && can.tambah && can.hapus && (
+                      {k.status === 'ditolak' && can.tambah && can.hapus && can.ubah && (
                         <button className="dash-btn outline" onClick={() => setToRedo(k)}>Input Ulang</button>
                       )}
                       {can.hapus && <button className="dash-btn soft" onClick={() => setToDelete(k)}>Hapus</button>}
@@ -418,6 +443,10 @@ function KonsumenPanel({ can: access, userId, role }) {
         </div>
       )}
 
+      {!loading && meta && (
+        <Pager page={meta.page} lastPage={meta.lastPage} total={meta.total} unit="konsumen" onPage={(p) => { setLoading(true); setPage(p); }} />
+      )}
+
       {detail && (
         <div className="dash-modal-bg" onClick={() => setDetail(null)}>
           <div className="dash-modal" onClick={(e) => e.stopPropagation()}>
@@ -427,6 +456,15 @@ function KonsumenPanel({ can: access, userId, role }) {
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M6 6l12 12M18 6L6 18" /></svg>
               </button>
             </div>
+            {detail.status === 'ditolak' && (
+              <div className="konsumen-reject" role="note">
+                <strong>Alasan penolakan</strong>
+                <p>{detail.catatan_penolakan || 'Tidak ada catatan.'}</p>
+                {(detail.verified_by?.name ?? detail.verifiedBy?.name) && (
+                  <small>Ditolak oleh {detail.verified_by?.name ?? detail.verifiedBy?.name}</small>
+                )}
+              </div>
+            )}
             <img className="dash-ktp-big" src={ktpUrl(detail)} alt="Foto KTP" onError={refreshExpiredPhotos} />
             <dl className="dash-detail">
               {[
@@ -446,7 +484,6 @@ function KonsumenPanel({ can: access, userId, role }) {
                 <div key={l}><dt>{l}</dt><dd>{v || '-'}</dd></div>
               ))}
               <div><dt>Status</dt><dd>{statusTag(detail.status)}</dd></div>
-              {detail.status === 'ditolak' && <div><dt>Catatan Penolakan</dt><dd>{detail.catatan_penolakan || '-'}</dd></div>}
             </dl>
           </div>
         </div>

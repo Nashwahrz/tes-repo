@@ -41,14 +41,37 @@ export const deleteDealer = async (id) => (await api.delete(`/dealers/${id}`)).d
 
 // Konsumen / dokumen KTP (BE: /konsumens, butuh permission konsumens.*)
 // status: 'pending' | 'diterima' | 'ditolak' (kosong = semua)
-// BE membagi hasil per halaman ({ data: { data: [...], last_page } }); semua halaman diambil lalu digabung jadi satu array
+// BE membagi hasil per halaman (10 data): { data: { data: [...], current_page, last_page, per_page, total, ... } }
+const fetchKonsumenPage = async (status, page) =>
+  (await api.get('/konsumens/status', { params: { ...(status ? { status } : {}), page } })).data.data;
+
+// Satu halaman saja: { rows, meta: { page, lastPage, total, perPage } }
+export const getKonsumenPage = async (status, page = 1) => {
+  const p = await fetchKonsumenPage(status, page);
+  if (Array.isArray(p)) return { rows: p, meta: { page: 1, lastPage: 1, total: p.length, perPage: p.length } };
+  return { rows: p.data, meta: { page: p.current_page, lastPage: p.last_page, total: p.total, perPage: p.per_page } };
+};
+
+// Semua halaman digabung jadi satu array (lebih berat; dipakai hanya untuk pencarian dan hitungan khusus)
 export const getKonsumens = async (status) => {
-  const fetchPage = async (page) =>
-    (await api.get('/konsumens/status', { params: { ...(status ? { status } : {}), page } })).data.data;
-  const first = await fetchPage(1);
+  const first = await fetchKonsumenPage(status, 1);
   if (Array.isArray(first)) return first;
-  const rest = await Promise.all(Array.from({ length: Math.max((first.last_page ?? 1) - 1, 0) }, (_, i) => fetchPage(i + 2)));
+  const rest = await Promise.all(Array.from({ length: Math.max((first.last_page ?? 1) - 1, 0) }, (_, i) => fetchKonsumenPage(status, i + 2)));
   return [first, ...rest].flatMap((p) => p.data);
+};
+
+// Total konsumen dari satu request (halaman pertama); rows ikut dikembalikan agar bisa dipakai tanpa request tambahan
+export const getKonsumenTotal = async () => {
+  const { rows, meta } = await getKonsumenPage(undefined, 1);
+  return { total: meta.total, rows };
+};
+
+// Jumlah konsumen menunggu verifikasi dan ditolak (total dari halaman pertama tiap status)
+export const getKonsumenStatusTotals = async () => {
+  const [pending, ditolak] = await Promise.all(
+    ['pending', 'ditolak'].map(async (st) => (await getKonsumenPage(st, 1)).meta.total),
+  );
+  return { pending, ditolak };
 };
 
 // payload: FormData (ada file foto_ktp, jadi dikirim multipart)

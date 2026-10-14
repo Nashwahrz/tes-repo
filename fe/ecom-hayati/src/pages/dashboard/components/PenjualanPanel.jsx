@@ -1,11 +1,8 @@
 // src/pages/dashboard/components/PenjualanPanel.jsx
 import { useState } from 'react';
 
-// BE belum punya tabel/endpoint penjualan, jadi panel ini baru berupa tampilan.
-// Saat API tersedia, isi `rows` dari response-nya (ganti SALES_ROWS dengan state hasil fetch).
-// Bentuk data yang diharapkan per baris:
-// { id, no_transaksi, tanggal: 'YYYY-MM-DD', konsumen: 'Nama', motor: 'Tipe motor', dealer: 'Nama dealer', unit: 1, harga: 15000000, status: 'lunas' | 'menunggu' | 'batal' }
-const SALES_ROWS = [];
+// Data penjualan datang lewat prop `rows`. BE belum punya endpoint penjualan, jadi menu ini sengaja kosong (tanpa data contoh);
+// data contoh hanya dipakai di kartu Ringkasan (lihat salesPrototype.js).
 
 const STATUS = {
   lunas: { label: 'Lunas', cls: 'diterima' },
@@ -16,14 +13,14 @@ const STATUS = {
 const rupiah = (n) => `Rp ${new Intl.NumberFormat('id-ID').format(n)}`;
 const tanggal = (d) => (d ? new Date(d).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }) : '-');
 
-function PenjualanPanel({ scopeNote }) {
+function PenjualanPanel({ rows = [], scopeNote }) {
   const [query, setQuery] = useState('');
   const [status, setStatus] = useState('');
   const [from, setFrom] = useState('');
   const [to, setTo] = useState('');
 
   const q = query.trim().toLowerCase();
-  const visible = SALES_ROWS.filter((r) => {
+  const visible = rows.filter((r) => {
     if (status && r.status !== status) return false;
     if (from && r.tanggal < from) return false;
     if (to && r.tanggal > to) return false;
@@ -53,7 +50,7 @@ function PenjualanPanel({ scopeNote }) {
 
       <p className="dash-alert error">Data penjualan belum tersedia dari server. Tampilan ini akan terisi setelah fitur penjualan di backend siap.</p>
 
-      <section className="dash-stats">
+      <section className="dash-stats dash-stats-compact">
         {summary.map((s) => (
           <div className="dash-stat" key={s.label}>
             <small>{s.label}</small>

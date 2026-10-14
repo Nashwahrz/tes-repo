@@ -1,6 +1,7 @@
 // src/pages/AccUserPanel.jsx
 import { useEffect, useState } from 'react';
 import Toast from './Toast';
+import Pager from './Pager';
 import { getAtasanOptions, getLoginLogs, updateUserStatus } from '../../../api/authServices';
 
 const TABS = [
@@ -35,6 +36,8 @@ const actionsFor = (u) => (ACTIONS[u.status] ?? []).filter(([, status]) => {
   return u.status === 'aktif' ? false : status !== 'nonaktif';
 });
 
+const PAGE_SIZE = 10;
+
 const STATUS_LABEL = { pending: 'Menunggu', aktif: 'Aktif', nonaktif: 'Nonaktif', ditolak: 'Ditolak' };
 
 
@@ -42,6 +45,7 @@ const STATUS_LABEL = { pending: 'Menunggu', aktif: 'Aktif', nonaktif: 'Nonaktif'
 function AccUserPanel({ users: allUsers, dealers, scopeNote, loading, onUserUpdated }) {
   const [tab, setTab] = useState('semua');
   const [query, setQuery] = useState('');
+  const [page, setPage] = useState(1);
   const [pick, setPick] = useState(null); // { user, status, doneLabel, label } saat popup pilih dealer terbuka
   const [pickDealer, setPickDealer] = useState('');
   const [pickAtasan, setPickAtasan] = useState('');
@@ -69,6 +73,7 @@ function AccUserPanel({ users: allUsers, dealers, scopeNote, loading, onUserUpda
 
   const switchTab = (key) => {
     setTab(key);
+    setPage(1);
     setError('');
     setSuccess('');
     if (key === 'log' && (logs.status === 'idle' || logs.status === 'error')) loadLogs();
@@ -78,6 +83,15 @@ function AccUserPanel({ users: allUsers, dealers, scopeNote, loading, onUserUpda
   const visibleLogs = logs.rows
     .toSorted((a, b) => new Date(b.logged_in_at) - new Date(a.logged_in_at))
     .filter((l) => !q || `${l.user?.name ?? ''} ${l.user?.email ?? ''} ${l.ip_address} ${lokasi(l)} ${perangkat(l)}`.toLowerCase().includes(q));
+
+  // BE mengirim semua akun/log sekaligus, jadi paginasi dilakukan di sisi klien agar tabel tetap ringan
+  const pageOf = (list) => {
+    const lastPage = Math.max(Math.ceil(list.length / PAGE_SIZE), 1);
+    const current = Math.min(page, lastPage);
+    return { current, lastPage, items: list.slice((current - 1) * PAGE_SIZE, current * PAGE_SIZE) };
+  };
+  const userPage = pageOf(users);
+  const logPage = pageOf(visibleLogs);
 
   // Daftar atasan dimuat ulang saat popup aktivasi dibuka atau dealer diganti
   const pickUserId = pick?.user.id;
@@ -151,7 +165,7 @@ function AccUserPanel({ users: allUsers, dealers, scopeNote, loading, onUserUpda
           type="search"
           placeholder={tab === 'log' ? 'Cari pengguna, IP, lokasi, atau perangkat...' : 'Cari nama, email, atau role...'}
           value={query}
-          onChange={(e) => setQuery(e.target.value)}
+          onChange={(e) => { setQuery(e.target.value); setPage(1); }}
         />
         <select className="dash-input dash-select-filter" value={tab} onChange={(e) => switchTab(e.target.value)}>
           {TABS.filter((t) => SHOW_LOG_TAB || t.key !== 'log').map((t) => (
@@ -173,6 +187,7 @@ function AccUserPanel({ users: allUsers, dealers, scopeNote, loading, onUserUpda
         ) : visibleLogs.length === 0 ? (
           <p className="dash-empty">{q ? 'Log tidak ditemukan.' : 'Belum ada data log akses.'}</p>
         ) : (
+          <>
           <div className="dash-table-wrap">
             <table className="dash-table">
               <thead>
@@ -185,7 +200,7 @@ function AccUserPanel({ users: allUsers, dealers, scopeNote, loading, onUserUpda
                 </tr>
               </thead>
               <tbody>
-                {visibleLogs.map((l) => (
+                {logPage.items.map((l) => (
                   <tr key={l.id}>
                     <td>
                       <strong className="dash-cell-name">{l.user?.name ?? `Pengguna #${l.id_user}`}</strong>
@@ -203,6 +218,8 @@ function AccUserPanel({ users: allUsers, dealers, scopeNote, loading, onUserUpda
               </tbody>
             </table>
           </div>
+          <Pager page={logPage.current} lastPage={logPage.lastPage} total={visibleLogs.length} unit="log" onPage={setPage} />
+          </>
         )
       ) : loading ? (
         <p className="dash-empty">Memuat...</p>
@@ -222,7 +239,7 @@ function AccUserPanel({ users: allUsers, dealers, scopeNote, loading, onUserUpda
               </tr>
             </thead>
             <tbody>
-              {users.map((u) => (
+              {userPage.items.map((u) => (
                 <tr key={u.id}>
                   <td>
                     <strong className="dash-cell-name">{u.name}</strong>
@@ -258,6 +275,9 @@ function AccUserPanel({ users: allUsers, dealers, scopeNote, loading, onUserUpda
             </tbody>
           </table>
         </div>
+      )}
+      {tab !== 'log' && !loading && users.length > 0 && (
+        <Pager page={userPage.current} lastPage={userPage.lastPage} total={users.length} unit="akun" onPage={setPage} />
       )}
 
       {pick && (

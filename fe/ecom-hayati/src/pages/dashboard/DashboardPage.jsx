@@ -1,9 +1,10 @@
 // src/pages/DashboardPage.jsx
 import { lazy, Suspense, useEffect, useState } from 'react';
-import { getUsers, getDealers, getKonsumens, getUserMenus, getUserPermissions } from '../../api/authServices';
+import { getUsers, getDealers, getKonsumenTotal, getKonsumenStatusTotals, getUserMenus, getUserPermissions } from '../../api/authServices';
 import {
   MENU_HOME, MENU_PRODUK, MENU_PENJUALAN, MENU_DEALER, MENU_KONSUMEN, MENU_ACC, MENU_ROLE, MENU_WHITELIST, MENU_PATHS, menuFromPath,
 } from './menuPaths';
+import { SALES_PROTOTYPE, salesFor, totalSales } from './salesPrototype';
 import './DashboardPage.css';
 
 // Panel hanya dimuat saat menunya dibuka
@@ -56,14 +57,13 @@ const Icon = ({ name, size = 16 }) => (
   </svg>
 );
 
-// Data penjualan belum ada di BE (tidak ada tabel/endpoint penjualan atau produk).
-// Isi objek ini dari API penjualan saat sudah tersedia.
-const SALES = { total: null, topProduct: null }; // { total: number, topProduct: { name, unit } }
+const KONSUMEN_STATUS = { pending: 'Menunggu', diterima: 'Diterima', ditolak: 'Ditolak' };
 
 const rupiah = (n) => `Rp ${new Intl.NumberFormat('id-ID').format(n)}`;
 
 // Cache per-sesi tab: dashboard langsung tampil dari data terakhir, lalu diperbarui di latar belakang
 const CACHE_KEY = 'dash-cache';
+const NO_KONSUMEN = { total: 0, rows: [] };
 
 const readCache = (userId) => {
   try {
@@ -74,9 +74,9 @@ const readCache = (userId) => {
   }
 };
 
-const writeCache = (userId, users, dealers, access, konsumens) => {
+const writeCache = (userId, users, dealers, access, konsumenStats) => {
   try {
-    sessionStorage.setItem(CACHE_KEY, JSON.stringify({ userId, users, dealers, access, konsumens }));
+    sessionStorage.setItem(CACHE_KEY, JSON.stringify({ userId, users, dealers, access, konsumenStats }));
   } catch {
     // storage penuh/diblokir: abaikan
   }
@@ -100,7 +100,11 @@ function DashboardPage() {
   const [access, setAccess] = useState(cached?.access ?? { menus: [], permissions: [] });
   const [users, setUsers] = useState(cached?.users ?? []);
   const [dealers, setDealers] = useState(cached?.dealers ?? []);
-  const [konsumens, setKonsumens] = useState(cached?.konsumens ?? []);
+  // total konsumen; pending/ditolak hanya dimuat untuk role yang kartu ringkasannya perlu dilengkapi (null = belum dimuat)
+  const [konsumenStats, setKonsumenStats] = useState(cached?.konsumenStats ?? { total: 0, pending: null, ditolak: null });
+  // Nama & role dikenali dari konsumen yang diinput sendiri bila daftar user tidak boleh dilihat (ME, Kasir); disimpan di localStorage
+  const [recentKonsumen, setRecentKonsumen] = useState(null); // 10 konsumen terbaru; null = belum dimuat
+  const [selfInfo, setSelfInfo] = useState(user?.name ? { name: user.name, role: user.role ?? null, id_dealer: user.id_dealer ?? null } : null);
   const [loading, setLoading] = useState(!cached);
   // Menu aktif mengikuti URL (lihat menuPaths.js); pindah menu = pushState, back/forward lewat popstate
   const [menuState, setMenuState] = useState(() => menuFromPath(window.location.pathname) ?? MENU_HOME);
@@ -134,17 +138,31 @@ function DashboardPage() {
         const newAccess = menuList && permList ? toAccess(menuList, permList) : null;
         // Endpoint dipanggil hanya bila menu + permission-nya dimiliki role (selain itu pasti 403)
         const allowed = (menu, perm) => !newAccess || (newAccess.menus.includes(menu) && newAccess.permissions.includes(perm));
-        const [userList, dealerList, konsumenList] = await Promise.all([
+        // Role tanpa akses dealer/akun hanya punya kartu konsumen, jadi kartunya dilengkapi dengan status konsumen
+        const needStatus = allowed('konsumens', 'konsumens.lihat') && !(allowed('dealers', 'dealers.lihat') && allowed('users', 'users.lihat'));
+        const [userList, dealerList, countList, statusTotals] = await Promise.all([
           allowed('users', 'users.lihat') ? getUsers().catch(() => null) : [],
           allowed('dealers', 'dealers.lihat') ? getDealers().catch(() => null) : [],
-          allowed('konsumens', 'konsumens.lihat') ? getKonsumens().catch(() => null) : [],
+          allowed('konsumens', 'konsumens.lihat') ? getKonsumenTotal().catch(() => null) : NO_KONSUMEN,
+          needStatus ? getKonsumenStatusTotals().catch(() => null) : { pending: null, ditolak: null },
         ]);
         if (!active) return;
         if (userList) setUsers(userList);
         if (dealerList) setDealers(dealerList);
-        if (konsumenList) setKonsumens(konsumenList);
+        const nextStats = countList ? { total: countList.total, ...(statusTotals ?? { pending: null, ditolak: null }) } : null;
+        if (countList) {
+          setKonsumenStats(nextStats);
+          setRecentKonsumen(countList.rows);
+          // BE hanya menerima id_me milik role ME, jadi pemilik data ini pasti ME; nama diambil dari relasi `me`
+          const mine = countList.rows.find((k) => k.id_me === user?.id && k.me?.name);
+          if (mine) {
+            const info = { name: mine.me.name, role: 'ME', id_dealer: mine.me.id_dealer ?? null };
+            setSelfInfo(info);
+            localStorage.setItem('user', JSON.stringify({ ...user, ...info }));
+          }
+        }
         if (newAccess) setAccess(newAccess);
-        if (userList && dealerList && konsumenList && newAccess) writeCache(user?.id, userList, dealerList, newAccess, konsumenList);
+        if (userList && dealerList && countList && newAccess) writeCache(user?.id, userList, dealerList, newAccess, nextStats);
         setLoading(false);
       });
     return () => { active = false; };
@@ -152,15 +170,21 @@ function DashboardPage() {
   }, []);
 
   const count = (status) => users.filter((u) => u.status === status).length;
-  const countKonsumen = (status) => konsumens.filter((k) => k.status === status).length;
   const pending = users.filter((u) => u.status === 'pending');
 
   // BE membatasi dealer/akun/konsumen ke dealer milik user non-Manager (scope per dealer).
   // Role & dealer sendiri diambil dari daftar users karena respons login hanya memuat id & email.
   const me = users.find((u) => u.id === user?.id);
-  const myRole = me?.role?.name ?? null;
+  const myRole = me?.role?.name ?? selfInfo?.role ?? null;
   const myDealer = me?.dealer?.name ?? null;
   const scoped = !!me && myRole !== 'Manager' && !!me.id_dealer;
+
+  // Penjualan: Manager melihat semua dealer, role lain hanya dealer miliknya. Saat ini data contoh (lihat salesPrototype.js)
+  const isManager = myRole === 'Manager';
+  const myDealerId = me?.id_dealer ?? selfInfo?.id_dealer ?? null;
+  const salesRows = isManager ? salesFor(null) : myDealerId != null ? salesFor(myDealerId) : [];
+  const salesKnown = SALES_PROTOTYPE && (isManager || myDealerId != null);
+  const salesDealerName = isManager ? null : dealers.find((d) => d.id === myDealerId)?.name ?? salesRows[0]?.dealer ?? null;
   const scopeNote = scoped ? `Data dibatasi pada dealer Anda${myDealer ? `: ${myDealer}` : ''}.` : '';
 
   const q = query.trim().toLowerCase();
@@ -181,25 +205,21 @@ function DashboardPage() {
   const canRole = canRoleMenu || canRolePerm;
   const canWhitelist = hasMenu('email-whitelists') && can('email-whitelists.lihat');
 
-  // Kartu ringkasan hanya untuk data yang boleh dilihat role
-  const stats = [
-    ...(canDealer ? [{ icon: 'store', label: scoped ? 'Dealer Anda' : 'Total Dealer', value: dealers.length, unit: 'Dealer' }] : []),
-    ...(canUsers ? [
-      { icon: 'check', label: 'Akun Aktif', value: count('aktif'), unit: 'Akun' },
-      { icon: 'clock', label: 'Menunggu Persetujuan', value: count('pending'), unit: 'Akun', tag: count('pending') > 0 ? 'Perlu Tindakan' : null },
-      { icon: 'off', label: 'Akun Nonaktif', value: count('nonaktif'), unit: 'Akun' },
-    ] : []),
-    // Data konsumen sudah dibatasi BE sesuai dealer user; "Input Anda" hanya untuk yang menginput (bukan Manager)
-    ...(canKonsumen ? [
-      { icon: 'id', label: 'Total Konsumen', value: konsumens.length, unit: 'Konsumen' },
-      { icon: 'clock', label: 'Konsumen Menunggu', value: countKonsumen('pending'), unit: 'Konsumen' },
-      { icon: 'check', label: 'Konsumen Diterima', value: countKonsumen('diterima'), unit: 'Konsumen' },
-      { icon: 'off', label: 'Konsumen Ditolak', value: countKonsumen('ditolak'), unit: 'Konsumen' },
-      ...(myRole !== 'Manager' && can('konsumens.tambah')
-        ? [{ icon: 'id', label: 'Input Anda', value: konsumens.filter((k) => k.id_me === user?.id).length, unit: 'Konsumen' }]
-        : []),
-    ] : []),
+  // Kartu ringkasan hanya untuk data yang boleh dilihat role; data konsumen sudah dibatasi BE sesuai dealer user
+  const baseStats = [
+    ...(canDealer ? [{ label: scoped ? 'Dealer Anda' : 'Total Dealer', value: dealers.length, icon: 'store', tone: 'orange', hint: 'dealer terdaftar' }] : []),
+    ...(canUsers ? [{ label: 'Akun Aktif', value: count('aktif'), icon: 'check', tone: 'green', hint: 'akun dapat masuk ke sistem' }] : []),
+    ...(canKonsumen ? [{ label: 'Total Konsumen', value: konsumenStats.total, icon: 'id', tone: 'blue', hint: 'konsumen tercatat' }] : []),
   ];
+
+  // Role tanpa akses dealer/akun (mis. ME, Kasir): kartu dilengkapi status konsumen agar tetap tiga
+  const extraStats = canKonsumen && baseStats.length < 3 && konsumenStats.pending !== null
+    ? [
+      { label: 'Menunggu Verifikasi', value: konsumenStats.pending, icon: 'clock', tone: 'orange', hint: 'konsumen belum diverifikasi' },
+      { label: 'Konsumen Ditolak', value: konsumenStats.ditolak, icon: 'off', tone: 'red', hint: 'perlu diinput ulang' },
+    ].slice(0, 3 - baseStats.length)
+    : [];
+  const stats = [...baseStats, ...extraStats];
 
   const canVerifyKonsumen = canKonsumen && (myRole ? VERIFIER_ROLES.includes(myRole) : can('users.lihat'));
 
@@ -228,15 +248,16 @@ function DashboardPage() {
       const [menuList, permList] = await Promise.all([getUserMenus(), getUserPermissions()]);
       const next = toAccess(menuList, permList);
       setAccess(next);
-      writeCache(user?.id, users, dealers, next, konsumens);
+      writeCache(user?.id, users, dealers, next, konsumenStats);
     } catch {
       // gagal: hak akses lama dipertahankan sampai halaman dimuat ulang
     }
   };
 
  
-  const name = me?.name || user?.email?.split('@')[0] || 'Pengguna';
+  const name = me?.name || selfInfo?.name || user?.email?.split('@')[0] || 'Pengguna';
   const initial = name.charAt(0).toUpperCase();
+  const today = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
 
   const handleLogout = () => {
     localStorage.removeItem('token');
@@ -315,20 +336,6 @@ function DashboardPage() {
             }}
           />
           ) : <div />}
-          <div className="dash-top-right">
-            {canDealer && (
-              <div>
-                {scoped ? 'Dealer Anda' : 'Total Dealer'}
-                <strong>{dealers.length}</strong>
-              </div>
-            )}
-            {canUsers && (
-              <div>
-                Akun Aktif
-                <strong>{count('aktif')}</strong>
-              </div>
-            )}
-          </div>
         </header>
 
         <div className="dash-content">
@@ -386,7 +393,7 @@ function DashboardPage() {
                 <KonsumenPanel
                   userId={user?.id}
                   role={myRole}
-                  can={{ tambah: can('konsumens.tambah'), hapus: can('konsumens.hapus'), scan: can('konsumens.scan'), verifikasi: canVerifyKonsumen }}
+                  can={{ tambah: can('konsumens.tambah'), ubah: can('konsumens.ubah'), hapus: can('konsumens.hapus'), scan: can('konsumens.scan'), verifikasi: canVerifyKonsumen }}
                 />
               </Suspense>
             </div>
@@ -414,49 +421,31 @@ function DashboardPage() {
 
           {menu === MENU_HOME && (
             <>
-              <div className="dash-hello">
-                <div>
+              <section className="dash-welcome">
+                <div className="dash-welcome-text">
+                  <small>{today}</small>
                   <h1>Halo, {name}</h1>
                   <p>{canDealer || canUsers ? `Pantau ${[canDealer && 'jaringan dealer motor', canUsers && 'status akun pengguna'].filter(Boolean).join(' dan ')} dalam satu tampilan.` : 'Pilih menu di samping untuk mulai bekerja.'} {scopeNote}</p>
                 </div>
-                {canAcc && (
-                  <button className="dash-btn solid" onClick={() => setMenu(MENU_ACC)}>Audit Log &amp; Akses</button>
-                )}
-              </div>
-
-              {canSales && (
-              <section className="dash-hero">
-                <div>
-                  <span className="dash-chip">Penjualan Motor</span>
-                  <small>Total Penjualan</small>
-                  <h2>{SALES.total === null ? 'Belum ada data' : rupiah(SALES.total)}</h2>
-                  <div className="dash-hero-sub">
-                    <span>
-                      Motor Terlaris:{' '}
-                      {SALES.topProduct ? `${SALES.topProduct.name} (${SALES.topProduct.unit} unit)` : '-'}
-                    </span>
+                {canSales && (
+                  <div className="dash-welcome-sales">
+                    <small>{isManager ? 'Total Penjualan' : `Total Penjualan Dealer Anda${salesDealerName ? ` · ${salesDealerName}` : ''}`}</small>
+                    <strong>{salesKnown ? rupiah(totalSales(salesRows)) : 'Belum ada data'}</strong>
+                    {salesKnown && <span className="dash-proto">Data contoh</span>}
+                    <button className="dash-btn light" onClick={() => setMenu(MENU_PENJUALAN)}>Lihat Penjualan</button>
                   </div>
-                </div>
-                <div className="dash-hero-actions">
-                  {canAcc && <button className="dash-btn light" onClick={() => setMenu(MENU_ACC)}>Audit Log &amp; Akses</button>}
-                  {canSales && <button className="dash-btn light" onClick={() => setMenu(MENU_PENJUALAN)}>Lihat Penjualan</button>}
-                  {canDealer && <button className="dash-btn ghost" onClick={() => setMenu(MENU_DEALER)}>Lihat Dealer →</button>}
-                </div>
+                )}
               </section>
-              )}
 
               {stats.length > 0 && (
               <section className="dash-stats">
                 {stats.map((s) => (
-                  <div className="dash-stat" key={s.label}>
-                    <div className="dash-stat-top">
-                      <span className="dash-stat-icon"><Icon name={s.icon} size={17} /></span>
-                      {s.tag && <span className="dash-tag">{s.tag}</span>}
-                    </div>
-                    <small>{s.label}</small>
-                    <div className="dash-stat-val">
+                  <div className={`dash-stat tone-${s.tone}`} key={s.label}>
+                    <span className="dash-stat-icon"><Icon name={s.icon} size={22} /></span>
+                    <div className="dash-stat-body">
+                      <small>{s.label}</small>
                       <strong>{s.value}</strong>
-                      <span>{s.unit}</span>
+                      <em>{s.hint}</em>
                     </div>
                   </div>
                 ))}
@@ -468,29 +457,27 @@ function DashboardPage() {
                 <div className="dash-card">
                   <div className="dash-card-head">
                     <h3><Icon name="shield" size={17} /> Otorisasi Akun</h3>
-                    <span className="dash-badge">{pending.length} Tertunda</span>
+                    <button type="button" className="dash-link" onClick={() => setMenu(MENU_ACC)}>Lihat semua</button>
                   </div>
-                  <p className="dash-card-desc">Validasi akun baru sebelum diberi akses ke sistem.</p>
+                  <p className="dash-card-desc">
+                    {pending.length === 0 ? 'Validasi akun baru sebelum diberi akses ke sistem.' : `${pending.length} akun menunggu persetujuan.`}
+                  </p>
 
                   {pending.length === 0 ? (
                     <p className="dash-empty">Tidak ada akun yang menunggu persetujuan.</p>
                   ) : (
                     <>
-                      {pending.slice(0, 3).map((u) => (
-                        <div className="dash-item" key={u.id}>
-                          <div className="dash-item-head">
-                            <div>
-                              <strong>{u.name}</strong>
-                              <small>{u.email}</small>
-                            </div>
-                            <span className="dash-tag">{u.role?.name ?? '-'}</span>
+                      {pending.slice(0, 4).map((u) => (
+                        <div className="dash-item dash-item-compact" key={u.id}>
+                          <div className="dash-item-main">
+                            <strong title={u.name}>{u.name}</strong>
+                            <small title={u.email}>{u.email}</small>
                           </div>
-                          <div className="dash-item-actions">
-                            <button className="dash-btn solid" onClick={() => setMenu(MENU_ACC)}>Tinjau Akun</button>
-                          </div>
+                          <span className="dash-tag">{u.role?.name ?? '-'}</span>
+                          <button className="dash-btn sm outline" onClick={() => setMenu(MENU_ACC)}>Tinjau</button>
                         </div>
                       ))}
-                      <button className="dash-btn soft" onClick={() => setMenu(MENU_ACC)}>Lihat semua</button>
+                      {pending.length > 4 && <p className="dash-more">dan {pending.length - 4} akun lainnya</p>}
                     </>
                   )}
                 </div>
@@ -500,28 +487,77 @@ function DashboardPage() {
                 <div className="dash-card">
                   <div className="dash-card-head">
                     <h3><Icon name="store" size={17} /> Jaringan Dealer</h3>
-                    <span className="dash-badge">{dealers.length} dealer</span>
+                    <button type="button" className="dash-link" onClick={() => setMenu(MENU_DEALER)}>Lihat semua</button>
                   </div>
-                  <p className="dash-card-desc">Daftar dealer terdaftar.</p>
+                  <p className="dash-card-desc">{dealers.length} dealer terdaftar.</p>
                   {filteredDealers.length === 0 ? (
                     <p className="dash-empty">{q ? 'Dealer tidak ditemukan.' : 'Belum ada data dealer.'}</p>
                   ) : (
-                    filteredDealers.slice(0, 5).map((d) => (
-                      <div className="dash-row" key={d.id}>
-                        <span className="dash-row-icon"><Icon name="store" size={15} /></span>
+                    filteredDealers.slice(0, 4).map((d) => (
+                      <div className="dash-row dash-row-compact" key={d.id}>
+                        <span className="dash-row-icon"><Icon name="store" size={14} /></span>
                         <div className="dash-row-body">
-                          {d.name}
-                          <small>{d.alamat}</small>
+                          <span title={d.name}>{d.name}</span>
+                          <small title={d.alamat}>{d.alamat}</small>
                         </div>
-                        <div className="dash-row-right">{d.latitude}, {d.longitude}</div>
                       </div>
                     ))
                   )}
                 </div>
                 )}
 
-                {!canAcc && !canDealer && (
+                {!canAcc && !canDealer && canKonsumen && (
+                <div className={`dash-card${salesKnown ? '' : ' dash-card-wide'}`}>
+                  <div className="dash-card-head">
+                    <h3><Icon name="id" size={17} /> Konsumen Terbaru</h3>
+                    <button type="button" className="dash-link" onClick={() => setMenu(MENU_KONSUMEN)}>Lihat semua</button>
+                  </div>
+                  <p className="dash-card-desc">Data konsumen yang terakhir masuk.</p>
+                  {recentKonsumen === null ? (
+                    <p className="dash-empty">Memuat...</p>
+                  ) : recentKonsumen.length === 0 ? (
+                    <p className="dash-empty">Belum ada data konsumen.</p>
+                  ) : (
+                    recentKonsumen.slice(0, 5).map((k) => (
+                      <div className="dash-row dash-row-compact" key={k.id}>
+                        <span className="dash-row-icon"><Icon name="id" size={14} /></span>
+                        <div className="dash-row-body">
+                          <span title={k.name}>{k.name || '-'}</span>
+                          <small>{k.nik || '-'}</small>
+                        </div>
+                        <span className={`dash-status ${k.status}`}>{KONSUMEN_STATUS[k.status] ?? k.status}</span>
+                      </div>
+                    ))
+                  )}
+                </div>
+                )}
+
+                {!canAcc && !canDealer && canSales && salesKnown && (
                 <div className="dash-card">
+                  <div className="dash-card-head">
+                    <h3><Icon name="chart" size={17} /> Penjualan Terbaru</h3>
+                    <button type="button" className="dash-link" onClick={() => setMenu(MENU_PENJUALAN)}>Lihat semua</button>
+                  </div>
+                  <p className="dash-card-desc">Transaksi terakhir di dealer Anda. Data contoh.</p>
+                  {salesRows.length === 0 ? (
+                    <p className="dash-empty">Belum ada transaksi.</p>
+                  ) : (
+                    salesRows.toSorted((x, y) => y.tanggal.localeCompare(x.tanggal)).slice(0, 5).map((r) => (
+                      <div className="dash-row dash-row-compact" key={r.id}>
+                        <span className="dash-row-icon"><Icon name="chart" size={14} /></span>
+                        <div className="dash-row-body">
+                          <span title={r.motor}>{r.motor}</span>
+                          <small>{r.konsumen}</small>
+                        </div>
+                        <span className="dash-row-right">{rupiah(r.harga)}</span>
+                      </div>
+                    ))
+                  )}
+                </div>
+                )}
+
+                {!canAcc && !canDealer && !canKonsumen && (
+                <div className="dash-card dash-card-wide">
                   <div className="dash-card-head">
                     <h3><Icon name="grid" size={17} /> Menu Anda</h3>
                   </div>
@@ -529,13 +565,14 @@ function DashboardPage() {
                   {menus.filter((m) => m !== MENU_HOME).length === 0 ? (
                     <p className="dash-empty">Belum ada menu yang dapat diakses.</p>
                   ) : (
-                    menus.filter((m) => m !== MENU_HOME).map((m) => (
-                      <div className="dash-row" key={m}>
-                        <span className="dash-row-icon"><Icon name={MENU_ICONS[m]} size={15} /></span>
-                        <div className="dash-row-body">{m}</div>
-                        <button className="dash-btn soft" onClick={() => setMenu(m)}>Buka</button>
-                      </div>
-                    ))
+                    <div className="dash-tiles">
+                      {menus.filter((m) => m !== MENU_HOME).map((m) => (
+                        <button type="button" className="dash-tile" key={m} onClick={() => setMenu(m)}>
+                          <span className="dash-tile-icon"><Icon name={MENU_ICONS[m]} size={20} /></span>
+                          <span>{m}</span>
+                        </button>
+                      ))}
+                    </div>
                   )}
                 </div>
                 )}
