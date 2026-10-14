@@ -90,7 +90,11 @@ class KonsumenRepository
         $logs = Activity::query()
             ->where('subject_type', Konsumen::class)
             ->with(['causer:id,name', 'subject'])
-            ->when($search, fn ($q) => $q->where('description', 'like', "%{$search}%"))
+            ->when($search, function ($q) use ($search) {
+                        $q->whereHasMorph('subject', [Konsumen::class], function ($q) use ($search) {
+                            $q->where('name', 'like', "%{$search}%");
+                        });
+                    })
             ->latest()
             ->paginate($perPage);
 
