@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\URL;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
 
-#[ScopedBy([KonsumenDealerScope::class])]
+// #[ScopedBy([KonsumenDealerScope::class])]
 class Konsumen extends Model
 {
     use LogsActivity;
