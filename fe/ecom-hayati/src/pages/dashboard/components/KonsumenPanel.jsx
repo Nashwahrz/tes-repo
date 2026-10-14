@@ -4,6 +4,7 @@
 import { lazy, Suspense, useEffect, useRef, useState } from 'react';
 import Toast from './Toast';
 import Pager from './Pager';
+import IconButton from './IconButton';
 import {
   getKonsumens, getKonsumenPage, createKonsumen, deleteKonsumen, verifyKonsumen, scanKtp, ktpUrl, errorMessage,
 } from '../../../api/authServices';
@@ -59,14 +60,12 @@ function validate(form, file) {
   return e;
 }
 
-// Tombol Input Ulang tampil bila user punya permission konsumens.tambah + hapus + ubah (diatur di Role & Hak Akses)
-// dan, bila role diketahui, role-nya ME. Tanpa ketiga permission itu tombolnya tidak muncul.
-// BE hanya menerima id_me milik user berrole ME. Role diketahui dari daftar user (butuh users.lihat);
-// bila role tidak diketahui tombol tetap tampil dan penolakan BE diterjemahkan ke pesan yang jelas.
+// Tombol Input Ulang tampil bila user punya permission konsumens.tambah + hapus + ubah (diatur di Role & Hak Akses).
+// BE hanya menerima id_me milik user berrole ME; tombol tetap tampil untuk role lain dan
+// penolakan BE saat menyimpan diterjemahkan ke pesan yang jelas.
 const ROLE_PENGINPUT = 'ME';
 
-function KonsumenPanel({ can: access, userId, role }) {
-  const can = { ...access, tambah: access.tambah && (!role || role === ROLE_PENGINPUT) };
+function KonsumenPanel({ can, userId }) {
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('');
@@ -397,43 +396,44 @@ function KonsumenPanel({ can: access, userId, role }) {
           <table className="dash-table konsumen-table">
             <thead>
               <tr>
-                <th className="col-nik">NIK</th>
-                <th>Nama</th>
+                <th>Konsumen</th>
                 <th className="col-telp">No. Telp</th>
                 <th className="col-status">Status</th>
-                {can.verifikasi && <th className="col-verif">Verifikasi</th>}
+                {can.verifikasi && <th>Verifikasi</th>}
                 <th className="col-aksi">Aksi</th>
               </tr>
             </thead>
             <tbody>
               {visible.map((k) => (
                 <tr key={k.id}>
-                  <td>{k.nik || '-'}</td>
-                  <td><strong className="dash-cell-name">{k.name || '-'}</strong></td>
+                  <td>
+                    <strong className="dash-cell-name">{k.name || '-'}</strong>
+                    <small className="dash-cell-sub">NIK {k.nik || '-'}</small>
+                  </td>
                   <td>{k.no_telp || '-'}</td>
                   <td>
                     {statusTag(k.status)}
                     {k.status === 'ditolak' && k.catatan_penolakan && <small className="dash-note" title={k.catatan_penolakan}>{k.catatan_penolakan}</small>}
+                    {k.status === 'ditolak' && can.tambah && can.hapus && can.ubah && (
+                      <button type="button" className="dash-link konsumen-redo" onClick={() => setToRedo(k)}>Input ulang</button>
+                    )}
                   </td>
                   {can.verifikasi && (
                     <td>
                       {k.status === 'pending' && k.id_me !== userId ? (
                         <div className="dash-verify">
-                          <button className="dash-btn sm ok" onClick={() => openVerify(k, 'diterima')}>✓ Terima</button>
-                          <button className="dash-btn sm reject" onClick={() => openVerify(k, 'ditolak')}>✕ Tolak</button>
+                          <IconButton icon="check" label="Terima" tone="ok" onClick={() => openVerify(k, 'diterima')} />
+                          <IconButton icon="close" label="Tolak" tone="danger" onClick={() => openVerify(k, 'ditolak')} />
                         </div>
                       ) : (
                         <span className="acc-muted">-</span>
                       )}
                     </td>
                   )}
-                  <td>
+                  <td className="col-aksi">
                     <div className="dash-actions">
-                      <button className="dash-btn outline" onClick={() => setDetail(k)}>Detail</button>
-                      {k.status === 'ditolak' && can.tambah && can.hapus && can.ubah && (
-                        <button className="dash-btn outline" onClick={() => setToRedo(k)}>Input Ulang</button>
-                      )}
-                      {can.hapus && <button className="dash-btn soft" onClick={() => setToDelete(k)}>Hapus</button>}
+                      <IconButton icon="view" label="Detail" onClick={() => setDetail(k)} />
+                      {can.hapus && <IconButton icon="delete" label="Hapus" tone="danger" onClick={() => setToDelete(k)} />}
                     </div>
                   </td>
                 </tr>

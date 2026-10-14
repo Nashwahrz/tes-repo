@@ -1,7 +1,7 @@
 // src/pages/dashboard/salesPrototype.js
 // PROTOTIPE: BE belum punya tabel/endpoint penjualan, jadi tampilan memakai data contoh di bawah ini.
 // Saat API tersedia: ubah SALES_PROTOTYPE menjadi false, hapus SALES_ROWS, dan isi baris dari response API
-// (BE sebaiknya sudah membatasi baris ke dealer milik user non-Manager, seperti data konsumen).
+// (BE sebaiknya sudah membatasi baris ke dealer milik user non-Super Admin, seperti data konsumen).
 // Bentuk baris: { id, no_transaksi, tanggal: 'YYYY-MM-DD', konsumen, motor, id_dealer, dealer, unit, harga, status: 'lunas' | 'menunggu' | 'batal' }
 export const SALES_PROTOTYPE = true;
 
@@ -16,7 +16,7 @@ export const SALES_ROWS = [
   { id: 8, no_transaksi: 'TRX-0008', tanggal: '2026-10-13', konsumen: 'Contoh Konsumen H', motor: 'Honda Vario 160', id_dealer: 1, dealer: 'Hayati Pemuda', unit: 1, harga: 28900000, status: 'lunas' },
 ];
 
-// dealerId null = semua dealer (Manager)
+// dealerId null = semua dealer (Super Admin)
 export const salesFor = (dealerId) => (dealerId == null ? SALES_ROWS : SALES_ROWS.filter((r) => r.id_dealer === dealerId));
 
 // Transaksi yang dibatalkan tidak dihitung

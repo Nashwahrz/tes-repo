@@ -68,7 +68,7 @@ function OtpPage() {
     setLoading(true);
     try {
       await verifyOtp(email, otp);
-      setSuccess('Email berhasil diverifikasi. Akun Anda menunggu persetujuan (ACC) Manager sebelum bisa digunakan.');
+      setSuccess('Email berhasil diverifikasi. Akun Anda menunggu persetujuan (ACC) Super Admin sebelum bisa digunakan.');
       setTimeout(() => {
         window.location.href = '/';
       }, 4000);

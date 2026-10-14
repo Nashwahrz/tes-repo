@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react';
 import Toast from './Toast';
 import Pager from './Pager';
+import IconButton from './IconButton';
 import { getAtasanOptions, getLoginLogs, updateUserStatus } from '../../../api/authServices';
 
 const TABS = [
@@ -28,13 +29,15 @@ const ACTIONS = {
   ditolak: [['Setujui', 'aktif', 'disetujui']],
 };
 
-// Akun Manager tidak boleh dinonaktifkan
-const PROTECTED_ROLE = 'Manager';
-// Atur (ubah dealer & atasan akun aktif) tidak berlaku untuk Manager, yang tidak punya atasan
+// Akun Super Admin tidak boleh dinonaktifkan
+const PROTECTED_ROLE = 'Super Admin';
+// Atur (ubah dealer & atasan akun aktif) tidak berlaku untuk Super Admin, yang tidak punya atasan
 const actionsFor = (u) => (ACTIONS[u.status] ?? []).filter(([, status]) => {
   if (u.role?.name !== PROTECTED_ROLE) return true;
   return u.status === 'aktif' ? false : status !== 'nonaktif';
 });
+
+const ACTION_ICON = { atur: 'edit', aktif: 'check', ditolak: 'close', nonaktif: 'ban' };
 
 const PAGE_SIZE = 10;
 
@@ -42,7 +45,7 @@ const STATUS_LABEL = { pending: 'Menunggu', aktif: 'Aktif', nonaktif: 'Nonaktif'
 
 
 // users & dealers dimuat sekali oleh DashboardPage; tab hanya memfilter di sisi klien
-function AccUserPanel({ users: allUsers, dealers, scopeNote, loading, onUserUpdated }) {
+function AccUserPanel({ users: allUsers, dealers, scopeNote, canActivate, loading, onUserUpdated }) {
   const [tab, setTab] = useState('semua');
   const [query, setQuery] = useState('');
   const [page, setPage] = useState(1);
@@ -65,7 +68,11 @@ function AccUserPanel({ users: allUsers, dealers, scopeNote, loading, onUserUpda
   };
 
   // Terbaru di atas: BE tidak mengurutkan, id auto-increment mengikuti urutan akun masuk
-  const byStatus = (tab === 'semua' ? allUsers : allUsers.filter((u) => u.status === tab)).toSorted((a, b) => b.id - a.id);
+  // Hanya akun yang emailnya sudah terverifikasi (email_verifikasi true) yang ditampilkan
+  const verified = allUsers.filter((u) => u.email_verifikasi);
+  const counts = { semua: verified.length };
+  for (const u of verified) counts[u.status] = (counts[u.status] ?? 0) + 1;
+  const byStatus = (tab === 'semua' ? verified : verified.filter((u) => u.status === tab)).toSorted((a, b) => b.id - a.id);
   const q = query.trim().toLowerCase();
   const users = q
     ? byStatus.filter((u) => `${u.name} ${u.email} ${u.role?.name ?? ''}`.toLowerCase().includes(q))
@@ -150,13 +157,13 @@ function AccUserPanel({ users: allUsers, dealers, scopeNote, loading, onUserUpda
       <div className="dash-card-head">
         <h3>
           <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 12l2 2 4-4" /><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z" /></svg>
-          Audit Log &amp; Akses
+          {tab === 'log' ? 'Log Akses' : 'Pengguna & Akses'}
         </h3>
         <span className="dash-badge">{tab === 'log' ? `${visibleLogs.length} log` : loading ? '...' : `${users.length} akun`}</span>
       </div>
       <p className="dash-card-desc">
-        Pantau akses pengguna dan kelola status akun.
-        {scopeNote && ` ${scopeNote} Akun yang belum memiliki dealer hanya terlihat oleh Manager.`}
+        {tab === 'log' ? 'Riwayat login pengguna beserta alamat IP, lokasi, dan perangkat.' : canActivate ? 'Setujui, tolak, atau atur akun pengguna yang mendaftar.' : 'Daftar akun pengguna yang mendaftar.'}
+        {scopeNote && ` ${scopeNote} Akun yang belum memiliki dealer hanya terlihat oleh Super Admin.`}
       </p>
 
       <div className="dash-toolbar">
@@ -167,11 +174,23 @@ function AccUserPanel({ users: allUsers, dealers, scopeNote, loading, onUserUpda
           value={query}
           onChange={(e) => { setQuery(e.target.value); setPage(1); }}
         />
-        <select className="dash-input dash-select-filter" value={tab} onChange={(e) => switchTab(e.target.value)}>
-          {TABS.filter((t) => SHOW_LOG_TAB || t.key !== 'log').map((t) => (
-            <option key={t.key} value={t.key}>{t.key === 'semua' ? 'Semua status' : t.label}</option>
-          ))}
-        </select>
+        {tab === 'log' ? (
+          <button className="dash-btn outline acc-log-btn" onClick={() => switchTab('semua')}>← Kembali ke Akun</button>
+        ) : (
+          <>
+            <select className="dash-input dash-select-filter acc-filter" value={tab} onChange={(e) => switchTab(e.target.value)} aria-label="Filter status akun">
+              {TABS.filter((t) => t.key !== 'log').map((t) => (
+                <option key={t.key} value={t.key}>{t.key === 'semua' ? 'Semua status' : t.label} ({counts[t.key] ?? 0})</option>
+              ))}
+            </select>
+            {SHOW_LOG_TAB && (
+              <button className="dash-btn outline acc-log-btn" onClick={() => switchTab('log')}>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></svg>
+                Log Akses
+              </button>
+            )}
+          </>
+        )}
       </div>
 
       <Toast kind="error" message={error} onClose={() => setError('')} />
@@ -193,7 +212,6 @@ function AccUserPanel({ users: allUsers, dealers, scopeNote, loading, onUserUpda
               <thead>
                 <tr>
                   <th>Pengguna</th>
-                  <th>Alamat IP</th>
                   <th>Lokasi</th>
                   <th>Perangkat</th>
                   <th>Waktu</th>
@@ -206,10 +224,9 @@ function AccUserPanel({ users: allUsers, dealers, scopeNote, loading, onUserUpda
                       <strong className="dash-cell-name">{l.user?.name ?? `Pengguna #${l.id_user}`}</strong>
                       {l.user?.email && <small className="dash-note">{l.user.email}</small>}
                     </td>
-                    <td>{l.ip_address}</td>
                     <td>
                       {lokasi(l) || '-'}
-                      {l.latitude != null && l.longitude != null && <small className="dash-note">{l.latitude}, {l.longitude}</small>}
+                      <small className="dash-cell-sub">{l.ip_address}</small>
                     </td>
                     <td>{perangkat(l) || '-'}</td>
                     <td>{waktu(l.logged_in_at)}</td>
@@ -234,42 +251,45 @@ function AccUserPanel({ users: allUsers, dealers, scopeNote, loading, onUserUpda
                 <th>Role</th>
                 <th>Dealer</th>
                 <th>Atasan</th>
-                {tab === 'semua' && <th>Status</th>}
-                <th>Aksi</th>
+                <th>Status</th>
+                {canActivate && <th className="col-aksi">Aksi</th>}
               </tr>
             </thead>
             <tbody>
               {userPage.items.map((u) => (
                 <tr key={u.id}>
                   <td>
-                    <strong className="dash-cell-name">{u.name}</strong>
-                    <small className="dash-cell-sub">{u.email}</small>
+                    <div className="acc-user">
+                      <span className="acc-avatar" aria-hidden="true">{(u.name ?? '?').trim().charAt(0).toUpperCase()}</span>
+                      <div>
+                        <strong className="dash-cell-name">{u.name}</strong>
+                        <small className="dash-cell-sub">{u.email}</small>
+                      </div>
+                    </div>
                   </td>
                   <td>{u.role?.name ?? '-'}</td>
                   <td className="acc-muted">{u.dealer?.name ?? '-'}</td>
                   <td className="acc-muted">{u.atasan?.name ?? '-'}</td>
-                  {tab === 'semua' && <td><span className={`dash-status ${u.status}`}>{STATUS_LABEL[u.status] ?? u.status}</span></td>}
-                  <td>
-                    <div className="dash-actions">
-                      {actionsFor(u).map(([label, status, done]) => {
-                        const isAtur = status === 'aktif' && u.status === 'aktif';
-                        return (
-                          <button
-                            key={status}
-                            className={isAtur ? 'acc-icon-btn' : `acc-btn ${status === 'aktif' ? 'primary' : 'danger'}`}
-                            title={isAtur ? 'Atur dealer & atasan' : label}
-                            aria-label={isAtur ? 'Atur dealer & atasan' : label}
-                            disabled={busyId === u.id}
-                            onClick={() => handleAction(u, label, status, done)}
-                          >
-                            {isAtur ? (
-                              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9" /><path d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4z" /></svg>
-                            ) : label}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </td>
+                  <td><span className={`dash-status ${u.status}`}>{STATUS_LABEL[u.status] ?? u.status}</span></td>
+                  {canActivate && (
+                    <td className="col-aksi">
+                      <div className="dash-actions">
+                        {actionsFor(u).map(([label, status, done]) => {
+                          const isAtur = status === 'aktif' && u.status === 'aktif';
+                          return (
+                            <IconButton
+                              key={status}
+                              icon={ACTION_ICON[isAtur ? 'atur' : status]}
+                              label={isAtur ? 'Atur' : label}
+                              tone={isAtur ? undefined : status === 'aktif' ? 'ok' : 'danger'}
+                              disabled={busyId === u.id}
+                              onClick={() => handleAction(u, label, status, done)}
+                            />
+                          );
+                        })}
+                      </div>
+                    </td>
+                  )}
                 </tr>
               ))}
             </tbody>

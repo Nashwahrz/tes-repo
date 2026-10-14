@@ -18,10 +18,6 @@ const RoleAccessPanel = lazy(() => import('./components/RoleAccessPanel'));
 const LOGO_SRC = '/logo.png';
 
 // Url menu BE yang mengendalikan tiap menu sidebar (Produk dipertahankan walau endpoint BE-nya belum ada)
-// Siapa yang boleh memverifikasi konsumen. BE hanya mewajibkan konsumens.lihat (semua role punya), jadi FE yang membatasi.
-// Role hanya diketahui bila user boleh melihat daftar user; bila tidak, pakai users.lihat sebagai petunjuk atasan.
-const VERIFIER_ROLES = ['Manager', 'Kacab', 'ADH'];
-
 const MENU_URL = { [MENU_HOME]: 'dashboard', [MENU_PRODUK]: 'daftar-motor' };
 
 const PATHS = {
@@ -87,6 +83,8 @@ const toAccess = (menus, permissions) => ({
   menus: menus.map((m) => m.url),
   permissions: permissions.map((p) => p.nama_permission),
 });
+
+const ROLE_ADMIN = 'Super Admin';
 
 function DashboardPage() {
   let user;
@@ -172,19 +170,19 @@ function DashboardPage() {
   const count = (status) => users.filter((u) => u.status === status).length;
   const pending = users.filter((u) => u.status === 'pending');
 
-  // BE membatasi dealer/akun/konsumen ke dealer milik user non-Manager (scope per dealer).
+  // BE membatasi dealer/akun/konsumen ke dealer milik user non-Super Admin (scope per dealer).
   // Role & dealer sendiri diambil dari daftar users karena respons login hanya memuat id & email.
   const me = users.find((u) => u.id === user?.id);
   const myRole = me?.role?.name ?? selfInfo?.role ?? null;
   const myDealer = me?.dealer?.name ?? null;
-  const scoped = !!me && myRole !== 'Manager' && !!me.id_dealer;
+  const scoped = !!me && myRole !== ROLE_ADMIN && !!me.id_dealer;
 
-  // Penjualan: Manager melihat semua dealer, role lain hanya dealer miliknya. Saat ini data contoh (lihat salesPrototype.js)
-  const isManager = myRole === 'Manager';
+  // Penjualan: Super Admin melihat semua dealer, role lain hanya dealer miliknya. Saat ini data contoh (lihat salesPrototype.js)
+  const isAdmin = myRole === ROLE_ADMIN;
   const myDealerId = me?.id_dealer ?? selfInfo?.id_dealer ?? null;
-  const salesRows = isManager ? salesFor(null) : myDealerId != null ? salesFor(myDealerId) : [];
-  const salesKnown = SALES_PROTOTYPE && (isManager || myDealerId != null);
-  const salesDealerName = isManager ? null : dealers.find((d) => d.id === myDealerId)?.name ?? salesRows[0]?.dealer ?? null;
+  const salesRows = isAdmin ? salesFor(null) : myDealerId != null ? salesFor(myDealerId) : [];
+  const salesKnown = SALES_PROTOTYPE && (isAdmin || myDealerId != null);
+  const salesDealerName = isAdmin ? null : dealers.find((d) => d.id === myDealerId)?.name ?? salesRows[0]?.dealer ?? null;
   const scopeNote = scoped ? `Data dibatasi pada dealer Anda${myDealer ? `: ${myDealer}` : ''}.` : '';
 
   const q = query.trim().toLowerCase();
@@ -199,7 +197,9 @@ function DashboardPage() {
   const canUsers = hasMenu('users') && can('users.lihat');
   const canSales = hasMenu('penjualan');
   const canKonsumen = hasMenu('konsumens') && can('konsumens.lihat');
-  const canAcc = hasMenu('users') && can('users.lihat') && can('users.aktivasi');
+  // Menu Pengguna & Akses cukup users.lihat; tombol setujui/tolak/atur hanya muncul bila users.aktivasi dicentang
+  const canAcc = hasMenu('users') && can('users.lihat');
+  const canActivate = canAcc && can('users.aktivasi');
   const canRoleMenu = hasMenu('role-menus') && can('role-menus.kelola');
   const canRolePerm = hasMenu('role-menus') && can('role-permissions.kelola');
   const canRole = canRoleMenu || canRolePerm;
@@ -221,7 +221,7 @@ function DashboardPage() {
     : [];
   const stats = [...baseStats, ...extraStats];
 
-  const canVerifyKonsumen = canKonsumen && (myRole ? VERIFIER_ROLES.includes(myRole) : can('users.lihat'));
+  const canVerifyKonsumen = canKonsumen && can('konsumens.aktivasi');
 
   const menus = [
     ...(hasMenu(MENU_URL[MENU_HOME]) ? [MENU_HOME] : []),
@@ -346,6 +346,7 @@ function DashboardPage() {
                   users={users}
                   dealers={dealers}
                   scopeNote={scopeNote}
+                  canActivate={canActivate}
                   loading={loading}
                   onUserUpdated={(updated) => setUsers((list) => list.map((u) => (u.id === updated.id ? updated : u)))}
                 />
@@ -392,7 +393,6 @@ function DashboardPage() {
               <Suspense fallback={<p className="dash-empty">Memuat...</p>}>
                 <KonsumenPanel
                   userId={user?.id}
-                  role={myRole}
                   can={{ tambah: can('konsumens.tambah'), ubah: can('konsumens.ubah'), hapus: can('konsumens.hapus'), scan: can('konsumens.scan'), verifikasi: canVerifyKonsumen }}
                 />
               </Suspense>
@@ -429,7 +429,7 @@ function DashboardPage() {
                 </div>
                 {canSales && (
                   <div className="dash-welcome-sales">
-                    <small>{isManager ? 'Total Penjualan' : `Total Penjualan Dealer Anda${salesDealerName ? ` · ${salesDealerName}` : ''}`}</small>
+                    <small>{isAdmin ? 'Total Penjualan' : `Total Penjualan Dealer Anda${salesDealerName ? ` · ${salesDealerName}` : ''}`}</small>
                     <strong>{salesKnown ? rupiah(totalSales(salesRows)) : 'Belum ada data'}</strong>
                     {salesKnown && <span className="dash-proto">Data contoh</span>}
                     <button className="dash-btn light" onClick={() => setMenu(MENU_PENJUALAN)}>Lihat Penjualan</button>
@@ -474,7 +474,7 @@ function DashboardPage() {
                             <small title={u.email}>{u.email}</small>
                           </div>
                           <span className="dash-tag">{u.role?.name ?? '-'}</span>
-                          <button className="dash-btn sm outline" onClick={() => setMenu(MENU_ACC)}>Tinjau</button>
+                          {canActivate && <button className="dash-btn sm outline" onClick={() => setMenu(MENU_ACC)}>Tinjau</button>}
                         </div>
                       ))}
                       {pending.length > 4 && <p className="dash-more">dan {pending.length - 4} akun lainnya</p>}

@@ -5,6 +5,7 @@ import {
   getEmailWhitelists, createEmailWhitelist, updateEmailWhitelist, deleteEmailWhitelist, errorMessage,
 } from '../../../api/authServices';
 import Toast from './Toast';
+import IconButton from './IconButton';
 
 const EMPTY = { domain: '@', is_active: true };
 const DOMAIN_FORMAT = /^@[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+$/;
@@ -151,9 +152,8 @@ function EmailWhitelistPanel({ can, userId, users = [] }) {
               <tr>
                 <th>Domain</th>
                 <th>Status</th>
-                <th>Dibuat Oleh</th>
-                <th>Dibuat Pada</th>
-                {(can.ubah || can.hapus) && <th>Aksi</th>}
+                <th>Dibuat</th>
+                {(can.ubah || can.hapus) && <th className="col-aksi">Aksi</th>}
               </tr>
             </thead>
             <tbody>
@@ -161,13 +161,15 @@ function EmailWhitelistPanel({ can, userId, users = [] }) {
                 <tr key={r.id}>
                   <td><strong className="dash-cell-name">{r.domain}</strong></td>
                   <td><span className={`dash-status ${r.is_active ? 'aktif' : 'nonaktif'}`}>{r.is_active ? 'Aktif' : 'Nonaktif'}</span></td>
-                  <td>{creator(r.created_by)}</td>
-                  <td>{tanggal(r.created_at)}</td>
+                  <td>
+                    {tanggal(r.created_at)}
+                    <small className="dash-cell-sub">{creator(r.created_by)}</small>
+                  </td>
                   {(can.ubah || can.hapus) && (
-                    <td>
+                    <td className="col-aksi">
                       <div className="dash-actions">
-                        {can.ubah && <button className="dash-btn outline" onClick={() => openForm(r)}>Ubah</button>}
-                        {can.hapus && <button className="dash-btn soft" onClick={() => setToDelete(r)}>Hapus</button>}
+                        {can.ubah && <IconButton icon="edit" label="Ubah" onClick={() => openForm(r)} />}
+                        {can.hapus && <IconButton icon="delete" label="Hapus" tone="danger" onClick={() => setToDelete(r)} />}
                       </div>
                     </td>
                   )}

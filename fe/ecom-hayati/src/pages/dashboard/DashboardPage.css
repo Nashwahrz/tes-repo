@@ -802,7 +802,7 @@ select.dash-input, .dash-select {
 .konsumen-table th, .konsumen-table td { vertical-align: middle; }
 .konsumen-table th { white-space: nowrap; }
 .konsumen-table td { white-space: nowrap; }
-.konsumen-table td:nth-child(2) { white-space: normal; min-width: 160px; overflow-wrap: break-word; }
+.konsumen-table td:nth-child(1) { white-space: normal; min-width: 160px; overflow-wrap: break-word; }
 .konsumen-table td .dash-note { white-space: normal; max-width: 220px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .konsumen-reject { margin: 0 0 14px; padding: 12px 14px; border: 1px solid #fecdca; border-radius: 10px; background: #fef3f2; }
 .konsumen-reject strong { display: block; font-size: 12px; font-weight: 700; letter-spacing: 0.02em; color: #b42318; }
@@ -970,3 +970,31 @@ select.dash-input, .dash-select {
 .dash-row-compact { background: #fafafa; }
 .dash-row-compact:hover { background: #f3f3f3; transform: none; }
 @media (max-width: 900px) { .dash-grid { grid-template-columns: 1fr; } }
+
+/* ---------- Pengguna & Akses: filter & sel pengguna ---------- */
+.acc-filter { min-width: 170px; font-weight: 600; cursor: pointer; }
+.acc-log-btn { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+.acc-user { display: flex; align-items: center; gap: 10px; }
+.acc-avatar { flex: none; display: grid; place-items: center; width: 32px; height: 32px; font-size: 13px; font-weight: 700; color: var(--accent); background: var(--tint); border-radius: 50%; }
+
+/* ---------- Tombol ikon di tabel & sel ringkas ---------- */
+.ico-btn { display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px; font: inherit; font-size: 12px; font-weight: 600; white-space: nowrap; color: var(--muted); background: none; border: 1px solid transparent; border-radius: 8px; cursor: pointer; transition: color 0.15s, background 0.15s, border-color 0.15s; }
+.ico-btn.compact { justify-content: center; width: 30px; height: 30px; padding: 0; }
+.ico-btn:hover:not(:disabled) { color: var(--accent); background: var(--tint); }
+.ico-btn.danger { color: #b42318; }
+.ico-btn.danger:hover:not(:disabled) { color: #b42318; background: #fef3f2; }
+/* Terima / Setujui: satu-satunya tombol terisi, hanya untuk aksi verifikasi */
+.ico-btn.ok { color: #fff; background: #079455; }
+.ico-btn.ok:hover:not(:disabled) { color: #fff; background: #067647; }
+.dash-verify .ico-btn.danger { border-color: #fda29b; }
+.dash-verify .ico-btn.danger:hover:not(:disabled) { border-color: #d92d20; }
+.ico-btn:focus-visible { outline: none; box-shadow: var(--ring); }
+.ico-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+.dash-table td.col-aksi, .dash-table th.col-aksi { width: 1%; white-space: nowrap; }
+.dash-table th.col-aksi { padding-left: 22px; } /* sejajar dengan ikon tombol (padding sel 12px + padding tombol 10px) */
+.dash-table .dash-actions { flex-wrap: wrap; gap: 4px; justify-content: flex-start; }
+.dash-cell-clamp { display: -webkit-box; max-width: 320px; overflow: hidden; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.dash-table .dash-cell-sub { margin-top: 1px; }
+
+/* Input ulang: tautan di bawah status Ditolak agar kolom Aksi tetap sejajar di semua baris */
+.konsumen-redo { display: block; margin-top: 4px; padding: 0; font-size: 12px; }

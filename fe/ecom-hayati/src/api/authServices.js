@@ -15,16 +15,25 @@ export const registerUser = async (name, email, password, password_confirmation,
   return response.data;
 };
 
-export const getUsers = async (status) => (await api.get(status ? `/users/${status}` : '/users')).data.data;
+// BE membagi /users dan /dealers per halaman (10 data): { data: { data: [...], current_page, last_page, ... } }.
+// Semua halaman digabung jadi satu array agar tabel, filter, dan pencarian di FE tetap bekerja pada seluruh data.
+const fetchAllPages = async (url) => {
+  const first = (await api.get(url, { params: { page: 1 } })).data.data;
+  if (Array.isArray(first)) return first;
+  const rest = await Promise.all(Array.from({ length: Math.max((first.last_page ?? 1) - 1, 0) }, async (_, i) => (await api.get(url, { params: { page: i + 2 } })).data.data));
+  return [first, ...rest].flatMap((p) => p.data);
+};
 
-export const getDealers = async () => (await api.get('/dealers')).data.data;
+export const getUsers = (status) => fetchAllPages(status ? `/users/${status}` : '/users');
+
+export const getDealers = () => fetchAllPages('/dealers');
 
 // status: 'aktif' | 'ditolak' | 'nonaktif'
 // id_atasan opsional; BE menimpa id_atasan dengan null bila tidak dikirim
 export const updateUserStatus = async (id, id_dealer, status, id_atasan = null) =>
   (await api.put(`/users/${id}`, { id_dealer, id_atasan, status })).data;
 
-// Calon atasan menurut role (Kasir→ADH, ME→Kacab, ADH/Kacab→Manager); id_dealer menyaring atasan se-dealer
+// Calon atasan menurut role (Kasir→ADH, ME→Kacab, ADH/Kacab→Super Admin); id_dealer menyaring atasan se-dealer
 export const getAtasanOptions = async (id_role, id_dealer) =>
   (await api.get('/users/atasan-options', { params: { id_role, ...(id_dealer ? { id_dealer } : {}) } })).data.data;
 

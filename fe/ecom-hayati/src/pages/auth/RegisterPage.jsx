@@ -6,7 +6,7 @@ import './LoginPage.css';
 const LOGO_SRC = '/logo.png';
 
 // Enum / list role berurutan sesuai seeder DB:
-// $roles = ['Manager', 'Kacab', 'ADH', 'ME', 'Kasir'];
+// $roles = ['Super Admin', 'Kacab', 'ADH', 'ME', 'Kasir'];
 const ROLES = [
   { id: 2, name: 'Kacab' },
   { id: 3, name: 'ADH' },

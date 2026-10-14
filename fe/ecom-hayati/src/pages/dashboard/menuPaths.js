@@ -4,7 +4,7 @@ export const MENU_PRODUK = 'Produk';
 export const MENU_PENJUALAN = 'Penjualan';
 export const MENU_DEALER = 'Dealer';
 export const MENU_KONSUMEN = 'Konsumen';
-export const MENU_ACC = 'Audit Log & Akses';
+export const MENU_ACC = 'Pengguna & Akses';
 export const MENU_ROLE = 'Role & Hak Akses';
 export const MENU_WHITELIST = 'Email Whitelist';
 
@@ -14,7 +14,7 @@ export const MENU_PATHS = {
   [MENU_PENJUALAN]: '/penjualan',
   [MENU_DEALER]: '/dealer',
   [MENU_KONSUMEN]: '/konsumen',
-  [MENU_ACC]: '/audit-akses',
+  [MENU_ACC]: '/pengguna-akses',
   [MENU_ROLE]: '/role-akses',
   [MENU_WHITELIST]: '/email-whitelist',
 };

@@ -85,11 +85,9 @@ function PenjualanPanel({ rows = [], scopeNote }) {
           <table className="dash-table">
             <thead>
               <tr>
-                <th>No. Transaksi</th>
-                <th>Tanggal</th>
+                <th>Transaksi</th>
                 <th>Konsumen</th>
                 <th>Motor</th>
-                <th>Dealer</th>
                 <th>Harga</th>
                 <th>Status</th>
               </tr>
@@ -97,11 +95,15 @@ function PenjualanPanel({ rows = [], scopeNote }) {
             <tbody>
               {visible.map((r) => (
                 <tr key={r.id}>
-                  <td>{r.no_transaksi}</td>
-                  <td>{tanggal(r.tanggal)}</td>
-                  <td><strong className="dash-cell-name">{r.konsumen}</strong></td>
-                  <td>{r.motor}</td>
-                  <td>{r.dealer}</td>
+                  <td>
+                    <strong className="dash-cell-name">{r.no_transaksi}</strong>
+                    <small className="dash-cell-sub">{tanggal(r.tanggal)}</small>
+                  </td>
+                  <td>{r.konsumen}</td>
+                  <td>
+                    {r.motor}
+                    <small className="dash-cell-sub">{r.dealer}</small>
+                  </td>
                   <td>{rupiah(r.harga)}</td>
                   <td><span className={`dash-status ${STATUS[r.status]?.cls ?? ''}`}>{STATUS[r.status]?.label ?? r.status}</span></td>
                 </tr>

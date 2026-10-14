@@ -3,6 +3,7 @@
 // UI CRUD dealer, terhubung ke API /dealers.
 import { lazy, Suspense, useState } from 'react';
 import Toast from './Toast';
+import IconButton from './IconButton';
 import { createDealer, updateDealer, deleteDealer, errorMessage } from '../../../api/authServices';
 
 // Leaflet (JS + CSS) hanya dimuat saat form dealer dibuka
@@ -182,23 +183,21 @@ function DealerPanel({ dealers: rows, onDealersChange, can, scopeNote }) {
               <tr>
                 <th>Nama</th>
                 <th>Alamat</th>
-                <th>Latitude</th>
-                <th>Longitude</th>
-                {(can.ubah || can.hapus) && <th>Aksi</th>}
+                <th>Koordinat</th>
+                {(can.ubah || can.hapus) && <th className="col-aksi">Aksi</th>}
               </tr>
             </thead>
             <tbody>
               {visible.map((d) => (
                 <tr key={d.id}>
                   <td><strong className="dash-cell-name">{d.name}</strong></td>
-                  <td>{d.alamat}</td>
-                  <td>{d.latitude}</td>
-                  <td>{d.longitude}</td>
+                  <td><span className="dash-cell-clamp" title={d.alamat}>{d.alamat}</span></td>
+                  <td className="acc-muted">{d.latitude}, {d.longitude}</td>
                   {(can.ubah || can.hapus) && (
-                    <td>
+                    <td className="col-aksi">
                       <div className="dash-actions">
-                        {can.ubah && <button className="dash-btn outline" onClick={() => openForm(d)}>Ubah</button>}
-                        {can.hapus && <button className="dash-btn soft" onClick={() => setToDelete(d)}>Hapus</button>}
+                        {can.ubah && <IconButton icon="edit" label="Ubah" onClick={() => openForm(d)} />}
+                        {can.hapus && <IconButton icon="delete" label="Hapus" tone="danger" onClick={() => setToDelete(d)} />}
                       </div>
                     </td>
                   )}
