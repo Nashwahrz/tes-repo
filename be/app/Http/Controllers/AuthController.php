@@ -2,14 +2,19 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\OtpPurpose;
 use App\Http\Requests\LoginRequest;
+use App\Http\Requests\ResetPasswordRequest;
 use App\Http\Responses\LoginResponse;
 use App\Http\Requests\RegisterRequest;
+use App\Http\Responses\OtpResponse;
 use App\Http\Responses\RegisterResponse;
 use App\Mail\SendOtpMail;
+use App\Models\User;
 use App\Repositories\OtpRepository;
 use App\Repositories\UserRepository;
 use App\Services\LoginLogService;
+use Hash;
 use Illuminate\Http\Request;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Throwable;
@@ -24,6 +29,7 @@ class AuthController extends Controller
      public function __construct(
         private UserRepository $users,
         private OtpRepository $otpRepository,
+        private OtpResponse $otpResponse,
         private RegisterResponse $registerResponse,
         private LoginResponse $loginResponse,
         private LoginLogService $loginLogService,
@@ -35,9 +41,9 @@ class AuthController extends Controller
             $user = $this->users->create($request->validated());
 
             $expiryMinutes = 5;
-            $otp = $this->otpRepository->createOtp($user, 6, $expiryMinutes);
-
-            Mail::to($user->email)->send(new SendOtpMail($user, $otp->otp, $expiryMinutes));
+            $otpCode = $this->otpRepository->generateOtpCode();
+            $this->otpRepository->createOtp($user, OtpPurpose::Register, $otpCode, $expiryMinutes);
+            Mail::to($user->email)->send(new SendOtpMail($user, $otpCode, $expiryMinutes));
 
             return $this->registerResponse->success($user);
         } catch (UniqueConstraintViolationException $e) {
@@ -84,8 +90,9 @@ class AuthController extends Controller
                 Auth::logout();
 
                 $expiryMinutes = 5;
-                $otp = $this->otpRepository->createOtp($user, 6, $expiryMinutes);
-                Mail::to($user->email)->send(new SendOtpMail($user, $otp->otp, $expiryMinutes));
+                $otpCode = $this->otpRepository->generateOtpCode();
+                $this->otpRepository->createOtp($user, OtpPurpose::Register, $otpCode, $expiryMinutes);
+                Mail::to($user->email)->send(new SendOtpMail($user, $otpCode, $expiryMinutes));
 
                 return $this->loginResponse->emailNotVerified($user->email);
             }
@@ -111,5 +118,41 @@ class AuthController extends Controller
             return $this->loginResponse->serverError();
         }
     }
+        
+    public function resetPassword(ResetPasswordRequest $request)
+    {
+        try {
+            $isValidToken = $this->otpRepository->isValidPasswordResetToken(
+                $request->email,
+                $request->reset_token,
+                expiryMinutes: 15 
+            );
+
+            if (!$isValidToken) {
+                return $this->otpResponse->invalidResetToken();
+            }
+
+            $user = User::where('email', $request->email)->first();
+
+            if (!$user) {
+                return $this->otpResponse->userNotFound();
+            }
+
+            $user->password = $request->password;
+            $user->save();
+
+            $this->otpRepository->deletePasswordResetToken($request->email);
+
+            return $this->otpResponse->passwordResetSuccess();
+
+        } catch (Throwable $e) {
+            Log::error('Reset password error: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            return $this->otpResponse->serverError();
+        }
+    }
+
 
 }
