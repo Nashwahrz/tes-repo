@@ -2,12 +2,14 @@
 
 namespace App\Models;
 
+use App\Enums\OtpPurpose;
 use Illuminate\Database\Eloquent\Model;
 
 class Otp extends Model
 {
     protected $fillable = [
         'id_user',
+        'purpose',
         'otp',
         'expires_at',
     ];
@@ -15,6 +17,7 @@ class Otp extends Model
     protected function casts(): array
     {
         return [
+            'purpose'    => OtpPurpose::class,
             'expires_at' => 'datetime',
         ];
     }

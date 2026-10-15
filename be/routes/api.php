@@ -17,9 +17,12 @@ use Illuminate\Support\Facades\Route;
 
     Route::post('/register', [AuthController::class, 'register']);
     Route::post('/login', [AuthController::class, 'login']);
+    Route::post('/reset-password', [AuthController::class, 'resetPassword']);
     Route::prefix('otp')->group(function () {
         Route::post('/send', [OtpController::class, 'sendOtp']);
+        Route::post('/send-reset-password', [OtpController::class, 'sendOtpResetPassword']);
         Route::post('/verify', [OtpController::class, 'verifyOtp']);
+        Route::post('/verify-reset-password', [OtpController::class, 'verifyOtpResetPassword']);
     });
     Route::get('/konsumens/{id}/foto-ktp', [KonsumenController::class, 'fotoKtp'])
             ->name('konsumens.foto-ktp')
