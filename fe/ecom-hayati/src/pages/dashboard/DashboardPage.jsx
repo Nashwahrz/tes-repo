@@ -6,12 +6,14 @@ import {
 } from './menuPaths';
 import Loading from './components/Loading';
 import { SALES_PROTOTYPE, salesFor, totalSales } from './salesPrototype';
+import SalesChart from './components/SalesChart';
 import './DashboardPage.css';
 
 // Panel hanya dimuat saat menunya dibuka
 const AccUserPanel = lazy(() => import('./components/AccUserPanel'));
 const DealerPanel = lazy(() => import('./components/DealerPanel'));
 const KonsumenPanel = lazy(() => import('./components/KonsumenPanel'));
+const KonsumenLogPanel = lazy(() => import('./components/KonsumenLogPanel'));
 const PenjualanPanel = lazy(() => import('./components/PenjualanPanel'));
 const EmailWhitelistPanel = lazy(() => import('./components/EmailWhitelistPanel'));
 const RoleAccessPanel = lazy(() => import('./components/RoleAccessPanel'));
@@ -250,6 +252,7 @@ function DashboardPage() {
       .then((t) => { setKonsumenStats((s) => ({ ...s, ...t })); markSeen(MENU_KONSUMEN, konsumenSig(t)); })
       .catch(() => {});
   };
+  const [konsumenTab, setKonsumenTab] = useState('data'); // 'data' | 'log'
   const [konsumenKey, setKonsumenKey] = useState(0); // naik = panel konsumen dimuat ulang
 
   const watchAcc = canAcc;
@@ -452,7 +455,7 @@ function DashboardPage() {
           {menu === MENU_PENJUALAN && canSales && (
             <div className="dash-card">
               <Suspense fallback={<Loading rows={4} />}>
-                <PenjualanPanel scopeNote={scopeNote} />
+                <PenjualanPanel rows={salesRows} scopeNote={scopeNote} />
               </Suspense>
             </div>
           )}
@@ -476,7 +479,14 @@ function DashboardPage() {
 
           {menu === MENU_KONSUMEN && canKonsumen && (
             <div className="dash-card">
+              {can('konsumens.logs') && (
+                <div className="dash-tabs">
+                  <button type="button" className={`dash-tab${konsumenTab === 'data' ? ' active' : ''}`} onClick={() => setKonsumenTab('data')}>Data Konsumen</button>
+                  <button type="button" className={`dash-tab${konsumenTab === 'log' ? ' active' : ''}`} onClick={() => setKonsumenTab('log')}>Riwayat Aktivitas</button>
+                </div>
+              )}
               <Suspense fallback={<Loading rows={4} />}>
+                {konsumenTab === 'log' && can('konsumens.logs') ? <KonsumenLogPanel /> : (
                 <KonsumenPanel
                   key={konsumenKey}
                   dealers={dealers}
@@ -485,6 +495,7 @@ function DashboardPage() {
                   onChanged={refreshKonsumenStats}
                   can={{ tambah: can('konsumens.tambah'), ubah: can('konsumens.ubah'), hapus: can('konsumens.hapus'), scan: can('konsumens.scan'), verifikasi: canVerifyKonsumen }}
                 />
+                )}
               </Suspense>
             </div>
           )}
@@ -540,6 +551,15 @@ function DashboardPage() {
                   </div>
                 ))}
               </section>
+              )}
+
+              {(canSales || salesKnown) && (
+                <SalesChart
+                  rows={salesRows}
+                  dealerName={salesDealerName}
+                  isAdmin={isAdmin}
+                  onViewAll={canSales ? () => setMenu(MENU_PENJUALAN) : null}
+                />
               )}
 
               <section className="dash-grid">

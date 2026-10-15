@@ -1,8 +1,7 @@
 // src/pages/dashboard/components/PenjualanPanel.jsx
 import { useState } from 'react';
-
-// Data penjualan datang lewat prop `rows`. BE belum punya endpoint penjualan, jadi menu ini sengaja kosong (tanpa data contoh);
-// data contoh hanya dipakai di kartu Ringkasan (lihat salesPrototype.js).
+import { SALES_PROTOTYPE } from '../salesPrototype';
+import SalesChart from './SalesChart';
 
 const STATUS = {
   lunas: { label: 'Lunas', cls: 'diterima' },
@@ -48,7 +47,19 @@ function PenjualanPanel({ rows = [], scopeNote }) {
       </div>
       <p className="dash-card-desc">Pantau transaksi penjualan motor. {scopeNote}</p>
 
-      <p className="dash-alert error">Data penjualan belum tersedia dari server. Tampilan ini akan terisi setelah fitur penjualan di backend siap.</p>
+      {rows.length === 0 ? (
+        <p className="dash-alert error">Data penjualan belum tersedia dari server. Tampilan ini akan terisi setelah fitur penjualan di backend siap.</p>
+      ) : (
+        SALES_PROTOTYPE && (
+          <p className="dash-alert warning">Menampilkan data simulasi (prototipe). Fitur ini akan terhubung langsung ke data aktual saat endpoint backend siap.</p>
+        )
+      )}
+
+      {rows.length > 0 && (
+        <div style={{ marginBottom: 18 }}>
+          <SalesChart rows={rows} compact={true} />
+        </div>
+      )}
 
       <section className="dash-stats dash-stats-compact">
         {summary.map((s) => (

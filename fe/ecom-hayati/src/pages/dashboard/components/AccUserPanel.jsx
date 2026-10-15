@@ -49,6 +49,7 @@ const STATUS_LABEL = { pending: 'Menunggu', aktif: 'Aktif', nonaktif: 'Nonaktif'
 function AccUserPanel({ users: allUsers, dealers, scopeNote, canActivate, loading, onUserUpdated }) {
   const [tab, setTab] = useState('semua');
   const [query, setQuery] = useState('');
+  const [dealerFilter, setDealerFilter] = useState(''); // id dealer akun; kosong = semua dealer, 'none' = belum punya dealer
   const [page, setPage] = useState(1);
   const [pick, setPick] = useState(null); // { user, status, doneLabel, label } saat popup pilih dealer terbuka
   const [pickDealer, setPickDealer] = useState('');
@@ -70,7 +71,9 @@ function AccUserPanel({ users: allUsers, dealers, scopeNote, canActivate, loadin
 
   // Terbaru di atas: BE tidak mengurutkan, id auto-increment mengikuti urutan akun masuk
   // allUsers sudah hanya berisi akun dengan email terverifikasi (disaring di DashboardPage)
-  const verified = allUsers;
+  const verified = dealerFilter === 'none'
+    ? allUsers.filter((u) => !u.id_dealer)
+    : dealerFilter ? allUsers.filter((u) => String(u.id_dealer) === dealerFilter) : allUsers;
   const counts = { semua: verified.length };
   for (const u of verified) counts[u.status] = (counts[u.status] ?? 0) + 1;
   const byStatus = (tab === 'semua' ? verified : verified.filter((u) => u.status === tab)).toSorted((a, b) => b.id - a.id);
@@ -179,6 +182,13 @@ function AccUserPanel({ users: allUsers, dealers, scopeNote, canActivate, loadin
           <button className="dash-btn outline acc-log-btn" onClick={() => switchTab('semua')}>← Kembali ke Akun</button>
         ) : (
           <>
+            {dealers.length > 0 && (
+              <select className="dash-input dash-select-filter" value={dealerFilter} aria-label="Filter dealer" onChange={(e) => { setDealerFilter(e.target.value); setPage(1); }}>
+                <option value="">Semua dealer</option>
+                {dealers.map((d) => <option key={d.id} value={d.id}>{d.name}</option>)}
+                <option value="none">Tanpa dealer</option>
+              </select>
+            )}
             <select className="dash-input dash-select-filter acc-filter" value={tab} onChange={(e) => switchTab(e.target.value)} aria-label="Filter status akun">
               {TABS.filter((t) => t.key !== 'log').map((t) => (
                 <option key={t.key} value={t.key}>{t.key === 'semua' ? 'Semua status' : t.label} ({counts[t.key] ?? 0})</option>

@@ -109,6 +109,13 @@ export const deleteEmailWhitelist = async (id) => (await api.delete(`/email-whit
 export const verifyKonsumen = async (id, status, catatan_penolakan) =>
   (await api.put(`/konsumens/activate/${id}`, { status, ...(status === 'ditolak' ? { catatan_penolakan } : {}) })).data;
 
+// Riwayat aktivitas konsumen (BE: GET /konsumens/logs, butuh permission konsumens.logs); BE memaginasi: { data: [...], meta }
+export const getKonsumenLogs = async (page = 1, search = '') => {
+  const body = (await api.get('/konsumens/logs', { params: { page, ...(search ? { search } : {}) } })).data;
+  const m = body.meta ?? {};
+  return { rows: body.data ?? [], meta: { page: m.current_page ?? 1, lastPage: m.last_page ?? 1, total: m.total ?? 0, perPage: m.per_page ?? 10 } };
+};
+
 export const deleteKonsumen = async (id) => (await api.delete(`/konsumens/${id}`)).data;
 
 // OCR KTP: kirim gambar, terima field hasil baca (nik, name, tgl_lahir, dst.)
