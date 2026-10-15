@@ -131,6 +131,8 @@ function LoginPage() {
             </button>
           </div>
 
+          <p className="login-forgot"><a href="/lupa-password">Lupa kata sandi?</a></p>
+
           {error && <p className="login-error">{error}</p>}
           {/* {waitSec > 0 && <p className="login-error">Coba lagi dalam {formatWait(waitSec)}.</p>} */}
 

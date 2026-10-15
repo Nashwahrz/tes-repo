@@ -7,6 +7,7 @@ const LoginPage = lazy(() => import('./pages/auth/LoginPage'))
 const RegisterPage = lazy(() => import('./pages/auth/RegisterPage'))
 const DashboardPage = lazy(() => import('./pages/dashboard/DashboardPage'))
 const OtpPage = lazy(() => import('./pages/auth/OtpPage'))
+const ForgotPasswordPage = lazy(() => import('./pages/auth/ForgotPasswordPage'))
 
 function App() {
   return (
@@ -30,6 +31,13 @@ function Routes() {
   }
   if (path.startsWith('/otp')) {
     return <OtpPage />
+  }
+  if (path.startsWith('/lupa-password')) {
+    if (isLoggedIn) {
+      window.location.replace('/dashboard')
+      return null
+    }
+    return <ForgotPasswordPage />
   }
   if (path.startsWith('/register')) {
     if (isLoggedIn) {

@@ -229,3 +229,19 @@ select.login-input {
   .login-brand { font-size: 24px; }
   .login-title { font-size: 20px; }
 }
+
+.login-forgot {
+  margin: -4px 0 14px;
+  text-align: right;
+  font-size: 13px;
+}
+
+.login-forgot a {
+  font-weight: 600;
+  color: #c2410c;
+  text-decoration: none;
+}
+
+.login-forgot a:hover {
+  text-decoration: underline;
+}
