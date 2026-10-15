@@ -4,6 +4,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DealerController;
 use App\Http\Controllers\EmailWhiteListController;
 use App\Http\Controllers\KonsumenController;
+use App\Http\Controllers\LogUserController;
 use App\Http\Controllers\OtpController;
 use App\Http\Controllers\RoleMenuController;
 use App\Http\Controllers\RolePermissionController;
@@ -47,7 +48,9 @@ use Illuminate\Support\Facades\Route;
             Route::get('/atasan-options', [UserController::class, 'getAtasanOptions'])->middleware('permission:users.lihat');
             Route::put('/{id}', [UserController::class, 'activate'])->middleware('permission:users.aktivasi');
         });
-
+        Route::prefix('log-users')->middleware('menu.access:log-users')->group(function () {
+            Route::get('/', [LogUserController::class, 'index'])->middleware('permission:log-users.lihat');
+        });
         Route::prefix('role-menus')->group(function () {
             Route::get('/user-menus', [RoleMenuController::class, 'userMenus']);
 

@@ -22,7 +22,8 @@ class RoleMenuSeeder extends Seeder
                 'dealers',
                 'konsumens',
                 'email-whitelists',
-                'log-aktivitas'
+                'log-aktivitas',
+                'log-users'
             ],
             'Kacab' => [
                 'dashboard',

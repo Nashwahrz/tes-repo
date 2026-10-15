@@ -35,6 +35,7 @@ class PermissionSeeder extends Seeder
             'email-whitelists.tambah',
             'email-whitelists.ubah',
             'email-whitelists.hapus',
+            'log-users.lihat',
         ];
         $rows = array_map(fn ($nama) => [
             'nama_permission' => $nama,

@@ -4,10 +4,21 @@ namespace App\Repositories;
 
 use App\Models\LogUser;
 use App\Models\User;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Carbon;
 
 class LogUserRepository
 {
+    public function paginate(int $perPage = 10, ?string $search = null): LengthAwarePaginator
+    {
+        return LogUser::query()
+            ->with('user:id,name')
+            ->when($search, fn ($q) => $q->whereHas('user', fn ($q) => $q->where('name', 'like', "%{$search}%")))
+            ->latest('logged_in_at')
+            ->paginate($perPage)
+            ->withQueryString();
+    }
+    
  
     public function create(User $user, array $data): LogUser
     {
