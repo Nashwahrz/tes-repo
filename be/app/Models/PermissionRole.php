@@ -4,9 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class RolePermission extends Model
+class PermissionRole extends Model
 {
-    protected $fillable = [
+    protected $table = 'hak_akses.permission_roles';
+
+     protected $fillable = [
         'id_role',
         'id_permission',
     ];

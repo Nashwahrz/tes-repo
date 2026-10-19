@@ -6,17 +6,19 @@ use Illuminate\Database\Eloquent\Model;
 
 class Permission extends Model
 {
+    protected $table = 'hak_akses.permissions';
+
     protected $fillable = [
         'nama_permission',
     ];
 
     public function roles()
     {
-        return $this->belongsToMany(Role::class, 'role_permissions', 'id_permission', 'id_role')->withTimestamps();
+        return $this->belongsToMany(Role::class, 'hak_akses.permission_roles', 'id_permission', 'id_role')->withTimestamps();
     }
 
-    public function rolePermissions()
+    public function permissionRoles()
     {
-        return $this->hasMany(RolePermission::class, 'id_permission');
+        return $this->hasMany(PermissionRole::class, 'id_permission');
     }
 }

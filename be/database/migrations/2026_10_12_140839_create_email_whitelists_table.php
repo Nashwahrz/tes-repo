@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('email_whitelists', function (Blueprint $table) {
+        Schema::create('master.email_whitelists', function (Blueprint $table) {
             $table->id();
             $table->string('domain')->unique();
             $table->boolean('is_active')->default(true);
@@ -25,6 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('email_whitelists');
+        Schema::dropIfExists('master.email_whitelists');
     }
 };

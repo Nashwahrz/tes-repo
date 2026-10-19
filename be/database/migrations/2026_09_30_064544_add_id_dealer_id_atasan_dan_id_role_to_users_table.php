@@ -15,7 +15,7 @@ return new class extends Migration
             $table->foreignId('id_dealer')
                 ->nullable()
                 ->after('id')
-                ->constrained('dealers')
+                ->constrained('master.dealers')
                 ->nullOnDelete();
 
             $table->foreignId('id_atasan')
@@ -26,7 +26,7 @@ return new class extends Migration
 
             $table->foreignId('id_role')
                 ->after('id')
-                ->constrained('roles')
+                ->constrained('hak_akses.roles')
                 ->nullOnDelete();
         });
     }

@@ -36,6 +36,14 @@ class PermissionSeeder extends Seeder
             'email-whitelists.ubah',
             'email-whitelists.hapus',
             'log-users.lihat',
+            'agamas.lihat',
+            'agamas.tambah',
+            'agamas.ubah',
+            'agamas.hapus',
+            'pekerjaans.lihat',
+            'pekerjaans.tambah',
+            'pekerjaans.ubah',
+            'pekerjaans.hapus',
         ];
         $rows = array_map(fn ($nama) => [
             'nama_permission' => $nama,
@@ -43,6 +51,6 @@ class PermissionSeeder extends Seeder
             'updated_at'      => $now,
         ], $daftar);
  
-        DB::table('permissions')->upsert($rows, ['nama_permission'], ['updated_at']);
+        DB::table('hak_akses.permissions')->upsert($rows, ['nama_permission'], ['updated_at']);
     }
 }

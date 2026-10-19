@@ -22,7 +22,7 @@ class AgamaSeeder extends Seeder
         ];
 
         foreach ($data as $name) {
-            DB::table('agamas')->updateOrInsert(
+            DB::table('master.agamas')->updateOrInsert(
                 ['name' => $name],
                 ['created_at' => now(), 'updated_at' => now()]
             );

@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class EmailWhitelist extends Model
 {
+    protected $table = 'master.email_whitelists';
     protected $fillable = [
         'domain',
         'is_active',

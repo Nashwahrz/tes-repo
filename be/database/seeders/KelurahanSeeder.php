@@ -99362,7 +99362,7 @@ class KelurahanSeeder extends Seeder
 
         DB::transaction(function () use ($data) {
             foreach ($data as $kabName => $kecamatans) {
-                $kabId = DB::table('kabupaten_kotas')->where('name', $kabName)->value('id');
+                $kabId = DB::table('master.kabupaten_kotas')->where('name', $kabName)->value('id');
 
                 if (! $kabId) {
                     $this->command?->warn("Kabupaten/kota tidak ditemukan: {$kabName}");
@@ -99370,7 +99370,7 @@ class KelurahanSeeder extends Seeder
                 }
 
                 foreach ($kecamatans as $kecName => $names) {
-                    $parentId = DB::table('kecamatans')
+                    $parentId = DB::table('master.kecamatans')
                         ->where('id_kabupaten_kota', $kabId)
                         ->where('name', $kecName)
                         ->value('id');
@@ -99380,7 +99380,7 @@ class KelurahanSeeder extends Seeder
                         continue;
                     }
 
-                    $existing = DB::table('kelurahans')
+                    $existing = DB::table('master.kelurahans')
                         ->where('id_kecamatan', $parentId)
                         ->pluck('name')
                         ->flip();
@@ -99399,7 +99399,7 @@ class KelurahanSeeder extends Seeder
                     }
 
                     foreach (array_chunk($rows, 500) as $chunk) {
-                        DB::table('kelurahans')->insert($chunk);
+                        DB::table('master.kelurahans')->insert($chunk);
                     }
                 }
             }

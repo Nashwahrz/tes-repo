@@ -3,9 +3,11 @@
 namespace App\Http\Requests;
 
 use App\Http\Responses\EmailWhiteListResponse;
+use App\Models\EmailWhitelist;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
+use Illuminate\Validation\Rule;
 
 class EmailWhiteListRequest extends FormRequest
 {
@@ -25,7 +27,7 @@ class EmailWhiteListRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'domain' => 'required|string|unique:email_whitelists,domain|starts_with:@',
+            'domain' => ['required','string','starts_with:@',Rule::unique(EmailWhitelist::class, 'domain')],    
             'is_active' => 'required|boolean',
             'created_by' => 'required|exists:users,id',
         ];

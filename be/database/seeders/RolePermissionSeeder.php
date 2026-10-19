@@ -35,7 +35,15 @@ class RolePermissionSeeder extends Seeder
                 'email-whitelists.tambah',
                 'email-whitelists.ubah',
                 'email-whitelists.hapus',
-                'log-users.lihat'
+                'log-users.lihat',
+                'agamas.lihat',
+                'agamas.tambah',
+                'agamas.ubah',
+                'agamas.hapus',
+                'pekerjaans.lihat',
+                'pekerjaans.tambah',
+                'pekerjaans.ubah',
+                'pekerjaans.hapus',
             ],
             'Kacab' => [
                 'dealers.lihat',
@@ -75,14 +83,14 @@ class RolePermissionSeeder extends Seeder
             ],
         ];
         foreach ($akses as $namaRole => $daftarPermission) {
-            $idRole = DB::table('roles')->where('name', $namaRole)->value('id');
+            $idRole = DB::table('hak_akses.roles')->where('name', $namaRole)->value('id');
  
             if (! $idRole) {
                 $this->command?->warn("Role '{$namaRole}' tidak ditemukan, dilewati.");
                 continue;
             }
  
-            $idPermissions = DB::table('permissions')
+            $idPermissions = DB::table('hak_akses.permissions')
                 ->whereIn('nama_permission', $daftarPermission)
                 ->pluck('id');
  
@@ -96,7 +104,7 @@ class RolePermissionSeeder extends Seeder
                 'updated_at' => $now,
             ])->all();
  
-            DB::table('role_permissions')->insert($rows);
+            DB::table('hak_akses.permission_roles')->insert($rows);
  
             $this->command?->info("{$namaRole}: {$idPermissions->count()} permission.");
         }   

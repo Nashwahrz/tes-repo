@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use App\Http\Responses\DealerResponse;
+use App\Models\Dealer;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
@@ -33,7 +34,7 @@ class DealerRequest extends FormRequest
                 'required',
                 'string',
                 'max:255',
-               Rule::unique('dealers', 'name')->ignore($dealerId),
+               Rule::unique(Dealer::class, 'name')->ignore($dealerId),
             ],
             'alamat'    => ['required', 'string'],
             'latitude'  => ['required', 'numeric', 'between:-90,90'],

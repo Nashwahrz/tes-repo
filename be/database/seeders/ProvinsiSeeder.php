@@ -50,7 +50,7 @@ class ProvinsiSeeder extends Seeder
         ];
 
         foreach ($data as $name) {
-            DB::table('provinsis')->updateOrInsert(
+            DB::table('master.provinsis')->updateOrInsert(
                 ['name' => $name],
                 ['created_at' => now(), 'updated_at' => now()]
             );

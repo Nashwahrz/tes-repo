@@ -11,10 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('role_menus', function (Blueprint $table) {
+        Schema::create('hak_akses.menu_roles', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('id_role')->constrained('roles')->cascadeOnDelete();
-            $table->foreignId('id_menu')->constrained('menus')->cascadeOnDelete();
+            $table->foreignId('id_role')->constrained('hak_akses.roles')->cascadeOnDelete();
+            $table->foreignId('id_menu')->constrained('hak_akses.menus')->cascadeOnDelete();
             $table->timestamps();
         });
     }
@@ -24,6 +24,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('role_menus');
+        Schema::dropIfExists('hak_akses.menu_roles');
     }
 };

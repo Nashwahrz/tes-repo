@@ -565,9 +565,9 @@ class KabupatenKotaSeeder extends Seeder
         ];
 
         foreach ($data as $name => $parentName) {
-            $parentId = DB::table('provinsis')->where('name', $parentName)->value('id');
+            $parentId = DB::table('master.provinsis')->where('name', $parentName)->value('id');
 
-            DB::table('kabupaten_kotas')->updateOrInsert(
+            DB::table('master.kabupaten_kotas')->updateOrInsert(
                 ['name' => $name],
                 ['id_provinsi' => $parentId, 'created_at' => now(), 'updated_at' => now()]
             );

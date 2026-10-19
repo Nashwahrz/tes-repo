@@ -20,7 +20,7 @@ class EmailWhiteListSeeder extends Seeder
 
         $rows = array_map(fn($item) => $item + ['created_at' => $now, 'updated_at' => $now], $daftar);
 
-        DB::table('email_whitelists')->upsert(
+        DB::table('master.email_whitelists')->upsert(
             $rows,
             ['domain'],
             ['is_active', 'created_by', 'updated_at']

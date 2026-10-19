@@ -4,6 +4,8 @@ namespace App\Http\Requests;
 
 use App\Enums\StatusUser;
 use App\Http\Responses\UserResponse;
+use App\Models\Dealer;
+use App\Models\User;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
@@ -21,9 +23,9 @@ class ActivateUserRequest extends FormRequest
 
         return [
             'id_dealer' => $isDitolak
-                ? ['nullable', 'integer', 'exists:dealers,id']
-                : ['required', 'integer', 'exists:dealers,id'],
-            'id_atasan' => ['nullable', 'integer', 'exists:users,id'],
+                ? ['nullable', 'integer', Rule::exists(Dealer::class, 'id')]
+                : ['required', 'integer', Rule::exists(Dealer::class, 'id')],
+            'id_atasan' => ['nullable', 'integer', Rule::exists(User::class, 'id')],
             'status'    => ['sometimes', Rule::enum(StatusUser::class)],
         ];
     }

@@ -38,7 +38,7 @@ class PekerjaanSeeder extends Seeder
         ];
 
         foreach ($data as $name) {
-            DB::table('pekerjaans')->updateOrInsert(
+            DB::table('master.pekerjaans')->updateOrInsert(
                 ['name' => $name],
                 ['created_at' => now(), 'updated_at' => now()]
             );

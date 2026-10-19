@@ -4,8 +4,9 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class RoleMenu extends Model
+class MenuRole extends Model
 {
+    protected $table = 'hak_akses.menu_roles';
     protected $fillable = [
         'id_role',
         'id_menu',
@@ -21,4 +22,3 @@ class RoleMenu extends Model
         return $this->belongsTo(Menu::class, 'id_menu');
     }
 }
-

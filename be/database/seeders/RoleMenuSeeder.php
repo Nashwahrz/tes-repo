@@ -23,7 +23,9 @@ class RoleMenuSeeder extends Seeder
                 'konsumens',
                 'email-whitelists',
                 'log-aktivitas',
-                'log-users'
+                'log-users',
+                'agamas',
+                'pekerjaans'
             ],
             'Kacab' => [
                 'dashboard',
@@ -58,19 +60,19 @@ class RoleMenuSeeder extends Seeder
         ];
 
         foreach ($akses as $namaRole => $daftarUrl) {
-            $idRole = DB::table('roles')->where('name', $namaRole)->value('id');
+            $idRole = DB::table('hak_akses.roles')->where('name', $namaRole)->value('id');
 
             if (! $idRole) {
                 $this->command?->warn("Role '{$namaRole}' tidak ditemukan, dilewati.");
                 continue;
             }
 
-            $idMenus = DB::table('menus')->whereIn('url', $daftarUrl)->pluck('id');
+            $idMenus = DB::table('hak_akses.menus')->whereIn('url', $daftarUrl)->pluck('id');
 
             if ($idMenus->count() !== count($daftarUrl)) {
                 $this->command?->warn("Ada url menu untuk role '{$namaRole}' yang belum ada di tabel menus.");
             }
-            DB::table('role_menus')->where('id_role', $idRole)->delete();
+            DB::table('hak_akses.menu_roles')->where('id_role', $idRole)->delete();
 
             $rows = $idMenus->map(fn ($idMenu) => [
                 'id_role' => $idRole,
@@ -79,7 +81,7 @@ class RoleMenuSeeder extends Seeder
                 'updated_at' => now(),
             ])->all();
 
-            DB::table('role_menus')->insert($rows);
+            DB::table('hak_akses.menu_roles')->insert($rows);
         }
     }
 }
