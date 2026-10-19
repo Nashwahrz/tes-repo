@@ -97,7 +97,7 @@ class EmailWhiteListController extends Controller
 
             $this->emailWhiteListRepository->delete($email);
 
-            return $this->emailWhiteListResponse->success(null, 'Domain email whitelist berhasil dihapus.');
+            return $this->emailWhiteListResponse->deleted('Domain email whitelist berhasil dihapus.');
         } catch (Throwable $e) {
             Log::error('Gagal menghapus domain email whitelist: ' . $e->getMessage(), [
                 'trace' => $e->getTraceAsString(),

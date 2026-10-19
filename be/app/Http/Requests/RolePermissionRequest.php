@@ -3,9 +3,11 @@
 namespace App\Http\Requests;
 
 use App\Http\Responses\RolePermissionResponse;
+use App\Models\Permission;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
+use Illuminate\Validation\Rule;
 
 class RolePermissionRequest extends FormRequest
 {
@@ -26,7 +28,7 @@ class RolePermissionRequest extends FormRequest
     {
         return [
             'permission_ids'   => ['present', 'array'],
-            'permission_ids.*' => ['integer', 'exists:permissions,id'],
+            'permission_ids.*' => ['integer', Rule::exists(Permission::class, 'id')],
         ];
     }
 

@@ -3,9 +3,11 @@
 namespace App\Http\Requests;
 
 use App\Http\Responses\RoleMenuResponse;
+use App\Models\Menu;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
+use Illuminate\Validation\Rule;
 
 class RoleMenuRequest extends FormRequest
 {
@@ -26,7 +28,7 @@ class RoleMenuRequest extends FormRequest
     {
         return [
             'menu_ids'   => ['present', 'array'],
-            'menu_ids.*' => ['integer', 'exists:menus,id'],
+            'menu_ids.*' => ['integer', Rule::exists(Menu::class, 'id')],
         ];
     }
 

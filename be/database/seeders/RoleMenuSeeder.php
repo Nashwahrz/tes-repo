@@ -25,7 +25,11 @@ class RoleMenuSeeder extends Seeder
                 'log-aktivitas',
                 'log-users',
                 'agamas',
-                'pekerjaans'
+                'pekerjaans',
+                'provinsis',
+                'kabupaten-kotas',
+                'kecamatans',
+                'kelurahans'
             ],
             'Kacab' => [
                 'dashboard',
