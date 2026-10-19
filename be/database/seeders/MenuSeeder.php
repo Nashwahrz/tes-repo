@@ -28,7 +28,10 @@ class MenuSeeder extends Seeder
             ['nama_menu' => 'Log Users Login',  'url' => 'log-users',         'urutan' => 12, 'status' => true],
             ['nama_menu' => 'Daftar Agama',     'url' => 'agamas',            'urutan' => 13, 'status' => true],
             ['nama_menu' => 'Daftar Pekerjaan', 'url' => 'pekerjaans',          'urutan' => 14, 'status' => true],
-            
+            ['nama_menu' => 'Daftar Provinsi','url' => 'provinsis',           'urutan' => 15, 'status' => true],
+            ['nama_menu' => 'Daftar Kabupaten/Kota','url' => 'kabupaten-kotas',           'urutan' => 16, 'status' => true],
+            ['nama_menu' => 'Daftar Kecamatan','url' => 'kecamatans',           'urutan' => 17, 'status' => true],
+            ['nama_menu' => 'Daftar Kelurahan','url' => 'kelurahans',           'urutan' => 18, 'status' => true],
         ];
          $menus = array_map(fn ($m) => $m + [
                 'created_at' => $now,

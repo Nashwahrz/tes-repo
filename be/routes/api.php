@@ -4,10 +4,14 @@ use App\Http\Controllers\AgamaController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DealerController;
 use App\Http\Controllers\EmailWhiteListController;
+use App\Http\Controllers\KabupatenKotaController;
+use App\Http\Controllers\KecamatanController;
+use App\Http\Controllers\KelurahanController;
 use App\Http\Controllers\KonsumenController;
 use App\Http\Controllers\LogUserController;
 use App\Http\Controllers\OtpController;
 use App\Http\Controllers\PekerjaanController;
+use App\Http\Controllers\ProvinsiController;
 use App\Http\Controllers\RoleMenuController;
 use App\Http\Controllers\RolePermissionController;
 use App\Http\Controllers\UserController;
@@ -53,6 +57,35 @@ use Illuminate\Support\Facades\Route;
             Route::get('/{id}', [PekerjaanController::class, 'show'])->middleware('permission:pekerjaans.lihat');
             Route::put('/{id}', [PekerjaanController::class, 'update'])->middleware('permission:pekerjaans.ubah');
             Route::delete('/{id}', [PekerjaanController::class, 'destroy'])->middleware('permission:pekerjaans.hapus');
+        });
+        Route::prefix('provinsis')->middleware('menu.access:provinsis')->group(function () {
+            Route::get('/', [ProvinsiController::class, 'index'])->middleware('permission:provinsis.lihat');
+            Route::post('/', [ProvinsiController::class, 'store'])->middleware('permission:provinsis.tambah');
+            Route::get('/{id}', [ProvinsiController::class, 'show'])->middleware('permission:provinsis.lihat');
+            Route::put('/{id}', [ProvinsiController::class, 'update'])->middleware('permission:provinsis.ubah');
+            Route::delete('/{id}', [ProvinsiController::class, 'destroy'])->middleware('permission:provinsis.hapus');
+        });
+         Route::prefix('kabupaten-kotas')->middleware('menu.access:kabupaten-kotas')->group(function () {
+            Route::get('/', [KabupatenKotaController::class, 'index'])->middleware('permission:kabupaten-kotas.lihat');
+            Route::post('/', [KabupatenKotaController::class, 'store'])->middleware('permission:kabupaten-kotas.tambah');
+            Route::get('/{id}', [KabupatenKotaController::class, 'show'])->middleware('permission:kabupaten-kotas.lihat');
+            Route::put('/{id}', [KabupatenKotaController::class, 'update'])->middleware('permission:kabupaten-kotas.ubah');
+            Route::delete('/{id}', [KabupatenKotaController::class, 'destroy'])->middleware('permission:kabupaten-kotas.hapus');
+        });
+
+        Route::prefix('kecamatans')->middleware('menu.access:kecamatans')->group(function () {
+            Route::get('/', [KecamatanController::class, 'index'])->middleware('permission:kecamatans.lihat');
+            Route::post('/', [KecamatanController::class, 'store'])->middleware('permission:kecamatans.tambah');
+            Route::get('/{id}', [KecamatanController::class, 'show'])->middleware('permission:kecamatans.lihat');
+            Route::put('/{id}', [KecamatanController::class, 'update'])->middleware('permission:kecamatans.ubah');
+            Route::delete('/{id}', [KecamatanController::class, 'destroy'])->middleware('permission:kecamatans.hapus');
+        });
+        Route::prefix('kelurahans')->middleware('menu.access:kelurahans')->group(function () {
+            Route::get('/', [KelurahanController::class, 'index'])->middleware('permission:kelurahans.lihat');
+            Route::post('/', [KelurahanController::class, 'store'])->middleware('permission:kelurahans.tambah');
+            Route::get('/{id}', [KelurahanController::class, 'show'])->middleware('permission:kelurahans.lihat');
+            Route::put('/{id}', [KelurahanController::class, 'update'])->middleware('permission:kelurahans.ubah');
+            Route::delete('/{id}', [KelurahanController::class, 'destroy'])->middleware('permission:kelurahans.hapus');
         });
 
         Route::prefix('users')->middleware('menu.access:users')->group(function () {
