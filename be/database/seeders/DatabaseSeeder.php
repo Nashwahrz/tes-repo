@@ -17,6 +17,12 @@ class DatabaseSeeder extends Seeder
             RolePermissionSeeder::class,
             SuperAdminSeeder::class,
             EmailWhiteListSeeder::class,
+            PekerjaanSeeder::class,
+            AgamaSeeder::class,
+            ProvinsiSeeder::class,
+            KabupatenKotaSeeder::class,
+            KecamatanSeeder::class,
+            KelurahanSeeder::class,
         ]);
     }
 }
