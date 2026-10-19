@@ -4,7 +4,7 @@ import Toast from './Toast';
 import Loading, { Spin } from './Loading';
 import Pager from './Pager';
 import IconButton from './IconButton';
-import { getAtasanOptions, getLoginLogs, updateUserStatus } from '../../../api/authServices';
+import { getAtasanOptions, updateUserStatus } from '../../../api/authServices';
 
 const TABS = [
   { key: 'semua', label: 'Semua', empty: 'Belum ada akun.' },
@@ -12,15 +12,7 @@ const TABS = [
   { key: 'aktif', label: 'Aktif', empty: 'Belum ada akun aktif.' },
   { key: 'nonaktif', label: 'Nonaktif', empty: 'Tidak ada akun nonaktif.' },
   { key: 'ditolak', label: 'Ditolak', empty: 'Tidak ada akun yang ditolak.' },
-  { key: 'log', label: 'Log Akses' },
 ];
-
-// Tab Log Akses menampilkan log login (log_users) dari GET /log-users
-const SHOW_LOG_TAB = true;
-
-const waktu = (t) => (t ? new Date(t).toLocaleString('id-ID', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '-');
-const lokasi = (l) => [l.city, l.region, l.country].filter(Boolean).join(', ');
-const perangkat = (l) => [l.browser, l.platform, l.device].filter(Boolean).join(' · ');
 
 // Aksi per tab: [label tombol, status tujuan, kata kerja untuk pesan sukses]
 const ACTIONS = {
@@ -59,16 +51,6 @@ function AccUserPanel({ users: allUsers, dealers, scopeNote, canActivate, loadin
   const [busyId, setBusyId] = useState(null);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  // Log login dimuat saat tab Log Akses pertama dibuka: status 'idle' | 'loading' | 'ready' | 'unavailable' | 'error'
-  const [logs, setLogs] = useState({ status: 'idle', rows: [] });
-
-  const loadLogs = () => {
-    setLogs((l) => ({ ...l, status: 'loading' }));
-    getLoginLogs()
-      .then((rows) => setLogs({ status: 'ready', rows: Array.isArray(rows) ? rows : [] }))
-      .catch((err) => setLogs({ status: [404, 405].includes(err.response?.status) ? 'unavailable' : 'error', rows: [] }));
-  };
-
   // Terbaru di atas: BE tidak mengurutkan, id auto-increment mengikuti urutan akun masuk
   // allUsers sudah hanya berisi akun dengan email terverifikasi (disaring di DashboardPage)
   const verified = dealerFilter === 'none'
@@ -87,22 +69,15 @@ function AccUserPanel({ users: allUsers, dealers, scopeNote, canActivate, loadin
     setPage(1);
     setError('');
     setSuccess('');
-    if (key === 'log' && (logs.status === 'idle' || logs.status === 'error')) loadLogs();
   };
 
-  // Log terbaru di atas, dicari lewat nama/email pengguna, IP, lokasi, atau perangkat
-  const visibleLogs = logs.rows
-    .toSorted((a, b) => new Date(b.logged_in_at) - new Date(a.logged_in_at))
-    .filter((l) => !q || `${l.user?.name ?? ''} ${l.user?.email ?? ''} ${l.ip_address} ${lokasi(l)} ${perangkat(l)}`.toLowerCase().includes(q));
-
-  // BE mengirim semua akun/log sekaligus, jadi paginasi dilakukan di sisi klien agar tabel tetap ringan
+  // BE mengirim semua akun sekaligus, jadi paginasi dilakukan di sisi klien agar tabel tetap ringan
   const pageOf = (list) => {
     const lastPage = Math.max(Math.ceil(list.length / PAGE_SIZE), 1);
     const current = Math.min(page, lastPage);
     return { current, lastPage, items: list.slice((current - 1) * PAGE_SIZE, current * PAGE_SIZE) };
   };
   const userPage = pageOf(users);
-  const logPage = pageOf(visibleLogs);
 
   // Daftar atasan dimuat ulang saat popup aktivasi dibuka atau dealer diganti
   const pickUserId = pick?.user.id;
@@ -161,12 +136,12 @@ function AccUserPanel({ users: allUsers, dealers, scopeNote, canActivate, loadin
       <div className="dash-card-head">
         <h3>
           <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 12l2 2 4-4" /><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z" /></svg>
-          {tab === 'log' ? 'Log Akses' : 'Pengguna & Akses'}
+          Pengguna & Akses
         </h3>
-        <span className="dash-badge">{tab === 'log' ? `${visibleLogs.length} log` : loading ? '...' : `${users.length} akun`}</span>
+        <span className="dash-badge">{loading ? '...' : `${users.length} akun`}</span>
       </div>
       <p className="dash-card-desc">
-        {tab === 'log' ? 'Riwayat login pengguna beserta alamat IP, lokasi, dan perangkat.' : canActivate ? 'Setujui, tolak, atau atur akun pengguna yang mendaftar.' : 'Daftar akun pengguna yang mendaftar.'}
+        {canActivate ? 'Setujui, tolak, atau atur akun pengguna yang mendaftar.' : 'Daftar akun pengguna yang mendaftar.'}
         {scopeNote && ` ${scopeNote} Akun yang belum memiliki dealer hanya terlihat oleh Super Admin.`}
       </p>
 
@@ -174,82 +149,28 @@ function AccUserPanel({ users: allUsers, dealers, scopeNote, canActivate, loadin
         <input
           className="dash-input dash-input-search"
           type="search"
-          placeholder={tab === 'log' ? 'Cari pengguna, IP, lokasi, atau perangkat...' : 'Cari nama, email, atau role...'}
+          placeholder="Cari nama, email, atau role..."
           value={query}
           onChange={(e) => { setQuery(e.target.value); setPage(1); }}
         />
-        {tab === 'log' ? (
-          <button className="dash-btn outline acc-log-btn" onClick={() => switchTab('semua')}>← Kembali ke Akun</button>
-        ) : (
-          <>
-            {dealers.length > 0 && (
-              <select className="dash-input dash-select-filter" value={dealerFilter} aria-label="Filter dealer" onChange={(e) => { setDealerFilter(e.target.value); setPage(1); }}>
-                <option value="">Semua dealer</option>
-                {dealers.map((d) => <option key={d.id} value={d.id}>{d.name}</option>)}
-                <option value="none">Tanpa dealer</option>
-              </select>
-            )}
-            <select className="dash-input dash-select-filter acc-filter" value={tab} onChange={(e) => switchTab(e.target.value)} aria-label="Filter status akun">
-              {TABS.filter((t) => t.key !== 'log').map((t) => (
-                <option key={t.key} value={t.key}>{t.key === 'semua' ? 'Semua status' : t.label} ({counts[t.key] ?? 0})</option>
-              ))}
-            </select>
-            {SHOW_LOG_TAB && (
-              <button className="dash-btn outline acc-log-btn" onClick={() => switchTab('log')}>
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></svg>
-                Log Akses
-              </button>
-            )}
-          </>
+        {dealers.length > 0 && (
+          <select className="dash-input dash-select-filter" value={dealerFilter} aria-label="Filter dealer" onChange={(e) => { setDealerFilter(e.target.value); setPage(1); }}>
+            <option value="">Semua dealer</option>
+            {dealers.map((d) => <option key={d.id} value={d.id}>{d.name}</option>)}
+            <option value="none">Tanpa dealer</option>
+          </select>
         )}
+        <select className="dash-input dash-select-filter acc-filter" value={tab} onChange={(e) => switchTab(e.target.value)} aria-label="Filter status akun">
+          {TABS.map((t) => (
+            <option key={t.key} value={t.key}>{t.key === 'semua' ? 'Semua status' : t.label} ({counts[t.key] ?? 0})</option>
+          ))}
+        </select>
       </div>
 
       <Toast kind="error" message={error} onClose={() => setError('')} />
       <Toast kind="success" message={success} onClose={() => setSuccess('')} />
 
-      {tab === 'log' ? (
-        logs.status === 'loading' || logs.status === 'idle' ? (
-          <Loading rows={5} />
-        ) : logs.status === 'unavailable' ? (
-          <p className="dash-empty">Log akses belum tersedia dari server (endpoint <code>/log-users</code> belum ada di backend).</p>
-        ) : logs.status === 'error' ? (
-          <p className="dash-empty">Gagal memuat log akses. <button className="dash-btn soft sm" onClick={loadLogs}>Coba lagi</button></p>
-        ) : visibleLogs.length === 0 ? (
-          <p className="dash-empty">{q ? 'Log tidak ditemukan.' : 'Belum ada data log akses.'}</p>
-        ) : (
-          <>
-          <div className="dash-table-wrap">
-            <table className="dash-table">
-              <thead>
-                <tr>
-                  <th>Pengguna</th>
-                  <th>Lokasi</th>
-                  <th>Perangkat</th>
-                  <th>Waktu</th>
-                </tr>
-              </thead>
-              <tbody>
-                {logPage.items.map((l) => (
-                  <tr key={l.id}>
-                    <td>
-                      <strong className="dash-cell-name">{l.user?.name ?? `Pengguna #${l.id_user}`}</strong>
-                      {l.user?.email && <small className="dash-note">{l.user.email}</small>}
-                    </td>
-                    <td>
-                      {lokasi(l) || '-'}
-                      <small className="dash-cell-sub">{l.ip_address}</small>
-                    </td>
-                    <td>{perangkat(l) || '-'}</td>
-                    <td>{waktu(l.logged_in_at)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          <Pager page={logPage.current} lastPage={logPage.lastPage} total={visibleLogs.length} unit="log" onPage={setPage} />
-          </>
-        )
-      ) : loading ? (
+      {loading ? (
         <Loading rows={5} />
       ) : users.length === 0 ? (
         <p className="dash-empty">{q ? 'Akun tidak ditemukan.' : current.empty}</p>
@@ -307,7 +228,7 @@ function AccUserPanel({ users: allUsers, dealers, scopeNote, canActivate, loadin
           </table>
         </div>
       )}
-      {tab !== 'log' && !loading && users.length > 0 && (
+      {!loading && users.length > 0 && (
         <Pager page={userPage.current} lastPage={userPage.lastPage} total={users.length} unit="akun" onPage={setPage} />
       )}
 

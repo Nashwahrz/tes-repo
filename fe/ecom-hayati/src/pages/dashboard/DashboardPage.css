@@ -1601,3 +1601,6 @@ select.dash-input, .dash-select {
   }
 }
 
+.ra-check { width: 16px; height: 16px; accent-color: var(--accent); cursor: pointer; }
+.dash-tabs.wide { display: flex; padding: 6px; border-radius: 12px; }
+.dash-tabs.wide .dash-tab { padding: 10px 24px; font-size: 13px; border-radius: 10px; }

@@ -13,6 +13,7 @@ import './DashboardPage.css';
 const AccUserPanel = lazy(() => import('./components/AccUserPanel'));
 const DealerPanel = lazy(() => import('./components/DealerPanel'));
 const KonsumenPanel = lazy(() => import('./components/KonsumenPanel'));
+const LoginLogPanel = lazy(() => import('./components/LoginLogPanel'));
 const KonsumenLogPanel = lazy(() => import('./components/KonsumenLogPanel'));
 const PenjualanPanel = lazy(() => import('./components/PenjualanPanel'));
 const EmailWhitelistPanel = lazy(() => import('./components/EmailWhitelistPanel'));
@@ -252,6 +253,7 @@ function DashboardPage() {
       .then((t) => { setKonsumenStats((s) => ({ ...s, ...t })); markSeen(MENU_KONSUMEN, konsumenSig(t)); })
       .catch(() => {});
   };
+  const [accTab, setAccTab] = useState('akun'); // 'akun' | 'log'
   const [konsumenTab, setKonsumenTab] = useState('data'); // 'data' | 'log'
   const [konsumenKey, setKonsumenKey] = useState(0); // naik = panel konsumen dimuat ulang
 
@@ -426,7 +428,14 @@ function DashboardPage() {
         <div className="dash-content">
           {menu === MENU_ACC && canAcc && (
             <div className="dash-card">
+              {can('log-users.lihat') && (
+                <div className="dash-tabs wide">
+                  <button type="button" className={`dash-tab${accTab === 'akun' ? ' active' : ''}`} onClick={() => setAccTab('akun')}>Akun Pengguna</button>
+                  <button type="button" className={`dash-tab${accTab === 'log' ? ' active' : ''}`} onClick={() => setAccTab('log')}>Log Login</button>
+                </div>
+              )}
               <Suspense fallback={<Loading rows={4} />}>
+                {accTab === 'log' && can('log-users.lihat') ? <LoginLogPanel /> : (
                 <AccUserPanel
                   users={users}
                   dealers={dealers}
@@ -439,6 +448,7 @@ function DashboardPage() {
                     markSeen(MENU_ACC, accSig(next));
                   }}
                 />
+                )}
               </Suspense>
             </div>
           )}
@@ -480,7 +490,7 @@ function DashboardPage() {
           {menu === MENU_KONSUMEN && canKonsumen && (
             <div className="dash-card">
               {can('konsumens.logs') && (
-                <div className="dash-tabs">
+                <div className="dash-tabs wide">
                   <button type="button" className={`dash-tab${konsumenTab === 'data' ? ' active' : ''}`} onClick={() => setKonsumenTab('data')}>Data Konsumen</button>
                   <button type="button" className={`dash-tab${konsumenTab === 'log' ? ' active' : ''}`} onClick={() => setKonsumenTab('log')}>Riwayat Aktivitas</button>
                 </div>

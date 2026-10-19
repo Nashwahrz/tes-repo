@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react';
 import Toast from './Toast';
 import Loading, { Spin } from './Loading';
+import Pager from './Pager';
 import {
   getRoleMenus, updateRoleMenus, getRolePermissions, updateRolePermissions, errorMessage,
 } from '../../../api/authServices';
@@ -14,6 +15,8 @@ const UNUSED_MENU_URLS = [
 ];
 
 // Konfigurasi per tab; field BE: roles[].menus / roles[].permissions
+const PAGE_SIZE = 10;
+
 const TABS = {
   menu: {
     label: 'Menu',
@@ -42,6 +45,8 @@ function RoleAccessPanel({ canMenu, canPermission, onSaved }) {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [confirming, setConfirming] = useState(false);
+  const [query, setQuery] = useState('');
+  const [page, setPage] = useState(1);
 
   const cfg = TABS[tab];
   const idsOf = (role) => (role[cfg.itemsKey] ?? []).map((i) => i.id);
@@ -64,6 +69,8 @@ function RoleAccessPanel({ canMenu, canPermission, onSaved }) {
   const switchTab = (k) => {
     setTab(k);
     setLoading(true);
+    setQuery('');
+    setPage(1);
     setError('');
     setSuccess('');
   };
@@ -103,20 +110,18 @@ function RoleAccessPanel({ canMenu, canPermission, onSaved }) {
 
   const role = data?.roles.find((r) => r.id === roleId);
   const items = (data?.[cfg.itemsKey] ?? []).filter((i) => !UNUSED_MENU_URLS.includes(i.url));
+  const q = query.trim().toLowerCase();
+  const shown = q ? items.filter((i) => cfg.nameOf(i).toLowerCase().includes(q)) : items;
+  const lastPage = Math.max(Math.ceil(shown.length / PAGE_SIZE), 1);
+  const current = Math.min(page, lastPage);
+  const pageItems = shown.slice((current - 1) * PAGE_SIZE, current * PAGE_SIZE);
+  const activeCount = items.filter((i) => selected.includes(i.id)).length;
   const dirty = role && [...selected].sort().join() !== idsOf(role).sort().join();
 
   return (
     <div>
-      <div className="dash-card-head">
-        <h3>
-          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 12l2 2 4-4" /><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z" /></svg>
-          Role &amp; Hak Akses
-        </h3>
-      </div>
-      <p className="dash-card-desc">Atur menu dan permission yang dimiliki tiap role.</p>
-
       {tabs.length > 1 && (
-        <div className="dash-tabs">
+        <div className="dash-tabs wide">
           {tabs.map((k) => (
             <button key={k} className={`dash-tab${tab === k ? ' active' : ''}`} onClick={() => switchTab(k)}>
               {TABS[k].label}
@@ -124,6 +129,15 @@ function RoleAccessPanel({ canMenu, canPermission, onSaved }) {
           ))}
         </div>
       )}
+
+      <div className="dash-card-head">
+        <h3>
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 12l2 2 4-4" /><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z" /></svg>
+          Role &amp; Hak Akses
+        </h3>
+        {data && <span className="dash-badge">{activeCount} dari {items.length} {cfg.label.toLowerCase()}</span>}
+      </div>
+      <p className="dash-card-desc">Atur menu dan permission yang dimiliki tiap role.</p>
 
       <Toast kind="error" message={error} onClose={() => setError('')} />
       <Toast kind="success" message={success} onClose={() => setSuccess('')} />
@@ -134,40 +148,52 @@ function RoleAccessPanel({ canMenu, canPermission, onSaved }) {
         <p className="dash-empty">Belum ada data role.</p>
       ) : (
         <>
-          <div className="dash-form-group">
-            <label htmlFor="role-select">Role</label>
-            <select id="role-select" className="dash-select" value={roleId ?? ''} onChange={(e) => pickRole(Number(e.target.value))}>
+          <div className="dash-toolbar">
+            <input
+              className="dash-input dash-input-search"
+              type="search"
+              placeholder={`Cari ${cfg.label.toLowerCase()}...`}
+              value={query}
+              onChange={(e) => { setQuery(e.target.value); setPage(1); }}
+            />
+            <select className="dash-input dash-select-filter" value={roleId ?? ''} aria-label="Pilih role" onChange={(e) => { pickRole(Number(e.target.value)); setPage(1); }}>
               {data.roles.map((r) => (
                 <option key={r.id} value={r.id}>{r.name}</option>
               ))}
             </select>
           </div>
 
-          <div className="dash-table-wrap">
-            <table className="dash-table">
-              <thead>
-                <tr>
-                  <th style={{ width: 60 }}>Akses</th>
-                  <th>{cfg.label}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {items.map((i) => (
-                  <tr key={i.id}>
-                    <td>
-                      <input
-                        type="checkbox"
-                        id={`${tab}-${i.id}`}
-                        checked={selected.includes(i.id)}
-                        onChange={() => toggle(i.id)}
-                      />
-                    </td>
-                    <td><label htmlFor={`${tab}-${i.id}`}>{cfg.nameOf(i)}</label></td>
+          {shown.length === 0 ? (
+            <p className="dash-empty">{q ? `${cfg.label} tidak ditemukan.` : `Belum ada ${cfg.label.toLowerCase()}.`}</p>
+          ) : (
+            <div className="dash-table-wrap">
+              <table className="dash-table">
+                <thead>
+                  <tr>
+                    <th>{cfg.label}</th>
+                    <th>Status</th>
+                    <th className="col-aksi">Akses</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {pageItems.map((i) => {
+                    const on = selected.includes(i.id);
+                    return (
+                      <tr key={i.id}>
+                        <td><label htmlFor={`${tab}-${i.id}`}><strong className="dash-cell-name">{cfg.nameOf(i)}</strong></label></td>
+                        <td><span className={`dash-status ${on ? 'aktif' : 'nonaktif'}`}>{on ? 'Diizinkan' : 'Tidak'}</span></td>
+                        <td className="col-aksi">
+                          <input type="checkbox" className="ra-check" id={`${tab}-${i.id}`} checked={on} onChange={() => toggle(i.id)} />
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+
+          <Pager page={current} lastPage={lastPage} total={shown.length} unit={cfg.label.toLowerCase()} onPage={setPage} />
 
           <div className="dash-modal-actions">
             <button className="dash-btn solid" onClick={() => setConfirming(true)} disabled={saving || !dirty}>

@@ -138,11 +138,9 @@ export const scanKtp = async (file) => {
 export const ktpUrl = (konsumen) =>
   (konsumen?.foto_ktp_url ? `${api.defaults.baseURL.replace(/\/api\/?$/, '')}${konsumen.foto_ktp_url}` : '');
 
-// Log login pengguna (tabel log_users). BE mencatat log saat login, tetapi belum menyediakan endpoint pembacanya;
-// FE memakai GET /log-users. Bentuk data per baris:
-// { id, id_user, user?: { name, email }, ip_address, browser, platform, device, city, region, country,
-//   latitude, longitude, logged_in_at }
-export const getLoginLogs = async () => (await api.get('/log-users')).data.data;
+// Log login pengguna (BE: GET /log-users, permission log-users.lihat); dipaginasi 10 data per halaman, semua halaman digabung.
+// Baris: { id, id_user, user?: { id, name }, ip_address, browser, platform, device, city, region, country, latitude, longitude, logged_in_at }
+export const getLoginLogs = () => fetchAllPages('/log-users');
 
 // Menu & permission milik user yang sedang login
 export const getUserMenus = async () => (await api.get('/role-menus/user-menus')).data.data;
