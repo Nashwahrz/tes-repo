@@ -1,11 +1,13 @@
 <?php
 
+use App\Http\Controllers\AgamaController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DealerController;
 use App\Http\Controllers\EmailWhiteListController;
 use App\Http\Controllers\KonsumenController;
 use App\Http\Controllers\LogUserController;
 use App\Http\Controllers\OtpController;
+use App\Http\Controllers\PekerjaanController;
 use App\Http\Controllers\RoleMenuController;
 use App\Http\Controllers\RolePermissionController;
 use App\Http\Controllers\UserController;
@@ -37,6 +39,20 @@ use Illuminate\Support\Facades\Route;
             Route::get('/{id}', [DealerController::class, 'show'])->middleware('permission:dealers.lihat');
             Route::put('/{id}', [DealerController::class, 'update'])->middleware('permission:dealers.ubah');
             Route::delete('/{id}', [DealerController::class, 'destroy'])->middleware('permission:dealers.hapus');
+        });
+        Route::prefix('agamas')->middleware('menu.access:agamas')->group(function () {
+            Route::get('/', [AgamaController::class, 'index'])->middleware('permission:agamas.lihat');
+            Route::post('/', [AgamaController::class, 'store'])->middleware('permission:agamas.tambah');
+            Route::get('/{id}', [AgamaController::class, 'show'])->middleware('permission:agamas.lihat');
+            Route::put('/{id}', [AgamaController::class, 'update'])->middleware('permission:agamas.ubah');
+            Route::delete('/{id}', [AgamaController::class, 'destroy'])->middleware('permission:agamas.hapus');
+        });
+        Route::prefix('pekerjaans')->middleware('menu.access:pekerjaans')->group(function () {
+            Route::get('/', [PekerjaanController::class, 'index'])->middleware('permission:pekerjaans.lihat');
+            Route::post('/', [PekerjaanController::class, 'store'])->middleware('permission:pekerjaans.tambah');
+            Route::get('/{id}', [PekerjaanController::class, 'show'])->middleware('permission:pekerjaans.lihat');
+            Route::put('/{id}', [PekerjaanController::class, 'update'])->middleware('permission:pekerjaans.ubah');
+            Route::delete('/{id}', [PekerjaanController::class, 'destroy'])->middleware('permission:pekerjaans.hapus');
         });
 
         Route::prefix('users')->middleware('menu.access:users')->group(function () {

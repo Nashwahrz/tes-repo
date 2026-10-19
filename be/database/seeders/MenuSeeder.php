@@ -26,13 +26,16 @@ class MenuSeeder extends Seeder
             ['nama_menu' => 'Email WhiteList',  'url' => 'email-whitelists',  'urutan' => 10, 'status' => true],
             ['nama_menu' => 'Log Aktivitas',    'url' => 'log-aktivitas',     'urutan' => 11, 'status' => true],
             ['nama_menu' => 'Log Users Login',  'url' => 'log-users',         'urutan' => 12, 'status' => true],
+            ['nama_menu' => 'Daftar Agama',     'url' => 'agamas',            'urutan' => 13, 'status' => true],
+            ['nama_menu' => 'Daftar Pekerjaan', 'url' => 'pekerjaans',          'urutan' => 14, 'status' => true],
+            
         ];
          $menus = array_map(fn ($m) => $m + [
                 'created_at' => $now,
                 'updated_at' => $now,
             ], $menus);
 
-            DB::table('menus')->upsert(
+            DB::table('hak_akses.menus')->upsert(
                 $menus,
                 ['url'],                                   
                 ['nama_menu', 'urutan', 'status', 'updated_at']

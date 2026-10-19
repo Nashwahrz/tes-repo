@@ -11,6 +11,7 @@ use Closure;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Password;
 
 class RegisterRequest extends FormRequest
@@ -28,7 +29,7 @@ class RegisterRequest extends FormRequest
             'password'  => ['required', 'string', 'confirmed',Password::min(8)->mixedCase()->numbers()->symbols(),],
             // 'id_dealer' => ['nullable', 'exists:dealers,id'],
             // 'id_atasan' => ['nullable', 'exists:users,id'],
-            'id_role'   => ['required','exists:roles,id',new UniqueSuperAdminRole()],
+            'id_role'   => ['required',Rule::exists(Role::class, 'id'),new UniqueSuperAdminRole()],
         ];
     }
     

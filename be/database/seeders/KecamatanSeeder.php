@@ -8331,14 +8331,14 @@ class KecamatanSeeder extends Seeder
 
         DB::transaction(function () use ($data) {
             foreach ($data as $parentName => $names) {
-                $parentId = DB::table('kabupaten_kotas')->where('name', $parentName)->value('id');
+                $parentId = DB::table('master.kabupaten_kotas')->where('name', $parentName)->value('id');
 
                 if (! $parentId) {
                     $this->command?->warn("Kabupaten/kota tidak ditemukan: {$parentName}");
                     continue;
                 }
 
-                $existing = DB::table('kecamatans')
+                $existing = DB::table('master.kecamatans')
                     ->where('id_kabupaten_kota', $parentId)
                     ->pluck('name')
                     ->flip();
@@ -8357,7 +8357,7 @@ class KecamatanSeeder extends Seeder
                 }
 
                 foreach (array_chunk($rows, 500) as $chunk) {
-                    DB::table('kecamatans')->insert($chunk);
+                    DB::table('master.kecamatans')->insert($chunk);
                 }
             }
         });

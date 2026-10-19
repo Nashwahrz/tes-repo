@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class Menu extends Model
 {
+    protected $table = 'hak_akses.menus';
+
     protected $fillable = [
         'nama_menu',
         'url',
@@ -20,12 +22,12 @@ class Menu extends Model
 
     public function roles()
     {
-        return $this->belongsToMany(Role::class, 'role_menus', 'id_role', 'id_menu')->withTimestamps();
+        return $this->belongsToMany(Role::class, 'hak_akses.menu_roles', 'id_menu', 'id_role')->withTimestamps();
     }
 
-    public function roleMenus()
+    public function menuRoles()
     {
-        return $this->hasMany(RoleMenu::class, 'id_menu');
+        return $this->hasMany(MenuRole::class, 'id_menu');
     }
 }
 

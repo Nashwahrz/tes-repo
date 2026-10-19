@@ -12,6 +12,7 @@ use Spatie\Activitylog\Traits\LogsActivity;
 class Dealer extends Model
 {
     use LogsActivity;
+    protected $table = 'master.dealers';
 
     public function getActivitylogOptions(): LogOptions
     {

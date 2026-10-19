@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('menus', function (Blueprint $table) {
+        Schema::create('hak_akses.menus', function (Blueprint $table) {
             $table->id();
             $table->string('nama_menu');
             $table->string('url')->unique();
@@ -26,6 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('menus');
+        Schema::dropIfExists('hak_akses.menus');
     }
 };
