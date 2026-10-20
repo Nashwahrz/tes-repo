@@ -17,10 +17,11 @@ class KelurahanController extends Controller
         private KelurahanResponse $kelurahanResponse
     ) {}
 
-    public function index()
+    public function index(Request $request)
     {
         try {
-            $kelurahans = $this->kelurahanRepository->paginate();
+            $perPage = min(max((int) $request->query('per_page', 10), 1), 100);
+            $kelurahans = $this->kelurahanRepository->paginate($perPage, $request->query('search'));
             return $this->kelurahanResponse->list($kelurahans);
         } catch (Throwable $e) {
             Log::error('Gagal mengambil data kelurahan: ' . $e->getMessage(), [

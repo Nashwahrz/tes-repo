@@ -37,7 +37,13 @@ class RoleMenuSeeder extends Seeder
                 'daftar-konsumen',
                 'penjualan',
                 'laporan-penjualan',
-                'konsumens'
+                'konsumens',
+                'agamas',
+                'pekerjaans',
+                'provinsis',
+                'kabupaten-kotas',
+                'kecamatans',
+                'kelurahans'
             ],
             'ADH' => [
                 'dashboard',
@@ -47,19 +53,37 @@ class RoleMenuSeeder extends Seeder
                 'laporan-penjualan',
                 'users',
                 'konsumens',
+                'agamas',
+                'pekerjaans',
+                'provinsis',
+                'kabupaten-kotas',
+                'kecamatans',
+                'kelurahans'
             ],
             'ME' => [
                 'dashboard',
                 'daftar-motor',
                 'daftar-konsumen',
                 'penjualan',
-                'konsumens'
+                'konsumens',
+                'agamas',
+                'pekerjaans',
+                'provinsis',
+                'kabupaten-kotas',
+                'kecamatans',
+                'kelurahans'
             ],
             'Kasir' => [
                 'dashboard',
                 'daftar-konsumen',
                 'penjualan',
-                'konsumens'
+                'konsumens',
+                'agamas',
+                'pekerjaans',
+                'provinsis',
+                'kabupaten-kotas',
+                'kecamatans',
+                'kelurahans'
             ],
         ];
 

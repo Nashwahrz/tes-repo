@@ -17,10 +17,11 @@ class AgamaController extends Controller
         private AgamaResponse $agamaResponse
     ) {}
 
-    public function index()
+    public function index(Request $request)
     {
         try {
-            $agamas = $this->agamaRepository->paginate();
+            $perPage = min(max((int) $request->query('per_page', 10), 1), 100);
+            $agamas = $this->agamaRepository->paginate($perPage, $request->query('search'));
             return $this->agamaResponse->list($agamas);
         } catch (Throwable $e) {
             Log::error('Gagal mengambil data agama: ' . $e->getMessage(), [

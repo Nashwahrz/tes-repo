@@ -78,8 +78,8 @@ class KonsumenRepository
         return Konsumen::query()
             ->when($search, function ($q) use ($search) {
                 $q->where(function ($q) use ($search) {
-                    $q->where('name', 'like', "%{$search}%")
-                    ->orWhere('nik', 'like', "%{$search}%");
+                    $q->where('name', 'ILIKE', "%{$search}%")
+                    ->orWhere('nik', 'ILIKE', "%{$search}%");
                 });
             })
             ->latest('id')

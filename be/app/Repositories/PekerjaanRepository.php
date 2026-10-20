@@ -35,7 +35,7 @@ class PekerjaanRepository
     public function paginate(int $perPage = 10, ?string $search = null): LengthAwarePaginator
     {
         return Pekerjaan::query()
-            ->when($search, fn ($q) => $q->where('name', 'like', "%{$search}%"))
+            ->when($search, fn ($q) => $q->where('name', 'ILIKE', "%{$search}%"))
             ->latest('id')
             ->paginate($perPage)
             ->withQueryString();

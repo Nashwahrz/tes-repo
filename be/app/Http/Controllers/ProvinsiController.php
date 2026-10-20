@@ -17,10 +17,11 @@ class ProvinsiController extends Controller
         private ProvinsiResponse $provinsiResponse
     ) {}
 
-    public function index()
+    public function index(Request $request)
     {
         try {
-            $provinsis = $this->provinsiRepository->paginate();
+            $perPage = min(max((int) $request->query('per_page', 10), 1), 100);
+            $provinsis = $this->provinsiRepository->paginate($perPage, $request->query('search'));
             return $this->provinsiResponse->list($provinsis);
         } catch (Throwable $e) {
             Log::error('Gagal mengambil data provinsi: ' . $e->getMessage(), [

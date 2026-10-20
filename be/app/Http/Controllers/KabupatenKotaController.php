@@ -17,10 +17,11 @@ class KabupatenKotaController extends Controller
         private KabupatenKotaResponse $kabupatenKotaResponse
     ) {}
 
-    public function index()
+    public function index(Request $request)
     {
         try {
-            $kabupatenKotas = $this->kabupatenKotaRepository->paginate();
+            $perPage = min(max((int) $request->query('per_page', 10), 1), 100);
+            $kabupatenKotas = $this->kabupatenKotaRepository->paginate($perPage, $request->query('search'));
             return $this->kabupatenKotaResponse->list($kabupatenKotas);
         } catch (Throwable $e) {
             Log::error('Gagal mengambil data kabupaten kota: ' . $e->getMessage(), [
