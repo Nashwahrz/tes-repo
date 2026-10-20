@@ -2,7 +2,7 @@
 import { lazy, Suspense, useEffect, useRef, useState } from 'react';
 import { getUsers, getDealers, getKonsumenTotal, getKonsumenStatusTotals, getUserMenus, getUserPermissions } from '../../api/authServices';
 import {
-  MENU_HOME, MENU_PRODUK, MENU_PENJUALAN, MENU_DEALER, MENU_KONSUMEN, MENU_ACC, MENU_ROLE, MENU_WHITELIST, MENU_PATHS, menuFromPath,
+  MENU_HOME, MENU_PRODUK, MENU_PENJUALAN, MENU_DEALER, MENU_KONSUMEN, MENU_ACC, MENU_ROLE, MENU_WHITELIST, MENU_MASTER, MENU_PATHS, menuFromPath,
 } from './menuPaths';
 import Loading from './components/Loading';
 import { SALES_PROTOTYPE, salesFor, totalSales } from './salesPrototype';
@@ -18,6 +18,7 @@ const KonsumenLogPanel = lazy(() => import('./components/KonsumenLogPanel'));
 const PenjualanPanel = lazy(() => import('./components/PenjualanPanel'));
 const EmailWhitelistPanel = lazy(() => import('./components/EmailWhitelistPanel'));
 const RoleAccessPanel = lazy(() => import('./components/RoleAccessPanel'));
+const MasterPanel = lazy(() => import('./components/MasterPanel'));
 
 const LOGO_SRC = '/logo.png';
 
@@ -37,6 +38,7 @@ const PATHS = {
   clock: <><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></>,
   menu: <><path d="M4 6h16M4 12h16M4 18h16" /></>,
   close: <><path d="M6 6l12 12M18 6L6 18" /></>,
+  chevron: <><path d="M6 9l6 6 6-6" /></>,
   off: <><circle cx="12" cy="12" r="9" /><path d="M5.6 5.6l12.8 12.8" /></>,
 };
 
@@ -49,6 +51,7 @@ const MENU_ICONS = {
   [MENU_ACC]: 'shield',
   [MENU_ROLE]: 'shield',
   [MENU_WHITELIST]: 'mail',
+  [MENU_MASTER]: 'box',
 };
 
 const Icon = ({ name, size = 16 }) => (
@@ -56,6 +59,15 @@ const Icon = ({ name, size = 16 }) => (
     {PATHS[name]}
   </svg>
 );
+
+// Struktur sidebar: menu tunggal (`item`) atau grup berisi submenu. Menu yang tidak diizinkan role tidak ditampilkan,
+// dan grup yang hanya punya satu menu tampil sebagai menu biasa.
+const NAV = [
+  { item: MENU_HOME },
+  { group: 'Operasional', icon: 'store', items: [MENU_PRODUK, MENU_PENJUALAN, MENU_DEALER, MENU_KONSUMEN] },
+  { group: 'Administrasi', icon: 'shield', items: [MENU_ACC, MENU_ROLE, MENU_WHITELIST] },
+  { item: MENU_MASTER },
+];
 
 const KONSUMEN_STATUS = { pending: 'Menunggu', diterima: 'Diterima', ditolak: 'Ditolak' };
 
@@ -211,6 +223,8 @@ function DashboardPage() {
   const canRolePerm = hasMenu('role-menus') && can('role-permissions.kelola');
   const canRole = canRoleMenu || canRolePerm;
   const canWhitelist = hasMenu('email-whitelists') && can('email-whitelists.lihat');
+  // Data Master: agama & pekerjaan punya menu/permission sendiri di BE
+  const canMaster = (hasMenu('agamas') && can('agamas.lihat')) || (hasMenu('pekerjaans') && can('pekerjaans.lihat'));
 
   // Kartu ringkasan hanya untuk data yang boleh dilihat role; data konsumen sudah dibatasi BE sesuai dealer user
   const baseStats = [
@@ -308,6 +322,15 @@ function DashboardPage() {
     if (m === MENU_KONSUMEN) setKonsumenKey((k) => k + 1);
   };
 
+  const renderMenuItem = (m, sub = false) => (
+    <li key={m} className={`dash-menu-item${sub ? ' sub' : ''}${menu === m ? ' active' : ''}`} onClick={() => openMenu(m)}>
+      {!sub && <Icon name={MENU_ICONS[m]} size={17} />}
+      {changed[m] && <span className="dash-menu-dot" title="Ada perubahan data" />}
+      {m}
+      {badges[m] > 0 && <span className="dash-menu-badge" title={`${badges[m]} menunggu`}>{badges[m] > 99 ? '99+' : badges[m]}</span>}
+    </li>
+  );
+
   const menus = [
     ...(hasMenu(MENU_URL[MENU_HOME]) ? [MENU_HOME] : []),
     ...(hasMenu(MENU_URL[MENU_PRODUK]) ? [MENU_PRODUK] : []),
@@ -317,10 +340,20 @@ function DashboardPage() {
     ...(canAcc ? [MENU_ACC] : []),
     ...(canRole ? [MENU_ROLE] : []),
     ...(canWhitelist ? [MENU_WHITELIST] : []),
+    ...(canMaster ? [MENU_MASTER] : []),
   ];
+  const nav = NAV
+    .map((n) => (n.group ? { ...n, items: n.items.filter((m) => menus.includes(m)) } : n))
+    .filter((n) => (n.group ? n.items.length > 0 : menus.includes(n.item)))
+    .flatMap((n) => (n.group && n.items.length === 1 ? [{ item: n.items[0] }] : [n]));
   // Menu yang aktif harus masih diizinkan; kalau hak akses berubah, pindah ke menu pertama yang tersedia.
   // Sebelum hak akses termuat (menus kosong) tetap tampilkan Ringkasan.
   const menu = menus.length === 0 || menus.includes(menuState) ? menuState : menus[0];
+
+  // Grup terbuka bila berisi menu aktif, kecuali pengguna melipatnya sendiri (atau membukanya)
+  const [groupToggle, setGroupToggle] = useState({});
+  const groupOpen = (g) => groupToggle[g.group] ?? g.items.includes(menu);
+  const toggleGroup = (g) => setGroupToggle((t) => ({ ...t, [g.group]: !groupOpen(g) }));
 
   // URL harus sama dengan menu yang benar-benar tampil (mis. path menu yang tidak diizinkan role)
   useEffect(() => {
@@ -373,14 +406,23 @@ function DashboardPage() {
         </button>
 
         <ul className="dash-menu">
-          {menus.map((m) => (
-            <li key={m} className={`dash-menu-item${menu === m ? ' active' : ''}`} onClick={() => openMenu(m)}>
-              <Icon name={MENU_ICONS[m]} size={17} />
-              {changed[m] && <span className="dash-menu-dot" title="Ada perubahan data" />}
-              {m}
-              {badges[m] > 0 && <span className="dash-menu-badge" title={`${badges[m]} menunggu`}>{badges[m] > 99 ? '99+' : badges[m]}</span>}
-            </li>
-          ))}
+          {nav.map((n) => {
+            if (!n.group) return renderMenuItem(n.item);
+            const open = groupOpen(n);
+            const total = n.items.reduce((sum, m) => sum + (badges[m] || 0), 0);
+            return (
+              <li key={n.group} className={`dash-menu-group${open ? ' open' : ''}${n.items.includes(menu) ? ' has-active' : ''}`}>
+                <button type="button" className="dash-menu-group-head" aria-expanded={open} onClick={() => toggleGroup(n)}>
+                  <Icon name={n.icon} size={17} />
+                  {n.group}
+                  {!open && total > 0 && <span className="dash-menu-badge" title={`${total} menunggu`}>{total > 99 ? '99+' : total}</span>}
+                  {!open && total === 0 && n.items.some((m) => changed[m]) && <span className="dash-menu-dot dash-menu-dot-inline" title="Ada perubahan data" />}
+                  <span className="dash-menu-chevron"><Icon name="chevron" size={14} /></span>
+                </button>
+                {open && <ul className="dash-submenu">{n.items.map((m) => renderMenuItem(m, true))}</ul>}
+              </li>
+            );
+          })}
         </ul>
 
         <div className="dash-side-foot">
@@ -522,6 +564,14 @@ function DashboardPage() {
             </div>
           )}
 
+          {menu === MENU_MASTER && canMaster && (
+            <div className="dash-card">
+              <Suspense fallback={<Loading rows={4} />}>
+                <MasterPanel hasMenu={hasMenu} can={can} />
+              </Suspense>
+            </div>
+          )}
+
           {menu === MENU_ROLE && canRole && (
             <div className="dash-card">
               <Suspense fallback={<Loading rows={4} />}>
@@ -568,6 +618,7 @@ function DashboardPage() {
                   rows={salesRows}
                   dealerName={salesDealerName}
                   isAdmin={isAdmin}
+                  showDealerFilter
                   onViewAll={canSales ? () => setMenu(MENU_PENJUALAN) : null}
                 />
               )}

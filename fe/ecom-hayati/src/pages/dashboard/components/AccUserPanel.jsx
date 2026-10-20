@@ -136,7 +136,7 @@ function AccUserPanel({ users: allUsers, dealers, scopeNote, canActivate, loadin
       <div className="dash-card-head">
         <h3>
           <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 12l2 2 4-4" /><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z" /></svg>
-          Pengguna & Akses
+          Manajemen User
         </h3>
         <span className="dash-badge">{loading ? '...' : `${users.length} akun`}</span>
       </div>

@@ -28,6 +28,20 @@ export const getUsers = (status) => fetchAllPages(status ? `/users/${status}` : 
 
 export const getDealers = () => fetchAllPages('/dealers');
 
+// Master agama & pekerjaan (BE: /agamas, /pekerjaans; butuh permission agamas.lihat / pekerjaans.lihat). Hasil: [{ id, name }]
+export const getAgamas = () => fetchAllPages('/agamas');
+export const getPekerjaans = () => fetchAllPages('/pekerjaans');
+
+// CRUD data master (agama, pekerjaan, dan wilayah: provinsi, kabupaten/kota, kecamatan, kelurahan).
+// BE memaginasi 10 data per halaman: { data: { data: [...], current_page, last_page, total } }
+export const getMasterPage = async (path, page = 1) => {
+  const p = (await api.get(path, { params: { page } })).data.data;
+  return { rows: p.data ?? [], meta: { page: p.current_page ?? 1, lastPage: p.last_page ?? 1, total: p.total ?? 0 } };
+};
+export const createMaster = async (path, payload) => (await api.post(path, payload)).data;
+export const updateMaster = async (path, id, payload) => (await api.put(`${path}/${id}`, payload)).data;
+export const deleteMaster = async (path, id) => (await api.delete(`${path}/${id}`)).data;
+
 // status: 'aktif' | 'ditolak' | 'nonaktif'
 // id_atasan opsional; BE menimpa id_atasan dengan null bila tidak dikirim
 export const updateUserStatus = async (id, id_dealer, status, id_atasan = null) =>

@@ -17,6 +17,20 @@ const UNUSED_MENU_URLS = [
 // Konfigurasi per tab; field BE: roles[].menus / roles[].permissions
 const PAGE_SIZE = 10;
 
+// Permission dinamai `<menu>.<aksi>` (mis. konsumens.tambah); yang berawalan sama satu grup menu
+const GROUP_LABEL = {
+  dealers: 'Daftar Dealer',
+  users: 'Manajemen User',
+  'role-menus': 'Role & Hak Akses (Menu)',
+  'role-permissions': 'Role & Hak Akses (Permission)',
+  konsumens: 'Daftar Konsumen',
+  'email-whitelists': 'Email WhiteList',
+  'log-users': 'Log Users Login',
+  agamas: 'Daftar Agama',
+  pekerjaans: 'Daftar Pekerjaan',
+};
+const groupKey = (name) => name.split('.')[0];
+
 const TABS = {
   menu: {
     label: 'Menu',
@@ -31,6 +45,7 @@ const TABS = {
     save: updateRolePermissions,
     itemsKey: 'permissions',
     nameOf: (i) => i.nama_permission,
+    groupOf: (i) => groupKey(i.nama_permission),
   },
 };
 
@@ -47,6 +62,7 @@ function RoleAccessPanel({ canMenu, canPermission, onSaved }) {
   const [confirming, setConfirming] = useState(false);
   const [query, setQuery] = useState('');
   const [page, setPage] = useState(1);
+  const [group, setGroup] = useState(''); // filter grup menu (tab permission); kosong = semua
 
   const cfg = TABS[tab];
   const idsOf = (role) => (role[cfg.itemsKey] ?? []).map((i) => i.id);
@@ -70,6 +86,7 @@ function RoleAccessPanel({ canMenu, canPermission, onSaved }) {
     setTab(k);
     setLoading(true);
     setQuery('');
+    setGroup('');
     setPage(1);
     setError('');
     setSuccess('');
@@ -110,8 +127,11 @@ function RoleAccessPanel({ canMenu, canPermission, onSaved }) {
 
   const role = data?.roles.find((r) => r.id === roleId);
   const items = (data?.[cfg.itemsKey] ?? []).filter((i) => !UNUSED_MENU_URLS.includes(i.url));
+  const groupKeys = cfg.groupOf ? [...new Set(items.map(cfg.groupOf))] : [];
   const q = query.trim().toLowerCase();
-  const shown = q ? items.filter((i) => cfg.nameOf(i).toLowerCase().includes(q)) : items;
+  const shown = items
+    .filter((i) => !group || cfg.groupOf(i) === group)
+    .filter((i) => !q || cfg.nameOf(i).toLowerCase().includes(q));
   const lastPage = Math.max(Math.ceil(shown.length / PAGE_SIZE), 1);
   const current = Math.min(page, lastPage);
   const pageItems = shown.slice((current - 1) * PAGE_SIZE, current * PAGE_SIZE);
@@ -156,6 +176,12 @@ function RoleAccessPanel({ canMenu, canPermission, onSaved }) {
               value={query}
               onChange={(e) => { setQuery(e.target.value); setPage(1); }}
             />
+            {cfg.groupOf && (
+              <select className="dash-input dash-select-filter" value={group} aria-label="Filter grup menu" onChange={(e) => { setGroup(e.target.value); setPage(1); }}>
+                <option value="">Semua Grup</option>
+                {groupKeys.map((g) => <option key={g} value={g}>{GROUP_LABEL[g] ?? g}</option>)}
+              </select>
+            )}
             <select className="dash-input dash-select-filter" value={roleId ?? ''} aria-label="Pilih role" onChange={(e) => { pickRole(Number(e.target.value)); setPage(1); }}>
               {data.roles.map((r) => (
                 <option key={r.id} value={r.id}>{r.name}</option>

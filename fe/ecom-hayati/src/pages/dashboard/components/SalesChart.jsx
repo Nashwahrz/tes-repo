@@ -29,11 +29,13 @@ function getSmoothPath(points) {
 }
 
 function SalesChart({
-  rows = [],
+  rows: allRows = [],
   dealerName = null,
+  scopeLabel = null, // nama dealer yang ditampilkan pada judul; bawaan: dealerName, atau "Semua Dealer" untuk admin
   isAdmin = false,
   onViewAll = null,
   compact = false,
+  showDealerFilter = false, // tampilkan dropdown dealer di grafik (bila baris berasal dari lebih dari satu dealer)
 }) {
   const chartId = useId();
   const [period, setPeriod] = useState('minggu'); // 'minggu' | 'bulan' | 'tahun'
@@ -42,6 +44,22 @@ function SalesChart({
   const [selectedWeek, setSelectedWeek] = useState('2026-W42');
   const [selectedYear, setSelectedYear] = useState(2026);
   const [hoverIndex, setHoverIndex] = useState(null);
+
+  const [dealerSel, setDealerSel] = useState(''); // id dealer terpilih; kosong = semua
+
+  const dealerOptions = useMemo(
+    () => [...new Map(allRows.map((r) => [r.id_dealer, r.dealer])).entries()]
+      .sort((a, b) => String(a[1]).localeCompare(String(b[1]))),
+    [allRows],
+  );
+  const canFilterDealer = showDealerFilter && dealerOptions.length > 1;
+  const rows = useMemo(
+    () => (canFilterDealer && dealerSel ? allRows.filter((r) => String(r.id_dealer) === dealerSel) : allRows),
+    [allRows, canFilterDealer, dealerSel],
+  );
+  const selectedDealerName = canFilterDealer && dealerSel ? dealerOptions.find(([id]) => String(id) === dealerSel)?.[1] : null;
+  const dealerTag = selectedDealerName ?? scopeLabel ?? dealerName ?? (isAdmin || canFilterDealer ? 'Semua Dealer' : null);
+  const dealerText = selectedDealerName ?? dealerName;
 
   // Ambil data agregasi sesuai periode terpilih
   const chartData = useMemo(() => {
@@ -139,9 +157,10 @@ function SalesChart({
               <path d="M7 15l4-4 3 3 5-6" />
             </svg>
             <h3>Grafik & Tren Penjualan</h3>
+            {dealerTag && <span className="dash-badge" title="Dealer yang ditampilkan">{dealerTag}</span>}
           </div>
           <p className="dash-chart-sub">
-            Pantau pertumbuhan omset motor Hayati {isAdmin ? 'di seluruh jaringan dealer' : dealerName ? `dealer ${dealerName}` : ''}.
+            Pantau pertumbuhan omset penjualan motor Hayati{dealerText ? ` untuk dealer ${dealerText}` : dealerTag === 'Semua Dealer' ? ' di seluruh jaringan dealer' : ''}.
           </p>
         </div>
 
@@ -208,6 +227,21 @@ function SalesChart({
                 <option value={2026}>2026 (Tahun Berjalan)</option>
                 <option value={2025}>2025</option>
                 <option value={2024}>2024</option>
+              </select>
+            </div>
+          )}
+
+          {canFilterDealer && (
+            <div className="dash-chart-selector-wrap">
+              <label htmlFor={`${chartId}-dealer`} className="dash-chart-filter-label">Dealer:</label>
+              <select
+                id={`${chartId}-dealer`}
+                className="dash-chart-select"
+                value={dealerSel}
+                onChange={(e) => { setDealerSel(e.target.value); setHoverIndex(null); }}
+              >
+                <option value="">Semua Dealer</option>
+                {dealerOptions.map(([id, name]) => <option key={id} value={id}>{name}</option>)}
               </select>
             </div>
           )}

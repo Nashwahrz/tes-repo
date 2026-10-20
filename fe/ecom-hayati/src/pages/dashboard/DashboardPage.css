@@ -916,7 +916,7 @@ select.dash-input, .dash-select {
 .dash-card-wide { grid-column: 1 / -1; }
 .dash-tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
 .dash-tile {
-  display: flex; align-items: center; gap: 12px; padding: 14px 16px; font: inherit; font-size: 13px; font-weight: 600; text-align: left;
+  display: flex; align-items: center; gap: 12px; padding: 14px 16px; font: inherit; font-size: 12.5px; font-weight: 600; text-align: left;
   color: var(--ink); background: #fafafa; border: 1px solid var(--line); border-radius: 12px; cursor: pointer;
   transition: border-color 0.15s, background 0.15s, transform 0.15s;
 }
@@ -1001,6 +1001,21 @@ select.dash-input, .dash-select {
 .dash-table tbody tr.row-rejected:hover { background: #fee4e2; }
 
 /* Lencana jumlah data menunggu di menu sidebar */
+/* Grup menu + submenu */
+.dash-menu-group { margin-bottom: 2px; }
+.dash-menu-group-head {
+  display: flex; align-items: center; gap: 10px; width: 100%; padding: 10px 12px; font: inherit; font-size: 12.5px; font-weight: 600;
+  color: #3a3a3a; text-align: left; background: none; border: 0; border-radius: 8px; cursor: pointer; transition: background 0.15s, color 0.15s;
+}
+.dash-menu-group-head:hover { color: var(--accent); background: var(--tint); }
+.dash-menu-group.has-active > .dash-menu-group-head { color: var(--accent); }
+.dash-menu-chevron { display: inline-flex; margin-left: auto; transition: transform 0.2s; }
+.dash-menu-group-head .dash-menu-badge + .dash-menu-chevron, .dash-menu-group-head .dash-menu-dot-inline + .dash-menu-chevron { margin-left: 8px; }
+.dash-menu-group.open > .dash-menu-group-head .dash-menu-chevron { transform: rotate(180deg); }
+.dash-menu-dot-inline { position: static; margin-left: auto; flex-shrink: 0; }
+.dash-submenu { list-style: none; margin: 2px 0 4px 18px; padding: 0 0 0 10px; border-left: 2px solid var(--line); }
+.dash-menu-item.sub { padding: 8px 12px; font-size: 12.5px; margin-bottom: 2px; }
+.dash-menu-item.sub .dash-menu-dot { left: auto; right: 38px; top: 50%; margin-top: -6px; }
 .dash-menu-badge { margin-left: auto; min-width: 20px; padding: 1px 6px; font-size: 11px; font-weight: 700; line-height: 18px; text-align: center; color: #fff; background: #d92d20; border-radius: 999px; }
 .dash-menu-item.active .dash-menu-badge { color: var(--accent); background: #fff; }
 
@@ -1023,6 +1038,7 @@ select.dash-input, .dash-select {
 /* =====================================================================
    Grafik & Tren Penjualan (SalesChart)
    ===================================================================== */
+.dash-chart-card, .dash-chart-card *, .dash-chart-card *::before, .dash-chart-card *::after { box-sizing: border-box; }
 .dash-chart-card {
   position: relative;
   padding: 22px 24px;
@@ -1041,7 +1057,7 @@ select.dash-input, .dash-select {
 
 .dash-chart-header {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
   gap: 16px;
   flex-wrap: wrap;
@@ -1056,8 +1072,10 @@ select.dash-input, .dash-select {
 .dash-chart-badge-title {
   display: flex;
   align-items: center;
-  gap: 8px;
+  flex-wrap: wrap;
+  gap: 6px 8px;
 }
+.dash-chart-badge-title .dash-badge { white-space: nowrap; font-size: 11px; }
 
 .dash-chart-badge-title svg {
   color: var(--accent);
@@ -1072,8 +1090,8 @@ select.dash-input, .dash-select {
 }
 
 .dash-chart-sub {
-  margin: 4px 0 0;
-  font-size: 12px;
+  margin: 6px 0 0;
+  font-size: 12.5px;
   color: var(--muted);
   line-height: 1.45;
 }
@@ -1083,14 +1101,15 @@ select.dash-input, .dash-select {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  padding: 4px;
+  padding: 3px;
   background: #f4f4f5;
   border-radius: 10px;
   border: 1px solid var(--line);
 }
 
 .dash-chart-tab {
-  padding: 6px 14px;
+  height: 32px;
+  padding: 0 16px;
   font-family: inherit;
   font-size: 12px;
   font-weight: 600;
@@ -1146,7 +1165,9 @@ select.dash-input, .dash-select {
 }
 
 .dash-chart-select {
-  padding: 6px 12px;
+  height: 36px;
+  min-width: 220px;
+  padding: 0 12px;
   font-family: inherit;
   font-size: 12px;
   font-weight: 600;
@@ -1178,7 +1199,7 @@ select.dash-input, .dash-select {
 .dash-chart-controls-right {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   flex-wrap: wrap;
 }
 
@@ -1186,6 +1207,7 @@ select.dash-input, .dash-select {
   display: inline-flex;
   align-items: center;
   gap: 2px;
+  height: 36px;
   padding: 3px;
   background: #f4f4f5;
   border: 1px solid var(--line);
@@ -1193,7 +1215,8 @@ select.dash-input, .dash-select {
 }
 
 .dash-chart-toggle-btn {
-  padding: 4px 10px;
+  height: 100%;
+  padding: 0 12px;
   font-family: inherit;
   font-size: 11.5px;
   font-weight: 600;
@@ -1219,9 +1242,9 @@ select.dash-input, .dash-select {
 /* KPI mini-cards row */
 .dash-chart-kpis {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 12px;
-  margin-bottom: 18px;
+  margin-bottom: 16px;
 }
 
 .dash-chart-kpi {

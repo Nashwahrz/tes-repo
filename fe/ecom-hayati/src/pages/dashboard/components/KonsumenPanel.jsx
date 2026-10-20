@@ -7,14 +7,13 @@ import Loading, { Spin } from './Loading';
 import Pager from './Pager';
 import IconButton from './IconButton';
 import {
-  getKonsumens, getKonsumenPage, createKonsumen, updateKonsumen, deleteKonsumen, verifyKonsumen, scanKtp, ktpUrl, errorMessage,
+  getKonsumens, getKonsumenPage, createKonsumen, updateKonsumen, deleteKonsumen, verifyKonsumen, scanKtp, ktpUrl, getAgamas, getPekerjaans, errorMessage,
 } from '../../../api/authServices';
 
 // Leaflet (JS + CSS) hanya dimuat saat form dibuka
 const MapPicker = lazy(() => import('./MapPicker'));
 
 const STATUS_LABEL = { pending: 'Menunggu Verifikasi', diterima: 'Diterima', ditolak: 'Ditolak' };
-const AGAMA = ['Islam', 'Kristen', 'Katolik', 'Hindu', 'Buddha', 'Konghucu'];
 const KAWIN = ['Belum Kawin', 'Kawin', 'Cerai Hidup', 'Cerai Mati'];
 
 const EMPTY = {
@@ -83,6 +82,9 @@ function KonsumenPanel({ can, userId, onChanged, dealers = [], myDealerId = null
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState(null); // konsumen yang sedang diubah (null = menambah baru)
   const [form, setForm] = useState(EMPTY);
+  // Agama & pekerjaan dari BE (/agamas, /pekerjaans); kosong bila belum termuat atau gagal (lihat masterNote)
+  const [master, setMaster] = useState({ agama: [], pekerjaan: [] });
+  const [masterNote, setMasterNote] = useState('');
   const [file, setFile] = useState(null);
   const [preview, setPreview] = useState('');
   const [touched, setTouched] = useState({});
@@ -180,6 +182,20 @@ function KonsumenPanel({ can, userId, onChanged, dealers = [], myDealerId = null
     setForm((f) => ({ ...f, latitude: String(lat), longitude: String(lng) }));
     setTouched((t) => ({ ...t, latitude: true, longitude: true }));
   };
+
+  useEffect(() => {
+    if (!formOpen) return;
+    const names = (list) => (list.length ? list.map((o) => o.name) : null);
+    Promise.allSettled([getAgamas(), getPekerjaans()]).then(([a, p]) => {
+      const failed = [['Agama', a], ['Pekerjaan', p]].filter(([, r]) => r.status === 'rejected');
+      failed.forEach(([label, r]) => console.warn(`Master ${label} gagal dimuat:`, r.reason));
+      setMasterNote(failed.map(([label, r]) => `${label}: ${errorMessage(r.reason)}`).join(' · '));
+      setMaster({
+        agama: (a.status === 'fulfilled' && names(a.value)) || [],
+        pekerjaan: (p.status === 'fulfilled' && names(p.value)) || [],
+      });
+    });
+  }, [formOpen]);
 
   const setField = (key) => (e) => {
     setForm((f) => ({ ...f, [key]: e.target.value }));
@@ -321,13 +337,15 @@ function KonsumenPanel({ can, userId, onChanged, dealers = [], myDealerId = null
   const field = (key, label, props = {}) => {
     const cls = `dash-input${touched[key] && errors[key] ? ' invalid' : ''}`;
     const id = `konsumen-${key}`;
+    const selected = props.options?.find((o) => o.toLowerCase() === String(form[key]).trim().toLowerCase());
     return (
       <div className="dash-form-group">
         <label htmlFor={id}>{label} *</label>
         {props.options ? (
-          <select id={id} className={cls} value={form[key]} onChange={setField(key)}>
+          <select id={id} className={cls} value={selected ?? form[key]} onChange={setField(key)} disabled={props.disabled}>
             <option value="">- Pilih -</option>
-            {props.options.map((o) => <option key={o} value={o}>{o}</option>)}
+            {/* Nilai yang belum ada di daftar (hasil OCR/data lama) tetap ditampilkan */}
+            {(form[key] && !selected ? [form[key], ...props.options] : props.options).map((o) => <option key={o} value={o}>{o}</option>)}
           </select>
         ) : (
           <input
@@ -523,7 +541,7 @@ function KonsumenPanel({ can, userId, onChanged, dealers = [], myDealerId = null
             </div>
             <div className="dash-form-row">
               {field('jenis_kelamin', 'Jenis Kelamin', { options: ['Laki-laki', 'Perempuan'] })}
-              {field('agama', 'Agama', { options: AGAMA })}
+              {field('agama', 'Agama', { options: master.agama })}
             </div>
             {field('alamat', 'Alamat')}
             <div className="dash-form-group">
@@ -559,8 +577,9 @@ function KonsumenPanel({ can, userId, onChanged, dealers = [], myDealerId = null
             </div>
             <div className="dash-form-row">
               {field('status_perkawinan', 'Status Perkawinan', { options: KAWIN })}
-              {field('pekerjaan', 'Pekerjaan')}
+              {field('pekerjaan', 'Pekerjaan', { options: master.pekerjaan })}
             </div>
+            {masterNote && <p className="dash-map-hint">Daftar agama/pekerjaan dari server tidak dapat dimuat. {masterNote}</p>}
             {field('kewarganegaraan', 'Kewarganegaraan', { options: ['WNI', 'WNA'] })}
             <div className="dash-form-row">
               {field('no_telp', 'No. Telp', { numeric: true, max: 20 })}
