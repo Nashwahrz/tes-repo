@@ -133,7 +133,6 @@ function DashboardPage() {
     window.addEventListener('popstate', onPop);
     return () => window.removeEventListener('popstate', onPop);
   }, []);
-  const [query, setQuery] = useState('');
   const [confirmLogout, setConfirmLogout] = useState(false);
   const [navOpen, setNavOpen] = useState(false); // menu samping terbuka (hanya berpengaruh di layar kecil)
 
@@ -203,11 +202,6 @@ function DashboardPage() {
   const salesKnown = SALES_PROTOTYPE && (isAdmin || myDealerId != null);
   const salesDealerName = isAdmin ? null : dealers.find((d) => d.id === myDealerId)?.name ?? salesRows[0]?.dealer ?? null;
   const scopeNote = scoped ? `Data dibatasi pada dealer Anda${myDealer ? `: ${myDealer}` : ''}.` : '';
-
-  const q = query.trim().toLowerCase();
-  const filteredDealers = q
-    ? dealers.filter((d) => `${d.name} ${d.alamat}`.toLowerCase().includes(q))
-    : dealers;
 
   // Menu sidebar & tombol aksi mengikuti menu/permission role dari BE
   const hasMenu = (url) => access.menus.includes(url);
@@ -452,20 +446,6 @@ function DashboardPage() {
       )}
 
       <div className="dash-main">
-        <header className="dash-top">
-          {canDealer ? (
-          <input
-            className="dash-search"
-            type="search"
-            placeholder="Cari dealer berdasarkan nama atau alamat..."
-            value={query}
-            onChange={(e) => {
-              setQuery(e.target.value);
-              setMenu(MENU_HOME);
-            }}
-          />
-          ) : <div />}
-        </header>
 
         <div className="dash-content">
           {menu === MENU_ACC && canAcc && (
@@ -661,10 +641,10 @@ function DashboardPage() {
                     <button type="button" className="dash-link" onClick={() => setMenu(MENU_DEALER)}>Lihat semua</button>
                   </div>
                   <p className="dash-card-desc">{dealers.length} dealer terdaftar.</p>
-                  {filteredDealers.length === 0 ? (
-                    <p className="dash-empty">{q ? 'Dealer tidak ditemukan.' : 'Belum ada data dealer.'}</p>
+                  {dealers.length === 0 ? (
+                    <p className="dash-empty">Belum ada data dealer.</p>
                   ) : (
-                    filteredDealers.slice(0, 4).map((d) => (
+                    dealers.slice(0, 4).map((d) => (
                       <div className="dash-row dash-row-compact" key={d.id}>
                         <span className="dash-row-icon"><Icon name="store" size={14} /></span>
                         <div className="dash-row-body">
