@@ -18,10 +18,11 @@ class KecamatanController extends Controller
         private KecamatanResponse $kecamatanResponse
     ) {}
 
-    public function index()
+    public function index(Request $request)
     {
         try {
-            $kecamatans = $this->kecamatanRepository->paginate();
+            $perPage = min(max((int) $request->query('per_page', 10), 1), 100);
+            $kecamatans = $this->kecamatanRepository->paginate($perPage, $request->query('search'));
             return $this->kecamatanResponse->list($kecamatans);
         } catch (Throwable $e) {
             Log::error('Gagal mengambil data kecamatan: ' . $e->getMessage(), [

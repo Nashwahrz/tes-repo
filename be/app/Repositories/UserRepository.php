@@ -79,7 +79,7 @@ class UserRepository
             ->with(['role', 'dealer', 'atasan'])
             ->where('email_verifikasi', true)
             ->when($status, fn ($q) => $q->where('status', $status))
-            ->when($search, fn ($q) => $q->where('name', 'like', "%{$search}%"))
+            ->when($search, fn ($q) => $q->where('name', 'ILIKE', "%{$search}%"))
             ->latest('id')
             ->paginate($perPage)
             ->withQueryString();

@@ -17,10 +17,11 @@ class PekerjaanController extends Controller
         private PekerjaanResponse $pekerjaanResponse
     ) {}
 
-    public function index()
+    public function index(Request $request)
     {
         try {
-            $pekerjaans = $this->pekerjaanRepository->paginate();
+            $perPage = min(max((int) $request->query('per_page', 10), 1), 100);
+            $pekerjaans = $this->pekerjaanRepository->paginate($perPage, $request->query('search'));
             return $this->pekerjaanResponse->list($pekerjaans);
         } catch (Throwable $e) {
             Log::error('Gagal mengambil data pekerjaan: ' . $e->getMessage(), [

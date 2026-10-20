@@ -23,7 +23,7 @@ class Konsumen extends Model
                  'id_me',
                  'nik',
                  'name',
-                 'tmp_lahir',
+                 'id_tmp_lahir',
                  'tgl_lahir',
                  'jenis_kelamin',
                  'alamat',
@@ -31,13 +31,13 @@ class Konsumen extends Model
                  'longitude',
                  'rt',
                  'rw',
-                 'desa_kelurahan',
-                 'kecamatan',
-                 'kabupaten_kota',
-                 'provinsi',
-                 'agama',
+                 'id_kelurahan',
+                 'id_kecamatan',
+                 'id_kabupaten_kota',
+                 'id_provinsi',
+                 'id_agama',
                  'status_perkawinan',
-                 'pekerjaan',
+                 'id_pekerjaan',
                  'kewarganegaraan',
                  'no_telp',
                  'email',
@@ -53,7 +53,7 @@ class Konsumen extends Model
         'id_me',
         'nik',
         'name',
-        'tmp_lahir',
+        'id_tmp_lahir',
         'tgl_lahir',
         'jenis_kelamin',
         'alamat',
@@ -61,13 +61,13 @@ class Konsumen extends Model
         'longitude',
         'rt',
         'rw',
-        'desa_kelurahan',
-        'kecamatan',
-        'kabupaten_kota',
-        'provinsi',
-        'agama',
+        'id_kelurahan',
+        'id_kecamatan',
+        'id_kabupaten_kota',
+        'id_provinsi',
+        'id_agama',
         'status_perkawinan',
-        'pekerjaan',
+        'id_pekerjaan',
         'kewarganegaraan',
         'no_telp',
         'email',
@@ -105,6 +105,34 @@ class Konsumen extends Model
     public function me()
     {
         return $this->belongsTo(User::class, 'id_me');
+    }
+    public function tempatLahir()
+    {
+        return $this->belongsTo(KabupatenKota::class, 'id_tmp_lahir');
+    }
+    public function kelurahan()
+    {
+        return $this->belongsTo(Kelurahan::class, 'id_kelurahan');
+    }
+    public function kecamatan()
+    {
+        return $this->belongsTo(Kecamatan::class, 'id_kecamatan');
+    }
+    public function kabupatenKota()
+    {
+        return $this->belongsTo(KabupatenKota::class, 'id_kabupaten_kota');
+    }
+    public function provinsi()
+    {
+        return $this->belongsTo(Provinsi::class, 'id_provinsi');
+    }
+    public function agama()
+    {
+        return $this->belongsTo(Agama::class, 'id_agama');
+    }
+    public function pekerjaan()
+    {
+        return $this->belongsTo(Pekerjaan::class, 'id_pekerjaan');
     }
     public function verifiedBy()
     {

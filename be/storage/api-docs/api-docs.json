@@ -21,6 +21,15 @@
                 "tags": [
                     "Agama"
                 ],
+                "parameters": [
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
                 "responses": {
                     "500": {
                         "description": "",
@@ -1146,6 +1155,15 @@
                 "operationId": "dealer.index",
                 "tags": [
                     "Dealer"
+                ],
+                "parameters": [
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
                 ],
                 "responses": {
                     "500": {
@@ -2309,6 +2327,15 @@
                 "tags": [
                     "KabupatenKota"
                 ],
+                "parameters": [
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
                 "responses": {
                     "500": {
                         "description": "",
@@ -2945,6 +2972,15 @@
                 "tags": [
                     "Kecamatan"
                 ],
+                "parameters": [
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
                 "responses": {
                     "500": {
                         "description": "",
@@ -3580,6 +3616,15 @@
                 "operationId": "kelurahan.index",
                 "tags": [
                     "Kelurahan"
+                ],
+                "parameters": [
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
                 ],
                 "responses": {
                     "500": {
@@ -6159,6 +6204,15 @@
                 "tags": [
                     "Pekerjaan"
                 ],
+                "parameters": [
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
                 "responses": {
                     "500": {
                         "description": "",
@@ -6794,6 +6848,15 @@
                 "operationId": "provinsi.index",
                 "tags": [
                     "Provinsi"
+                ],
+                "parameters": [
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
                 ],
                 "responses": {
                     "500": {
@@ -9761,8 +9824,11 @@
                     "name": {
                         "type": "string"
                     },
-                    "tmp_lahir": {
-                        "type": "string"
+                    "id_tmp_lahir": {
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
                     },
                     "tgl_lahir": {
                         "type": "string",
@@ -9774,32 +9840,62 @@
                     "alamat": {
                         "type": "string"
                     },
+                    "latitude": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "longitude": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
                     "rt": {
                         "type": "string"
                     },
                     "rw": {
                         "type": "string"
                     },
-                    "desa_kelurahan": {
-                        "type": "string"
+                    "id_kelurahan": {
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
                     },
-                    "kecamatan": {
-                        "type": "string"
+                    "id_kecamatan": {
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
                     },
-                    "kabupaten_kota": {
-                        "type": "string"
+                    "id_kabupaten_kota": {
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
                     },
-                    "provinsi": {
-                        "type": "string"
+                    "id_provinsi": {
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
                     },
-                    "agama": {
-                        "type": "string"
+                    "id_agama": {
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
                     },
                     "status_perkawinan": {
                         "type": "string"
                     },
-                    "pekerjaan": {
-                        "type": "string"
+                    "id_pekerjaan": {
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
                     },
                     "kewarganegaraan": {
                         "type": "string"
@@ -9842,18 +9938,6 @@
                         ],
                         "format": "date-time"
                     },
-                    "latitude": {
-                        "type": [
-                            "string",
-                            "null"
-                        ]
-                    },
-                    "longitude": {
-                        "type": [
-                            "string",
-                            "null"
-                        ]
-                    },
                     "foto_ktp_url": {
                         "type": [
                             "string",
@@ -9866,19 +9950,21 @@
                     "id_me",
                     "nik",
                     "name",
-                    "tmp_lahir",
+                    "id_tmp_lahir",
                     "tgl_lahir",
                     "jenis_kelamin",
                     "alamat",
+                    "latitude",
+                    "longitude",
                     "rt",
                     "rw",
-                    "desa_kelurahan",
-                    "kecamatan",
-                    "kabupaten_kota",
-                    "provinsi",
-                    "agama",
+                    "id_kelurahan",
+                    "id_kecamatan",
+                    "id_kabupaten_kota",
+                    "id_provinsi",
+                    "id_agama",
                     "status_perkawinan",
-                    "pekerjaan",
+                    "id_pekerjaan",
                     "kewarganegaraan",
                     "no_telp",
                     "email",
@@ -9888,8 +9974,6 @@
                     "diverifikasi_oleh",
                     "created_at",
                     "updated_at",
-                    "latitude",
-                    "longitude",
                     "foto_ktp_url"
                 ],
                 "title": "Konsumen"
@@ -9914,9 +9998,8 @@
                         "type": "string",
                         "maxLength": 255
                     },
-                    "tmp_lahir": {
-                        "type": "string",
-                        "maxLength": 100
+                    "id_tmp_lahir": {
+                        "type": "integer"
                     },
                     "tgl_lahir": {
                         "type": "string",
@@ -9947,33 +10030,27 @@
                         "type": "string",
                         "maxLength": 3
                     },
-                    "desa_kelurahan": {
-                        "type": "string",
-                        "maxLength": 100
+                    "id_kelurahan": {
+                        "type": "integer"
                     },
-                    "kecamatan": {
-                        "type": "string",
-                        "maxLength": 100
+                    "id_kecamatan": {
+                        "type": "integer"
                     },
-                    "kabupaten_kota": {
-                        "type": "string",
-                        "maxLength": 100
+                    "id_kabupaten_kota": {
+                        "type": "integer"
                     },
-                    "provinsi": {
-                        "type": "string",
-                        "maxLength": 100
+                    "id_provinsi": {
+                        "type": "integer"
                     },
-                    "agama": {
-                        "type": "string",
-                        "maxLength": 50
+                    "id_agama": {
+                        "type": "integer"
                     },
                     "status_perkawinan": {
                         "type": "string",
                         "maxLength": 50
                     },
-                    "pekerjaan": {
-                        "type": "string",
-                        "maxLength": 100
+                    "id_pekerjaan": {
+                        "type": "integer"
                     },
                     "kewarganegaraan": {
                         "type": "string",
@@ -9994,7 +10071,7 @@
                     "foto_ktp",
                     "nik",
                     "name",
-                    "tmp_lahir",
+                    "id_tmp_lahir",
                     "tgl_lahir",
                     "jenis_kelamin",
                     "alamat",
@@ -10002,13 +10079,13 @@
                     "longitude",
                     "rt",
                     "rw",
-                    "desa_kelurahan",
-                    "kecamatan",
-                    "kabupaten_kota",
-                    "provinsi",
-                    "agama",
+                    "id_kelurahan",
+                    "id_kecamatan",
+                    "id_kabupaten_kota",
+                    "id_provinsi",
+                    "id_agama",
                     "status_perkawinan",
-                    "pekerjaan",
+                    "id_pekerjaan",
                     "kewarganegaraan",
                     "no_telp",
                     "email"

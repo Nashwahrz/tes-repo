@@ -17,10 +17,10 @@ class DealerController extends Controller
         private DealerResponse $dealerResponse
     ) {}
 
-    public function index()
+    public function index(Request $request)
     {
-        try {
-            $dealers = $this->dealerRepository->paginate();
+        try {$perPage = min(max((int) $request->query('per_page', 10), 1), 100);
+            $dealers = $this->dealerRepository->paginate($perPage, $request->query('search'));
             return $this->dealerResponse->list($dealers);
         } catch (Throwable $e) {
             Log::error('Gagal mengambil data dealer: ' . $e->getMessage(), [

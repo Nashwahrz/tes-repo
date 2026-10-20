@@ -3,6 +3,12 @@
 namespace App\Http\Requests;
 
 use App\Enums\JenisKelamin;
+use App\Models\Agama;
+use App\Models\KabupatenKota;
+use App\Models\Kecamatan;
+use App\Models\Kelurahan;
+use App\Models\Pekerjaan;
+use App\Models\Provinsi;
 use App\Rules\UserHasRole;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -41,7 +47,7 @@ class KonsumenRequest extends FormRequest
             'foto_ktp'          => [$isUpdate ? 'nullable' : 'required', 'image', 'mimes:jpg,jpeg,png', 'max:2048'],
             'nik'               => ['required', 'string', 'digits:16', Rule::unique('konsumens', 'nik')->ignore($konsumenId)],
             'name'              => ['required', 'string', 'max:255'],
-            'tmp_lahir'         => ['required', 'string', 'max:100'],
+            'id_tmp_lahir'      => ['required','integer',Rule::exists(KabupatenKota::class, 'id')],
             'tgl_lahir'         => ['required', 'date'],
             'jenis_kelamin'     => ['required', Rule::enum(JenisKelamin::class)],
             'alamat'            => ['required', 'string', 'max:255'],
@@ -49,13 +55,13 @@ class KonsumenRequest extends FormRequest
             'longitude'         => ['required', 'numeric', 'between:-180,180'],
             'rt'                => ['required', 'string', 'max:3'],
             'rw'                => ['required', 'string', 'max:3'],
-            'desa_kelurahan'    => ['required', 'string', 'max:100'],
-            'kecamatan'         => ['required', 'string', 'max:100'],
-            'kabupaten_kota'    => ['required', 'string', 'max:100'],
-            'provinsi'          => ['required', 'string', 'max:100'],
-            'agama'             => ['required', 'string', 'max:50'],
+            'id_kelurahan'      => ['required', 'integer',Rule::exists(Kelurahan::class, 'id')->where('id_kecamatan', $this->input('id_kecamatan'))],
+            'id_kecamatan'      => ['required', 'integer',Rule::exists(Kecamatan::class, 'id')->where('id_kabupaten_kota', $this->input('id_kabupaten_kota'))],
+            'id_kabupaten_kota' => ['required', 'integer',Rule::exists(KabupatenKota::class, 'id')->where('id_provinsi', $this->input('id_provinsi'))],
+            'id_provinsi'       => ['required', 'integer',Rule::exists(Provinsi::class, 'id')],
+            'id_agama'          => ['required', 'integer',Rule::exists(Agama::class, 'id')],
             'status_perkawinan' => ['required', 'string', 'max:50'],
-            'pekerjaan'         => ['required', 'string', 'max:100'],
+            'id_pekerjaan'      => ['required', 'integer',Rule::exists(Pekerjaan::class, 'id')],
             'kewarganegaraan'   => ['required', 'string', 'max:50'],
             'no_telp'           => ['required', 'string', 'max:20'],
             'email'             => ['required', 'email', 'max:255'],
@@ -81,6 +87,11 @@ class KonsumenRequest extends FormRequest
             'email.unique'        => 'Email sudah terdaftar.',
             'email.required'    => 'Email wajib diisi.',
             'no_telp.max'         => 'Nomor telepon maksimal 20 digit.',
+            'id_tmp_lahir.exists' => 'Tempat lahir tidak terdaftar.',
+            'id_kabupaten_kota.exists' => 'Kabupaten/kota tidak sesuai dengan provinsi yang dipilih.',
+            'id_kecamatan.exists'      => 'Kecamatan tidak sesuai dengan kabupaten/kota yang dipilih.',
+            'id_kelurahan.exists'      => 'Kelurahan tidak sesuai dengan kecamatan yang dipilih.',
+            'id_provinsi.exists' => 'Provinsi tidak terdaftar.',
             'latitude.required' => 'Latitude wajib diisi.',
             'latitude.decimal'  => 'Latitude harus berupa angka desimal.',
             'longitude.required' => 'Longitude wajib diisi.',
@@ -88,10 +99,6 @@ class KonsumenRequest extends FormRequest
             'no_telp.required'    => 'Nomor telepon wajib diisi.',
             'rt.max'              => 'RT maksimal 3 digit.',
             'rw.max'              => 'RW maksimal 3 digit.',
-            'desa_kelurahan.max'  => 'Desa/kelurahan maksimal 100 karakter.',
-            'kecamatan.max'       => 'Kecamatan maksimal 100 karakter.',
-            'kabupaten_kota.max'  => 'Kabupaten/kota maksimal 100 karakter.',
-            'provinsi.max'        => 'Provinsi maksimal 100 karakter.',
             'agama.max'           => 'Agama maksimal 50 karakter.',
             'status_perkawinan.max' => 'Status perkawinan maksimal 50 karakter.',
             'pekerjaan.max'       => 'Pekerjaan maksimal 100 karakter.',
