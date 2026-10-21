@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Enums\StatusKonsumen;
 use App\Http\Requests\ActiveKonsumenRequest;
+use App\Http\Requests\CheckNikRequest;
 use App\Http\Requests\KonsumenRequest;
 use App\Http\Requests\ScanKtpRequest;
 use App\Http\Resources\ActivityLogResource;
@@ -65,10 +66,37 @@ class KonsumenController extends Controller
         try {
             $extractedData = $this->ktpOcrService->extractKtp($request->file('foto_ktp'));
 
+            if (!empty($extractedData['nik'])) {
+                $existingKonsumen = $this->konsumenRepository->findByNik($extractedData['nik']);
+
+                if ($existingKonsumen) {
+                    return $this->konsumenResponse->scanExisting(
+                        $existingKonsumen,
+                        $extractedData,
+                        "Konsumen dengan NIK {$extractedData['nik']} sudah terdaftar atas nama {$existingKonsumen->name}."
+                    );
+                }
+            }
+
             return $this->konsumenResponse->scanSuccess($extractedData, 'KTP berhasil dipindai.');
         } catch (Throwable $e) {
             Log::error('OCR Scan failed: ' . $e->getMessage());
             return $this->konsumenResponse->serverError('Gagal memproses OCR KTP: ' . $e->getMessage());
+        }
+    }
+
+    public function checkNik(CheckNikRequest $request)
+    {
+        try {
+            $keyword = $request->validated('nik');
+            $konsumens = $this->konsumenRepository->searchByNik($keyword);
+
+            return $this->konsumenResponse->searchResult($konsumens, $keyword);
+        } catch (Throwable $e) {
+            Log::error('Gagal mencari data konsumen: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString(),
+            ]);
+            return $this->konsumenResponse->serverError('Gagal mencari data konsumen. Silakan coba lagi.');
         }
     }
 

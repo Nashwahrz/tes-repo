@@ -131,6 +131,7 @@ use Illuminate\Support\Facades\Route;
         });
         Route::prefix('konsumens')->middleware('menu.access:konsumens')->group(function () {
             Route::post('/scan-ktp', [KonsumenController::class, 'scanKtp'])->middleware('permission:konsumens.scan', 'throttle:scan-ktp');
+            Route::post('/check-nik', [KonsumenController::class, 'checkNik'])->middleware('permission:konsumens.lihat');
             Route::get('/', [KonsumenController::class, 'index'])->middleware('permission:konsumens.lihat');
             Route::post('/', [KonsumenController::class, 'store'])->middleware('permission:konsumens.tambah');
             Route::get('/status', [KonsumenController::class, 'status'])->middleware('permission:konsumens.lihat');
