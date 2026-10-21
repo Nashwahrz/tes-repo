@@ -9,10 +9,12 @@ import { getKonsumenLogs, errorMessage } from '../../../api/authServices';
 
 const AKSI = { created: 'Ditambah', updated: 'Diubah', deleted: 'Dihapus' };
 const FIELD_LABEL = {
-  nik: 'NIK', name: 'Nama', tmp_lahir: 'Tempat lahir', tgl_lahir: 'Tanggal lahir', jenis_kelamin: 'Jenis kelamin',
-  alamat: 'Alamat', latitude: 'Latitude', longitude: 'Longitude', rt: 'RT', rw: 'RW', desa_kelurahan: 'Kelurahan/Desa',
-  kecamatan: 'Kecamatan', kabupaten_kota: 'Kabupaten/Kota', provinsi: 'Provinsi', agama: 'Agama',
-  status_perkawinan: 'Status perkawinan', pekerjaan: 'Pekerjaan', kewarganegaraan: 'Kewarganegaraan',
+  nik: 'NIK', name: 'Nama', tgl_lahir: 'Tanggal lahir', jenis_kelamin: 'Jenis kelamin',
+  alamat: 'Alamat', latitude: 'Latitude', longitude: 'Longitude', rt: 'RT', rw: 'RW',
+  // BE mencatat wilayah/agama/pekerjaan sebagai ID
+  id_tmp_lahir: 'ID tempat lahir', id_kelurahan: 'ID kelurahan/desa', id_kecamatan: 'ID kecamatan',
+  id_kabupaten_kota: 'ID kabupaten/kota', id_provinsi: 'ID provinsi', id_agama: 'ID agama', id_pekerjaan: 'ID pekerjaan',
+  status_perkawinan: 'Status perkawinan', kewarganegaraan: 'Kewarganegaraan',
   no_telp: 'No. telp', email: 'Email', status: 'Status', catatan_penolakan: 'Catatan penolakan',
   foto_ktp: 'Foto KTP', me: 'Penginput', diverifikator: 'Diverifikasi oleh', diverifikasi_pada: 'Waktu verifikasi',
 };

@@ -40,7 +40,7 @@ function SalesChart({
   const chartId = useId();
   const [period, setPeriod] = useState('minggu'); // 'minggu' | 'bulan' | 'tahun'
   const [metric, setMetric] = useState('revenue'); // 'revenue' (Rp) | 'units' (Motor)
-  const [chartMode, setChartMode] = useState('both'); // 'both' | 'bar' | 'line'
+  const chartMode = 'both'; // batang + garis tren
   const [selectedWeek, setSelectedWeek] = useState('2026-W42');
   const [selectedYear, setSelectedYear] = useState(2026);
   const [hoverIndex, setHoverIndex] = useState(null);
@@ -59,7 +59,6 @@ function SalesChart({
   );
   const selectedDealerName = canFilterDealer && dealerSel ? dealerOptions.find(([id]) => String(id) === dealerSel)?.[1] : null;
   const dealerTag = selectedDealerName ?? scopeLabel ?? dealerName ?? (isAdmin || canFilterDealer ? 'Semua Dealer' : null);
-  const dealerText = selectedDealerName ?? dealerName;
 
   // Ambil data agregasi sesuai periode terpilih
   const chartData = useMemo(() => {
@@ -157,11 +156,8 @@ function SalesChart({
               <path d="M7 15l4-4 3 3 5-6" />
             </svg>
             <h3>Grafik & Tren Penjualan</h3>
-            {dealerTag && <span className="dash-badge" title="Dealer yang ditampilkan">{dealerTag}</span>}
+            {dealerTag && !canFilterDealer && <span className="dash-badge" title="Dealer yang ditampilkan">{dealerTag}</span>}
           </div>
-          <p className="dash-chart-sub">
-            Pantau pertumbuhan omset penjualan motor Hayati{dealerText ? ` untuk dealer ${dealerText}` : dealerTag === 'Semua Dealer' ? ' di seluruh jaringan dealer' : ''}.
-          </p>
         </div>
 
         {/* TAB PERIODE: MINGGU, BULAN, TAHUN */}
@@ -245,12 +241,6 @@ function SalesChart({
               </select>
             </div>
           )}
-
-          {period === 'tahun' && (
-            <div className="dash-chart-badge-info">
-              Perbandingan Tren Tahunan (2024 - 2026)
-            </div>
-          )}
         </div>
 
         {/* METRIC & DISPLAY TOGGLES */}
@@ -274,34 +264,6 @@ function SalesChart({
               Unit Motor
             </button>
           </div>
-
-          {/* Toggle Tipe Tampilan */}
-          <div className="dash-chart-toggle-group" aria-label="Tipe visualisasi">
-            <button
-              type="button"
-              className={`dash-chart-toggle-btn${chartMode === 'both' ? ' active' : ''}`}
-              onClick={() => setChartMode('both')}
-              title="Tampilkan Batang dan Garis Tren"
-            >
-              Batang & Garis
-            </button>
-            <button
-              type="button"
-              className={`dash-chart-toggle-btn${chartMode === 'bar' ? ' active' : ''}`}
-              onClick={() => setChartMode('bar')}
-              title="Hanya Diagram Batang"
-            >
-              Batang
-            </button>
-            <button
-              type="button"
-              className={`dash-chart-toggle-btn${chartMode === 'line' ? ' active' : ''}`}
-              onClick={() => setChartMode('line')}
-              title="Hanya Garis Tren & Area"
-            >
-              Garis
-            </button>
-          </div>
         </div>
       </div>
 
@@ -313,19 +275,9 @@ function SalesChart({
           <span className="dash-chart-kpi-sub">{summary.totalUnits} unit motor terjual</span>
         </div>
         <div className="dash-chart-kpi">
-          <small>Rata-rata {period === 'minggu' ? 'Harian' : period === 'bulan' ? 'Bulanan' : 'Tahunan'}</small>
-          <strong>{rupiah(summary.avgRevenue)}</strong>
-          <span className="dash-chart-kpi-sub">per {period === 'minggu' ? 'hari' : period === 'bulan' ? 'bulan aktif' : 'tahun'}</span>
-        </div>
-        <div className="dash-chart-kpi">
           <small>Puncak Tertinggi</small>
           <strong>{summary.peak ? rupiah(summary.peak.revenue) : 'Rp 0'}</strong>
           <span className="dash-chart-kpi-sub">{summary.peak?.fullLabel || '-'} ({summary.peak?.units || 0} unit)</span>
-        </div>
-        <div className="dash-chart-kpi">
-          <small>Total Transaksi</small>
-          <strong>{summary.totalCount} <span className="dash-chart-kpi-unit">Trx</span></strong>
-          <span className="dash-chart-kpi-sub">transaksi status lunas</span>
         </div>
       </div>
 
@@ -530,52 +482,19 @@ function SalesChart({
               </div>
             </div>
 
-            {/* DAFTAR MOTOR POPULER PADA HARI/BULAN/TAHUN INI */}
-            {activeItem.items && activeItem.items.length > 0 && (
-              <div className="dash-chart-tip-models">
-                <small>Unit Terjual:</small>
-                <ul>
-                  {activeItem.items.slice(0, 3).map((it) => (
-                    <li key={it.id}>
-                      <span>{it.motor}</span>
-                      <small>{it.unit || 1} unit ({it.dealer?.replace('Hayati ', '')})</small>
-                    </li>
-                  ))}
-                  {activeItem.items.length > 3 && (
-                    <li className="dash-chart-tip-more">+{activeItem.items.length - 3} transaksi lainnya</li>
-                  )}
-                </ul>
-              </div>
-            )}
           </div>
         )}
       </div>
 
-      {/* FOOTER & LEGENDA GRAFIK */}
-      <div className="dash-chart-footer">
-        <div className="dash-chart-legend">
-          <span className="dash-chart-legend-item">
-            <span className="dash-chart-leg-bar" /> Nilai Penjualan
-          </span>
-          <span className="dash-chart-legend-item">
-            <span className="dash-chart-leg-line" /> Tren Garis
-          </span>
-          <span className="dash-chart-legend-item">
-            <span className="dash-chart-leg-peak" /> Puncak Periode
-          </span>
-        </div>
-
-        <div className="dash-chart-footer-right">
-          <span className="dash-proto" title="Data diolah dari data simulasi prototype">
-            Mode Prototipe · {chartData.activePeriodLabel}
-          </span>
-          {onViewAll && (
+      {onViewAll && (
+        <div className="dash-chart-footer">
+          <div className="dash-chart-footer-right">
             <button type="button" className="dash-link dash-chart-view-btn" onClick={onViewAll}>
               Buka Rekap Tabel Penjualan →
             </button>
-          )}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }

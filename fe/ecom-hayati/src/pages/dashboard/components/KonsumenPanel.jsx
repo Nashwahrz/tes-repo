@@ -7,7 +7,8 @@ import Loading, { Spin } from './Loading';
 import Pager from './Pager';
 import IconButton from './IconButton';
 import {
-  getKonsumens, getKonsumenPage, createKonsumen, updateKonsumen, deleteKonsumen, verifyKonsumen, scanKtp, ktpUrl, getAgamas, getPekerjaans, errorMessage,
+  getKonsumens, getKonsumenPage, createKonsumen, updateKonsumen, deleteKonsumen, verifyKonsumen, scanKtp, ktpUrl, errorMessage,
+  getAgamas, getPekerjaans, getProvinsis, getKabupatens, searchKecamatans, searchKelurahans, getMasterById,
 } from '../../../api/authServices';
 
 // Leaflet (JS + CSS) hanya dimuat saat form dibuka
@@ -17,10 +18,28 @@ const STATUS_LABEL = { pending: 'Menunggu Verifikasi', diterima: 'Diterima', dit
 const KAWIN = ['Belum Kawin', 'Kawin', 'Cerai Hidup', 'Cerai Mati'];
 
 const EMPTY = {
-  nik: '', name: '', tmp_lahir: '', tgl_lahir: '', jenis_kelamin: '', alamat: '', latitude: '', longitude: '', rt: '', rw: '',
-  desa_kelurahan: '', kecamatan: '', kabupaten_kota: '', provinsi: '', agama: '', status_perkawinan: '',
-  pekerjaan: '', kewarganegaraan: 'WNI', no_telp: '', email: '',
+  nik: '', name: '', id_tmp_lahir: '', tgl_lahir: '', jenis_kelamin: '', alamat: '', latitude: '', longitude: '', rt: '', rw: '',
+  id_kelurahan: '', id_kecamatan: '', id_kabupaten_kota: '', id_provinsi: '', id_agama: '', status_perkawinan: '',
+  id_pekerjaan: '', kewarganegaraan: 'WNI', no_telp: '', email: '',
 };
+// Wilayah berjenjang: mengganti induk mengosongkan turunannya
+const CHILD_OF = { id_provinsi: ['id_kabupaten_kota', 'id_kecamatan', 'id_kelurahan'], id_kabupaten_kota: ['id_kecamatan', 'id_kelurahan'], id_kecamatan: ['id_kelurahan'] };
+
+const GEO_KEY = { id_kecamatan: 'kecamatan', id_kelurahan: 'kelurahan' }; // kolom form yang dicari lewat nama
+// Nama dari OCR (teks) dicocokkan ke opsi master tanpa awalan "Kota/Kabupaten" dan tanpa beda huruf
+const normName = (t) => String(t ?? '').toLowerCase().replace(/^(kota|kabupaten|kab\.?|kecamatan|kec\.?|kelurahan|kel\.?|desa|provinsi|prov\.?)\s+/, '').replace(/[^a-z0-9]+/g, ' ').trim();
+const nameOf = (options, id) => options.find((o) => String(o.id) === String(id))?.name ?? '';
+// Jenis wilayah ("KOTA X" / "KAB. X") ikut dicocokkan bila ada di teks, karena nama yang sama bisa berupa kota sekaligus kabupaten (mis. Solok).
+// Hasil hanya dipakai bila tepat satu yang cocok; bila ambigu dibiarkan agar user memilih sendiri.
+const typeOf = (t) => (/^\s*kota\b/i.test(t) ? 'kota' : /^\s*(kab\.?|kabupaten)(\s|$)/i.test(t) ? 'kab' : '');
+const matchOpt = (options, text) => {
+  const n = normName(text);
+  if (!n) return undefined;
+  const type = typeOf(String(text));
+  const hits = options.filter((o) => normName(o.name) === n && (!type || !typeOf(o.name) || typeOf(o.name) === type));
+  return hits.length === 1 ? hits[0] : undefined;
+};
+const matchId = (options, text) => matchOpt(options, text)?.id;
 const FIELDS = Object.keys(EMPTY);
 const MAX_FILE = 2 * 1024 * 1024; // 2MB, sama dengan BE
 
@@ -28,15 +47,15 @@ const MAX_FILE = 2 * 1024 * 1024; // 2MB, sama dengan BE
 const toForm = (k) => Object.fromEntries(FIELDS.map((f) => {
   let v = k[f] ?? '';
   if (f === 'tgl_lahir' && v) v = String(v).slice(0, 10);
-  return [f, v];
+  return [f, String(v)];
 }));
 
 // Label field untuk pesan wajib diisi
 const LABELS = {
-  nik: 'NIK', name: 'Nama', tmp_lahir: 'Tempat lahir', tgl_lahir: 'Tanggal lahir', jenis_kelamin: 'Jenis kelamin',
-  alamat: 'Alamat', latitude: 'Latitude', longitude: 'Longitude', rt: 'RT', rw: 'RW', desa_kelurahan: 'Kelurahan/Desa',
-  kecamatan: 'Kecamatan', kabupaten_kota: 'Kabupaten/Kota', provinsi: 'Provinsi', agama: 'Agama',
-  status_perkawinan: 'Status perkawinan', pekerjaan: 'Pekerjaan', kewarganegaraan: 'Kewarganegaraan',
+  nik: 'NIK', name: 'Nama', id_tmp_lahir: 'Tempat lahir', tgl_lahir: 'Tanggal lahir', jenis_kelamin: 'Jenis kelamin',
+  alamat: 'Alamat', latitude: 'Latitude', longitude: 'Longitude', rt: 'RT', rw: 'RW', id_kelurahan: 'Kelurahan/Desa',
+  id_kecamatan: 'Kecamatan', id_kabupaten_kota: 'Kabupaten/Kota', id_provinsi: 'Provinsi', id_agama: 'Agama',
+  status_perkawinan: 'Status perkawinan', id_pekerjaan: 'Pekerjaan', kewarganegaraan: 'Kewarganegaraan',
   no_telp: 'No. telp', email: 'Email',
 };
 
@@ -54,7 +73,7 @@ function validate(form, file, needFoto) {
     const n = Number(form[k]);
     if (Number.isNaN(n) || Math.abs(n) > max) e[k] = `${LABELS[k]} harus berupa angka antara -${max} dan ${max}.`;
   });
-  [['name', 255], ['tmp_lahir', 100], ['alamat', 255], ['rt', 3], ['rw', 3], ['no_telp', 20]].forEach(([k, max]) => {
+  [['name', 255], ['alamat', 255], ['rt', 3], ['rw', 3], ['no_telp', 20]].forEach(([k, max]) => {
     if (!e[k] && form[k].length > max) e[k] = `Maksimal ${max} karakter.`;
   });
   return e;
@@ -82,8 +101,8 @@ function KonsumenPanel({ can, userId, onChanged, dealers = [], myDealerId = null
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState(null); // konsumen yang sedang diubah (null = menambah baru)
   const [form, setForm] = useState(EMPTY);
-  // Agama & pekerjaan dari BE (/agamas, /pekerjaans); kosong bila belum termuat atau gagal (lihat masterNote)
-  const [master, setMaster] = useState({ agama: [], pekerjaan: [] });
+  // Master dari BE: agama, pekerjaan, dan wilayah berjenjang; kosong bila belum termuat atau gagal (lihat masterNote)
+  const [master, setMaster] = useState({ agama: [], pekerjaan: [], provinsi: [], kabupaten: [], kecamatan: [], kelurahan: [], tempatLahir: [] });
   const [masterNote, setMasterNote] = useState('');
   const [file, setFile] = useState(null);
   const [preview, setPreview] = useState('');
@@ -91,6 +110,7 @@ function KonsumenPanel({ can, userId, onChanged, dealers = [], myDealerId = null
   const [saving, setSaving] = useState(false);
   const [scanning, setScanning] = useState(false);
   const [scanNote, setScanNote] = useState('');
+  const [ocrHints, setOcrHints] = useState({}); // { kolom: teks hasil OCR yang tidak cocok dengan daftar }; tampil di bawah kolomnya
   const [confirmSave, setConfirmSave] = useState(false);
   const [toDelete, setToDelete] = useState(null);
   const [toVerify, setToVerify] = useState(null); // { konsumen, status: 'diterima' | 'ditolak' }
@@ -133,6 +153,23 @@ function KonsumenPanel({ can, userId, onChanged, dealers = [], myDealerId = null
 
   const reload = () => { setLoading(true); setReloadKey((n) => n + 1); };
 
+  // BE hanya mengirim ID wilayah/agama/pekerjaan; namanya diambil per ID saat detail dibuka (hasilnya di-cache)
+  const [detailNames, setDetailNames] = useState({});
+  const detailId = detail?.id;
+  useEffect(() => {
+    if (!detail) return undefined;
+    let active = true;
+    const refs = {
+      tempatLahir: ['/kabupaten-kotas', detail.id_tmp_lahir], kelurahan: ['/kelurahans', detail.id_kelurahan],
+      kecamatan: ['/kecamatans', detail.id_kecamatan], kabupaten: ['/kabupaten-kotas', detail.id_kabupaten_kota],
+      provinsi: ['/provinsis', detail.id_provinsi], agama: ['/agamas', detail.id_agama], pekerjaan: ['/pekerjaans', detail.id_pekerjaan],
+    };
+    setDetailNames({});
+    Promise.all(Object.entries(refs).map(async ([k, [path, id]]) => [k, (await getMasterById(path, id).catch(() => null))?.name]))
+      .then((pairs) => { if (active) setDetailNames(Object.fromEntries(pairs)); });
+    return () => { active = false; };
+  }, [detailId]); // eslint-disable-line react-hooks/exhaustive-deps
+
   // URL foto dari BE kedaluwarsa dalam 10 menit: bila gambar gagal dimuat, ambil ulang daftar (paling sering sekali per 30 detik)
   const lastPhotoRefresh = useRef(0);
   const refreshExpiredPhotos = () => {
@@ -174,6 +211,10 @@ function KonsumenPanel({ can, userId, onChanged, dealers = [], myDealerId = null
     setScanNote('');
     setPicked(null);
     setForm(prefill ? toForm(prefill) : EMPTY);
+    setGeoQuery({ kecamatan: '', kelurahan: '' });
+    setGeoTerm({ kecamatan: '', kelurahan: '' });
+    setPickText({});
+    setOcrHints({});
     setFormOpen(true);
   };
   const closeForm = () => { setFormOpen(false); setPicked(null); setEditing(null); };
@@ -185,21 +226,81 @@ function KonsumenPanel({ can, userId, onChanged, dealers = [], myDealerId = null
 
   useEffect(() => {
     if (!formOpen) return;
-    const names = (list) => (list.length ? list.map((o) => o.name) : null);
-    Promise.allSettled([getAgamas(), getPekerjaans()]).then(([a, p]) => {
-      const failed = [['Agama', a], ['Pekerjaan', p]].filter(([, r]) => r.status === 'rejected');
+    let active = true;
+    Promise.allSettled([getAgamas(), getPekerjaans(), getProvinsis(), getKabupatens()]).then(([a, p, pv, kb]) => {
+      if (!active) return;
+      const failed = [['Agama', a], ['Pekerjaan', p], ['Provinsi', pv], ['Kabupaten/Kota', kb]].filter(([, r]) => r.status === 'rejected');
       failed.forEach(([label, r]) => console.warn(`Master ${label} gagal dimuat:`, r.reason));
       setMasterNote(failed.map(([label, r]) => `${label}: ${errorMessage(r.reason)}`).join(' · '));
-      setMaster({
-        agama: (a.status === 'fulfilled' && names(a.value)) || [],
-        pekerjaan: (p.status === 'fulfilled' && names(p.value)) || [],
-      });
+      const val = (r) => (r.status === 'fulfilled' ? r.value : []);
+      setMaster((m) => ({ ...m, agama: val(a), pekerjaan: val(p), provinsi: val(pv), tempatLahir: val(kb) }));
     });
+    return () => { active = false; };
   }, [formOpen]);
 
+  // Kabupaten/kota: dimuat penuh lalu disaring menurut provinsi di FE
+  useEffect(() => {
+    if (!formOpen) return undefined;
+    let active = true;
+    if (!form.id_provinsi) { setMaster((m) => (m.kabupaten.length ? { ...m, kabupaten: [] } : m)); return undefined; }
+    getKabupatens(form.id_provinsi)
+      .then((list) => { if (active) setMaster((m) => ({ ...m, kabupaten: list })); })
+      .catch((err) => { if (active) setMasterNote((n) => n || errorMessage(err)); });
+    return () => { active = false; };
+  }, [formOpen, form.id_provinsi]);
+
+  // Kecamatan & kelurahan: BE belum menyaring per induk dan datanya ribuan, jadi dicari lewat nama (min. 3 huruf)
+  // lalu disaring menurut induknya. Pilihan yang sudah tersimpan selalu ikut tampil.
+  const [geoQuery, setGeoQuery] = useState({ kecamatan: '', kelurahan: '' }); // teks yang sedang diketik
+  const [geoTerm, setGeoTerm] = useState({ kecamatan: '', kelurahan: '' }); // kata kunci yang dicari (baru berubah saat user menekan Cari)
+  // Dropdown yang daftarnya sudah dimuat penuh (provinsi, kabupaten/kota, agama, pekerjaan): disaring langsung saat mengetik
+  const [pickText, setPickText] = useState({});
+  const [pickOpen, setPickOpen] = useState('');
+  const runGeoSearch = (key) => setGeoTerm((t) => ({ ...t, [key]: geoQuery[key].trim() }));
+  const [geoBusy, setGeoBusy] = useState({ kecamatan: false, kelurahan: false });
+  const [geoCut, setGeoCut] = useState({ kecamatan: false, kelurahan: false }); // hasil pencarian terpotong: minta kata kunci lebih spesifik
+  const useGeoSearch = (key, parentId, selectedId, path, search) => {
+    const term = geoTerm[key];
+    useEffect(() => {
+      if (!formOpen) return undefined;
+      let active = true;
+      const ctrl = new AbortController();
+      const timer = setTimeout(async () => {
+        setGeoBusy((b) => ({ ...b, [key]: true }));
+        try {
+          const [res, selected] = await Promise.all([
+            parentId && term.length >= 3 ? search(term, parentId, ctrl.signal) : { rows: [], truncated: false },
+            selectedId ? getMasterById(path, selectedId).catch(() => null) : null,
+          ]);
+          if (!active) return;
+          const found = res.rows;
+          const list = selected && !found.some((o) => o.id === selected.id) ? [selected, ...found] : found;
+          setMaster((m) => ({ ...m, [key]: list }));
+          setGeoCut((c) => ({ ...c, [key]: res.truncated }));
+        } catch (err) {
+          if (active && err?.code !== 'ERR_CANCELED') setMasterNote((n) => n || errorMessage(err));
+        } finally {
+          if (active) setGeoBusy((b) => ({ ...b, [key]: false }));
+        }
+      }, 0);
+      // Cari ulang / menutup form: permintaan yang masih jalan dihentikan
+      return () => { active = false; clearTimeout(timer); ctrl.abort(); };
+    }, [formOpen, parentId, selectedId, term]); // eslint-disable-line react-hooks/exhaustive-deps
+  };
+  useGeoSearch('kecamatan', form.id_kabupaten_kota, form.id_kecamatan, '/kecamatans', searchKecamatans);
+  useGeoSearch('kelurahan', form.id_kecamatan, form.id_kelurahan, '/kelurahans', searchKelurahans);
+
   const setField = (key) => (e) => {
-    setForm((f) => ({ ...f, [key]: e.target.value }));
+    const value = e.target.value;
+    const children = CHILD_OF[key] ?? [];
+    setForm((f) => ({ ...f, [key]: value, ...Object.fromEntries(children.map((c) => [c, ''])) }));
+    const cleared = Object.fromEntries(children.filter((c) => c in GEO_KEY).map((c) => [GEO_KEY[c], '']));
+    setGeoQuery((g) => ({ ...g, ...cleared }));
+    setGeoTerm((g) => ({ ...g, ...cleared }));
+    setPickText((t) => ({ ...t, ...Object.fromEntries(children.map((c) => [c, ''])) }));
     setTouched((t) => ({ ...t, [key]: true }));
+    // peringatan OCR tetap tampil selama user mengetik; hilang setelah ada pilihan
+    setOcrHints((h) => (value && key in h ? Object.fromEntries(Object.entries(h).filter(([k]) => k !== key)) : h));
   };
 
   const handleFile = (e) => {
@@ -226,19 +327,73 @@ function KonsumenPanel({ can, userId, onChanged, dealers = [], myDealerId = null
     setScanning(true);
     setError('');
     setScanNote('');
+    setOcrHints({});
     try {
       const data = await scanKtp(file);
+      // OCR mengirim teks (nama wilayah, agama, pekerjaan); cocokkan ke ID master.
+      // Teks yang terbaca tetapi tidak ada di daftar dicatat di `unmatched`: kolomnya dikosongkan dan user diminta mengisinya ulang.
+      const found = {};
+      const unmatched = []; // { key, label, text }
+      const pick = (key, options, text) => {
+        const t = String(text ?? '').trim();
+        if (!t) return undefined;
+        const id = matchId(options, t);
+        if (id !== undefined) found[key] = String(id);
+        else unmatched.push({ key, label: LABELS[key], text: t });
+        return id;
+      };
+      // Induk tidak cocok -> turunannya tidak bisa dicari; tetap dicatat agar user tahu perlu diisi manual
+      const skip = (key, text) => { const t = String(text ?? '').trim(); if (t) unmatched.push({ key, label: LABELS[key], text: t }); };
+      pick('id_agama', master.agama, data.agama);
+      pick('id_pekerjaan', master.pekerjaan, data.pekerjaan);
+      pick('id_tmp_lahir', master.tempatLahir, data.tmp_lahir);
+      let prov = pick('id_provinsi', master.provinsi, data.provinsi);
+      // Di KTP kabupaten/kota tidak berlabel: ia hanya satu baris tepat di bawah "PROVINSI ..." ("KOTA PADANG", "KAB. SOLOK", atau tanpa awalan seperti "JAKARTA SELATAN").
+      // Maka kandidatnya diambil dari teks mentah OCR: baris berawalan Kota/Kab., dua baris di bawah provinsi, lalu hasil parsing BE.
+      const lines = String(data.raw_text ?? '').split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+      const provLine = lines.findIndex((l) => /provinsi/i.test(l));
+      const typedLines = lines.filter((l) => /^(kota|kabupaten|kab\.?)\s+\S/i.test(l)).slice(0, 3);
+      const kabTexts = [...new Set([...typedLines, ...(provLine >= 0 ? lines.slice(provLine + 1, provLine + 3) : []), String(data.kabupaten_kota ?? '').trim()].filter(Boolean))];
+      // Provinsi tidak terbaca/tidak cocok: cari di seluruh kabupaten/kota, provinsinya diambil dari kabupaten yang ditemukan
+      const kabPool = await getKabupatens(prov).catch(() => []);
+      const kabHit = kabTexts.map((t) => matchOpt(kabPool, t)).find(Boolean);
+      let kab;
+      if (kabHit) {
+        kab = kabHit.id;
+        found.id_kabupaten_kota = String(kab);
+        if (!prov && kabHit.id_provinsi) { prov = kabHit.id_provinsi; found.id_provinsi = String(prov); }
+      } else if (kabTexts.length) {
+        unmatched.push({ key: 'id_kabupaten_kota', label: LABELS.id_kabupaten_kota, text: kabTexts[0] });
+      }
+      const kecText = String(data.kecamatan ?? '').trim();
+      const kec = kab && kecText.length >= 3 ? pick('id_kecamatan', (await searchKecamatans(kecText, kab)).rows, kecText) : (skip('id_kecamatan', kecText), undefined);
+      const kelText = String(data.desa_kelurahan ?? '').trim();
+      if (kec && kelText.length >= 3) pick('id_kelurahan', (await searchKelurahans(kelText, kec)).rows, kelText);
+      else skip('id_kelurahan', kelText);
+      for (let i = unmatched.length - 1; i >= 0; i -= 1) if (unmatched[i].key in found) unmatched.splice(i, 1);
+      FIELDS.filter((k) => !k.startsWith('id_') && data[k]).forEach((k) => { found[k] = String(data[k]); });
       // Hitung field terbaca di luar updater setForm (updater dijalankan React belum tentu langsung)
-      const readable = FIELDS.filter((k) => data[k]);
-      setForm((f) => {
-        const next = { ...f };
-        readable.forEach((k) => { next[k] = String(data[k]); });
-        return next;
+      const readable = Object.keys(found);
+      // Induk baru dari OCR: turunan lama yang tidak ikut terbaca dikosongkan agar tidak tertinggal dari wilayah lain
+      const cleared = Object.fromEntries(Object.keys({ ...found, ...Object.fromEntries(unmatched.map((u) => [u.key, 1])) }).flatMap((k) => (CHILD_OF[k] ?? []).filter((c) => !(c in found)).map((c) => [c, ''])));
+      const wiped = Object.fromEntries(unmatched.map((u) => [u.key, '']));
+      setForm((f) => ({ ...f, ...cleared, ...wiped, ...found }));
+      // Kecamatan/kelurahan yang tidak cocok: kolom cari diisi teks OCR (bila induknya cocok) supaya user tinggal memilih atau mengubah ejaannya
+      setGeoQuery({
+        kecamatan: unmatched.some((u) => u.key === 'id_kecamatan') && kab ? kecText : '',
+        kelurahan: unmatched.some((u) => u.key === 'id_kelurahan') && kec ? kelText : '',
       });
-      setTouched((t) => ({ ...t, nik: true }));
-      setScanNote(readable.length
-        ? { ok: true, text: `KTP berhasil dipindai: ${readable.length} data terisi otomatis. Periksa kembali hasilnya sebelum menyimpan.` }
-        : { ok: false, text: 'KTP dipindai, tetapi tidak ada data yang terbaca. Isi data secara manual.' });
+      setGeoTerm({ kecamatan: '', kelurahan: '' });
+      // Tandai kolom bermasalah agar pesan "wajib diisi" langsung terlihat
+      setTouched((t) => ({ ...t, nik: true, ...Object.fromEntries(unmatched.map((u) => [u.key, true])) }));
+      setOcrHints(Object.fromEntries(unmatched.map((u) => [u.key, u.text])));
+      if (unmatched.length) {
+        setScanNote({ ok: false, text: `KTP dipindai: ${readable.length} data terisi otomatis. ${unmatched.length} data tidak cocok dengan daftar, lihat keterangan di bawah kolom yang bersangkutan.` });
+      } else {
+        setScanNote(readable.length
+          ? { ok: true, text: `KTP berhasil dipindai: ${readable.length} data terisi otomatis. Periksa kembali hasilnya sebelum menyimpan.` }
+          : { ok: false, text: 'KTP dipindai, tetapi tidak ada data yang terbaca. Isi data secara manual.' });
+      }
     } catch (err) {
       setError(errorMessage(err));
     } finally {
@@ -341,7 +496,92 @@ function KonsumenPanel({ can, userId, onChanged, dealers = [], myDealerId = null
     return (
       <div className="dash-form-group">
         <label htmlFor={id}>{label} *</label>
-        {props.options ? (
+        {props.idOptions ? (
+          // Opsi master [{ id, name }]; yang tersimpan adalah ID-nya. searchKey: opsi diisi lewat pencarian nama (min. 3 huruf)
+          props.searchKey ? (
+            // Satu kolom: ketik nama, klik Cari, lalu pilih dari saran (datalist). Nama yang persis sama langsung terpilih.
+            <>
+              <div style={{ display: 'flex', gap: 6 }}>
+                <input
+                  id={id}
+                  className={cls}
+                  type="text"
+                  autoComplete="off"
+                  value={form[key] ? (props.idOptions.find((o) => String(o.id) === String(form[key]))?.name ?? geoQuery[props.searchKey]) : geoQuery[props.searchKey]}
+                  onChange={(e) => {
+                    const text = e.target.value;
+                    const hit = props.idOptions.find((o) => o.name.toLowerCase() === text.trim().toLowerCase());
+                    setField(key)({ target: { value: hit ? String(hit.id) : '' } });
+                    setGeoQuery((g) => ({ ...g, [props.searchKey]: text }));
+                  }}
+                  // Enter = Cari (bukan menyimpan form)
+                  onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); if (!form[key] && geoQuery[props.searchKey].trim().length >= 3) runGeoSearch(props.searchKey); } }}
+                  placeholder={props.disabled ? props.hint : `Ketik min. 3 huruf nama ${label.toLowerCase()}, lalu klik Cari`}
+                  disabled={props.disabled}
+                />
+                <button
+                  type="button"
+                  className="dash-btn outline"
+                  onClick={() => runGeoSearch(props.searchKey)}
+                  disabled={props.disabled || geoBusy[props.searchKey] || geoQuery[props.searchKey].trim().length < 3}
+                >
+                  {geoBusy[props.searchKey] ? <Spin /> : 'Cari'}
+                </button>
+              </div>
+              {!props.disabled && !form[key] && !geoBusy[props.searchKey] && geoTerm[props.searchKey].length >= 3 && (
+                <p className="dash-field-hint" style={{ margin: '4px 0 0', fontSize: 12, opacity: 0.7 }}>
+                  {props.idOptions.length === 0
+                    ? (geoCut[props.searchKey] ? 'Terlalu banyak hasil, ketik lebih spesifik' : 'Tidak ditemukan di wilayah ini')
+                    : `${props.idOptions.length} hasil — pilih salah satu`}
+                </p>
+              )}
+              {!props.disabled && !form[key] && !geoBusy[props.searchKey] && props.idOptions.length > 0 && (
+                <ul className="dash-geo-list" role="listbox" aria-label={label}>
+                  {props.idOptions.map((o) => (
+                    <li key={o.id}>
+                      <button type="button" role="option" onClick={() => setField(key)({ target: { value: String(o.id) } })}>{o.name}</button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </>
+          ) : (
+            // Satu kolom: klik/ketik untuk menyaring daftar, lalu pilih salah satu
+            <>
+              <input
+                id={id}
+                className={cls}
+                type="text"
+                autoComplete="off"
+                value={form[key] ? (props.idOptions.find((o) => String(o.id) === String(form[key]))?.name ?? '') : (pickText[key] ?? '')}
+                onChange={(e) => {
+                  setPickText((t) => ({ ...t, [key]: e.target.value }));
+                  if (form[key]) setField(key)({ target: { value: '' } });
+                  setPickOpen(key);
+                }}
+                onFocus={(e) => { setPickOpen(key); if (form[key]) e.target.select(); }}
+                onBlur={() => setPickOpen((k) => (k === key ? '' : k))}
+                placeholder={props.disabled ? props.hint : `Cari / pilih ${label.toLowerCase()}`}
+                disabled={props.disabled}
+              />
+              {pickOpen === key && !props.disabled && !form[key] && (() => {
+                const q = (pickText[key] ?? '').trim().toLowerCase();
+                const list = props.idOptions.filter((o) => o.name.toLowerCase().includes(q));
+                return (
+                  <ul className="dash-geo-list" role="listbox" aria-label={label}>
+                    {list.length === 0 && <li className="dash-geo-empty">Tidak ditemukan</li>}
+                    {list.map((o) => (
+                      <li key={o.id}>
+                        {/* mousedown dicegah agar kolom tidak blur sebelum klik terbaca */}
+                        <button type="button" role="option" onMouseDown={(e) => e.preventDefault()} onClick={() => { setField(key)({ target: { value: String(o.id) } }); setPickOpen(''); }}>{o.name}</button>
+                      </li>
+                    ))}
+                  </ul>
+                );
+              })()}
+            </>
+          )
+        ) : props.options ? (
           <select id={id} className={cls} value={selected ?? form[key]} onChange={setField(key)} disabled={props.disabled}>
             <option value="">- Pilih -</option>
             {/* Nilai yang belum ada di daftar (hasil OCR/data lama) tetap ditampilkan */}
@@ -359,7 +599,12 @@ function KonsumenPanel({ can, userId, onChanged, dealers = [], myDealerId = null
             maxLength={props.max}
           />
         )}
-        {touched[key] && errors[key] && <p className="dash-field-error">{errors[key]}</p>}
+        {ocrHints[key] && !form[key] && (
+          <p className="dash-field-error" role="alert">
+            Hasil scan KTP: "{ocrHints[key]}" tidak ada di daftar. Ketik ulang{props.searchKey ? ' lalu klik Cari' : ''} atau pilih manual.
+          </p>
+        )}
+        {touched[key] && errors[key] && !(ocrHints[key] && !form[key]) && <p className="dash-field-error">{errors[key]}</p>}
       </div>
     );
   };
@@ -484,14 +729,14 @@ function KonsumenPanel({ can, userId, onChanged, dealers = [], myDealerId = null
             <dl className="dash-detail">
               {[
                 ['NIK', detail.nik], ['Nama', detail.name],
-                ['Tempat, Tgl Lahir', [detail.tmp_lahir, detail.tgl_lahir && String(detail.tgl_lahir).slice(0, 10)].filter(Boolean).join(', ')],
+                ['Tempat, Tgl Lahir', [detailNames.tempatLahir, detail.tgl_lahir && String(detail.tgl_lahir).slice(0, 10)].filter(Boolean).join(', ')],
                 ['Jenis Kelamin', detail.jenis_kelamin], ['Alamat', detail.alamat],
                 ['Koordinat', detail.latitude && detail.longitude ? `${detail.latitude}, ${detail.longitude}` : ''],
                 ['RT/RW', [detail.rt, detail.rw].filter(Boolean).join('/')],
-                ['Kel/Desa', detail.desa_kelurahan], ['Kecamatan', detail.kecamatan],
-                ['Kab/Kota', detail.kabupaten_kota], ['Provinsi', detail.provinsi],
-                ['Agama', detail.agama], ['Status Perkawinan', detail.status_perkawinan],
-                ['Pekerjaan', detail.pekerjaan], ['Kewarganegaraan', detail.kewarganegaraan],
+                ['Kel/Desa', detailNames.kelurahan], ['Kecamatan', detailNames.kecamatan],
+                ['Kab/Kota', detailNames.kabupaten], ['Provinsi', detailNames.provinsi],
+                ['Agama', detailNames.agama], ['Status Perkawinan', detail.status_perkawinan],
+                ['Pekerjaan', detailNames.pekerjaan], ['Kewarganegaraan', detail.kewarganegaraan],
                 ['No. Telp', detail.no_telp], ['Email', detail.email],
                 ['Dealer', dealerName(detail)],
                 ['Didaftarkan oleh', detail.me?.name ?? detail.me?.email],
@@ -536,12 +781,12 @@ function KonsumenPanel({ can, userId, onChanged, dealers = [], myDealerId = null
             {field('nik', 'NIK', { placeholder: '16 digit angka', numeric: true, max: 16 })}
             {field('name', 'Nama Lengkap')}
             <div className="dash-form-row">
-              {field('tmp_lahir', 'Tempat Lahir')}
+              {field('id_tmp_lahir', 'Tempat Lahir', { idOptions: master.tempatLahir })}
               {field('tgl_lahir', 'Tanggal Lahir', { type: 'date' })}
             </div>
             <div className="dash-form-row">
               {field('jenis_kelamin', 'Jenis Kelamin', { options: ['Laki-laki', 'Perempuan'] })}
-              {field('agama', 'Agama', { options: master.agama })}
+              {field('id_agama', 'Agama', { idOptions: master.agama })}
             </div>
             {field('alamat', 'Alamat')}
             <div className="dash-form-group">
@@ -551,10 +796,10 @@ function KonsumenPanel({ can, userId, onChanged, dealers = [], myDealerId = null
                   latitude={form.latitude}
                   longitude={form.longitude}
                   onPick={handlePick}
-                  desa={form.desa_kelurahan}
-                  kabupaten={form.kabupaten_kota}
-                  kecamatan={form.kecamatan}
-                  provinsi={form.provinsi}
+                  desa={nameOf(master.kelurahan, form.id_kelurahan)}
+                  kabupaten={nameOf(master.kabupaten, form.id_kabupaten_kota)}
+                  kecamatan={nameOf(master.kecamatan, form.id_kecamatan)}
+                  provinsi={nameOf(master.provinsi, form.id_provinsi)}
                 />
               </Suspense>
               <p className="dash-map-hint">Cari alamat, klik peta, atau geser marker untuk menentukan titik lokasi konsumen.</p>
@@ -568,18 +813,20 @@ function KonsumenPanel({ can, userId, onChanged, dealers = [], myDealerId = null
               {field('rw', 'RW', { max: 3, numeric: true })}
             </div>
             <div className="dash-form-row">
-              {field('desa_kelurahan', 'Kelurahan / Desa')}
-              {field('kecamatan', 'Kecamatan')}
+              {field('id_provinsi', 'Provinsi', { idOptions: master.provinsi })}
+              {field('id_kabupaten_kota', 'Kabupaten / Kota', { idOptions: master.kabupaten, disabled: !form.id_provinsi, hint: 'Pilih provinsi dulu' })}
             </div>
             <div className="dash-form-row">
-              {field('kabupaten_kota', 'Kabupaten / Kota')}
-              {field('provinsi', 'Provinsi')}
+              {field('id_kecamatan', 'Kecamatan', { idOptions: master.kecamatan, searchKey: 'kecamatan', disabled: !form.id_kabupaten_kota, hint: 'Pilih kabupaten/kota dulu' })}
+            </div>
+            <div className="dash-form-row">
+              {field('id_kelurahan', 'Kelurahan / Desa', { idOptions: master.kelurahan, searchKey: 'kelurahan', disabled: !form.id_kecamatan, hint: 'Pilih kecamatan dulu' })}
             </div>
             <div className="dash-form-row">
               {field('status_perkawinan', 'Status Perkawinan', { options: KAWIN })}
-              {field('pekerjaan', 'Pekerjaan', { options: master.pekerjaan })}
+              {field('id_pekerjaan', 'Pekerjaan', { idOptions: master.pekerjaan })}
             </div>
-            {masterNote && <p className="dash-map-hint">Daftar agama/pekerjaan dari server tidak dapat dimuat. {masterNote}</p>}
+            {masterNote && <p className="dash-map-hint">Sebagian daftar master dari server tidak dapat dimuat. {masterNote}</p>}
             {field('kewarganegaraan', 'Kewarganegaraan', { options: ['WNI', 'WNA'] })}
             <div className="dash-form-row">
               {field('no_telp', 'No. Telp', { numeric: true, max: 20 })}
