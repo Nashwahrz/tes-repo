@@ -52,7 +52,11 @@
 
 .dash-brand small { font-size: 10px; font-weight: 600; color: var(--accent); }
 
-.dash-menu { list-style: none; margin: 0; padding: 0; flex: 1; }
+.dash-menu { list-style: none; margin: 0; padding: 0; flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
+.dash-menu::-webkit-scrollbar { width: 6px; }
+.dash-menu::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 6px; }
+.dash-menu::-webkit-scrollbar-thumb { background: #b5b5b5; border-radius: 6px; }
+.dash-menu::-webkit-scrollbar-thumb:hover { background: var(--accent); }
 
 .dash-menu-item {
   display: flex;
@@ -388,6 +392,7 @@
 .dash-form-group label { display: block; margin-bottom: 6px; font-size: 12px; font-weight: 600; }
 .dash-form-row { display: flex; gap: 12px; }
 .dash-field-error { margin: 4px 0 0; font-size: 11px; color: #d92d20; }
+.dash-field-warn { margin: 4px 0 0; font-size: 11px; color: #b45309; }
 
 .dash-modal-bg {
   position: fixed;
@@ -701,6 +706,26 @@ select.dash-input, .dash-select {
 /* Tombol menu & lapisan penutup hanya dipakai di layar kecil */
 .dash-burger, .dash-scrim { display: none; }
 
+/* Tombol sembunyikan/tampilkan sidebar hanya untuk desktop */
+.dash-collapse, .dash-expand {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  color: var(--muted);
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  cursor: pointer;
+}
+.dash-collapse:hover, .dash-expand:hover { background: #f3f3f3; color: var(--ink); }
+.dash-collapse:focus-visible, .dash-expand:focus-visible { outline: none; box-shadow: var(--ring); }
+.dash-collapse { position: absolute; top: 20px; right: 10px; }
+.dash-expand { position: fixed; top: 14px; left: 14px; z-index: 20; box-shadow: var(--shadow-sm); }
+.dash-side.hidden { display: none; }
+.dash-brand { padding-right: 40px; }
+.dash:has(.dash-expand) .dash-content { padding-left: 64px; }
+
 @media (max-width: 900px) {
   /* Sidebar menjadi bilah atas: logo + tombol menu. Menu dan akun tersembunyi sampai tombol ditekan. */
   .dash-side {
@@ -713,6 +738,8 @@ select.dash-input, .dash-select {
     align-self: stretch;
     width: 100%;
     padding: 10px 14px;
+    max-height: 100vh;
+    overflow-y: auto;
     border-right: 0;
     border-bottom: 1px solid var(--line);
     box-shadow: var(--shadow-sm);
@@ -731,6 +758,9 @@ select.dash-input, .dash-select {
     cursor: pointer;
   }
   .dash-burger:focus-visible { outline: none; box-shadow: var(--ring); }
+  .dash-collapse, .dash-expand { display: none; }
+  .dash-side.hidden { display: flex; }
+  .dash:has(.dash-expand) .dash-content { padding-left: 14px; }
   .dash-menu, .dash-side-foot { display: none; }
   .dash-side.open .dash-menu {
     display: block;

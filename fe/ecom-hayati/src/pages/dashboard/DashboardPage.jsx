@@ -2,7 +2,7 @@
 import { lazy, Suspense, useEffect, useRef, useState } from 'react';
 import { getUsers, getDealers, getKonsumenTotal, getKonsumenStatusTotals, getUserMenus, getUserPermissions } from '../../api/authServices';
 import {
-  MENU_HOME, MENU_PRODUK, MENU_PENJUALAN, MENU_DEALER, MENU_KONSUMEN, MENU_ACC, MENU_ROLE, MENU_WHITELIST, MENU_MASTER, MENU_PATHS, menuFromPath,
+  MENU_HOME, MENU_PRODUK, MENU_PENJUALAN, MENU_DEALER, MENU_KONSUMEN, MENU_ACC, MENU_ROLE, MENU_WHITELIST, MENU_AGAMA, MENU_PEKERJAAN, MENU_PROVINSI, MENU_KABUPATEN, MENU_KECAMATAN, MENU_KELURAHAN, MASTER_MENUS, MENU_PATHS, menuFromPath,
 } from './menuPaths';
 import Loading from './components/Loading';
 import { SALES_PROTOTYPE, salesFor, totalSales } from './salesPrototype';
@@ -39,6 +39,8 @@ const PATHS = {
   menu: <><path d="M4 6h16M4 12h16M4 18h16" /></>,
   close: <><path d="M6 6l12 12M18 6L6 18" /></>,
   chevron: <><path d="M6 9l6 6 6-6" /></>,
+  chevronsLeft: <><path d="M11 17l-5-5 5-5" /><path d="M18 17l-5-5 5-5" /></>,
+  chevronsRight: <><path d="M13 17l5-5-5-5" /><path d="M6 17l5-5-5-5" /></>,
   off: <><circle cx="12" cy="12" r="9" /><path d="M5.6 5.6l12.8 12.8" /></>,
 };
 
@@ -51,7 +53,6 @@ const MENU_ICONS = {
   [MENU_ACC]: 'shield',
   [MENU_ROLE]: 'shield',
   [MENU_WHITELIST]: 'mail',
-  [MENU_MASTER]: 'box',
 };
 
 const Icon = ({ name, size = 16 }) => (
@@ -66,7 +67,7 @@ const NAV = [
   { item: MENU_HOME },
   { group: 'Operasional', icon: 'store', items: [MENU_PRODUK, MENU_PENJUALAN, MENU_DEALER, MENU_KONSUMEN] },
   { group: 'Administrasi', icon: 'shield', items: [MENU_ACC, MENU_ROLE, MENU_WHITELIST] },
-  { item: MENU_MASTER },
+  { group: 'Data Master', icon: 'box', items: [MENU_AGAMA, MENU_PEKERJAAN, MENU_PROVINSI, MENU_KABUPATEN, MENU_KECAMATAN, MENU_KELURAHAN] },
 ];
 
 const KONSUMEN_STATUS = { pending: 'Menunggu', diterima: 'Diterima', ditolak: 'Ditolak' };
@@ -134,6 +135,14 @@ function DashboardPage() {
     return () => window.removeEventListener('popstate', onPop);
   }, []);
   const [confirmLogout, setConfirmLogout] = useState(false);
+  // Sidebar desktop bisa disembunyikan; pilihan diingat di localStorage
+  const [sideHidden, setSideHidden] = useState(() => {
+    try { return localStorage.getItem('dash-side-hidden') === '1'; } catch { return false; }
+  });
+  const toggleSide = () => setSideHidden((h) => {
+    try { localStorage.setItem('dash-side-hidden', h ? '0' : '1'); } catch { /* abaikan */ }
+    return !h;
+  });
   const [navOpen, setNavOpen] = useState(false); // menu samping terbuka (hanya berpengaruh di layar kecil)
 
   // Esc menutup menu samping
@@ -218,7 +227,10 @@ function DashboardPage() {
   const canRole = canRoleMenu || canRolePerm;
   const canWhitelist = hasMenu('email-whitelists') && can('email-whitelists.lihat');
   // Data Master: agama & pekerjaan punya menu/permission sendiri di BE
-  const canMaster = (hasMenu('agamas') && can('agamas.lihat')) || (hasMenu('pekerjaans') && can('pekerjaans.lihat'));
+  const canAgama = hasMenu('agamas') && can('agamas.lihat');
+  const canPekerjaan = hasMenu('pekerjaans') && can('pekerjaans.lihat');
+  // Wilayah belum punya permission di BE: tampil bagi yang boleh melihat agama/pekerjaan
+  const canWilayah = canAgama || canPekerjaan;
 
   // Kartu ringkasan hanya untuk data yang boleh dilihat role; data konsumen sudah dibatasi BE sesuai dealer user
   const baseStats = [
@@ -334,7 +346,9 @@ function DashboardPage() {
     ...(canAcc ? [MENU_ACC] : []),
     ...(canRole ? [MENU_ROLE] : []),
     ...(canWhitelist ? [MENU_WHITELIST] : []),
-    ...(canMaster ? [MENU_MASTER] : []),
+    ...(canAgama ? [MENU_AGAMA] : []),
+    ...(canPekerjaan ? [MENU_PEKERJAAN] : []),
+    ...(canWilayah ? [MENU_PROVINSI, MENU_KABUPATEN, MENU_KECAMATAN, MENU_KELURAHAN] : []),
   ];
   const nav = NAV
     .map((n) => (n.group ? { ...n, items: n.items.filter((m) => menus.includes(m)) } : n))
@@ -381,7 +395,7 @@ function DashboardPage() {
   return (
     <div className="dash">
       {navOpen && <div className="dash-scrim" onClick={() => setNavOpen(false)} />}
-      <aside className={`dash-side${navOpen ? ' open' : ''}`}>
+      <aside className={`dash-side${navOpen ? ' open' : ''}${sideHidden ? ' hidden' : ''}`}>
         <div className="dash-brand">
           <img src={LOGO_SRC} alt="Logo Hayati" />
           <div>
@@ -389,6 +403,9 @@ function DashboardPage() {
             <small>Management Workspace</small>
           </div>
         </div>
+        <button type="button" className="dash-collapse" aria-label="Sembunyikan sidebar" title="Sembunyikan sidebar" onClick={toggleSide}>
+          <Icon name="chevronsLeft" size={18} />
+        </button>
         <button
           type="button"
           className="dash-burger"
@@ -443,6 +460,12 @@ function DashboardPage() {
             </div>
           </div>
         </div>
+      )}
+
+      {sideHidden && (
+        <button type="button" className="dash-expand" aria-label="Tampilkan sidebar" title="Tampilkan sidebar" onClick={toggleSide}>
+          <Icon name="chevronsRight" size={18} />
+        </button>
       )}
 
       <div className="dash-main">
@@ -544,10 +567,10 @@ function DashboardPage() {
             </div>
           )}
 
-          {menu === MENU_MASTER && canMaster && (
+          {MASTER_MENUS[menu] && menus.includes(menu) && (
             <div className="dash-card">
               <Suspense fallback={<Loading rows={4} />}>
-                <MasterPanel hasMenu={hasMenu} can={can} />
+                <MasterPanel key={menu} tabKey={MASTER_MENUS[menu]} can={can} />
               </Suspense>
             </div>
           )}

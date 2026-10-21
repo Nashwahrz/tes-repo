@@ -210,7 +210,7 @@ function DealerPanel({ dealers: rows, onDealersChange, can, scopeNote }) {
       )}
 
       {editing && (
-        <div className="dash-modal-bg" onClick={closeForm}>
+        <div className="dash-modal-bg">
           <form className="dash-modal" onClick={(e) => e.stopPropagation()} onSubmit={handleSubmit} noValidate>
             <h3>{isNew ? 'Tambah Dealer' : 'Ubah Dealer'}</h3>
             {field('name', 'Nama Dealer', { placeholder: 'Contoh: Hayati Motor Pusat' })}

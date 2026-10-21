@@ -96,10 +96,13 @@ export const getMasterById = (path, id) => {
 
 // CRUD data master (agama, pekerjaan, dan wilayah: provinsi, kabupaten/kota, kecamatan, kelurahan).
 // BE memaginasi 10 data per halaman: { data: { data: [...], current_page, last_page, total } }
-export const getMasterPage = async (path, page = 1) => {
-  const p = (await api.get(path, { params: { page } })).data.data;
+export const getMasterPage = async (path, page = 1, search = '') => {
+  const p = (await api.get(path, { params: { page, ...(search ? { search } : {}) } })).data.data;
   return { rows: p.data ?? [], meta: { page: p.current_page ?? 1, lastPage: p.last_page ?? 1, total: p.total ?? 0 } };
 };
+// Cari data master menurut nama (default 20 hasil pertama); dipakai memilih induk di form data master
+export const searchMaster = async (path, search, signal, perPage = 20) =>
+  (await api.get(path, { params: { search, per_page: perPage }, signal })).data.data.data ?? [];
 export const createMaster = async (path, payload) => (await api.post(path, payload)).data;
 export const updateMaster = async (path, id, payload) => (await api.put(`${path}/${id}`, payload)).data;
 export const deleteMaster = async (path, id) => (await api.delete(`${path}/${id}`)).data;

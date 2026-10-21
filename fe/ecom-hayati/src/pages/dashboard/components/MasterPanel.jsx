@@ -2,40 +2,92 @@
 // Kelola data master: agama, pekerjaan (BE: /agamas, /pekerjaans) dan wilayah (provinsi, kabupaten/kota, kecamatan, kelurahan).
 // Endpoint wilayah mengikuti pola yang sama; bila BE belum menyediakannya, tab menampilkan pemberitahuan.
 import { useEffect, useState } from 'react';
-import { getMasterPage, createMaster, updateMaster, deleteMaster, errorMessage } from '../../../api/authServices';
+import { getMasterPage, getMasterById, searchMaster, createMaster, updateMaster, deleteMaster, errorMessage } from '../../../api/authServices';
 import Toast from './Toast';
 import Loading, { Spin } from './Loading';
 import Pager from './Pager';
 import IconButton from './IconButton';
 
-// perm: awalan permission BE (<perm>.lihat/tambah/ubah/hapus); parent: kolom foreign key ke induknya
+// perm: awalan permission BE (<perm>.lihat/tambah/ubah/hapus); parent: kolom foreign key ke induknya + endpoint induk (untuk menampilkan namanya)
 const TABS = [
   { key: 'agama', label: 'Agama', path: '/agamas', perm: 'agamas', menu: 'agamas' },
   { key: 'pekerjaan', label: 'Pekerjaan', path: '/pekerjaans', perm: 'pekerjaans', menu: 'pekerjaans' },
   { key: 'provinsi', label: 'Provinsi', path: '/provinsis', wilayah: true },
-  { key: 'kabupaten', label: 'Kabupaten / Kota', path: '/kabupaten-kotas', wilayah: true, parent: { field: 'id_provinsi', label: 'ID Provinsi' } },
-  { key: 'kecamatan', label: 'Kecamatan', path: '/kecamatans', wilayah: true, parent: { field: 'id_kabupaten_kota', label: 'ID Kabupaten/Kota' } },
-  { key: 'kelurahan', label: 'Kelurahan', path: '/kelurahans', wilayah: true, parent: { field: 'id_kecamatan', label: 'ID Kecamatan' } },
+  { key: 'kabupaten', label: 'Kabupaten / Kota', path: '/kabupaten-kotas', wilayah: true, parent: { field: 'id_provinsi', label: 'Provinsi', path: '/provinsis' } },
+  { key: 'kecamatan', label: 'Kecamatan', path: '/kecamatans', wilayah: true, parent: { field: 'id_kabupaten_kota', label: 'Kabupaten / Kota', path: '/kabupaten-kotas' } },
+  { key: 'kelurahan', label: 'Kelurahan', path: '/kelurahans', wilayah: true, parent: { field: 'id_kecamatan', label: 'Kecamatan', path: '/kecamatans' } },
 ];
 
-function MasterPanel({ hasMenu, can }) {
-  // Agama/pekerjaan mengikuti menu & permission masing-masing. Wilayah belum punya permission di BE,
-  // jadi tabnya tampil bagi yang boleh melihat master, dengan aksi mengikuti permission agamas.* sebagai acuan.
-  const own = (t) => hasMenu(t.menu) && can(`${t.perm}.lihat`);
-  const anyMaster = TABS.some((t) => !t.wilayah && own(t));
-  const tabs = TABS.filter((t) => (t.wilayah ? anyMaster : own(t)));
-  const [tabKey, setTabKey] = useState(tabs[0]?.key);
-  const tab = tabs.find((t) => t.key === tabKey) ?? tabs[0];
+// Tab dipilih lewat submenu Data Master di sidebar; hak akses menunya sudah diperiksa di DashboardPage
+// Pilih induk lewat nama (bukan ID): ketik untuk mencari, klik hasilnya
+function ParentPicker({ parent, value, name, onPick }) {
+  const [query, setQuery] = useState('');
+  const [results, setResults] = useState([]);
+  const [busy, setBusy] = useState(false);
+
+  useEffect(() => {
+    const q = query.trim();
+    if (q.length < 2) return undefined;
+    const ctrl = new AbortController();
+    const t = setTimeout(() => {
+      setBusy(true);
+      searchMaster(parent.path, q, ctrl.signal)
+        .then((rows) => setResults(rows))
+        .catch(() => {})
+        .finally(() => !ctrl.signal.aborted && setBusy(false));
+    }, 300);
+    return () => { clearTimeout(t); ctrl.abort(); };
+  }, [query, parent.path]);
+
+  return (
+    <div>
+      {value && (
+        <p className="dash-card-desc" style={{ marginBottom: 6 }}>
+          Dipilih: <strong>{name || '...'}</strong>{' '}
+          <button type="button" className="dash-link" onClick={() => onPick('', '')}>Hapus</button>
+        </p>
+      )}
+      <input
+        id="master-parent"
+        className="dash-input"
+        placeholder={`Ketik nama ${parent.label.toLowerCase()}...`}
+        value={query}
+        onChange={(e) => setQuery(e.target.value)}
+        autoComplete="off"
+      />
+      {query.trim().length >= 2 && (
+        <ul style={{ listStyle: 'none', margin: '6px 0 0', padding: 0, maxHeight: 160, overflowY: 'auto', border: '1px solid var(--line)', borderRadius: 8 }}>
+          {busy && <li style={{ padding: '8px 10px', color: 'var(--muted)' }}>Mencari...</li>}
+          {!busy && results.length === 0 && <li style={{ padding: '8px 10px', color: 'var(--muted)' }}>Tidak ditemukan.</li>}
+          {results.map((r) => (
+            <li key={r.id}>
+              <button type="button" className="dash-menu-item" style={{ width: '100%', textAlign: 'left', background: 'none', border: 0, padding: '8px 10px', cursor: 'pointer' }} onClick={() => { onPick(String(r.id), r.name); setQuery(''); }}>
+                {r.name}
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
+function MasterPanel({ tabKey, can }) {
+  const tab = TABS.find((t) => t.key === tabKey) ?? TABS[0];
+  // Wilayah belum punya permission di BE, jadi aksinya mengikuti permission agamas.* sebagai acuan
   const perm = (action) => can(`${tab.wilayah ? 'agamas' : tab.perm}.${action}`);
 
   const [rows, setRows] = useState([]);
   const [meta, setMeta] = useState({ page: 1, lastPage: 1, total: 0 });
   const [page, setPage] = useState(1);
+  const [query, setQuery] = useState('');
+  const [search, setSearch] = useState(''); // query yang sudah ditunda (debounce) dan dikirim ke BE
   const [loading, setLoading] = useState(true);
   const [reloadKey, setReloadKey] = useState(0);
   const [unavailable, setUnavailable] = useState(false);
   const [editing, setEditing] = useState(null); // null | 'new' | row
-  const [form, setForm] = useState({ name: '', parent: '' });
+  const [form, setForm] = useState({ name: '', parent: '', parentName: '' });
+  const [parentNames, setParentNames] = useState({}); // id induk -> nama, untuk kolom induk di tabel
   const [touched, setTouched] = useState(false);
   const [toDelete, setToDelete] = useState(null);
   const [saving, setSaving] = useState(false);
@@ -44,7 +96,7 @@ function MasterPanel({ hasMenu, can }) {
 
   useEffect(() => {
     let active = true;
-    getMasterPage(tab.path, page)
+    getMasterPage(tab.path, page, search)
       .then((res) => {
         if (!active) return;
         // Halaman terakhir baru saja kosong (data dihapus): mundur ke halaman terakhir yang ada
@@ -63,26 +115,36 @@ function MasterPanel({ hasMenu, can }) {
       })
       .finally(() => active && setLoading(false));
     return () => { active = false; };
-  }, [tab.path, page, reloadKey]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [tab.path, page, search, reloadKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const switchTab = (k) => {
-    if (k === tab.key) return;
-    setTabKey(k);
-    setPage(1);
-    setLoading(true);
-    setError('');
-    setSuccess('');
-  };
+  // Pencarian ditunda 400 ms setelah berhenti mengetik, lalu kembali ke halaman pertama
+  useEffect(() => {
+    const q = query.trim();
+    if (q === search) return undefined;
+    const t = setTimeout(() => { setLoading(true); setPage(1); setSearch(q); }, 400);
+    return () => clearTimeout(t);
+  }, [query, search]);
+
+  // Kolom induk menampilkan nama; nama diambil menurut ID induk yang ada di halaman ini
+  useEffect(() => {
+    if (!tab.parent) return;
+    const ids = [...new Set(rows.map((r) => r[tab.parent.field]).filter(Boolean))].filter((id) => !(id in parentNames));
+    ids.forEach((id) => {
+      getMasterById(`${tab.parent.path}`, id)
+        .then((d) => setParentNames((m) => ({ ...m, [id]: d?.name ?? '-' })))
+        .catch(() => setParentNames((m) => ({ ...m, [id]: '-' })));
+    });
+  }, [rows]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const isNew = editing === 'new';
   const nameError = !form.name.trim() ? 'Nama wajib diisi.' : form.name.trim().length > 255 ? 'Maksimal 255 karakter.' : '';
-  const parentError = tab.parent && form.parent && !/^\d+$/.test(form.parent) ? `${tab.parent.label} harus berupa angka.` : '';
 
   const openForm = (row) => {
     setSuccess('');
     setError('');
     setTouched(false);
-    setForm({ name: row === 'new' ? '' : row.name, parent: row === 'new' ? '' : String(row[tab.parent?.field] ?? '') });
+    const pid = row === 'new' ? '' : String(row[tab.parent?.field] ?? '');
+    setForm({ name: row === 'new' ? '' : row.name, parent: pid, parentName: pid ? parentNames[pid] ?? '' : '' });
     setEditing(row);
   };
   const closeForm = () => setEditing(null);
@@ -90,7 +152,7 @@ function MasterPanel({ hasMenu, can }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setTouched(true);
-    if (nameError || parentError) return;
+    if (nameError) return;
     const payload = { name: form.name.trim(), ...(tab.parent ? { [tab.parent.field]: form.parent ? Number(form.parent) : null } : {}) };
     setSaving(true);
     setError('');
@@ -127,22 +189,24 @@ function MasterPanel({ hasMenu, can }) {
 
   return (
     <div>
-      <div className="dash-tabs wide" style={{ flexWrap: 'wrap' }}>
-        {tabs.map((t) => (
-          <button key={t.key} className={`dash-tab${tab.key === t.key ? ' active' : ''}`} onClick={() => switchTab(t.key)}>
-            {t.label}
-          </button>
-        ))}
-      </div>
-
       <div className="dash-card-head">
         <h3>
           <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 8l-9-5-9 5 9 5 9-5z" /><path d="M3 8v8l9 5 9-5V8" /></svg>
-          Daftar Agama & Pekerjaan · {tab.label}
+          Data Master · {tab.label}
         </h3>
         {perm('tambah') && !unavailable && <button className="dash-btn solid" onClick={() => openForm('new')}>+ Tambah {tab.label}</button>}
       </div>
       <p className="dash-card-desc">Kelola daftar {tab.label.toLowerCase()} yang dipakai sebagai pilihan pada form.</p>
+
+      <input
+        className="dash-input"
+        style={{ maxWidth: 320, marginBottom: 12 }}
+        type="search"
+        placeholder={`Cari ${tab.label.toLowerCase()}...`}
+        aria-label={`Cari ${tab.label}`}
+        value={query}
+        onChange={(e) => setQuery(e.target.value)}
+      />
 
       <Toast kind="success" message={success} onClose={() => setSuccess('')} />
       <Toast kind="error" message={error} onClose={() => setError('')} />
@@ -152,7 +216,7 @@ function MasterPanel({ hasMenu, can }) {
       ) : unavailable ? (
         <p className="dash-alert warning">Endpoint <code>{tab.path}</code> belum tersedia di backend, jadi data {tab.label.toLowerCase()} belum dapat dimuat. Tab ini akan berfungsi setelah backend menyediakannya.</p>
       ) : rows.length === 0 ? (
-        <p className="dash-empty">Belum ada data {tab.label.toLowerCase()}.</p>
+        <p className="dash-empty">{search ? `Tidak ada ${tab.label.toLowerCase()} yang cocok dengan "${search}".` : `Belum ada data ${tab.label.toLowerCase()}.`}</p>
       ) : (
         <div className="dash-table-wrap">
           <table className="dash-table">
@@ -167,7 +231,7 @@ function MasterPanel({ hasMenu, can }) {
               {rows.map((r) => (
                 <tr key={r.id}>
                   <td><strong className="dash-cell-name">{r.name}</strong></td>
-                  {tab.parent && <td>{r[tab.parent.field] ?? '-'}</td>}
+                  {tab.parent && <td>{r[tab.parent.field] ? parentNames[r[tab.parent.field]] ?? '...' : '-'}</td>}
                   {showAksi && (
                     <td className="col-aksi">
                       <div className="dash-actions">
@@ -186,7 +250,7 @@ function MasterPanel({ hasMenu, can }) {
       {!unavailable && <Pager page={meta.page} lastPage={meta.lastPage} total={meta.total} unit={tab.label.toLowerCase()} onPage={(p) => { setLoading(true); setPage(p); }} />}
 
       {editing && (
-        <div className="dash-modal-bg" onClick={() => !saving && closeForm()}>
+        <div className="dash-modal-bg">
           <form className="dash-modal" onClick={(e) => e.stopPropagation()} onSubmit={handleSubmit} noValidate>
             <h3>{isNew ? 'Tambah' : 'Ubah'} {tab.label}</h3>
             <div className="dash-form-group">
@@ -203,14 +267,7 @@ function MasterPanel({ hasMenu, can }) {
             {tab.parent && (
               <div className="dash-form-group">
                 <label htmlFor="master-parent">{tab.parent.label}</label>
-                <input
-                  id="master-parent"
-                  className={`dash-input${touched && parentError ? ' invalid' : ''}`}
-                  inputMode="numeric"
-                  value={form.parent}
-                  onChange={(e) => setForm((f) => ({ ...f, parent: e.target.value }))}
-                />
-                {touched && parentError && <p className="dash-field-error">{parentError}</p>}
+                <ParentPicker parent={tab.parent} value={form.parent} name={form.parentName} onPick={(id, name) => setForm((f) => ({ ...f, parent: id, parentName: name }))} />
               </div>
             )}
             <div className="dash-modal-actions">

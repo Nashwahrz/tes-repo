@@ -182,7 +182,7 @@ function EmailWhitelistPanel({ can, userId, users = [] }) {
       )}
 
       {editing && (
-        <div className="dash-modal-bg" onClick={() => !saving && closeForm()}>
+        <div className="dash-modal-bg">
           <form className="dash-modal" onClick={(e) => e.stopPropagation()} onSubmit={handleSubmit} noValidate>
             <h3>{isNew ? 'Tambah Domain' : 'Ubah Domain'}</h3>
             <div className="dash-form-group">

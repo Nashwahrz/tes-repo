@@ -8,7 +8,7 @@ import Pager from './Pager';
 import IconButton from './IconButton';
 import {
   getKonsumens, getKonsumenPage, createKonsumen, updateKonsumen, deleteKonsumen, verifyKonsumen, scanKtp, ktpUrl, errorMessage,
-  getAgamas, getPekerjaans, getProvinsis, getKabupatens, searchKecamatans, searchKelurahans, getMasterById,
+  getAgamas, getPekerjaans, getProvinsis, getKabupatens, searchKecamatans, searchKelurahans, searchMaster, getMasterById,
 } from '../../../api/authServices';
 
 // Leaflet (JS + CSS) hanya dimuat saat form dibuka
@@ -110,6 +110,7 @@ function KonsumenPanel({ can, userId, onChanged, dealers = [], myDealerId = null
   const [saving, setSaving] = useState(false);
   const [scanning, setScanning] = useState(false);
   const [scanNote, setScanNote] = useState('');
+  const [ocrFilled, setOcrFilled] = useState({}); // { kolom: true } terisi otomatis dari scan KTP dan belum diubah user; diberi pengingat periksa ulang
   const [ocrHints, setOcrHints] = useState({}); // { kolom: teks hasil OCR yang tidak cocok dengan daftar }; tampil di bawah kolomnya
   const [confirmSave, setConfirmSave] = useState(false);
   const [toDelete, setToDelete] = useState(null);
@@ -215,6 +216,7 @@ function KonsumenPanel({ can, userId, onChanged, dealers = [], myDealerId = null
     setGeoTerm({ kecamatan: '', kelurahan: '' });
     setPickText({});
     setOcrHints({});
+    setOcrFilled({});
     setFormOpen(true);
   };
   const closeForm = () => { setFormOpen(false); setPicked(null); setEditing(null); };
@@ -299,6 +301,8 @@ function KonsumenPanel({ can, userId, onChanged, dealers = [], myDealerId = null
     setGeoTerm((g) => ({ ...g, ...cleared }));
     setPickText((t) => ({ ...t, ...Object.fromEntries(children.map((c) => [c, ''])) }));
     setTouched((t) => ({ ...t, [key]: true }));
+    // diubah user = sudah diperiksa: pengingat hasil scan hilang (juga pada turunannya yang dikosongkan)
+    setOcrFilled((o) => (key in o || children.some((c) => c in o) ? Object.fromEntries(Object.entries(o).filter(([k]) => k !== key && !children.includes(k))) : o));
     // peringatan OCR tetap tampil selama user mengetik; hilang setelah ada pilihan
     setOcrHints((h) => (value && key in h ? Object.fromEntries(Object.entries(h).filter(([k]) => k !== key)) : h));
   };
@@ -328,6 +332,7 @@ function KonsumenPanel({ can, userId, onChanged, dealers = [], myDealerId = null
     setError('');
     setScanNote('');
     setOcrHints({});
+    setOcrFilled({});
     try {
       const data = await scanKtp(file);
       // OCR mengirim teks (nama wilayah, agama, pekerjaan); cocokkan ke ID master.
@@ -366,6 +371,18 @@ function KonsumenPanel({ can, userId, onChanged, dealers = [], myDealerId = null
         unmatched.push({ key: 'id_kabupaten_kota', label: LABELS.id_kabupaten_kota, text: kabTexts[0] });
       }
       const kecText = String(data.kecamatan ?? '').trim();
+      // Kabupaten/kota tidak terbaca atau tidak cocok: cari kecamatannya di seluruh wilayah; bila namanya tepat satu, kabupaten & provinsinya diambil darinya
+      if (!kab && kecText.length >= 3) {
+        const hits = (await searchMaster('/kecamatans', kecText, undefined, 100).catch(() => [])).filter((r) => normName(r.name) === normName(kecText));
+        if (hits.length === 1) {
+          kab = hits[0].id_kabupaten_kota;
+          found.id_kabupaten_kota = String(kab);
+          if (!prov) {
+            const kabRow = (await getKabupatens().catch(() => [])).find((k) => String(k.id) === String(kab));
+            if (kabRow?.id_provinsi) { prov = kabRow.id_provinsi; found.id_provinsi = String(prov); }
+          }
+        }
+      }
       const kec = kab && kecText.length >= 3 ? pick('id_kecamatan', (await searchKecamatans(kecText, kab)).rows, kecText) : (skip('id_kecamatan', kecText), undefined);
       const kelText = String(data.desa_kelurahan ?? '').trim();
       if (kec && kelText.length >= 3) pick('id_kelurahan', (await searchKelurahans(kelText, kec)).rows, kelText);
@@ -387,6 +404,7 @@ function KonsumenPanel({ can, userId, onChanged, dealers = [], myDealerId = null
       // Tandai kolom bermasalah agar pesan "wajib diisi" langsung terlihat
       setTouched((t) => ({ ...t, nik: true, ...Object.fromEntries(unmatched.map((u) => [u.key, true])) }));
       setOcrHints(Object.fromEntries(unmatched.map((u) => [u.key, u.text])));
+      setOcrFilled(Object.fromEntries(readable.map((k) => [k, true])));
       if (unmatched.length) {
         setScanNote({ ok: false, text: `KTP dipindai: ${readable.length} data terisi otomatis. ${unmatched.length} data tidak cocok dengan daftar, lihat keterangan di bawah kolom yang bersangkutan.` });
       } else {
@@ -604,6 +622,9 @@ function KonsumenPanel({ can, userId, onChanged, dealers = [], myDealerId = null
             Hasil scan KTP: "{ocrHints[key]}" tidak ada di daftar. Ketik ulang{props.searchKey ? ' lalu klik Cari' : ''} atau pilih manual.
           </p>
         )}
+        {ocrFilled[key] && form[key] && (
+          <p className="dash-field-warn">Terisi otomatis dari scan KTP. Periksa kembali, pastikan sesuai dengan KTP.</p>
+        )}
         {touched[key] && errors[key] && !(ocrHints[key] && !form[key]) && <p className="dash-field-error">{errors[key]}</p>}
       </div>
     );
@@ -731,7 +752,21 @@ function KonsumenPanel({ can, userId, onChanged, dealers = [], myDealerId = null
                 ['NIK', detail.nik], ['Nama', detail.name],
                 ['Tempat, Tgl Lahir', [detailNames.tempatLahir, detail.tgl_lahir && String(detail.tgl_lahir).slice(0, 10)].filter(Boolean).join(', ')],
                 ['Jenis Kelamin', detail.jenis_kelamin], ['Alamat', detail.alamat],
-                ['Koordinat', detail.latitude && detail.longitude ? `${detail.latitude}, ${detail.longitude}` : ''],
+                ['Koordinat', detail.latitude && detail.longitude ? (
+                  <span style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+                    {detail.latitude}, {detail.longitude}
+                    <a
+                      className="dash-btn sm outline"
+                      style={{ display: 'inline-flex', alignItems: 'center', gap: 5, textDecoration: 'none' }}
+                      href={`https://www.google.com/maps?q=${detail.latitude},${detail.longitude}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 21s7-6.2 7-11a7 7 0 0 0-14 0c0 4.8 7 11 7 11z" /><circle cx="12" cy="10" r="2.5" /></svg>
+                      Buka di Maps
+                    </a>
+                  </span>
+                ) : ''],
                 ['RT/RW', [detail.rt, detail.rw].filter(Boolean).join('/')],
                 ['Kel/Desa', detailNames.kelurahan], ['Kecamatan', detailNames.kecamatan],
                 ['Kab/Kota', detailNames.kabupaten], ['Provinsi', detailNames.provinsi],
@@ -751,9 +786,14 @@ function KonsumenPanel({ can, userId, onChanged, dealers = [], myDealerId = null
       )}
 
       {formOpen && (
-        <div className="dash-modal-bg" onClick={closeForm}>
+        <div className="dash-modal-bg">
           <form className="dash-modal wide" onClick={(e) => e.stopPropagation()} onSubmit={handleSubmit} noValidate>
-            <h3>{editing ? 'Ubah Konsumen' : 'Tambah Konsumen'}</h3>
+            <div className="dash-modal-head">
+              <h3>{editing ? 'Ubah Konsumen' : 'Tambah Konsumen'}</h3>
+              <button type="button" className="dash-modal-close" onClick={closeForm} aria-label="Tutup" title="Tutup">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M6 6l12 12M18 6L6 18" /></svg>
+              </button>
+            </div>
 
             <div className="dash-form-group" id="konsumen-foto_ktp">
               <label>Foto KTP{!editing && ' *'}</label>
