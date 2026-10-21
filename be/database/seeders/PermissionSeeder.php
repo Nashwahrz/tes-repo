@@ -60,6 +60,9 @@ class PermissionSeeder extends Seeder
             'kelurahans.tambah',
             'kelurahans.ubah',
             'kelurahans.hapus',
+            'configurasi-rate-limits.lihat',
+            'configurasi-rate-limits.ubah',
+
         ];
         $rows = array_map(fn ($nama) => [
             'nama_permission' => $nama,

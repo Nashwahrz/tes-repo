@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\ConfigurasiRateLimit;
 use App\Models\User;
 use App\Repositories\LogUserRepository;
 use Illuminate\Http\Request;
@@ -11,64 +12,89 @@ use Illuminate\Support\Facades\Log;
 
 class LoginLogService
 {
-    
-    private const MAX_ATTEMPTS  = 5;
-    private const DECAY_MINUTES = 15;
+    private ?ConfigurasiRateLimit $config = null;
+    private bool $configLoaded = false;
 
     public function __construct(
         private LogUserRepository $logUserRepository,
     ) {}
 
-    
+    private function getConfig(): ?ConfigurasiRateLimit
+    {
+        if (! $this->configLoaded) {
+            $this->config = ConfigurasiRateLimit::where('name', 'login')->first();
+            $this->configLoaded = true;
+        }
+
+        return $this->config;
+    }
+
+    public function maxAttempts(): int
+    {
+        return (int) ($this->getConfig()?->request_per_minutes ?? 0);
+    }
+
+    public function decayMinutes(): int
+    {
+        return (int) ($this->getConfig()?->minutes ?? 0);
+    }
+
+    public function isActive(): bool
+    {
+        return (bool) $this->getConfig()?->is_active;
+    }
+
     private function throttleKey(string $ip, string $email): string
     {
         return 'login_attempts:' . sha1($ip . '|' . strtolower($email));
     }
 
-    
     private function expireKey(string $ip, string $email): string
     {
         return $this->throttleKey($ip, $email) . ':expire_at';
     }
 
-   
     public function isLocked(string $ip, string $email): bool
     {
+        if (! $this->isActive()) {
+            return false;
+        }
+
         $key = $this->throttleKey($ip, $email);
-        return Cache::get($key, 0) >= self::MAX_ATTEMPTS;
+        return Cache::get($key, 0) >= $this->maxAttempts();
     }
 
     public function incrementAttempts(string $ip, string $email): void
     {
+        if (! $this->isActive()) {
+            return;
+        }
+
         $key       = $this->throttleKey($ip, $email);
         $expireKey = $this->expireKey($ip, $email);
         $current   = Cache::get($key, 0);
-        $expiresAt = now()->addMinutes(self::DECAY_MINUTES);
+        $expiresAt = now()->addMinutes($this->decayMinutes());
 
         Cache::put($key, $current + 1, $expiresAt);
-
 
         if ($current === 0) {
             Cache::put($expireKey, $expiresAt->timestamp, $expiresAt);
         }
     }
 
-   
     public function clearAttempts(string $ip, string $email): void
     {
         Cache::forget($this->throttleKey($ip, $email));
         Cache::forget($this->expireKey($ip, $email));
     }
 
-   
     public function remainingAttempts(string $ip, string $email): int
     {
         $key  = $this->throttleKey($ip, $email);
         $used = Cache::get($key, 0);
-        return max(0, self::MAX_ATTEMPTS - $used);
+        return max(0, $this->maxAttempts() - $used);
     }
 
-   
     public function secondsUntilUnlock(string $ip, string $email): int
     {
         $expireAt = Cache::get($this->expireKey($ip, $email));
@@ -78,13 +104,7 @@ class LoginLogService
             return max(0, $remaining);
         }
 
-        return self::DECAY_MINUTES * 60;
-    }
-
-   
-    public function maxAttempts(): int
-    {
-        return self::MAX_ATTEMPTS;
+        return $this->decayMinutes() * 60;
     }
 
     

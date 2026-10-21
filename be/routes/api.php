@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AgamaController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\ConfigurasiRateLimitController;
 use App\Http\Controllers\DealerController;
 use App\Http\Controllers\EmailWhiteListController;
 use App\Http\Controllers\KabupatenKotaController;
@@ -26,10 +27,10 @@ use Illuminate\Support\Facades\Route;
     Route::post('/login', [AuthController::class, 'login']);
     Route::post('/reset-password', [AuthController::class, 'resetPassword']);
     Route::prefix('otp')->group(function () {
-        Route::post('/send', [OtpController::class, 'sendOtp']);
-        Route::post('/send-reset-password', [OtpController::class, 'sendOtpResetPassword']);
-        Route::post('/verify', [OtpController::class, 'verifyOtp']);
-        Route::post('/verify-reset-password', [OtpController::class, 'verifyOtpResetPassword']);
+        Route::post('/send', [OtpController::class, 'sendOtp'])->middleware('throttle:otp-send');
+        Route::post('/send-reset-password', [OtpController::class, 'sendOtpResetPassword'])->middleware('throttle:otp-send');
+        Route::post('/verify', [OtpController::class, 'verifyOtp'])->middleware('throttle:otp-verify');
+        Route::post('/verify-reset-password', [OtpController::class, 'verifyOtpResetPassword'])->middleware('throttle:otp-verify');
     });
     Route::get('/konsumens/{id}/foto-ktp', [KonsumenController::class, 'fotoKtp'])
             ->name('konsumens.foto-ktp')
@@ -87,6 +88,13 @@ use Illuminate\Support\Facades\Route;
             Route::put('/{id}', [KelurahanController::class, 'update'])->middleware('permission:kelurahans.ubah');
             Route::delete('/{id}', [KelurahanController::class, 'destroy'])->middleware('permission:kelurahans.hapus');
         });
+        Route::prefix('configurasi-rate-limits')->middleware('menu.access:configurasi-rate-limits')->group(function () {
+            Route::get('/', [ConfigurasiRateLimitController::class, 'index'])->middleware('permission:configurasi-rate-limits.lihat');
+         //   Route::post('/', [ConfigurasiRateLimitController::class, 'store'])->middleware('permission:configurasi-rate-limits.tambah');
+            Route::get('/{id}', [ConfigurasiRateLimitController::class, 'show'])->middleware('permission:configurasi-rate-limits.lihat');
+            Route::put('/{id}', [ConfigurasiRateLimitController::class, 'update'])->middleware('permission:configurasi-rate-limits.ubah');
+          //  Route::delete('/{id}', [ConfigurasiRateLimitController::class, 'destroy'])->middleware('permission:configurasi-rate-limits.hapus');
+        });
 
         Route::prefix('users')->middleware('menu.access:users')->group(function () {
             Route::get('/', [UserController::class, 'index'])->middleware('permission:users.lihat');
@@ -122,7 +130,7 @@ use Illuminate\Support\Facades\Route;
             });
         });
         Route::prefix('konsumens')->middleware('menu.access:konsumens')->group(function () {
-            Route::post('/scan-ktp', [KonsumenController::class, 'scanKtp'])->middleware('permission:konsumens.scan');
+            Route::post('/scan-ktp', [KonsumenController::class, 'scanKtp'])->middleware('permission:konsumens.scan', 'throttle:scan-ktp');
             Route::get('/', [KonsumenController::class, 'index'])->middleware('permission:konsumens.lihat');
             Route::post('/', [KonsumenController::class, 'store'])->middleware('permission:konsumens.tambah');
             Route::get('/status', [KonsumenController::class, 'status'])->middleware('permission:konsumens.lihat');
