@@ -1017,8 +1017,7 @@
                                             "type": "integer"
                                         },
                                         "max_attempts": {
-                                            "type": "integer",
-                                            "const": 5
+                                            "type": "integer"
                                         }
                                     },
                                     "required": [
@@ -1498,7 +1497,7 @@
                                         },
                                         "message": {
                                             "type": "string",
-                                            "const": "Kabupaten Kota sudah terdaftar."
+                                            "const": "Nama konfigurasi rate limit sudah terdaftar."
                                         },
                                         "errors": {
                                             "type": "object",
@@ -1508,7 +1507,7 @@
                                                     "prefixItems": [
                                                         {
                                                             "type": "string",
-                                                            "const": "Kabupaten Kota sudah terdaftar."
+                                                            "const": "Nama konfigurasi rate limit sudah terdaftar."
                                                         }
                                                     ],
                                                     "minItems": 1,
@@ -4772,6 +4771,203 @@
                         "content": {
                             "application/json": {
                                 "schema": {
+                                    "anyOf": [
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "success": {
+                                                    "type": "boolean"
+                                                },
+                                                "is_registered": {
+                                                    "type": "boolean"
+                                                },
+                                                "message": {
+                                                    "type": "string",
+                                                    "const": "KTP berhasil dipindai."
+                                                },
+                                                "data": {
+                                                    "type": "array",
+                                                    "items": {}
+                                                }
+                                            },
+                                            "required": [
+                                                "success",
+                                                "is_registered",
+                                                "message",
+                                                "data"
+                                            ]
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "success": {
+                                                    "type": "boolean"
+                                                },
+                                                "is_registered": {
+                                                    "type": "boolean"
+                                                },
+                                                "message": {
+                                                    "type": "string"
+                                                },
+                                                "data": {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "is_registered": {
+                                                            "type": "boolean"
+                                                        },
+                                                        "existing_konsumen": {
+                                                            "anyOf": [
+                                                                {
+                                                                    "$ref": "#/components/schemas/Konsumen"
+                                                                },
+                                                                {
+                                                                    "type": "null"
+                                                                }
+                                                            ]
+                                                        },
+                                                        "scanned_data": {
+                                                            "type": "object",
+                                                            "properties": {
+                                                                "raw_text": {
+                                                                    "anyOf": [
+                                                                        {
+                                                                            "type": "string"
+                                                                        },
+                                                                        {
+                                                                            "type": "string",
+                                                                            "enum": [
+                                                                                ""
+                                                                            ]
+                                                                        }
+                                                                    ]
+                                                                },
+                                                                "nik": {
+                                                                    "type": "string"
+                                                                },
+                                                                "name": {
+                                                                    "type": "string"
+                                                                },
+                                                                "tmp_lahir": {
+                                                                    "type": "string"
+                                                                },
+                                                                "tgl_lahir": {
+                                                                    "type": "string"
+                                                                },
+                                                                "jenis_kelamin": {
+                                                                    "type": "string",
+                                                                    "const": "Perempuan"
+                                                                },
+                                                                "alamat": {
+                                                                    "type": "string"
+                                                                },
+                                                                "rt": {
+                                                                    "type": "string"
+                                                                },
+                                                                "rw": {
+                                                                    "type": "string"
+                                                                },
+                                                                "desa_kelurahan": {
+                                                                    "type": "string"
+                                                                },
+                                                                "kecamatan": {
+                                                                    "type": "string"
+                                                                },
+                                                                "kabupaten_kota": {
+                                                                    "type": "string"
+                                                                },
+                                                                "provinsi": {
+                                                                    "type": "string"
+                                                                },
+                                                                "agama": {
+                                                                    "type": "string",
+                                                                    "const": "Konghucu"
+                                                                },
+                                                                "status_perkawinan": {
+                                                                    "type": "string",
+                                                                    "const": "Cerai Mati"
+                                                                },
+                                                                "pekerjaan": {
+                                                                    "type": "string"
+                                                                },
+                                                                "kewarganegaraan": {
+                                                                    "type": "string",
+                                                                    "enum": [
+                                                                        "WNA",
+                                                                        "WNI"
+                                                                    ]
+                                                                }
+                                                            },
+                                                            "required": [
+                                                                "raw_text",
+                                                                "nik",
+                                                                "name",
+                                                                "tmp_lahir",
+                                                                "tgl_lahir",
+                                                                "jenis_kelamin",
+                                                                "alamat",
+                                                                "rt",
+                                                                "rw",
+                                                                "desa_kelurahan",
+                                                                "kecamatan",
+                                                                "kabupaten_kota",
+                                                                "provinsi",
+                                                                "agama",
+                                                                "status_perkawinan",
+                                                                "pekerjaan",
+                                                                "kewarganegaraan"
+                                                            ]
+                                                        }
+                                                    },
+                                                    "required": [
+                                                        "is_registered",
+                                                        "existing_konsumen",
+                                                        "scanned_data"
+                                                    ]
+                                                }
+                                            },
+                                            "required": [
+                                                "success",
+                                                "is_registered",
+                                                "message",
+                                                "data"
+                                            ]
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    }
+                }
+            }
+        },
+        "/konsumens/check-nik": {
+            "post": {
+                "operationId": "konsumen.checkNik",
+                "tags": [
+                    "Konsumen"
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CheckNikRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "500": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
                                     "type": "object",
                                     "properties": {
                                         "success": {
@@ -4779,105 +4975,96 @@
                                         },
                                         "message": {
                                             "type": "string",
-                                            "const": "KTP berhasil dipindai."
-                                        },
-                                        "data": {
-                                            "type": "object",
-                                            "properties": {
-                                                "raw_text": {
-                                                    "anyOf": [
-                                                        {
-                                                            "type": "string"
-                                                        },
-                                                        {
-                                                            "type": "string",
-                                                            "enum": [
-                                                                ""
-                                                            ]
-                                                        }
-                                                    ]
-                                                },
-                                                "nik": {
-                                                    "type": "string"
-                                                },
-                                                "name": {
-                                                    "type": "string"
-                                                },
-                                                "tmp_lahir": {
-                                                    "type": "string"
-                                                },
-                                                "tgl_lahir": {
-                                                    "type": "string"
-                                                },
-                                                "jenis_kelamin": {
-                                                    "type": "string",
-                                                    "const": "Perempuan"
-                                                },
-                                                "alamat": {
-                                                    "type": "string"
-                                                },
-                                                "rt": {
-                                                    "type": "string"
-                                                },
-                                                "rw": {
-                                                    "type": "string"
-                                                },
-                                                "desa_kelurahan": {
-                                                    "type": "string"
-                                                },
-                                                "kecamatan": {
-                                                    "type": "string"
-                                                },
-                                                "kabupaten_kota": {
-                                                    "type": "string"
-                                                },
-                                                "provinsi": {
-                                                    "type": "string"
-                                                },
-                                                "agama": {
-                                                    "type": "string",
-                                                    "const": "Konghucu"
-                                                },
-                                                "status_perkawinan": {
-                                                    "type": "string",
-                                                    "const": "Cerai Mati"
-                                                },
-                                                "pekerjaan": {
-                                                    "type": "string"
-                                                },
-                                                "kewarganegaraan": {
-                                                    "type": "string",
-                                                    "enum": [
-                                                        "WNA",
-                                                        "WNI"
-                                                    ]
-                                                }
-                                            },
-                                            "required": [
-                                                "raw_text",
-                                                "nik",
-                                                "name",
-                                                "tmp_lahir",
-                                                "tgl_lahir",
-                                                "jenis_kelamin",
-                                                "alamat",
-                                                "rt",
-                                                "rw",
-                                                "desa_kelurahan",
-                                                "kecamatan",
-                                                "kabupaten_kota",
-                                                "provinsi",
-                                                "agama",
-                                                "status_perkawinan",
-                                                "pekerjaan",
-                                                "kewarganegaraan"
-                                            ]
+                                            "const": "Gagal memeriksa NIK. Silakan coba lagi."
                                         }
                                     },
                                     "required": [
                                         "success",
-                                        "message",
-                                        "data"
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "anyOf": [
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "success": {
+                                                    "type": "boolean"
+                                                },
+                                                "is_registered": {
+                                                    "type": "boolean"
+                                                },
+                                                "message": {
+                                                    "type": "string"
+                                                },
+                                                "data": {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "is_registered": {
+                                                            "type": "boolean"
+                                                        }
+                                                    },
+                                                    "required": [
+                                                        "is_registered"
+                                                    ]
+                                                }
+                                            },
+                                            "required": [
+                                                "success",
+                                                "is_registered",
+                                                "message",
+                                                "data"
+                                            ]
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "success": {
+                                                    "type": "boolean"
+                                                },
+                                                "is_registered": {
+                                                    "type": "boolean"
+                                                },
+                                                "message": {
+                                                    "type": "string"
+                                                },
+                                                "data": {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "is_registered": {
+                                                            "type": "boolean"
+                                                        },
+                                                        "existing_konsumen": {
+                                                            "anyOf": [
+                                                                {
+                                                                    "$ref": "#/components/schemas/Konsumen"
+                                                                },
+                                                                {
+                                                                    "type": "null"
+                                                                }
+                                                            ]
+                                                        }
+                                                    },
+                                                    "required": [
+                                                        "is_registered",
+                                                        "existing_konsumen"
+                                                    ]
+                                                }
+                                            },
+                                            "required": [
+                                                "success",
+                                                "is_registered",
+                                                "message",
+                                                "data"
+                                            ]
+                                        }
                                     ]
                                 }
                             }
@@ -5551,7 +5738,7 @@
                 }
             },
             "put": {
-                "operationId": "konsumen.update_72",
+                "operationId": "konsumen.update_73",
                 "tags": [
                     "Konsumen"
                 ],
@@ -5750,7 +5937,7 @@
         },
         "/konsumens/{id}/update": {
             "post": {
-                "operationId": "konsumen.update_73",
+                "operationId": "konsumen.update_74",
                 "tags": [
                     "Konsumen"
                 ],
@@ -9937,6 +10124,18 @@
                     "name"
                 ],
                 "title": "AgamaRequest"
+            },
+            "CheckNikRequest": {
+                "type": "object",
+                "properties": {
+                    "nik": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "nik"
+                ],
+                "title": "CheckNikRequest"
             },
             "ConfigurasiRateLimit": {
                 "type": "object",

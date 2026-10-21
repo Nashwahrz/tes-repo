@@ -57,9 +57,68 @@ class KonsumenResponse
     public function scanSuccess(array $data, string $message = 'KTP berhasil dipindai.'): JsonResponse
     {
         return response()->json([
-            'success' => true,
-            'message' => $message,
-            'data'    => $data,
+            'success'       => true,
+            'is_registered' => false,
+            'message'       => $message,
+            'data'          => array_merge($data, ['is_registered' => false]),
+        ], 200);
+    }
+
+    public function scanExisting(Konsumen $konsumen, array $extractedData, string $message = 'Konsumen dengan NIK ini sudah terdaftar.'): JsonResponse
+    {
+        return response()->json([
+            'success'       => true,
+            'is_registered' => true,
+            'message'       => $message,
+            'data'          => [
+                'is_registered'     => true,
+                'existing_konsumen' => $konsumen,
+                'scanned_data'      => $extractedData,
+            ],
+        ], 200);
+    }
+
+    public function searchResult($konsumens, string $keyword): JsonResponse
+    {
+        $found = $konsumens->isNotEmpty();
+
+        return response()->json([
+            'success'       => true,
+            'is_registered' => $found,
+            'total'         => $konsumens->count(),
+            'message'       => $found
+                ? "Ditemukan {$konsumens->count()} data konsumen yang cocok."
+                : "Tidak ditemukan konsumen dengan kata kunci '{$keyword}'.",
+            'data'          => [
+                'is_registered'     => $found,
+                'list'              => $konsumens,
+                // 'existing_konsumen' => $konsumens->first(),
+            ],
+        ], 200);
+    }
+
+    public function nikRegistered(Konsumen $konsumen, string $nik, ?string $message = null): JsonResponse
+    {
+        return response()->json([
+            'success'       => true,
+            'is_registered' => true,
+            'message'       => $message ?? "Konsumen dengan NIK {$nik} sudah terdaftar atas nama {$konsumen->name}.",
+            'data'          => [
+                'is_registered'     => true,
+                'existing_konsumen' => $konsumen,
+            ],
+        ], 200);
+    }
+
+    public function nikAvailable(string $nik, ?string $message = null): JsonResponse
+    {
+        return response()->json([
+            'success'       => true,
+            'is_registered' => false,
+            'message'       => $message ?? "NIK {$nik} belum terdaftar dan dapat digunakan.",
+            'data'          => [
+                'is_registered' => false,
+            ],
         ], 200);
     }
 

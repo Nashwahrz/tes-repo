@@ -21,6 +21,21 @@ class KonsumenRepository
         return Konsumen::find($id);
     }
 
+    public function findByNik(string $nik): ?Konsumen
+    {
+        return Konsumen::where('nik', $nik)->first();
+    }
+
+    public function searchByNik(string $keyword, int $limit = 10): Collection
+    {
+        return Konsumen::where(function ($q) use ($keyword) {
+            $q->where('nik', 'ILIKE', "%{$keyword}%")
+              ->orWhere('name', 'ILIKE', "%{$keyword}%");
+        })
+        ->limit($limit)
+        ->get();
+    }
+
    
     public function create(array $data): Konsumen
     {
