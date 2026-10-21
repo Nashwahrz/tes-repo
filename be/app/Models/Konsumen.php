@@ -19,6 +19,7 @@ class Konsumen extends Model
      public function getActivitylogOptions(): LogOptions
     {
         return LogOptions::defaults()
+            ->useLogName('konsumen')
             ->logOnly([
                  'id_me',
                  'nik',

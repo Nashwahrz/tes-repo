@@ -60,6 +60,8 @@ class RolePermissionSeeder extends Seeder
                 'kelurahans.tambah',
                 'kelurahans.ubah',
                 'kelurahans.hapus',
+                'configurasi-rate-limits.lihat',
+                'configurasi-rate-limits.ubah',
             ],
             'Kacab' => [
                 'dealers.lihat',

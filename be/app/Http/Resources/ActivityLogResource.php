@@ -22,8 +22,8 @@ class ActivityLogResource extends JsonResource
             'deskripsi'  => $this->description,
             'subject_id' => $this->subject_id,
             'konsumen'   => $this->subject?->name,
-            'oleh'       => $this->causer
-                ? ['id' => $this->causer->id, 'name' => $this->causer->name]
+            'oleh'       => $this->causer_id
+                ? ['id' => $this->causer_id, 'name' => $this->causer->name]
                 : null,
             'waktu'      => $this->created_at?->toIso8601String(),
             'data_lama'  => $this->mapUsers($this->properties->get('old'), $users),

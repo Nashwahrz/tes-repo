@@ -29,7 +29,8 @@ class RoleMenuSeeder extends Seeder
                 'provinsis',
                 'kabupaten-kotas',
                 'kecamatans',
-                'kelurahans'
+                'kelurahans',
+                'configurasi-rate-limits'
             ],
             'Kacab' => [
                 'dashboard',
