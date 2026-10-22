@@ -7,6 +7,7 @@ import Toast from './Toast';
 import Loading, { Spin } from './Loading';
 import Pager from './Pager';
 import IconButton from './IconButton';
+import ConfirmModal from './ConfirmModal';
 
 // perm: awalan permission BE (<perm>.lihat/tambah/ubah/hapus); parent: kolom foreign key ke induknya + endpoint induk (untuk menampilkan namanya)
 const TABS = [
@@ -279,16 +280,9 @@ function MasterPanel({ tabKey, can }) {
       )}
 
       {toDelete && (
-        <div className="dash-modal-bg" onClick={() => !saving && setToDelete(null)}>
-          <div className="dash-modal" onClick={(e) => e.stopPropagation()}>
-            <h3>Hapus {tab.label}</h3>
-            <p className="dash-card-desc">Yakin ingin menghapus <strong>{toDelete.name}</strong>?</p>
-            <div className="dash-modal-actions">
-              <button className="dash-btn outline" onClick={() => setToDelete(null)} disabled={saving}>Batal</button>
-              <button className="dash-btn solid" onClick={handleDelete} disabled={saving}>{saving ? 'Menghapus...' : 'Ya, Hapus'}</button>
-            </div>
-          </div>
-        </div>
+        <ConfirmModal title={`Hapus ${tab.label}`} confirmLabel="Ya, Hapus" busyLabel="Menghapus..." busy={saving} onConfirm={handleDelete} onCancel={() => setToDelete(null)}>
+          <p className="dash-card-desc">Yakin ingin menghapus <strong>{toDelete.name}</strong>?</p>
+        </ConfirmModal>
       )}
     </div>
   );

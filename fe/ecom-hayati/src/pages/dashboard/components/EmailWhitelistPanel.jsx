@@ -7,6 +7,7 @@ import {
 import Toast from './Toast';
 import Loading, { Spin } from './Loading';
 import IconButton from './IconButton';
+import ConfirmModal from './ConfirmModal';
 
 const EMPTY = { domain: '@', is_active: true };
 const DOMAIN_FORMAT = /^@[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+$/;
@@ -213,18 +214,11 @@ function EmailWhitelistPanel({ can, userId, users = [] }) {
       )}
 
       {toDelete && (
-        <div className="dash-modal-bg" onClick={() => !saving && setToDelete(null)}>
-          <div className="dash-modal" onClick={(e) => e.stopPropagation()}>
-            <h3>Hapus Domain</h3>
-            <p className="dash-card-desc">
-              Yakin ingin menghapus <strong>{toDelete.domain}</strong>? Email dengan domain ini tidak akan bisa mendaftar lagi. Akun yang sudah ada tidak terpengaruh.
-            </p>
-            <div className="dash-modal-actions">
-              <button className="dash-btn outline" onClick={() => setToDelete(null)} disabled={saving}>Batal</button>
-              <button className="dash-btn solid" onClick={handleDelete} disabled={saving}>{saving ? 'Menghapus...' : 'Ya, Hapus'}</button>
-            </div>
-          </div>
-        </div>
+        <ConfirmModal title="Hapus Domain" confirmLabel="Ya, Hapus" busyLabel="Menghapus..." busy={saving} onConfirm={handleDelete} onCancel={() => setToDelete(null)}>
+          <p className="dash-card-desc">
+            Yakin ingin menghapus <strong>{toDelete.domain}</strong>? Email dengan domain ini tidak akan bisa mendaftar lagi. Akun yang sudah ada tidak terpengaruh.
+          </p>
+        </ConfirmModal>
       )}
     </div>
   );

@@ -1,11 +1,12 @@
 // src/pages/DealerPanel.jsx
 
 // UI CRUD dealer, terhubung ke API /dealers.
-import { lazy, Suspense, useState } from 'react';
+import { lazy, Suspense, useEffect, useState } from 'react';
 import Toast from './Toast';
 import { Spin } from './Loading';
 import IconButton from './IconButton';
-import { createDealer, updateDealer, deleteDealer, errorMessage } from '../../../api/authServices';
+import ConfirmModal from './ConfirmModal';
+import { getDealer, createDealer, updateDealer, deleteDealer, errorMessage } from '../../../api/authServices';
 
 // Leaflet (JS + CSS) hanya dimuat saat form dealer dibuka
 const MapPicker = lazy(() => import('./MapPicker'));
@@ -46,6 +47,18 @@ function DealerPanel({ dealers: rows, onDealersChange, can, scopeNote }) {
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
   const [confirmSave, setConfirmSave] = useState(false);
+  const [detailRow, setDetailRow] = useState(null);
+  const [detailFresh, setDetailFresh] = useState(null);
+  const detail = detailRow ? { ...(rows.find((d) => d.id === detailRow.id) ?? detailRow), ...(detailFresh?.id === detailRow.id ? detailFresh : {}) } : null;
+  const detailId = detailRow?.id;
+
+  // Segarkan detail dari BE; gagal = pakai data daftar
+  useEffect(() => {
+    if (!detailId) return undefined;
+    let active = true;
+    getDealer(detailId).then((d) => active && setDetailFresh(d)).catch(() => {});
+    return () => { active = false; setDetailFresh(null); };
+  }, [detailId]);
 
   const isNew = editing === 'new';
   const others = rows.filter((d) => d.id !== editing?.id);
@@ -185,7 +198,7 @@ function DealerPanel({ dealers: rows, onDealersChange, can, scopeNote }) {
                 <th>Nama</th>
                 <th>Alamat</th>
                 <th>Koordinat</th>
-                {(can.ubah || can.hapus) && <th className="col-aksi">Aksi</th>}
+                <th className="col-aksi">Aksi</th>
               </tr>
             </thead>
             <tbody>
@@ -194,18 +207,43 @@ function DealerPanel({ dealers: rows, onDealersChange, can, scopeNote }) {
                   <td><strong className="dash-cell-name">{d.name}</strong></td>
                   <td><span className="dash-cell-clamp" title={d.alamat}>{d.alamat}</span></td>
                   <td className="acc-muted">{d.latitude}, {d.longitude}</td>
-                  {(can.ubah || can.hapus) && (
-                    <td className="col-aksi">
-                      <div className="dash-actions">
-                        {can.ubah && <IconButton icon="edit" label="Ubah" onClick={() => openForm(d)} />}
-                        {can.hapus && <IconButton icon="delete" label="Hapus" tone="danger" onClick={() => setToDelete(d)} />}
-                      </div>
-                    </td>
-                  )}
+                  <td className="col-aksi">
+                    <div className="dash-actions">
+                      <IconButton icon="view" label="Detail" onClick={() => setDetailRow(d)} />
+                      {can.ubah && <IconButton icon="edit" label="Ubah" onClick={() => openForm(d)} />}
+                      {can.hapus && <IconButton icon="delete" label="Hapus" tone="danger" onClick={() => setToDelete(d)} />}
+                    </div>
+                  </td>
                 </tr>
               ))}
             </tbody>
           </table>
+        </div>
+      )}
+
+      {detail && (
+        <div className="dash-modal-bg" onClick={() => setDetailRow(null)}>
+          <div className="dash-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="dash-modal-head">
+              <h3>Detail Dealer</h3>
+              <button type="button" className="dash-modal-close" onClick={() => setDetailRow(null)} aria-label="Tutup" title="Tutup">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M6 6l12 12M18 6L6 18" /></svg>
+              </button>
+            </div>
+            <dl className="dash-detail">
+              {[
+                ['Nama', detail.name],
+                ['Alamat', detail.alamat],
+                ['Koordinat', detail.latitude != null && detail.longitude != null ? (
+                  <a href={`https://www.google.com/maps?q=${detail.latitude},${detail.longitude}`} target="_blank" rel="noreferrer">
+                    {detail.latitude}, {detail.longitude}
+                  </a>
+                ) : null],
+              ].map(([label, value]) => (
+                <div key={label}><dt>{label}</dt><dd>{value || '-'}</dd></div>
+              ))}
+            </dl>
+          </div>
         </div>
       )}
 
@@ -235,31 +273,22 @@ function DealerPanel({ dealers: rows, onDealersChange, can, scopeNote }) {
       )}
 
       {confirmSave && (
-        <div className="dash-modal-bg" onClick={() => setConfirmSave(false)}>
-          <div className="dash-modal" onClick={(e) => e.stopPropagation()}>
-            <h3>{isNew ? 'Tambah Dealer' : 'Simpan Perubahan'}</h3>
-            <p className="dash-card-desc">
-              Yakin ingin {isNew ? 'menambahkan dealer' : 'menyimpan perubahan dealer'} <strong>{form.name.trim()}</strong>?
-            </p>
-            <div className="dash-modal-actions">
-              <button className="dash-btn outline" onClick={() => setConfirmSave(false)}>Batal</button>
-              <button className="dash-btn solid" onClick={handleSave}>{isNew ? 'Ya, Tambah' : 'Ya, Simpan'}</button>
-            </div>
-          </div>
-        </div>
+        <ConfirmModal
+          title={isNew ? 'Tambah Dealer' : 'Simpan Perubahan'}
+          confirmLabel={isNew ? 'Ya, Tambah' : 'Ya, Simpan'}
+          onConfirm={handleSave}
+          onCancel={() => setConfirmSave(false)}
+        >
+          <p className="dash-card-desc">
+            Yakin ingin {isNew ? 'menambahkan dealer' : 'menyimpan perubahan dealer'} <strong>{form.name.trim()}</strong>?
+          </p>
+        </ConfirmModal>
       )}
 
       {toDelete && (
-        <div className="dash-modal-bg" onClick={() => setToDelete(null)}>
-          <div className="dash-modal" onClick={(e) => e.stopPropagation()}>
-            <h3>Hapus Dealer</h3>
-            <p className="dash-card-desc">Yakin ingin menghapus <strong>{toDelete.name}</strong>? Tindakan ini tidak dapat dibatalkan.</p>
-            <div className="dash-modal-actions">
-              <button className="dash-btn outline" onClick={() => setToDelete(null)}>Batal</button>
-              <button className="dash-btn solid" onClick={handleDelete} disabled={saving}>Ya, Hapus</button>
-            </div>
-          </div>
-        </div>
+        <ConfirmModal title="Hapus Dealer" confirmLabel="Ya, Hapus" busy={saving} onConfirm={handleDelete} onCancel={() => setToDelete(null)}>
+          <p className="dash-card-desc">Yakin ingin menghapus <strong>{toDelete.name}</strong>? Tindakan ini tidak dapat dibatalkan.</p>
+        </ConfirmModal>
       )}
     </div>
   );

@@ -1,10 +1,11 @@
 // Kelola hak akses role: menu (/role-menus) dan permission (/role-permissions)
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Toast from './Toast';
 import Loading, { Spin } from './Loading';
 import Pager from './Pager';
+import ConfirmModal from './ConfirmModal';
 import {
-  getRoleMenus, updateRoleMenus, getRolePermissions, updateRolePermissions, errorMessage,
+  getRoleMenus, getRoleMenu, updateRoleMenus, getRolePermissions, getRolePermission, updateRolePermissions, errorMessage,
 } from '../../../api/authServices';
 
 // Menu BE yang belum dipakai FE: disembunyikan dari daftar centang. Id-nya tetap ada di state `selected`,
@@ -36,6 +37,7 @@ const TABS = {
   menu: {
     label: 'Menu',
     load: getRoleMenus,
+    loadRole: getRoleMenu,
     save: updateRoleMenus,
     itemsKey: 'menus',
     nameOf: (i) => i.nama_menu,
@@ -43,6 +45,7 @@ const TABS = {
   permission: {
     label: 'Permission',
     load: getRolePermissions,
+    loadRole: getRolePermission,
     save: updateRolePermissions,
     itemsKey: 'permissions',
     nameOf: (i) => i.nama_permission,
@@ -58,12 +61,15 @@ function RoleAccessPanel({ canMenu, canPermission, onSaved }) {
   const [selected, setSelected] = useState([]); // id menu/permission untuk role terpilih
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [roleLoading, setRoleLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [confirming, setConfirming] = useState(false);
   const [query, setQuery] = useState('');
   const [page, setPage] = useState(1);
   const [group, setGroup] = useState(''); // filter grup menu (tab permission); kosong = semua
+
+  const roleIdRef = useRef(null);
 
   const cfg = TABS[tab];
   const idsOf = (role) => (role[cfg.itemsKey] ?? []).map((i) => i.id);
@@ -75,6 +81,7 @@ function RoleAccessPanel({ canMenu, canPermission, onSaved }) {
         if (!active) return;
         setData(res);
         const first = res.roles[0];
+        roleIdRef.current = first?.id ?? null;
         setRoleId(first?.id ?? null);
         setSelected(first ? (first[cfg.itemsKey] ?? []).map((i) => i.id) : []);
       })
@@ -86,6 +93,7 @@ function RoleAccessPanel({ canMenu, canPermission, onSaved }) {
   const switchTab = (k) => {
     setTab(k);
     setLoading(true);
+    setRoleLoading(false);
     setQuery('');
     setGroup('');
     setPage(1);
@@ -93,11 +101,24 @@ function RoleAccessPanel({ canMenu, canPermission, onSaved }) {
     setSuccess('');
   };
 
-  const pickRole = (id) => {
+  // Tampilkan data lama dulu, lalu segarkan dari BE
+  const pickRole = async (id) => {
+    roleIdRef.current = id;
     setRoleId(id);
     setSelected(idsOf(data.roles.find((r) => r.id === id)));
     setError('');
     setSuccess('');
+    setRoleLoading(true);
+    try {
+      const fresh = await cfg.loadRole(id);
+      if (roleIdRef.current !== id) return;
+      setData((d) => ({ ...d, roles: d.roles.map((r) => (r.id === id ? { ...r, [cfg.itemsKey]: fresh[cfg.itemsKey] } : r)) }));
+      setSelected((fresh[cfg.itemsKey] ?? []).map((i) => i.id));
+    } catch (err) {
+      if (roleIdRef.current === id) setError(errorMessage(err));
+    } finally {
+      if (roleIdRef.current === id) setRoleLoading(false);
+    }
   };
 
   const toggle = (id) => {
@@ -210,7 +231,7 @@ function RoleAccessPanel({ canMenu, canPermission, onSaved }) {
                         <td><label htmlFor={`${tab}-${i.id}`}><strong className="dash-cell-name">{cfg.nameOf(i)}</strong></label></td>
                         <td><span className={`dash-status ${on ? 'aktif' : 'nonaktif'}`}>{on ? 'Diizinkan' : 'Tidak'}</span></td>
                         <td className="col-aksi">
-                          <input type="checkbox" className="ra-check" id={`${tab}-${i.id}`} checked={on} onChange={() => toggle(i.id)} />
+                          <input type="checkbox" className="ra-check" id={`${tab}-${i.id}`} checked={on} disabled={roleLoading} onChange={() => toggle(i.id)} />
                         </td>
                       </tr>
                     );
@@ -223,7 +244,7 @@ function RoleAccessPanel({ canMenu, canPermission, onSaved }) {
           <Pager page={current} lastPage={lastPage} total={shown.length} unit={cfg.label.toLowerCase()} onPage={setPage} />
 
           <div className="dash-modal-actions">
-            <button className="dash-btn solid" onClick={() => setConfirming(true)} disabled={saving || !dirty}>
+            <button className="dash-btn solid" onClick={() => setConfirming(true)} disabled={saving || roleLoading || !dirty}>
               {saving ? <><Spin />Menyimpan...</> : 'Simpan Perubahan'}
             </button>
           </div>
@@ -231,18 +252,11 @@ function RoleAccessPanel({ canMenu, canPermission, onSaved }) {
       )}
 
       {confirming && role && (
-        <div className="dash-modal-bg" onClick={() => setConfirming(false)}>
-          <div className="dash-modal" onClick={(e) => e.stopPropagation()}>
-            <h3>Simpan Perubahan</h3>
-            <p className="dash-card-desc">
-              Yakin ingin mengubah hak akses {cfg.label.toLowerCase()} untuk role <strong>{role.name}</strong>?
-            </p>
-            <div className="dash-modal-actions">
-              <button className="dash-btn outline" onClick={() => setConfirming(false)}>Batal</button>
-              <button className="dash-btn solid" onClick={handleSave}>Ya, Simpan</button>
-            </div>
-          </div>
-        </div>
+        <ConfirmModal title="Simpan Perubahan" confirmLabel="Ya, Simpan" onConfirm={handleSave} onCancel={() => setConfirming(false)}>
+          <p className="dash-card-desc">
+            Yakin ingin mengubah hak akses {cfg.label.toLowerCase()} untuk role <strong>{role.name}</strong>?
+          </p>
+        </ConfirmModal>
       )}
     </div>
   );
