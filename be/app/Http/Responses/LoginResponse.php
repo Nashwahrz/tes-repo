@@ -92,6 +92,12 @@ class LoginResponse
             'message' => 'Terjadi kesalahan pada server. Silakan coba lagi.',
         ], 500);
     }
+    public function logoutSuccess(): JsonResponse
+    {
+        return response()->json([
+            'success' => true,
+            'message' => 'Logout berhasil.',
+        ], 200);
+    }
 
-    
 }

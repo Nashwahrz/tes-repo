@@ -36,7 +36,6 @@ class ConfigurasiRateLimitRequest extends FormRequest
         return [
             'name.required' => 'Nama wajib diisi.',
             'name.string' => 'Nama harus berupa string.',
-            'name.unique' => 'Nama sudah ada.',
             'request_per_minutes.required' => 'Request per minutes wajib diisi.',
             'request_per_minutes.integer' => 'Request per minutes harus berupa integer.',
             'request_per_minutes.min' => 'Request per minutes minimal 1.',
