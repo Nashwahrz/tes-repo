@@ -237,6 +237,10 @@ export const getRolePermissions = async () => (await api.get('/role-permissions'
 
 export const updateRolePermissions = async (roleId, permission_ids) => (await api.put(`/role-permissions/${roleId}`, { permission_ids })).data;
 
+// Konfigurasi rate limit (BE: /configurasi-rate-limits; permission .lihat / .ubah). Baris: { id, name, request_per_minutes, minutes, is_active }
+export const getRateLimits = () => fetchAllPages('/configurasi-rate-limits');
+export const updateRateLimit = async (id, payload) => (await api.put(`/configurasi-rate-limits/${id}`, payload)).data;
+
 // Pesan error dari respons BE (validasi 422 / 409 / 403 / dll.)
 export const errorMessage = (err) => {
   const data = err.response?.data;

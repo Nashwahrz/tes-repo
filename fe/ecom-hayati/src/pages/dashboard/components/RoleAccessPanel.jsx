@@ -28,6 +28,7 @@ const GROUP_LABEL = {
   'log-users': 'Log Users Login',
   agamas: 'Daftar Agama',
   pekerjaans: 'Daftar Pekerjaan',
+  'configurasi-rate-limits': 'Setting Rate Limit',
 };
 const groupKey = (name) => name.split('.')[0];
 

@@ -2,7 +2,7 @@
 import { lazy, Suspense, useEffect, useRef, useState } from 'react';
 import { getUsers, getDealers, getKonsumenTotal, getKonsumenStatusTotals, getUserMenus, getUserPermissions } from '../../api/authServices';
 import {
-  MENU_HOME, MENU_PRODUK, MENU_PENJUALAN, MENU_DEALER, MENU_KONSUMEN, MENU_ACC, MENU_ROLE, MENU_WHITELIST, MENU_AGAMA, MENU_PEKERJAAN, MENU_PROVINSI, MENU_KABUPATEN, MENU_KECAMATAN, MENU_KELURAHAN, MASTER_MENUS, MENU_PATHS, menuFromPath,
+  MENU_HOME, MENU_PRODUK, MENU_PENJUALAN, MENU_DEALER, MENU_KONSUMEN, MENU_ACC, MENU_ROLE, MENU_WHITELIST, MENU_RATELIMIT, MENU_AGAMA, MENU_PEKERJAAN, MENU_PROVINSI, MENU_KABUPATEN, MENU_KECAMATAN, MENU_KELURAHAN, MASTER_MENUS, MENU_PATHS, menuFromPath,
 } from './menuPaths';
 import Loading from './components/Loading';
 import { SALES_PROTOTYPE, salesFor, totalSales } from './salesPrototype';
@@ -18,6 +18,7 @@ const KonsumenLogPanel = lazy(() => import('./components/KonsumenLogPanel'));
 const PenjualanPanel = lazy(() => import('./components/PenjualanPanel'));
 const EmailWhitelistPanel = lazy(() => import('./components/EmailWhitelistPanel'));
 const RoleAccessPanel = lazy(() => import('./components/RoleAccessPanel'));
+const RateLimitPanel = lazy(() => import('./components/RateLimitPanel'));
 const MasterPanel = lazy(() => import('./components/MasterPanel'));
 
 const LOGO_SRC = '/logo.png';
@@ -53,6 +54,7 @@ const MENU_ICONS = {
   [MENU_ACC]: 'shield',
   [MENU_ROLE]: 'shield',
   [MENU_WHITELIST]: 'mail',
+  [MENU_RATELIMIT]: 'shield',
 };
 
 const Icon = ({ name, size = 16 }) => (
@@ -66,7 +68,7 @@ const Icon = ({ name, size = 16 }) => (
 const NAV = [
   { item: MENU_HOME },
   { group: 'Operasional', icon: 'store', items: [MENU_PRODUK, MENU_PENJUALAN, MENU_DEALER, MENU_KONSUMEN] },
-  { group: 'Administrasi', icon: 'shield', items: [MENU_ACC, MENU_ROLE, MENU_WHITELIST] },
+  { group: 'Administrasi', icon: 'shield', items: [MENU_ACC, MENU_ROLE, MENU_WHITELIST, MENU_RATELIMIT] },
   { group: 'Data Master', icon: 'box', items: [MENU_AGAMA, MENU_PEKERJAAN, MENU_PROVINSI, MENU_KABUPATEN, MENU_KECAMATAN, MENU_KELURAHAN] },
 ];
 
@@ -227,6 +229,7 @@ function DashboardPage() {
   const canRole = canRoleMenu || canRolePerm;
   const canWhitelist = hasMenu('email-whitelists') && can('email-whitelists.lihat');
   // Data Master: agama & pekerjaan punya menu/permission sendiri di BE
+  const canRateLimit = hasMenu('configurasi-rate-limits') && can('configurasi-rate-limits.lihat');
   const canAgama = hasMenu('agamas') && can('agamas.lihat');
   const canPekerjaan = hasMenu('pekerjaans') && can('pekerjaans.lihat');
   // Wilayah belum punya permission di BE: tampil bagi yang boleh melihat agama/pekerjaan
@@ -346,6 +349,7 @@ function DashboardPage() {
     ...(canAcc ? [MENU_ACC] : []),
     ...(canRole ? [MENU_ROLE] : []),
     ...(canWhitelist ? [MENU_WHITELIST] : []),
+    ...(canRateLimit ? [MENU_RATELIMIT] : []),
     ...(canAgama ? [MENU_AGAMA] : []),
     ...(canPekerjaan ? [MENU_PEKERJAAN] : []),
     ...(canWilayah ? [MENU_PROVINSI, MENU_KABUPATEN, MENU_KECAMATAN, MENU_KELURAHAN] : []),
@@ -563,6 +567,14 @@ function DashboardPage() {
                   users={users}
                   can={{ tambah: can('email-whitelists.tambah'), ubah: can('email-whitelists.ubah'), hapus: can('email-whitelists.hapus') }}
                 />
+              </Suspense>
+            </div>
+          )}
+
+          {menu === MENU_RATELIMIT && canRateLimit && (
+            <div className="dash-card">
+              <Suspense fallback={<Loading rows={4} />}>
+                <RateLimitPanel canEdit={can('configurasi-rate-limits.ubah')} />
               </Suspense>
             </div>
           )}
