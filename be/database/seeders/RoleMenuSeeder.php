@@ -30,7 +30,8 @@ class RoleMenuSeeder extends Seeder
                 'kabupaten-kotas',
                 'kecamatans',
                 'kelurahans',
-                'configurasi-rate-limits'
+                'configurasi-rate-limits',
+                'email-smtps',
             ],
             'Kacab' => [
                 'dashboard',

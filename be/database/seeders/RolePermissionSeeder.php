@@ -62,6 +62,10 @@ class RolePermissionSeeder extends Seeder
                 'kelurahans.hapus',
                 'configurasi-rate-limits.lihat',
                 'configurasi-rate-limits.ubah',
+                'email-smtps.lihat',
+                'email-smtps.tambah',
+                'email-smtps.ubah',
+                'email-smtps.hapus',
             ],
             'Kacab' => [
                 'dealers.lihat',

@@ -4,6 +4,7 @@ use App\Http\Controllers\AgamaController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ConfigurasiRateLimitController;
 use App\Http\Controllers\DealerController;
+use App\Http\Controllers\EmailSmtpController;
 use App\Http\Controllers\EmailWhiteListController;
 use App\Http\Controllers\KabupatenKotaController;
 use App\Http\Controllers\KecamatanController;
@@ -94,6 +95,14 @@ use Illuminate\Support\Facades\Route;
             Route::get('/{id}', [ConfigurasiRateLimitController::class, 'show'])->middleware('permission:configurasi-rate-limits.lihat');
             Route::put('/{id}', [ConfigurasiRateLimitController::class, 'update'])->middleware('permission:configurasi-rate-limits.ubah');
           //  Route::delete('/{id}', [ConfigurasiRateLimitController::class, 'destroy'])->middleware('permission:configurasi-rate-limits.hapus');
+        });
+
+        Route::prefix('email-smtps')->middleware('menu.access:email-smtps')->group(function () {
+            Route::get('/', [EmailSmtpController::class, 'index'])->middleware('permission:email-smtps.lihat');
+            Route::post('/', [EmailSmtpController::class, 'store'])->middleware('permission:email-smtps.tambah');
+            Route::get('/{id}', [EmailSmtpController::class, 'show'])->middleware('permission:email-smtps.lihat');
+            Route::put('/{id}', [EmailSmtpController::class, 'update'])->middleware('permission:email-smtps.ubah');
+            Route::delete('/{id}', [EmailSmtpController::class, 'destroy'])->middleware('permission:email-smtps.hapus');
         });
 
         Route::prefix('users')->middleware('menu.access:users')->group(function () {

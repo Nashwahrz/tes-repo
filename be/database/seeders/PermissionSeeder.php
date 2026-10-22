@@ -62,6 +62,10 @@ class PermissionSeeder extends Seeder
             'kelurahans.hapus',
             'configurasi-rate-limits.lihat',
             'configurasi-rate-limits.ubah',
+            'email-smtps.lihat',
+            'email-smtps.tambah',
+            'email-smtps.ubah',
+            'email-smtps.hapus',
 
         ];
         $rows = array_map(fn ($nama) => [
