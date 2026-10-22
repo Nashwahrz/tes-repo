@@ -24,7 +24,7 @@ class ConfigurasiRateLimitRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name'=> ['required','string',Rule::unique(ConfigurasiRateLimit::class, 'name')],
+            'name'=> ['required','string'],
             'request_per_minutes'=> ['required','integer', 'min:1'],
             'minutes'=> ['required','integer', 'min:1'],
             'is_active'=> ['required','boolean'],
