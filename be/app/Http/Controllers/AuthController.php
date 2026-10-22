@@ -110,11 +110,31 @@ class AuthController extends Controller
             $this->loginLogService->clearAttempts($ip, $email);
             $this->loginLogService->log($user, $request);
 
-            $token = $user->createToken('auth_token')->plainTextToken;
+            $expirationMinutes = config('sanctum.expiration');
+            $expiresAt = $expirationMinutes ? now()->addMinutes((int) $expirationMinutes) : null;
+
+            $token = $user->createToken('auth_token', ['*'], $expiresAt)->plainTextToken;
 
             return $this->loginResponse->success($user, $token);
         } catch (Throwable $e) {
             Log::error('Login error: ' . $e->getMessage());
+            return $this->loginResponse->serverError();
+        }
+    }
+
+    public function logout(Request $request)
+    {
+        try {
+            $user = $request->user();
+            if ($user && $user->currentAccessToken()) {
+                $user->currentAccessToken()->delete();
+            }
+
+            return $this->loginResponse->logoutSuccess();
+        } catch (Throwable $e) {
+            Log::error('Logout error: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString(),
+            ]);
             return $this->loginResponse->serverError();
         }
     }

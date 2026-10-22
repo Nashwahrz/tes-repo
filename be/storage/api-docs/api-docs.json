@@ -1149,6 +1149,65 @@
                 }
             }
         },
+        "/logout": {
+            "post": {
+                "operationId": "auth.logout",
+                "tags": [
+                    "Auth"
+                ],
+                "responses": {
+                    "500": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "const": "Terjadi kesalahan pada server. Silakan coba lagi."
+                                        }
+                                    },
+                                    "required": [
+                                        "success",
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "const": "Logout berhasil."
+                                        }
+                                    },
+                                    "required": [
+                                        "success",
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
         "/configurasi-rate-limits": {
             "get": {
                 "operationId": "configurasiRateLimit.index",
@@ -4975,7 +5034,7 @@
                                         },
                                         "message": {
                                             "type": "string",
-                                            "const": "Gagal memeriksa NIK. Silakan coba lagi."
+                                            "const": "Gagal mencari data konsumen. Silakan coba lagi."
                                         }
                                     },
                                     "required": [
@@ -4991,80 +5050,45 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "anyOf": [
-                                        {
-                                            "type": "object",
-                                            "properties": {
-                                                "success": {
-                                                    "type": "boolean"
-                                                },
-                                                "is_registered": {
-                                                    "type": "boolean"
-                                                },
-                                                "message": {
-                                                    "type": "string"
-                                                },
-                                                "data": {
-                                                    "type": "object",
-                                                    "properties": {
-                                                        "is_registered": {
-                                                            "type": "boolean"
-                                                        }
-                                                    },
-                                                    "required": [
-                                                        "is_registered"
-                                                    ]
-                                                }
-                                            },
-                                            "required": [
-                                                "success",
-                                                "is_registered",
-                                                "message",
-                                                "data"
-                                            ]
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
                                         },
-                                        {
+                                        "is_registered": {
+                                            "type": "string"
+                                        },
+                                        "total": {
+                                            "type": "string"
+                                        },
+                                        "message": {
+                                            "type": "string"
+                                        },
+                                        "data": {
                                             "type": "object",
                                             "properties": {
-                                                "success": {
-                                                    "type": "boolean"
-                                                },
                                                 "is_registered": {
-                                                    "type": "boolean"
-                                                },
-                                                "message": {
                                                     "type": "string"
                                                 },
-                                                "data": {
-                                                    "type": "object",
-                                                    "properties": {
-                                                        "is_registered": {
-                                                            "type": "boolean"
-                                                        },
-                                                        "existing_konsumen": {
-                                                            "anyOf": [
-                                                                {
-                                                                    "$ref": "#/components/schemas/Konsumen"
-                                                                },
-                                                                {
-                                                                    "type": "null"
-                                                                }
-                                                            ]
-                                                        }
-                                                    },
-                                                    "required": [
-                                                        "is_registered",
-                                                        "existing_konsumen"
-                                                    ]
+                                                "list": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "$ref": "#/components/schemas/Konsumen"
+                                                    }
                                                 }
                                             },
                                             "required": [
-                                                "success",
                                                 "is_registered",
-                                                "message",
-                                                "data"
+                                                "list"
                                             ]
                                         }
+                                    },
+                                    "required": [
+                                        "success",
+                                        "is_registered",
+                                        "total",
+                                        "message",
+                                        "data"
                                     ]
                                 }
                             }
@@ -5738,7 +5762,7 @@
                 }
             },
             "put": {
-                "operationId": "konsumen.update_73",
+                "operationId": "konsumen.update_74",
                 "tags": [
                     "Konsumen"
                 ],
@@ -5937,7 +5961,7 @@
         },
         "/konsumens/{id}/update": {
             "post": {
-                "operationId": "konsumen.update_74",
+                "operationId": "konsumen.update_75",
                 "tags": [
                     "Konsumen"
                 ],
@@ -10129,7 +10153,9 @@
                 "type": "object",
                 "properties": {
                     "nik": {
-                        "type": "string"
+                        "type": "string",
+                        "minLength": 12,
+                        "maxLength": 16
                     }
                 },
                 "required": [

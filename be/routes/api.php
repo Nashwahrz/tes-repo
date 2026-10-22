@@ -37,7 +37,7 @@ use Illuminate\Support\Facades\Route;
             ->middleware('signed:relative');
 
     Route::middleware('auth:sanctum')->group(function () {
-        
+        Route::post('/logout', [AuthController::class, 'logout']);
         Route::prefix('dealers')->middleware('menu.access:dealers')->group(function () {
             Route::get('/', [DealerController::class, 'index'])->middleware('permission:dealers.lihat');
             Route::post('/', [DealerController::class, 'store'])->middleware('permission:dealers.tambah');
