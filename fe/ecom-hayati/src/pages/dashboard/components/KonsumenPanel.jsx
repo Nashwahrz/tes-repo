@@ -52,6 +52,12 @@ const toForm = (k) => Object.fromEntries(FIELDS.map((f) => {
   return [f, String(v)];
 }));
 
+// Field yang tercetak di KTP; yang tidak terbaca oleh scan diberi peringatan di kolomnya
+const SCAN_FIELDS = [
+  'nik', 'name', 'id_tmp_lahir', 'tgl_lahir', 'jenis_kelamin', 'alamat', 'rt', 'rw', 'id_kelurahan', 'id_kecamatan',
+  'id_kabupaten_kota', 'id_provinsi', 'id_agama', 'status_perkawinan', 'id_pekerjaan', 'kewarganegaraan',
+];
+
 // Label field untuk pesan wajib diisi
 const LABELS = {
   nik: 'NIK', name: 'Nama', id_tmp_lahir: 'Tempat lahir', tgl_lahir: 'Tanggal lahir', jenis_kelamin: 'Jenis kelamin',
@@ -113,6 +119,7 @@ function KonsumenPanel({ can, userId, onChanged, dealers = [], myDealerId = null
   const [scanning, setScanning] = useState(false);
   const [scanNote, setScanNote] = useState('');
   const [ocrFilled, setOcrFilled] = useState({}); // { kolom: true } terisi otomatis dari scan KTP dan belum diubah user; diberi pengingat periksa ulang
+  const [ocrMissing, setOcrMissing] = useState({}); // { kolom: true } tidak terbaca oleh scan KTP; tampil di bawah kolomnya
   const [ocrHints, setOcrHints] = useState({}); // { kolom: teks hasil OCR yang tidak cocok dengan daftar }; tampil di bawah kolomnya
   const [confirmSave, setConfirmSave] = useState(false);
   const [toDelete, setToDelete] = useState(null);
@@ -228,6 +235,7 @@ function KonsumenPanel({ can, userId, onChanged, dealers = [], myDealerId = null
     setPickText({});
     setOcrHints({});
     setOcrFilled({});
+    setOcrMissing({});
     setFormOpen(true);
   };
   const closeForm = () => { setFormOpen(false); setPicked(null); setEditing(null); };
@@ -315,6 +323,7 @@ function KonsumenPanel({ can, userId, onChanged, dealers = [], myDealerId = null
     // diubah user = sudah diperiksa: pengingat hasil scan hilang (juga pada turunannya yang dikosongkan)
     setOcrFilled((o) => (key in o || children.some((c) => c in o) ? Object.fromEntries(Object.entries(o).filter(([k]) => k !== key && !children.includes(k))) : o));
     // peringatan OCR tetap tampil selama user mengetik; hilang setelah ada pilihan
+    setOcrMissing((m) => (value && key in m ? Object.fromEntries(Object.entries(m).filter(([k]) => k !== key)) : m));
     setOcrHints((h) => (value && key in h ? Object.fromEntries(Object.entries(h).filter(([k]) => k !== key)) : h));
   };
 
@@ -344,6 +353,7 @@ function KonsumenPanel({ can, userId, onChanged, dealers = [], myDealerId = null
     setScanNote('');
     setOcrHints({});
     setOcrFilled({});
+    setOcrMissing({});
     try {
       const data = await scanKtp(file);
       // OCR mengirim teks (nama wilayah, agama, pekerjaan); cocokkan ke ID master.
@@ -416,12 +426,19 @@ function KonsumenPanel({ can, userId, onChanged, dealers = [], myDealerId = null
       setTouched((t) => ({ ...t, nik: true, ...Object.fromEntries(unmatched.map((u) => [u.key, true])) }));
       setOcrHints(Object.fromEntries(unmatched.map((u) => [u.key, u.text])));
       setOcrFilled(Object.fromEntries(readable.map((k) => [k, true])));
-      if (unmatched.length) {
-        setScanNote({ ok: false, text: `KTP dipindai: ${readable.length} data terisi otomatis. ${unmatched.length} data tidak cocok dengan daftar, lihat keterangan di bawah kolom yang bersangkutan.` });
+      const missing = SCAN_FIELDS.filter((k) => !(k in found) && !unmatched.some((u) => u.key === k));
+      setOcrMissing(Object.fromEntries(missing.map((k) => [k, true])));
+      setTouched((t) => ({ ...t, ...Object.fromEntries(missing.map((k) => [k, true])) }));
+      if (readable.length === 0) {
+        setScanNote({ ok: false, text: 'KTP dipindai, tetapi tidak ada data yang terbaca. Isi data secara manual.' });
+      } else if (unmatched.length || missing.length) {
+        const issues = [
+          unmatched.length && `${unmatched.length} data tidak cocok dengan daftar`,
+          missing.length && `${missing.length} data tidak terbaca`,
+        ].filter(Boolean).join(' dan ');
+        setScanNote({ ok: false, text: `KTP dipindai: ${readable.length} data terisi otomatis, ${issues}. Lihat keterangan di bawah kolom yang bersangkutan dan periksa kembali semuanya.` });
       } else {
-        setScanNote(readable.length
-          ? { ok: true, text: `KTP berhasil dipindai: ${readable.length} data terisi otomatis. Periksa kembali hasilnya sebelum menyimpan.` }
-          : { ok: false, text: 'KTP dipindai, tetapi tidak ada data yang terbaca. Isi data secara manual.' });
+        setScanNote({ ok: true, text: `KTP berhasil dipindai: ${readable.length} data terisi otomatis. Periksa kembali hasilnya sebelum menyimpan.` });
       }
     } catch (err) {
       setError(errorMessage(err));
@@ -633,10 +650,13 @@ function KonsumenPanel({ can, userId, onChanged, dealers = [], myDealerId = null
             Hasil scan KTP: "{ocrHints[key]}" tidak ada di daftar. Ketik ulang{props.searchKey ? ' lalu klik Cari' : ''} atau pilih manual.
           </p>
         )}
-        {ocrFilled[key] && form[key] && (
-          <p className="dash-field-warn">Terisi otomatis dari scan KTP. Periksa kembali, pastikan sesuai dengan KTP.</p>
+        {ocrMissing[key] && !form[key] && (
+          <p className="dash-field-error" role="alert">Tidak terbaca dari scan KTP. Isi manual sesuai KTP.</p>
         )}
-        {touched[key] && errors[key] && !(ocrHints[key] && !form[key]) && <p className="dash-field-error">{errors[key]}</p>}
+        {ocrFilled[key] && form[key] && (
+          <p className="dash-field-warn">Terbaca dari scan KTP, mohon cek lagi dan pastikan sesuai dengan KTP.</p>
+        )}
+        {touched[key] && errors[key] && !((ocrHints[key] || ocrMissing[key]) && !form[key]) && <p className="dash-field-error">{errors[key]}</p>}
       </div>
     );
   };
