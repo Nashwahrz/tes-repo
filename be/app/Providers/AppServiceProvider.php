@@ -105,9 +105,6 @@ class AppServiceProvider extends ServiceProvider
         });
     }
 
-    /**
-     * Mengatur konfigurasi mail secara dinamis dari database (EmailSmtp).
-     */
     private function configureMail(): void
     {
         try {
@@ -136,7 +133,7 @@ class AppServiceProvider extends ServiceProvider
                 }
             }
         } catch (\Throwable $e) {
-            // Biarkan fallback ke konfigurasi default .env jika database belum siap/offline
+           
         }
     }
 }

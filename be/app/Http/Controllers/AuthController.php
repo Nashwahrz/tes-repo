@@ -23,6 +23,8 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
 use App\Enums\StatusUser;
 use OpenApi\Attributes as OA;
+use Illuminate\Routing\Middleware\ThrottleRequests;
+use Illuminate\Http\Exceptions\HttpResponseException;
 
 class AuthController extends Controller
 {
@@ -33,6 +35,7 @@ class AuthController extends Controller
         private RegisterResponse $registerResponse,
         private LoginResponse $loginResponse,
         private LoginLogService $loginLogService,
+        private ThrottleRequests $throttleRequests,
     ) {}
 
     public function register(RegisterRequest $request)
@@ -89,12 +92,14 @@ class AuthController extends Controller
             if (!$user->email_verifikasi) {
                 Auth::logout();
 
-                $expiryMinutes = 5;
-                $otpCode = $this->otpRepository->generateOtpCode();
-                $this->otpRepository->createOtp($user, OtpPurpose::Register, $otpCode, $expiryMinutes);
-                Mail::to($user->email)->send(new SendOtpMail($user, $otpCode, $expiryMinutes));
+                return $this->throttleRequests->handle($request, function () use ($user) {
+                    $expiryMinutes = 5;
+                    $otpCode = $this->otpRepository->generateOtpCode();
+                    $this->otpRepository->createOtp($user, OtpPurpose::Register, $otpCode, $expiryMinutes);
+                    Mail::to($user->email)->send(new SendOtpMail($user, $otpCode, $expiryMinutes));
 
-                return $this->loginResponse->emailNotVerified($user->email);
+                    return $this->loginResponse->emailNotVerified($user->email);
+                }, 'otp-send');
             }
             
             if ($user->status !== StatusUser::Aktif) {
@@ -116,6 +121,8 @@ class AuthController extends Controller
             $token = $user->createToken('auth_token', ['*'], $expiresAt)->plainTextToken;
 
             return $this->loginResponse->success($user, $token);
+        } catch (HttpResponseException $e) {
+            return $e->getResponse();
         } catch (Throwable $e) {
             Log::error('Login error: ' . $e->getMessage());
             return $this->loginResponse->serverError();
