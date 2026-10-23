@@ -8,6 +8,7 @@ export const MENU_ACC = 'Manajemen User';
 export const MENU_ROLE = 'Role & Hak Akses';
 export const MENU_WHITELIST = 'Email WhiteList';
 export const MENU_RATELIMIT = 'Setting Rate Limit';
+export const MENU_LOG = 'Log Aktivitas';
 export const MENU_AGAMA = 'Agama';
 export const MENU_PEKERJAAN = 'Pekerjaan';
 export const MENU_PROVINSI = 'Provinsi';
@@ -35,6 +36,7 @@ export const MENU_PATHS = {
   [MENU_ROLE]: '/role-akses',
   [MENU_WHITELIST]: '/email-whitelist',
   [MENU_RATELIMIT]: '/rate-limit',
+  [MENU_LOG]: '/log-aktivitas',
   [MENU_AGAMA]: '/data-master/agama',
   [MENU_PEKERJAAN]: '/data-master/pekerjaan',
   [MENU_PROVINSI]: '/data-master/provinsi',

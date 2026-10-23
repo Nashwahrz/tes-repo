@@ -8,4 +8,4 @@ export * from './konsumens';
 export * from './whitelist';
 export * from './access';
 export * from './rateLimit';
-export { errorMessage } from './shared';
+export { errorMessage, retryAfterSeconds } from './shared';

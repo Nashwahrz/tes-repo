@@ -159,6 +159,40 @@
   cursor: not-allowed;
 }
 
+/* Penanda proses berjalan di dalam tombol / tautan */
+.auth-spin {
+  display: inline-block;
+  flex: none;
+  width: 16px;
+  height: 16px;
+  margin-right: 8px;
+  vertical-align: -3px;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: auth-spin 0.7s linear infinite;
+}
+
+.login-submit.is-loading {
+  opacity: 1;
+  cursor: progress;
+  filter: saturate(0.85);
+}
+
+.login-card[aria-busy='true'] .login-input,
+.login-card[aria-busy='true'] .otp-box {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+@keyframes auth-spin {
+  to { transform: rotate(360deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .auth-spin { animation-duration: 2s; }
+}
+
 .login-register {
   margin: 22px 0 14px;
   font-size: 14px;

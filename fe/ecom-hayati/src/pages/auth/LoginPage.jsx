@@ -1,11 +1,10 @@
 // src/pages/LoginPage.jsx
 import { useEffect, useState } from 'react';
-import { loginUser } from '../../api/authServices';
+import { loginUser, retryAfterSeconds } from '../../api/authServices';
 import './LoginPage.css';
+import { formatWait } from './formatWait';
 
 const LOGO_SRC = '/logo.png';
-
-const formatWait = (sec) => `${String(Math.floor(sec / 60)).padStart(2, '0')}:${String(sec % 60).padStart(2, '0')}`;
 
 function LoginPage() {
   const [email, setEmail] = useState('');
@@ -60,10 +59,12 @@ function LoginPage() {
       }
 
       // Terlalu banyak percobaan: blokir tombol sampai retry_after habis
-      if (data?.code === 'too_many_attempts' && data.retry_after) {
+      // (kunci login `too_many_attempts` maupun throttle umum sama-sama 429 + retry_after)
+      const wait = retryAfterSeconds(err);
+      if (wait) {
         setNow(Date.now());
-        setBlockedUntil(Date.now() + data.retry_after * 1000);
-        setError(data.message);
+        setBlockedUntil(Date.now() + wait * 1000);
+        setError(data?.message || '');
         return;
       }
 
@@ -84,7 +85,7 @@ function LoginPage() {
         <h1 className="login-title">Selamat Datang Kembali</h1>
         <p className="login-subtitle">Masuk ke akun Anda untuk melanjutkan aktivitas hari ini</p>
 
-        <form className="login-card" onSubmit={handleSubmit}>
+        <form className="login-card" onSubmit={handleSubmit} aria-busy={loading}>
           <label className="login-label" htmlFor="email">Email</label>
           <div className="login-field">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -134,10 +135,9 @@ function LoginPage() {
           <p className="login-forgot"><a href="/lupa-password">Lupa kata sandi?</a></p>
 
           {error && <p className="login-error">{error}</p>}
-          {/* {waitSec > 0 && <p className="login-error">Coba lagi dalam {formatWait(waitSec)}.</p>} */}
 
-          <button type="submit" className="login-submit" disabled={loading || waitSec > 0}>
-            {loading ? 'Memproses...' : waitSec > 0 ? `Coba lagi dalam ${formatWait(waitSec)}` : 'Masuk →'}
+          <button type="submit" className={`login-submit${loading ? ' is-loading' : ''}`} disabled={loading || waitSec > 0}>
+            {loading ? <><span className="auth-spin" aria-hidden="true" /> Memproses...</> : waitSec > 0 ? `Coba lagi dalam ${formatWait(waitSec)}` : 'Masuk →'}
           </button>
         </form>
 

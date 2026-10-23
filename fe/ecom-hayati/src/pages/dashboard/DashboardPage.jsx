@@ -2,7 +2,7 @@
 import { lazy, Suspense, useEffect, useRef, useState } from 'react';
 import { getUsers, getDealers, getKonsumenTotal, getKonsumenStatusTotals, getUserMenus, getUserPermissions } from '../../api/authServices';
 import {
-  MENU_HOME, MENU_PRODUK, MENU_PENJUALAN, MENU_DEALER, MENU_KONSUMEN, MENU_ACC, MENU_ROLE, MENU_WHITELIST, MENU_RATELIMIT, MENU_AGAMA, MENU_PEKERJAAN, MENU_PROVINSI, MENU_KABUPATEN, MENU_KECAMATAN, MENU_KELURAHAN, MASTER_MENUS, MENU_PATHS, menuFromPath,
+  MENU_HOME, MENU_PRODUK, MENU_PENJUALAN, MENU_DEALER, MENU_KONSUMEN, MENU_ACC, MENU_ROLE, MENU_WHITELIST, MENU_RATELIMIT, MENU_LOG, MENU_AGAMA, MENU_PEKERJAAN, MENU_PROVINSI, MENU_KABUPATEN, MENU_KECAMATAN, MENU_KELURAHAN, MASTER_MENUS, MENU_PATHS, menuFromPath,
 } from './menuPaths';
 import Loading from './components/Loading';
 import Icon from './components/Icon';
@@ -18,8 +18,7 @@ import './DashboardPage.css';
 const AccUserPanel = lazy(() => import('./components/AccUserPanel'));
 const DealerPanel = lazy(() => import('./components/DealerPanel'));
 const KonsumenPanel = lazy(() => import('./components/KonsumenPanel'));
-const LoginLogPanel = lazy(() => import('./components/LoginLogPanel'));
-const KonsumenLogPanel = lazy(() => import('./components/KonsumenLogPanel'));
+const LogPanel = lazy(() => import('./components/LogPanel'));
 const PenjualanPanel = lazy(() => import('./components/PenjualanPanel'));
 const EmailWhitelistPanel = lazy(() => import('./components/EmailWhitelistPanel'));
 const RoleAccessPanel = lazy(() => import('./components/RoleAccessPanel'));
@@ -156,6 +155,9 @@ function DashboardPage() {
   const canRole = canRoleMenu || canRolePerm;
   const canWhitelist = hasMenu('email-whitelists') && can('email-whitelists.lihat');
   // Data Master: agama & pekerjaan punya menu/permission sendiri di BE
+  const canLoginLog = hasMenu('log-users') && can('log-users.lihat');
+  const canKonsumenLog = hasMenu('konsumens') && can('konsumens.logs');
+  const canLog = canLoginLog || canKonsumenLog;
   const canRateLimit = hasMenu('configurasi-rate-limits') && can('configurasi-rate-limits.lihat');
   const canAgama = hasMenu('agamas') && can('agamas.lihat');
   const canPekerjaan = hasMenu('pekerjaans') && can('pekerjaans.lihat');
@@ -203,8 +205,6 @@ function DashboardPage() {
       .then((t) => { setKonsumenStats((s) => ({ ...s, ...t })); markSeen(MENU_KONSUMEN, konsumenSig(t)); })
       .catch(() => {});
   };
-  const [accTab, setAccTab] = useState('akun'); // 'akun' | 'log'
-  const [konsumenTab, setKonsumenTab] = useState('data'); // 'data' | 'log'
   const [konsumenKey, setKonsumenKey] = useState(0); // naik = panel konsumen dimuat ulang
 
   const watchAcc = canAcc;
@@ -277,6 +277,7 @@ function DashboardPage() {
     ...(canRole ? [MENU_ROLE] : []),
     ...(canWhitelist ? [MENU_WHITELIST] : []),
     ...(canRateLimit ? [MENU_RATELIMIT] : []),
+    ...(canLog ? [MENU_LOG] : []),
     ...(canAgama ? [MENU_AGAMA] : []),
     ...(canPekerjaan ? [MENU_PEKERJAAN] : []),
     ...(canWilayah ? [MENU_PROVINSI, MENU_KABUPATEN, MENU_KECAMATAN, MENU_KELURAHAN] : []),
@@ -397,14 +398,7 @@ function DashboardPage() {
         <div className="dash-content">
           {menu === MENU_ACC && canAcc && (
             <div className="dash-card">
-              {can('log-users.lihat') && (
-                <div className="dash-tabs wide">
-                  <button type="button" className={`dash-tab${accTab === 'akun' ? ' active' : ''}`} onClick={() => setAccTab('akun')}>Akun Pengguna</button>
-                  <button type="button" className={`dash-tab${accTab === 'log' ? ' active' : ''}`} onClick={() => setAccTab('log')}>Log Login</button>
-                </div>
-              )}
               <Suspense fallback={<Loading rows={4} />}>
-                {accTab === 'log' && can('log-users.lihat') ? <LoginLogPanel /> : (
                 <AccUserPanel
                   users={users}
                   dealers={dealers}
@@ -417,7 +411,6 @@ function DashboardPage() {
                     markSeen(MENU_ACC, accSig(next));
                   }}
                 />
-                )}
               </Suspense>
             </div>
           )}
@@ -458,14 +451,7 @@ function DashboardPage() {
 
           {menu === MENU_KONSUMEN && canKonsumen && (
             <div className="dash-card">
-              {can('konsumens.logs') && (
-                <div className="dash-tabs wide">
-                  <button type="button" className={`dash-tab${konsumenTab === 'data' ? ' active' : ''}`} onClick={() => setKonsumenTab('data')}>Data Konsumen</button>
-                  <button type="button" className={`dash-tab${konsumenTab === 'log' ? ' active' : ''}`} onClick={() => setKonsumenTab('log')}>Riwayat Aktivitas</button>
-                </div>
-              )}
               <Suspense fallback={<Loading rows={4} />}>
-                {konsumenTab === 'log' && can('konsumens.logs') ? <KonsumenLogPanel /> : (
                 <KonsumenPanel
                   key={konsumenKey}
                   dealers={dealers}
@@ -474,7 +460,14 @@ function DashboardPage() {
                   onChanged={refreshKonsumenStats}
                   can={{ tambah: can('konsumens.tambah'), ubah: can('konsumens.ubah'), hapus: can('konsumens.hapus'), scan: can('konsumens.scan'), verifikasi: canVerifyKonsumen }}
                 />
-                )}
+              </Suspense>
+            </div>
+          )}
+
+          {menu === MENU_LOG && canLog && (
+            <div className="dash-card">
+              <Suspense fallback={<Loading rows={4} />}>
+                <LogPanel canLogin={canLoginLog} canKonsumen={canKonsumenLog} />
               </Suspense>
             </div>
           )}

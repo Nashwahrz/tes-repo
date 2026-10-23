@@ -14,6 +14,9 @@ export const fetchAllPages = async (url) => {
   return [first, ...rest].flatMap((p) => p.data);
 };
 
+// Detik tunggu dari respons 429 (rate limit) BE; 0 bila bukan 429
+export const retryAfterSeconds = (err) => (err.response?.status === 429 ? Number(err.response.data?.retry_after) || 0 : 0);
+
 // Pesan error dari respons BE (validasi 422 / 409 / 403 / dll.)
 export const errorMessage = (err) => {
   const data = err.response?.data;

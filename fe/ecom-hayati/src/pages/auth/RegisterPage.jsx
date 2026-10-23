@@ -93,7 +93,7 @@ function RegisterPage() {
         <h1 className="login-title">Buat Akun Baru</h1>
         <p className="login-subtitle">Lengkapi data berikut untuk mendaftar</p>
 
-        <form className="login-card" onSubmit={handleSubmit}>
+        <form className="login-card" onSubmit={handleSubmit} aria-busy={loading}>
           <label className="login-label" htmlFor="name">Nama</label>
           <div className={`login-field${nameError ? ' invalid' : ''}`}>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="4" /><path d="M4 21a8 8 0 0 1 16 0" /></svg>
@@ -194,8 +194,8 @@ function RegisterPage() {
           {error && <p className="login-error">{error}</p>}
           {success && <p className="login-success">{success}</p>}
 
-          <button type="submit" className="login-submit" disabled={loading}>
-            {loading ? 'Mendaftar...' : 'Daftar →'}
+          <button type="submit" className={`login-submit${loading ? ' is-loading' : ''}`} disabled={loading}>
+            {loading ? <><span className="auth-spin" aria-hidden="true" /> Mendaftar...</> : 'Daftar →'}
           </button>
         </form>
 

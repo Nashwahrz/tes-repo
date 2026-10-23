@@ -1,9 +1,10 @@
 // src/pages/auth/ForgotPasswordPage.jsx
 // Reset password 3 langkah sesuai BE: kirim OTP -> verifikasi OTP (dapat reset_token) -> password baru.
 import { useEffect, useRef, useState } from 'react';
-import { sendResetPasswordOtp, verifyResetPasswordOtp, resetPassword } from '../../api/authServices';
+import { sendResetPasswordOtp, verifyResetPasswordOtp, resetPassword, retryAfterSeconds } from '../../api/authServices';
 import './LoginPage.css';
 import './OtpPage.css';
+import { formatWait } from './formatWait';
 
 const LOGO_SRC = '/logo.png';
 const OTP_LENGTH = 6;
@@ -31,6 +32,7 @@ function ForgotPasswordPage() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
+  const [resending, setResending] = useState(false);
   const [cooldown, setCooldown] = useState(0);
   const inputs = useRef([]);
 
@@ -39,6 +41,14 @@ function ForgotPasswordPage() {
     const t = setTimeout(() => setCooldown((c) => c - 1), 1000);
     return () => clearTimeout(t);
   }, [cooldown]);
+
+  // Diblokir rate limit saat verifikasi (429): tombol Verifikasi terkunci sampai hitung mundur habis
+  const [lock, setLock] = useState(0);
+  useEffect(() => {
+    if (lock <= 0) return undefined;
+    const t = setTimeout(() => setLock((l) => l - 1), 1000);
+    return () => clearTimeout(t);
+  }, [lock]);
 
   const clearMessages = () => { setError(''); setSuccess(''); };
 
@@ -74,6 +84,8 @@ function ForgotPasswordPage() {
       await sendCode();
       setStep('otp');
     } catch (err) {
+      const wait = retryAfterSeconds(err);
+      if (wait) setCooldown(wait);
       setError(errorMessage(err));
     } finally {
       setLoading(false);
@@ -91,7 +103,9 @@ function ForgotPasswordPage() {
       setResetToken(data.reset_token);
       setStep('password');
     } catch (err) {
-      setError(errorMessage(err));
+      const wait = retryAfterSeconds(err);
+      setLock(wait);
+      setError(wait ? '' : errorMessage(err));
     } finally {
       setLoading(false);
     }
@@ -122,11 +136,16 @@ function ForgotPasswordPage() {
 
   const resend = async () => {
     clearMessages();
+    setResending(true);
     try {
       await sendCode();
       setSuccess('Kode OTP baru telah dikirim.');
     } catch (err) {
+      const wait = retryAfterSeconds(err);
+      if (wait) setCooldown(wait);
       setError(errorMessage(err));
+    } finally {
+      setResending(false);
     }
   };
 
@@ -146,21 +165,21 @@ function ForgotPasswordPage() {
         </p>
 
         {step === 'email' && (
-          <form className="login-card" onSubmit={submitEmail}>
+          <form className="login-card" onSubmit={submitEmail} aria-busy={loading}>
             <label className="login-label" htmlFor="email">Email</label>
             <div className="login-field">
               <input className="login-input" id="email" type="email" placeholder="contoh: nama@email.com" value={email} onChange={(e) => setEmail(e.target.value)} required autoFocus />
             </div>
             {error && <p className="login-error">{error}</p>}
-            <button type="submit" className="login-submit" disabled={loading}>
-              {loading ? 'Mengirim...' : 'Kirim Kode OTP →'}
+            <button type="submit" className={`login-submit${loading ? ' is-loading' : ''}`} disabled={loading || cooldown > 0}>
+              {loading ? <><span className="auth-spin" aria-hidden="true" /> Mengirim...</> : cooldown > 0 ? `Coba lagi dalam ${formatWait(cooldown)}` : 'Kirim Kode OTP →'}
             </button>
           </form>
         )}
 
         {step === 'otp' && (
           <>
-            <form className="login-card" onSubmit={submitOtp}>
+            <form className="login-card" onSubmit={submitOtp} aria-busy={loading}>
               <div className="otp-boxes" onPaste={handlePaste}>
                 {digits.map((d, i) => (
                   <input
@@ -179,25 +198,27 @@ function ForgotPasswordPage() {
                   />
                 ))}
               </div>
-              {error && <p className="login-error">{error}</p>}
+              {(lock > 0 || error) && <p className="login-error">{lock > 0 ? `Terlalu banyak percobaan. Silakan coba lagi dalam ${formatWait(lock)}.` : error}</p>}
               {success && <p className="login-success">{success}</p>}
-              <button type="submit" className="login-submit" disabled={loading}>
-                {loading ? 'Memverifikasi...' : 'Verifikasi →'}
+              <button type="submit" className={`login-submit${loading ? ' is-loading' : ''}`} disabled={loading || lock > 0}>
+                {loading ? <><span className="auth-spin" aria-hidden="true" /> Memverifikasi...</> : 'Verifikasi →'}
               </button>
             </form>
             <p className="login-register">
               Tidak menerima kode?
               {cooldown > 0 ? (
-                <span className="otp-timer">Kirim ulang dalam {cooldown} dtk</span>
+                <span className="otp-timer">Kirim ulang dalam {formatWait(cooldown)}</span>
               ) : (
-                <button type="button" className="otp-resend" onClick={resend}>Kirim Ulang</button>
+                <button type="button" className="otp-resend" onClick={resend} disabled={resending}>
+                  {resending ? <><span className="auth-spin" aria-hidden="true" /> Mengirim...</> : 'Kirim Ulang'}
+                </button>
               )}
             </p>
           </>
         )}
 
         {step === 'password' && (
-          <form className="login-card" onSubmit={submitPassword}>
+          <form className="login-card" onSubmit={submitPassword} aria-busy={loading}>
             <label className="login-label" htmlFor="password">Kata Sandi Baru</label>
             <div className="login-field">
               <input className="login-input" id="password" type={showPassword ? 'text' : 'password'} placeholder="Min. 8 karakter, huruf besar/kecil, angka, simbol" value={password} onChange={(e) => setPassword(e.target.value)} required autoFocus />
@@ -215,8 +236,8 @@ function ForgotPasswordPage() {
             </div>
             {error && <p className="login-error">{error}</p>}
             {success && <p className="login-success">{success}</p>}
-            <button type="submit" className="login-submit" disabled={loading || !!success}>
-              {loading ? 'Menyimpan...' : 'Simpan Kata Sandi →'}
+            <button type="submit" className={`login-submit${loading ? ' is-loading' : ''}`} disabled={loading || !!success}>
+              {loading ? <><span className="auth-spin" aria-hidden="true" /> Menyimpan...</> : 'Simpan Kata Sandi →'}
             </button>
           </form>
         )}

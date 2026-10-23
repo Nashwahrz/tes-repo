@@ -1042,7 +1042,7 @@ select.dash-input, .dash-select {
 .dash-menu-chevron { display: inline-flex; margin-left: auto; transition: transform 0.2s; }
 .dash-menu-group-head .dash-menu-badge + .dash-menu-chevron, .dash-menu-group-head .dash-menu-dot-inline + .dash-menu-chevron { margin-left: 8px; }
 .dash-menu-group.open > .dash-menu-group-head .dash-menu-chevron { transform: rotate(180deg); }
-.dash-menu-dot-inline { position: static; margin-left: auto; flex-shrink: 0; }
+.dash-menu-dot.dash-menu-dot-inline { position: static; top: auto; left: auto; margin-left: auto; flex-shrink: 0; }
 .dash-submenu { list-style: none; margin: 2px 0 4px 18px; padding: 0 0 0 10px; border-left: 2px solid var(--line); }
 .dash-menu-item.sub { padding: 8px 12px; font-size: 12.5px; margin-bottom: 2px; }
 .dash-menu-item.sub .dash-menu-dot { left: auto; right: 38px; top: 50%; margin-top: -6px; }
