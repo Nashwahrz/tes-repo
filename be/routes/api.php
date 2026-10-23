@@ -10,6 +10,7 @@ use App\Http\Controllers\KabupatenKotaController;
 use App\Http\Controllers\KecamatanController;
 use App\Http\Controllers\KelurahanController;
 use App\Http\Controllers\KonsumenController;
+use App\Http\Controllers\LogBlockedUserController;
 use App\Http\Controllers\LogUserController;
 use App\Http\Controllers\OtpController;
 use App\Http\Controllers\PekerjaanController;
@@ -95,6 +96,14 @@ use Illuminate\Support\Facades\Route;
             Route::get('/{id}', [ConfigurasiRateLimitController::class, 'show'])->middleware('permission:configurasi-rate-limits.lihat');
             Route::put('/{id}', [ConfigurasiRateLimitController::class, 'update'])->middleware('permission:configurasi-rate-limits.ubah');
           //  Route::delete('/{id}', [ConfigurasiRateLimitController::class, 'destroy'])->middleware('permission:configurasi-rate-limits.hapus');
+        });
+
+        Route::prefix('log-blocked-users')->group(function () {
+            Route::get('/', [LogBlockedUserController::class, 'index']);
+            // Route::get('/active', [LogBlockedUserController::class, 'active']);
+            // Route::post('/unblock', [LogBlockedUserController::class, 'unblock']);
+            Route::post('/{id}/unblock', [LogBlockedUserController::class, 'unblockById']);
+            
         });
 
         Route::prefix('email-smtps')->middleware('menu.access:email-smtps')->group(function () {
