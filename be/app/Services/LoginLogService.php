@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\ConfigurasiRateLimit;
 use App\Models\User;
+use App\Repositories\LogBlockedUserRepository;
 use App\Repositories\LogUserRepository;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -17,7 +18,10 @@ class LoginLogService
 
     public function __construct(
         private LogUserRepository $logUserRepository,
-    ) {}
+        private ?LogBlockedUserRepository $logBlockedUserRepository = null,
+    ) {
+        $this->logBlockedUserRepository = $logBlockedUserRepository ?? app(LogBlockedUserRepository::class);
+    }
 
     private function getConfig(): ?ConfigurasiRateLimit
     {
@@ -70,15 +74,31 @@ class LoginLogService
             return;
         }
 
-        $key       = $this->throttleKey($ip, $email);
-        $expireKey = $this->expireKey($ip, $email);
-        $current   = Cache::get($key, 0);
-        $expiresAt = now()->addMinutes($this->decayMinutes());
+        $key         = $this->throttleKey($ip, $email);
+        $expireKey   = $this->expireKey($ip, $email);
+        $current     = Cache::get($key, 0);
+        $expiresAt   = now()->addMinutes($this->decayMinutes());
+        $newAttempts = $current + 1;
 
-        Cache::put($key, $current + 1, $expiresAt);
+        Cache::put($key, $newAttempts, $expiresAt);
 
         if ($current === 0) {
             Cache::put($expireKey, $expiresAt->timestamp, $expiresAt);
+        }
+
+        if ($newAttempts >= $this->maxAttempts()) {
+            try {
+                $this->logBlockedUserRepository->recordBlock(
+                    $ip,
+                    $email,
+                    'login',
+                    'Percobaan login gagal mencapai batas maksimum (salah password).',
+                    $this->decayMinutes() * 60,
+                    $newAttempts
+                );
+            } catch (\Throwable $e) {
+                Log::warning('Gagal mencatat log blocked login: ' . $e->getMessage());
+            }
         }
     }
 

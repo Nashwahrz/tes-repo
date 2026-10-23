@@ -15,14 +15,14 @@ class EmailSmtpSeeder extends Seeder
     {
         $now = now();
         DB::table('setting.email_smtp')->updateOrInsert(
-        ['mail_username' => 'akmalrendiansyah@gmail.com'],   
+        ['mail_username' => 'ickykuuhaku@gmail.com'],   
         [
             'mail_mailer'       => 'smtp',
             'mail_host'         => 'smtp.gmail.com',
             'mail_port'         => '587',
             'mail_password'     => 'dkgsajdgaggad',
             'mail_encryption'   => 'tls',
-            'mail_from_address' => 'akmalrendiansyah@gmail.com',
+            'mail_from_address' => 'ickykuuhaku@gmail.com',
             'mail_from_name'    => 'PT Hayati Pratama Mandiri',
             'is_active'         => true,
             'created_at'        => $now,
