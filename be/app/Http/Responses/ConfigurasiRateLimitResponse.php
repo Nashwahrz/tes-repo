@@ -77,7 +77,7 @@ class ConfigurasiRateLimitResponse
 
         return response()->json([
             'success'     => false,
-            'message'     => 'Terlalu banyak percobaan. Silakan coba lagi dalam ' . $retryAfter . ' detik.',
+            'message'     => 'Terlalu banyak percobaan. Silakan coba lagi',
             'retry_after' => $retryAfter,
             'retry_at'    => now()->addSeconds($retryAfter)->toDateTimeString(),
         ], 429, $headers);
