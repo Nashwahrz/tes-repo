@@ -467,7 +467,7 @@ function DashboardPage() {
           {menu === MENU_LOG && canLog && (
             <div className="dash-card">
               <Suspense fallback={<Loading rows={4} />}>
-                <LogPanel canLogin={canLoginLog} canKonsumen={canKonsumenLog} />
+                <LogPanel canLogin={canLoginLog} canKonsumen={canKonsumenLog} canBlocked={canLoginLog} />
               </Suspense>
             </div>
           )}
