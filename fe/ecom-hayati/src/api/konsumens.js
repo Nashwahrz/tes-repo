@@ -62,6 +62,12 @@ export const getKonsumenLogs = async (page = 1, search = '') => {
   return { rows: body.data ?? [], meta: { page: m.current_page ?? 1, lastPage: m.last_page ?? 1, total: m.total ?? 0, perPage: m.per_page ?? 10 } };
 };
 
+// Cari konsumen menurut NIK/nama (BE: POST /konsumens/check-nik, 12-16 karakter). Hasil: { isRegistered, list }
+export const checkNik = async (nik, signal) => {
+  const d = (await api.post('/konsumens/check-nik', { nik }, { signal })).data.data ?? {};
+  return { isRegistered: !!d.is_registered, list: d.list ?? [] };
+};
+
 export const deleteKonsumen = async (id) => (await api.delete(`/konsumens/${id}`)).data;
 
 // OCR KTP: kirim gambar, terima field hasil baca (nik, name, tgl_lahir, dst.)

@@ -1,6 +1,6 @@
 // Ikon dan struktur sidebar
 import {
-  MENU_HOME, MENU_PRODUK, MENU_PENJUALAN, MENU_DEALER, MENU_KONSUMEN, MENU_ACC, MENU_ROLE, MENU_WHITELIST, MENU_RATELIMIT, MENU_LOG, MENU_AGAMA, MENU_PEKERJAAN, MENU_PROVINSI, MENU_KABUPATEN, MENU_KECAMATAN, MENU_KELURAHAN,
+  MENU_HOME, MENU_PRODUK, MENU_PENJUALAN, MENU_DEALER, MENU_KONSUMEN, MENU_ACC, MENU_ROLE, MENU_WHITELIST, MENU_SMTP, MENU_URLIP, MENU_RATELIMIT, MENU_LOG, MENU_AGAMA, MENU_PEKERJAAN, MENU_PROVINSI, MENU_KABUPATEN, MENU_KECAMATAN, MENU_KELURAHAN,
 } from './menuPaths';
 
 // Url menu BE yang mengendalikan tiap menu sidebar (Produk dipertahankan walau endpoint BE-nya belum ada)
@@ -15,6 +15,8 @@ export const MENU_ICONS = {
   [MENU_ACC]: 'shield',
   [MENU_ROLE]: 'shield',
   [MENU_WHITELIST]: 'mail',
+  [MENU_SMTP]: 'mail',
+  [MENU_URLIP]: 'shield',
   [MENU_RATELIMIT]: 'shield',
   [MENU_LOG]: 'clock',
 };
@@ -24,6 +26,7 @@ export const MENU_ICONS = {
 export const NAV = [
   { item: MENU_HOME },
   { group: 'Operasional', icon: 'store', items: [MENU_PRODUK, MENU_PENJUALAN, MENU_DEALER, MENU_KONSUMEN] },
-  { group: 'Administrasi', icon: 'shield', items: [MENU_ACC, MENU_ROLE, MENU_WHITELIST, MENU_RATELIMIT, MENU_LOG] },
+  { group: 'Administrasi', icon: 'shield', items: [MENU_ACC, MENU_ROLE, MENU_LOG] },
+  { group: 'Pengaturan', icon: 'gear', items: [MENU_WHITELIST, MENU_SMTP, MENU_URLIP, MENU_RATELIMIT] },
   { group: 'Data Master', icon: 'box', items: [MENU_AGAMA, MENU_PEKERJAAN, MENU_PROVINSI, MENU_KABUPATEN, MENU_KECAMATAN, MENU_KELURAHAN] },
 ];

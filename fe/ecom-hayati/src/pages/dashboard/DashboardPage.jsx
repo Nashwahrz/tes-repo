@@ -1,8 +1,8 @@
 // src/pages/DashboardPage.jsx
 import { lazy, Suspense, useEffect, useRef, useState } from 'react';
-import { getUsers, getDealers, getKonsumenTotal, getKonsumenStatusTotals, getUserMenus, getUserPermissions } from '../../api/authServices';
+import { getUsers, getDealers, getKonsumenTotal, getKonsumenStatusTotals, getUserMenus, getUserPermissions, logoutUser } from '../../api/authServices';
 import {
-  MENU_HOME, MENU_PRODUK, MENU_PENJUALAN, MENU_DEALER, MENU_KONSUMEN, MENU_ACC, MENU_ROLE, MENU_WHITELIST, MENU_RATELIMIT, MENU_LOG, MENU_AGAMA, MENU_PEKERJAAN, MENU_PROVINSI, MENU_KABUPATEN, MENU_KECAMATAN, MENU_KELURAHAN, MASTER_MENUS, MENU_PATHS, menuFromPath,
+  MENU_HOME, MENU_PRODUK, MENU_PENJUALAN, MENU_DEALER, MENU_KONSUMEN, MENU_ACC, MENU_ROLE, MENU_WHITELIST, MENU_SMTP, MENU_URLIP, MENU_RATELIMIT, MENU_LOG, MENU_AGAMA, MENU_PEKERJAAN, MENU_PROVINSI, MENU_KABUPATEN, MENU_KECAMATAN, MENU_KELURAHAN, MASTER_MENUS, MENU_PATHS, menuFromPath,
 } from './menuPaths';
 import Loading from './components/Loading';
 import Icon from './components/Icon';
@@ -20,6 +20,8 @@ const DealerPanel = lazy(() => import('./components/DealerPanel'));
 const KonsumenPanel = lazy(() => import('./components/KonsumenPanel'));
 const LogPanel = lazy(() => import('./components/LogPanel'));
 const PenjualanPanel = lazy(() => import('./components/PenjualanPanel'));
+const UrlIpLoginPanel = lazy(() => import('./components/UrlIpLoginPanel'));
+const EmailSmtpPanel = lazy(() => import('./components/EmailSmtpPanel'));
 const EmailWhitelistPanel = lazy(() => import('./components/EmailWhitelistPanel'));
 const RoleAccessPanel = lazy(() => import('./components/RoleAccessPanel'));
 const RateLimitPanel = lazy(() => import('./components/RateLimitPanel'));
@@ -154,6 +156,8 @@ function DashboardPage() {
   const canRolePerm = hasMenu('role-menus') && can('role-permissions.kelola');
   const canRole = canRoleMenu || canRolePerm;
   const canWhitelist = hasMenu('email-whitelists') && can('email-whitelists.lihat');
+  const canUrlIp = hasMenu('url-ip-logins') && can('url-ip-logins.lihat');
+  const canSmtp = hasMenu('email-smtps') && can('email-smtps.lihat');
   // Data Master: agama & pekerjaan punya menu/permission sendiri di BE
   const canLoginLog = hasMenu('log-users') && can('log-users.lihat');
   const canKonsumenLog = hasMenu('konsumens') && can('konsumens.logs');
@@ -276,6 +280,8 @@ function DashboardPage() {
     ...(canAcc ? [MENU_ACC] : []),
     ...(canRole ? [MENU_ROLE] : []),
     ...(canWhitelist ? [MENU_WHITELIST] : []),
+    ...(canSmtp ? [MENU_SMTP] : []),
+    ...(canUrlIp ? [MENU_URLIP] : []),
     ...(canRateLimit ? [MENU_RATELIMIT] : []),
     ...(canLog ? [MENU_LOG] : []),
     ...(canAgama ? [MENU_AGAMA] : []),
@@ -317,7 +323,9 @@ function DashboardPage() {
   const initial = name.charAt(0).toUpperCase();
   const today = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    // Cabut token di BE; gagal (offline/token sudah kedaluwarsa) tidak boleh menahan user keluar
+    await logoutUser().catch(() => {});
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     clearCache();
@@ -480,6 +488,24 @@ function DashboardPage() {
                   users={users}
                   can={{ tambah: can('email-whitelists.tambah'), ubah: can('email-whitelists.ubah'), hapus: can('email-whitelists.hapus') }}
                 />
+              </Suspense>
+            </div>
+          )}
+
+          {menu === MENU_SMTP && canSmtp && (
+            <div className="dash-card">
+              <Suspense fallback={<Loading rows={4} />}>
+                <EmailSmtpPanel
+                  can={{ tambah: can('email-smtps.tambah'), ubah: can('email-smtps.ubah'), hapus: can('email-smtps.hapus') }}
+                />
+              </Suspense>
+            </div>
+          )}
+
+          {menu === MENU_URLIP && canUrlIp && (
+            <div className="dash-card">
+              <Suspense fallback={<Loading rows={3} />}>
+                <UrlIpLoginPanel canEdit={can('url-ip-logins.ubah')} />
               </Suspense>
             </div>
           )}

@@ -6,6 +6,8 @@ export * from './dealers';
 export * from './master';
 export * from './konsumens';
 export * from './whitelist';
+export * from './emailSmtp';
+export * from './urlIpLogin';
 export * from './access';
 export * from './rateLimit';
 export * from './blockedUsers';

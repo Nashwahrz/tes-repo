@@ -9,7 +9,7 @@ import IconButton from './IconButton';
 import ConfirmModal from './ConfirmModal';
 import KonsumenDetailModal from './KonsumenDetailModal';
 import {
-  getKonsumens, getKonsumenPage, getKonsumen, createKonsumen, updateKonsumen, deleteKonsumen, verifyKonsumen, scanKtp, ktpUrl, errorMessage,
+  getKonsumens, getKonsumenPage, getKonsumen, createKonsumen, updateKonsumen, deleteKonsumen, verifyKonsumen, scanKtp, checkNik, ktpUrl, errorMessage,
   getAgamas, getPekerjaans, getProvinsis, getKabupatens, searchKecamatans, searchKelurahans, searchMaster, getMasterById,
 } from '../../../api/authServices';
 
@@ -115,6 +115,7 @@ function KonsumenPanel({ can, userId, onChanged, dealers = [], myDealerId = null
   const [file, setFile] = useState(null);
   const [preview, setPreview] = useState('');
   const [touched, setTouched] = useState({});
+  const [nikDup, setNikDup] = useState(null); // konsumen lain dengan NIK yang sama (hasil BE /konsumens/check-nik)
   const [saving, setSaving] = useState(false);
   const [scanning, setScanning] = useState(false);
   const [scanNote, setScanNote] = useState('');
@@ -238,6 +239,18 @@ function KonsumenPanel({ can, userId, onChanged, dealers = [], myDealerId = null
     setOcrMissing({});
     setFormOpen(true);
   };
+  // NIK lengkap diperiksa ke BE agar duplikat ketahuan sebelum submit; gagal cek tidak menghalangi pengisian
+  useEffect(() => {
+    if (!formOpen || !/^\d{16}$/.test(form.nik)) { setNikDup(null); return undefined; }
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => {
+      checkNik(form.nik, ctrl.signal)
+        .then(({ list }) => setNikDup(list.find((k) => k.nik === form.nik && k.id !== editing?.id) ?? null))
+        .catch(() => {});
+    }, 400);
+    return () => { clearTimeout(timer); ctrl.abort(); };
+  }, [form.nik, formOpen, editing]);
+
   const closeForm = () => { setFormOpen(false); setPicked(null); setEditing(null); };
 
   const handlePick = (lat, lng) => {
@@ -803,6 +816,11 @@ function KonsumenPanel({ can, userId, onChanged, dealers = [], myDealerId = null
             </div>
 
             {field('nik', 'NIK', { placeholder: '16 digit angka', numeric: true, max: 16 })}
+            {nikDup && (
+              <p className="dash-alert warning" role="status">
+                <strong>!</strong> NIK ini sudah terdaftar atas nama <strong>{nikDup.name || '-'}</strong>. Periksa kembali sebelum menyimpan.
+              </p>
+            )}
             {field('name', 'Nama Lengkap')}
             <div className="dash-form-row">
               {field('id_tmp_lahir', 'Tempat Lahir', { idOptions: master.tempatLahir })}
