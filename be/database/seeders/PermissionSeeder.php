@@ -66,7 +66,8 @@ class PermissionSeeder extends Seeder
             'email-smtps.tambah',
             'email-smtps.ubah',
             'email-smtps.hapus',
-
+            'url-ip-logins.lihat',
+            'url-ip-logins.ubah',
         ];
         $rows = array_map(fn ($nama) => [
             'nama_permission' => $nama,

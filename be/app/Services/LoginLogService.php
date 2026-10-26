@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\ConfigurasiRateLimit;
+use App\Models\UrlIpLogin;
 use App\Models\User;
 use App\Repositories\LogBlockedUserRepository;
 use App\Repositories\LogUserRepository;
@@ -15,6 +16,8 @@ class LoginLogService
 {
     private ?ConfigurasiRateLimit $config = null;
     private bool $configLoaded = false;
+    private ?UrlIpLogin $urlIpLoginConfig = null;
+    private bool $urlIpLoginLoaded = false;
 
     public function __construct(
         private LogUserRepository $logUserRepository,
@@ -31,6 +34,18 @@ class LoginLogService
         }
 
         return $this->config;
+    }
+
+    private function getUrlIpLogin(): ?UrlIpLogin
+    {
+        if (! $this->urlIpLoginLoaded) {
+            $this->urlIpLoginConfig = Cache::remember('active_url_ip_login', 3600, function () {
+                return UrlIpLogin::where('is_active', true)->first();
+            });
+            $this->urlIpLoginLoaded = true;
+        }
+
+        return $this->urlIpLoginConfig;
     }
 
     public function maxAttempts(): int
@@ -219,7 +234,18 @@ class LoginLogService
         }
 
         try {
-            $response = Http::timeout(3)->get("http://ip-api.com/json/{$ip}", [
+            $urlSetting = $this->getUrlIpLogin();
+
+            if (! $urlSetting || ! $urlSetting->is_active || empty($urlSetting->url)) {
+                return [];
+            }
+
+            $rawUrl   = trim($urlSetting->url);
+            $endpoint = str_contains($rawUrl, '{ip}')
+                ? str_replace('{ip}', $ip, $rawUrl)
+                : rtrim($rawUrl, '/') . '/' . ltrim($ip, '/');
+
+            $response = Http::timeout(3)->get($endpoint, [
                 'fields' => 'status,city,regionName,country,lat,lon',
             ]);
 

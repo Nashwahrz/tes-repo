@@ -66,6 +66,8 @@ class RolePermissionSeeder extends Seeder
                 'email-smtps.tambah',
                 'email-smtps.ubah',
                 'email-smtps.hapus',
+                'url-ip-logins.lihat',
+                'url-ip-logins.ubah',
             ],
             'Kacab' => [
                 'dealers.lihat',
