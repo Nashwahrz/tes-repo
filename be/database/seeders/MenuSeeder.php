@@ -34,6 +34,7 @@ class MenuSeeder extends Seeder
             ['nama_menu' => 'Daftar Kelurahan','url' => 'kelurahans',           'urutan' => 18, 'status' => true],
             ['nama_menu' => 'Setting rate limit','url' => 'configurasi-rate-limits',           'urutan' => 19, 'status' => true],
             ['nama_menu' => 'Email Smtp',       'url' => 'email-smtps',         'urutan' => 20, 'status' => true],
+            ['nama_menu' => 'url ip login',       'url' => 'url-ip-logins',         'urutan' => 21, 'status' => true],
             
         ];
          $menus = array_map(fn ($m) => $m + [

@@ -13,6 +13,7 @@ class DatabaseSeeder extends Seeder
             RoleSeeder::class,
             ConfigurasiRateLimitSeeder::class,
             EmailSmtpSeeder::class,
+            UrlIpLoginSeeder::class,
             PermissionSeeder::class,
             MenuSeeder::class,
             RoleMenuSeeder::class,

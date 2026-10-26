@@ -17,6 +17,7 @@ use App\Http\Controllers\PekerjaanController;
 use App\Http\Controllers\ProvinsiController;
 use App\Http\Controllers\RoleMenuController;
 use App\Http\Controllers\RolePermissionController;
+use App\Http\Controllers\UrlIpLoginController;
 use App\Http\Controllers\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -112,6 +113,12 @@ use Illuminate\Support\Facades\Route;
             Route::get('/{id}', [EmailSmtpController::class, 'show'])->middleware('permission:email-smtps.lihat');
             Route::put('/{id}', [EmailSmtpController::class, 'update'])->middleware('permission:email-smtps.ubah');
             Route::delete('/{id}', [EmailSmtpController::class, 'destroy'])->middleware('permission:email-smtps.hapus');
+        });
+
+        Route::prefix('url-ip-logins')->middleware('menu.access:url-ip-logins')->group(function () {
+            Route::get('/', [UrlIpLoginController::class, 'index'])->middleware('permission:url-ip-logins.lihat');
+            Route::get('/{id}', [UrlIpLoginController::class, 'show'])->middleware('permission:url-ip-logins.lihat');
+            Route::put('/{id}', [UrlIpLoginController::class, 'update'])->middleware('permission:url-ip-logins.ubah');
         });
 
         Route::prefix('users')->middleware('menu.access:users')->group(function () {
