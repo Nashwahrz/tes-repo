@@ -32,7 +32,8 @@ class RoleMenuSeeder extends Seeder
                 'kelurahans',
                 'configurasi-rate-limits',
                 'email-smtps',
-                'url-ip-logins'
+                'url-ip-logins',
+                'app-key-ocrs',
             ],
             'Kacab' => [
                 'dashboard',

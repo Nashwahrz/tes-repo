@@ -2,29 +2,44 @@
 
 namespace App\Services;
 
+use App\Models\AppKeyOcr;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Exception;
 
 class KtpOcrService
 {
-    private string $apiKey;
-    private string $apiUrl;
-
-    public function __construct()
+    private function getAppKeyOcr(): ?AppKeyOcr
     {
-        $this->apiKey = config('services.ocr_space.key');
-        $this->apiUrl = config('services.ocr_space.url');
+        return Cache::remember('active_app_key_ocr', 3600, function () {
+            return AppKeyOcr::where('is_active', true)->first();
+        });
     }
 
+    public function getApiKey(): ?string
+    {
+        return $this->getAppKeyOcr()?->api_key;
+    }
+
+    public function getApiUrl(): ?string
+    {
+        return $this->getAppKeyOcr()?->url;
+    }
 
     public function extractKtp(UploadedFile $file): array
     {
-        $response = Http::asMultipart()->post($this->apiUrl, [
+        $appKeyOcr = $this->getAppKeyOcr();
+
+        if (! $appKeyOcr || ! $appKeyOcr->is_active || empty($appKeyOcr->api_key) || empty($appKeyOcr->url)) {
+            throw new Exception('Layanan OCR belum dikonfigurasi atau sedang tidak aktif.');
+        }
+
+        $response = Http::asMultipart()->post($appKeyOcr->url, [
             [
                 'name'     => 'apikey',
-                'contents' => $this->apiKey,
+                'contents' => $appKeyOcr->api_key,
             ],
             [
                 'name'     => 'file',

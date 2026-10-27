@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AgamaController;
+use App\Http\Controllers\AppKeyOcrController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ConfigurasiRateLimitController;
 use App\Http\Controllers\DealerController;
@@ -107,7 +108,7 @@ use Illuminate\Support\Facades\Route;
             
         });
 
-        Route::prefix('email-smtps')->middleware('menu.access:email-smtps')->group(function () {
+        Route::prefix('ema\il-smtps')->middleware('menu.access:email-smtps')->group(function () {
             Route::get('/', [EmailSmtpController::class, 'index'])->middleware('permission:email-smtps.lihat');
             Route::post('/', [EmailSmtpController::class, 'store'])->middleware('permission:email-smtps.tambah');
             Route::get('/{id}', [EmailSmtpController::class, 'show'])->middleware('permission:email-smtps.lihat');
@@ -119,6 +120,11 @@ use Illuminate\Support\Facades\Route;
             Route::get('/', [UrlIpLoginController::class, 'index'])->middleware('permission:url-ip-logins.lihat');
             Route::get('/{id}', [UrlIpLoginController::class, 'show'])->middleware('permission:url-ip-logins.lihat');
             Route::put('/{id}', [UrlIpLoginController::class, 'update'])->middleware('permission:url-ip-logins.ubah');
+        });
+        Route::prefix('app-key-ocrs')->middleware('menu.access:app-key-ocrs')->group(function () {
+            Route::get('/', [AppKeyOcrController::class, 'index'])->middleware('permission:app-key-ocrs.lihat');
+            Route::get('/{id}', [AppKeyOcrController::class, 'show'])->middleware('permission:app-key-ocrs.lihat');
+            Route::put('/{id}', [AppKeyOcrController::class, 'update'])->middleware('permission:app-key-ocrs.ubah');
         });
 
         Route::prefix('users')->middleware('menu.access:users')->group(function () {
