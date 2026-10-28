@@ -54,6 +54,7 @@ use Illuminate\Support\Facades\Route;
             Route::post('/', [AgamaController::class, 'store'])->middleware('permission:agamas.tambah');
             Route::get('/{id}', [AgamaController::class, 'show'])->middleware('permission:agamas.lihat');
             Route::put('/{id}', [AgamaController::class, 'update'])->middleware('permission:agamas.ubah');
+            Route::put('/{id}/status', [AgamaController::class, 'status'])->middleware('permission:agamas.ubah');
             Route::delete('/{id}', [AgamaController::class, 'destroy'])->middleware('permission:agamas.hapus');
         });
         Route::prefix('pekerjaans')->middleware('menu.access:pekerjaans')->group(function () {
@@ -61,6 +62,7 @@ use Illuminate\Support\Facades\Route;
             Route::post('/', [PekerjaanController::class, 'store'])->middleware('permission:pekerjaans.tambah');
             Route::get('/{id}', [PekerjaanController::class, 'show'])->middleware('permission:pekerjaans.lihat');
             Route::put('/{id}', [PekerjaanController::class, 'update'])->middleware('permission:pekerjaans.ubah');
+            Route::put('/{id}/status', [PekerjaanController::class, 'status'])->middleware('permission:pekerjaans.ubah');
             Route::delete('/{id}', [PekerjaanController::class, 'destroy'])->middleware('permission:pekerjaans.hapus');
         });
         Route::prefix('provinsis')->middleware('menu.access:provinsis')->group(function () {
@@ -68,14 +70,16 @@ use Illuminate\Support\Facades\Route;
             Route::post('/', [ProvinsiController::class, 'store'])->middleware('permission:provinsis.tambah');
             Route::get('/{id}', [ProvinsiController::class, 'show'])->middleware('permission:provinsis.lihat');
             Route::put('/{id}', [ProvinsiController::class, 'update'])->middleware('permission:provinsis.ubah');
-            Route::delete('/{id}', [ProvinsiController::class, 'destroy'])->middleware('permission:provinsis.hapus');
+            Route::put('/{id}/status', [ProvinsiController::class, 'status'])->middleware('permission:provinsis.ubah');
+            // Route::delete('/{id}', [ProvinsiController::class, 'destroy'])->middleware('permission:provinsis.hapus');
         });
          Route::prefix('kabupaten-kotas')->middleware('menu.access:kabupaten-kotas')->group(function () {
             Route::get('/', [KabupatenKotaController::class, 'index'])->middleware('permission:kabupaten-kotas.lihat');
             Route::post('/', [KabupatenKotaController::class, 'store'])->middleware('permission:kabupaten-kotas.tambah');
             Route::get('/{id}', [KabupatenKotaController::class, 'show'])->middleware('permission:kabupaten-kotas.lihat');
             Route::put('/{id}', [KabupatenKotaController::class, 'update'])->middleware('permission:kabupaten-kotas.ubah');
-            Route::delete('/{id}', [KabupatenKotaController::class, 'destroy'])->middleware('permission:kabupaten-kotas.hapus');
+            Route::put('/{id}/status', [KabupatenKotaController::class, 'status'])->middleware('permission:kabupaten-kotas.ubah');
+            // Route::delete('/{id}', [KabupatenKotaController::class, 'destroy'])->middleware('permission:kabupaten-kotas.hapus');
         });
 
         Route::prefix('kecamatans')->middleware('menu.access:kecamatans')->group(function () {
@@ -83,14 +87,16 @@ use Illuminate\Support\Facades\Route;
             Route::post('/', [KecamatanController::class, 'store'])->middleware('permission:kecamatans.tambah');
             Route::get('/{id}', [KecamatanController::class, 'show'])->middleware('permission:kecamatans.lihat');
             Route::put('/{id}', [KecamatanController::class, 'update'])->middleware('permission:kecamatans.ubah');
-            Route::delete('/{id}', [KecamatanController::class, 'destroy'])->middleware('permission:kecamatans.hapus');
+            Route::put('/{id}/status', [KecamatanController::class, 'status'])->middleware('permission:kecamatans.ubah');
+            // Route::delete('/{id}', [KecamatanController::class, 'destroy'])->middleware('permission:kecamatans.hapus');
         });
         Route::prefix('kelurahans')->middleware('menu.access:kelurahans')->group(function () {
             Route::get('/', [KelurahanController::class, 'index'])->middleware('permission:kelurahans.lihat');
             Route::post('/', [KelurahanController::class, 'store'])->middleware('permission:kelurahans.tambah');
             Route::get('/{id}', [KelurahanController::class, 'show'])->middleware('permission:kelurahans.lihat');
             Route::put('/{id}', [KelurahanController::class, 'update'])->middleware('permission:kelurahans.ubah');
-            Route::delete('/{id}', [KelurahanController::class, 'destroy'])->middleware('permission:kelurahans.hapus');
+            Route::put('/{id}/status', [KelurahanController::class, 'status'])->middleware('permission:kelurahans.ubah');
+            // Route::delete('/{id}', [KelurahanController::class, 'destroy'])->middleware('permission:kelurahans.hapus');
         });
         Route::prefix('configurasi-rate-limits')->middleware('menu.access:configurasi-rate-limits')->group(function () {
             Route::get('/', [ConfigurasiRateLimitController::class, 'index'])->middleware('permission:configurasi-rate-limits.lihat');
@@ -108,7 +114,7 @@ use Illuminate\Support\Facades\Route;
             
         });
 
-        Route::prefix('ema\il-smtps')->middleware('menu.access:email-smtps')->group(function () {
+        Route::prefix('email-smtps')->middleware('menu.access:email-smtps')->group(function () {
             Route::get('/', [EmailSmtpController::class, 'index'])->middleware('permission:email-smtps.lihat');
             Route::post('/', [EmailSmtpController::class, 'store'])->middleware('permission:email-smtps.tambah');
             Route::get('/{id}', [EmailSmtpController::class, 'show'])->middleware('permission:email-smtps.lihat');

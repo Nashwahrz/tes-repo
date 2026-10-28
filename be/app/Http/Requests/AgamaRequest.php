@@ -27,12 +27,28 @@ class AgamaRequest extends FormRequest
      */
     public function rules(): array
     {
+
+        if ($this->isMethod('put') || $this->isMethod('patch')) {
+            return [
+                'name' => [
+                    'required',
+                    'string',
+                    'max:255',
+                ],
+            ];
+        }
+
         return [
+            'kode' => [
+                'required',
+                'string',
+                'digits_between:1,10',
+                Rule::unique(Agama::class, 'kode'),
+            ],
             'name' => [
                 'required',
                 'string',
                 'max:255',
-               Rule::unique(Agama::class, 'name'),
             ],
         ];
     }
@@ -40,10 +56,13 @@ class AgamaRequest extends FormRequest
     public function messages(): array
     {
         return [
+            'kode.required'      => 'Kode agama wajib diisi.',
+            'kode.string'        => 'Kode agama harus berupa string.',
+            'kode.digits_between' => 'Kode agama harus antara 1 sampai 10 digit.',
+            'kode.unique'        => 'Kode agama sudah terdaftar.',
             'name.required'      => 'Nama agama wajib diisi.',
             'name.string'        => 'Nama agama harus berupa string.',
             'name.max'           => 'Nama agama tidak boleh lebih dari 255 karakter.',
-            'name.unique'        => 'Nama agama sudah terdaftar.',
         ];
     }
 

@@ -35,7 +35,10 @@ class ProvinsiRepository
     public function paginate(int $perPage = 10, ?string $search = null): LengthAwarePaginator
     {
         return Provinsi::query()
-            ->when($search, fn ($q) => $q->where('name', 'ILIKE', "%{$search}%"))
+            ->when($search, fn ($q) => $q->where(function ($q) use ($search) {
+                $q->where('name', 'ILIKE', "%{$search}%")
+                ->orWhere('kode', 'ILIKE', "%{$search}%");
+            }))
             ->latest('id')
             ->paginate($perPage)
             ->withQueryString();

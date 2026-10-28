@@ -27,23 +27,50 @@ class ProvinsiRequest extends FormRequest
      */
     public function rules(): array
     {
+        if ($this->isMethod('put') || $this->isMethod('patch')) {
+            return [
+                'name' => [
+                    'required',
+                    'string',
+                    'max:255',
+                ],
+                'status' => [
+                    'sometimes',
+                    'boolean',
+                ]
+            ];
+        }
+
         return [
+            'kode' => [
+                'required',
+                'string',
+                'digits_between:1,10',
+                Rule::unique(Provinsi::class, 'kode'),
+            ],
             'name' => [
                 'required',
                 'string',
                 'max:255',
-               Rule::unique(Provinsi::class, 'name'),
             ],
+            'status' => [
+                'sometimes',
+                'boolean',
+            ]
         ];
     }
 
     public function messages(): array
     {
         return [
+            'kode.required'      => 'kode provinsi wajib diisi.',
+            'kode.string'        => 'kode provinsi harus berupa string.',
+            'kode.digits_between'=> 'kode provinsi harus berupa angka.',
+            'kode.unique'        => 'kode provinsi sudah terdaftar.',
             'name.required'      => 'provinsi wajib diisi.',
             'name.string'        => 'provinsi harus berupa string.',
             'name.max'           => 'provinsi tidak boleh lebih dari 255 karakter.',
-            'name.unique'        => 'provinsi sudah terdaftar.',
+            'status.boolean'     => 'status harus berupa boolean.',
         ];
     }
 

@@ -9,6 +9,8 @@ class Provinsi extends Model
     protected $table = 'master.provinsis';
 
     protected $fillable = [
-        'name'
+        'kode',
+        'name',
+        'status'
     ];
 }

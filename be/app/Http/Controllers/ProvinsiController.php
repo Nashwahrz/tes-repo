@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\GeografisStatusRequest;
 use App\Http\Requests\ProvinsiRequest;
+use App\Http\Requests\ProvinsiStatusRequest;
 use App\Http\Responses\ProvinsiResponse;
 use App\Repositories\ProvinsiRepository;
 use Illuminate\Database\UniqueConstraintViolationException;
@@ -74,7 +76,7 @@ class ProvinsiController extends Controller
                 return $this->provinsiResponse->notFound();
             }
 
-            $updatedProvinsi = $this->provinsiRepository->update($provinsi, $request->validated());
+            $updatedProvinsi = $this->provinsiRepository->update($provinsi, $request->only('name'));
 
             return $this->provinsiResponse->success($updatedProvinsi, 'Provinsi berhasil diperbarui.');
         } catch (UniqueConstraintViolationException $e) {
@@ -86,6 +88,30 @@ class ProvinsiController extends Controller
             return $this->provinsiResponse->serverError();
         }
     }
+    
+    public function status(GeografisStatusRequest $request, int $id)
+    {
+        try {
+            $provinsi = $this->provinsiRepository->findById($id);
+
+            if (!$provinsi) {
+                return $this->provinsiResponse->notFound();
+            }
+
+            $updatedProvinsi = $this->provinsiRepository->update($provinsi, $request->validated());
+
+            return $this->provinsiResponse->success($updatedProvinsi, 'Status provinsi berhasil diubah.');
+        } catch (UniqueConstraintViolationException $e) {
+            return $this->provinsiResponse->nameTaken();
+        } catch (Throwable $e) {
+            Log::error('Gagal mengaktifkan provinsi: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString(),
+            ]);
+            return $this->provinsiResponse->serverError();
+        }
+    }
+
+
 
     public function destroy(int $id)
     {

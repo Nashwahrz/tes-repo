@@ -4,56 +4,76 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
+use PhpOffice\PhpSpreadsheet\IOFactory;
 
 class ProvinsiSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
     public function run(): void
     {
-        $data = [
-            'Nanggroe Aceh Darussalam',
-            'Sumatera Utara',
-            'Sumatera Barat',
-            'Riau',
-            'Jambi',
-            'Sumatera Selatan',
-            'Bengkulu',
-            'Lampung',
-            'Bangka-Belitung',
-            'Kepulauan Riau',
-            'D K I Jakarta',
-            'Jawa Barat',
-            'Jawa Tengah',
-            'D I Yogyakarta',
-            'Jawa Timur',
-            'Banten',
-            'Bali',
-            'Nusa Tenggara Barat',
-            'Nusa Tenggara Timur',
-            'Kalimantan Barat',
-            'Kalimantan Tengah',
-            'Kalimantan Selatan',
-            'Kalimantan Timur',
-            'KALIMANTAN UTARA',
-            'Sulawesi Utara',
-            'Sulawesi Tengah',
-            'Sulawesi Selatan',
-            'Sulawesi Tenggara',
-            'Gorontalo',
-            'Sulawesi Barat',
-            'Maluku',
-            'Maluku Utara',
-            'Irian Jaya Barat',
-            'Papua',
-        ];
+        $path = database_path('seeders/data/master_provinsi.xlsx');
 
-        foreach ($data as $name) {
-            DB::table('master.provinsis')->updateOrInsert(
-                ['name' => $name],
-                ['created_at' => now(), 'updated_at' => now()]
-            );
+        if (! is_file($path)) {
+            $this->command?->error("File tidak ditemukan: {$path}");
+            return;
         }
+
+        $validKabupaten = DB::table('master.provinsis')
+            ->pluck('kode')
+            ->map(fn ($k) => (string) $k)
+            ->flip();
+
+        $reader = IOFactory::createReaderForFile($path);
+        $reader->setReadDataOnly(true);
+        $sheetRows = $reader->load($path)->getActiveSheet()->toArray(null, true, false, false);
+
+        $rows = [];
+
+        foreach ($sheetRows as $i => $cols) {
+            $kode    = $this->clean($cols[0] ?? '');
+            $name    = rtrim($this->clean($cols[1] ?? ''), '.');
+
+            if ($kode === '' && $name === '') {
+                continue; 
+            }
+
+            if ($i === 0 && strtolower($kode) === 'kode') {
+                continue; 
+            }
+
+            if ($kode === '' || $name === '') {
+                $this->command?->warn('Baris ' . ($i + 1) . ' dilewati (data kurang).');
+                continue;
+            }
+
+
+         
+            $rows[$kode] = [
+                'kode'                => $kode,
+                'name'                => $name,
+                'created_at'          => now(),
+                'updated_at'          => now(),
+            ];
+        }
+
+        DB::transaction(function () use ($rows) {
+            foreach (array_chunk(array_values($rows), 500) as $chunk) {
+                DB::table('master.provinsis')->upsert(
+                    $chunk,
+                    ['kode'],
+                    ['name', 'updated_at']
+                );
+            }
+        });
+
+        $this->command?->info(count($rows) . ' provinsi di-seed.');
+    }
+
+    private function clean(mixed $value): string
+    {
+        if (is_float($value) && floor($value) === $value) {
+            $value = (int) $value;
+        }
+
+        return trim(str_replace("\xC2\xA0", ' ', (string) $value));
     }
 }

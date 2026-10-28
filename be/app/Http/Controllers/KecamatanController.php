@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 
+use App\Http\Requests\GeografisStatusRequest;
 use App\Http\Requests\KecamatanRequest;
 use App\Http\Responses\KecamatanResponse;
 use App\Repositories\KecamatanRepository;
@@ -48,6 +49,28 @@ class KecamatanController extends Controller
         }
     }
 
+    public function status(GeografisStatusRequest $request, int $id)
+    {
+        try {
+            $kecamatan = $this->kecamatanRepository->findById($id);
+
+            if (!$kecamatan) {
+                return $this->kecamatanResponse->notFound();
+            }
+
+            $updatedKecamatan = $this->kecamatanRepository->update($kecamatan, $request->validated());
+
+            return $this->kecamatanResponse->success($updatedKecamatan, 'Status kecamatan berhasil diubah.');
+        } catch (UniqueConstraintViolationException $e) {
+            return $this->kecamatanResponse->nameTaken();
+        } catch (Throwable $e) {
+            Log::error('Gagal mengaktifkan kecamatan: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString(),
+            ]);
+            return $this->kecamatanResponse->serverError();
+        }
+    }
+
     public function show(int $id)
     {
         try {
@@ -75,7 +98,7 @@ class KecamatanController extends Controller
                 return $this->kecamatanResponse->notFound();
             }
 
-            $updatedKecamatan = $this->kecamatanRepository->update($kecamatan, $request->validated());
+            $updatedKecamatan = $this->kecamatanRepository->update($kecamatan, $request->only('name', 'kode_kabupaten_kota'));
 
             return $this->kecamatanResponse->success($updatedKecamatan, 'Kecamatan berhasil diperbarui.');
         } catch (UniqueConstraintViolationException $e) {

@@ -6,7 +6,7 @@
     },
     "servers": [
         {
-            "url": "https://lease-fast-christ-samuel.trycloudflare.com/api"
+            "url": "http://localhost:8000/api"
         }
     ],
     "security": [
@@ -656,6 +656,157 @@
                     },
                     "401": {
                         "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/agamas/{id}/status": {
+            "put": {
+                "operationId": "agama.status",
+                "tags": [
+                    "Agama"
+                ],
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/GeografisStatusRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "500": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "const": "Terjadi kesalahan pada server. Silakan coba lagi."
+                                        }
+                                    },
+                                    "required": [
+                                        "success",
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "409": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "const": "Agama sudah terdaftar."
+                                        },
+                                        "errors": {
+                                            "type": "object",
+                                            "properties": {
+                                                "name": {
+                                                    "type": "array",
+                                                    "prefixItems": [
+                                                        {
+                                                            "type": "string",
+                                                            "const": "Agama sudah terdaftar."
+                                                        }
+                                                    ],
+                                                    "minItems": 1,
+                                                    "maxItems": 1
+                                                }
+                                            },
+                                            "required": [
+                                                "name"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "success",
+                                        "message",
+                                        "errors"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "const": "Status agama berhasil diubah."
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/Agama"
+                                        }
+                                    },
+                                    "required": [
+                                        "success",
+                                        "message",
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "const": "Agama tidak ditemukan."
+                                        }
+                                    },
+                                    "required": [
+                                        "success",
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
                     }
                 }
             }
@@ -4098,9 +4249,11 @@
                         "$ref": "#/components/responses/ValidationException"
                     }
                 }
-            },
-            "delete": {
-                "operationId": "kabupatenKota.destroy",
+            }
+        },
+        "/kabupaten-kotas/{id}/status": {
+            "put": {
+                "operationId": "kabupatenKota.status",
                 "tags": [
                     "KabupatenKota"
                 ],
@@ -4114,6 +4267,15 @@
                         }
                     }
                 ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/GeografisStatusRequest"
+                            }
+                        }
+                    }
+                },
                 "responses": {
                     "500": {
                         "description": "",
@@ -4138,6 +4300,49 @@
                             }
                         }
                     },
+                    "409": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "const": "Kabupaten Kota sudah terdaftar."
+                                        },
+                                        "errors": {
+                                            "type": "object",
+                                            "properties": {
+                                                "name": {
+                                                    "type": "array",
+                                                    "prefixItems": [
+                                                        {
+                                                            "type": "string",
+                                                            "const": "Kabupaten Kota sudah terdaftar."
+                                                        }
+                                                    ],
+                                                    "minItems": 1,
+                                                    "maxItems": 1
+                                                }
+                                            },
+                                            "required": [
+                                                "name"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "success",
+                                        "message",
+                                        "errors"
+                                    ]
+                                }
+                            }
+                        }
+                    },
                     "200": {
                         "description": "",
                         "content": {
@@ -4150,12 +4355,16 @@
                                         },
                                         "message": {
                                             "type": "string",
-                                            "const": "Kabupaten kota berhasil dihapus."
+                                            "const": "Status kabupaten kota berhasil diubah."
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/KabupatenKota"
                                         }
                                     },
                                     "required": [
                                         "success",
-                                        "message"
+                                        "message",
+                                        "data"
                                     ]
                                 }
                             }
@@ -4186,6 +4395,9 @@
                     },
                     "401": {
                         "$ref": "#/components/responses/AuthenticationException"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
                     }
                 }
             }
@@ -4743,9 +4955,11 @@
                         "$ref": "#/components/responses/ValidationException"
                     }
                 }
-            },
-            "delete": {
-                "operationId": "kecamatan.destroy",
+            }
+        },
+        "/kecamatans/{id}/status": {
+            "put": {
+                "operationId": "kecamatan.status",
                 "tags": [
                     "Kecamatan"
                 ],
@@ -4759,6 +4973,15 @@
                         }
                     }
                 ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/GeografisStatusRequest"
+                            }
+                        }
+                    }
+                },
                 "responses": {
                     "500": {
                         "description": "",
@@ -4783,6 +5006,49 @@
                             }
                         }
                     },
+                    "409": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "const": "Kecamatan sudah terdaftar."
+                                        },
+                                        "errors": {
+                                            "type": "object",
+                                            "properties": {
+                                                "name": {
+                                                    "type": "array",
+                                                    "prefixItems": [
+                                                        {
+                                                            "type": "string",
+                                                            "const": "Kecamatan sudah terdaftar."
+                                                        }
+                                                    ],
+                                                    "minItems": 1,
+                                                    "maxItems": 1
+                                                }
+                                            },
+                                            "required": [
+                                                "name"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "success",
+                                        "message",
+                                        "errors"
+                                    ]
+                                }
+                            }
+                        }
+                    },
                     "200": {
                         "description": "",
                         "content": {
@@ -4795,12 +5061,16 @@
                                         },
                                         "message": {
                                             "type": "string",
-                                            "const": "Kecamatan berhasil dihapus."
+                                            "const": "Status kecamatan berhasil diubah."
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/Kecamatan"
                                         }
                                     },
                                     "required": [
                                         "success",
-                                        "message"
+                                        "message",
+                                        "data"
                                     ]
                                 }
                             }
@@ -4831,6 +5101,9 @@
                     },
                     "401": {
                         "$ref": "#/components/responses/AuthenticationException"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
                     }
                 }
             }
@@ -5388,9 +5661,11 @@
                         "$ref": "#/components/responses/ValidationException"
                     }
                 }
-            },
-            "delete": {
-                "operationId": "kelurahan.destroy",
+            }
+        },
+        "/kelurahans/{id}/status": {
+            "put": {
+                "operationId": "kelurahan.status",
                 "tags": [
                     "Kelurahan"
                 ],
@@ -5404,6 +5679,15 @@
                         }
                     }
                 ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/GeografisStatusRequest"
+                            }
+                        }
+                    }
+                },
                 "responses": {
                     "500": {
                         "description": "",
@@ -5428,6 +5712,49 @@
                             }
                         }
                     },
+                    "409": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "const": "Kelurahan sudah terdaftar."
+                                        },
+                                        "errors": {
+                                            "type": "object",
+                                            "properties": {
+                                                "name": {
+                                                    "type": "array",
+                                                    "prefixItems": [
+                                                        {
+                                                            "type": "string",
+                                                            "const": "Kelurahan sudah terdaftar."
+                                                        }
+                                                    ],
+                                                    "minItems": 1,
+                                                    "maxItems": 1
+                                                }
+                                            },
+                                            "required": [
+                                                "name"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "success",
+                                        "message",
+                                        "errors"
+                                    ]
+                                }
+                            }
+                        }
+                    },
                     "200": {
                         "description": "",
                         "content": {
@@ -5440,12 +5767,16 @@
                                         },
                                         "message": {
                                             "type": "string",
-                                            "const": "Kelurahan berhasil dihapus."
+                                            "const": "Status kelurahan berhasil diubah."
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/Kelurahan"
                                         }
                                     },
                                     "required": [
                                         "success",
-                                        "message"
+                                        "message",
+                                        "data"
                                     ]
                                 }
                             }
@@ -5476,6 +5807,9 @@
                     },
                     "401": {
                         "$ref": "#/components/responses/AuthenticationException"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
                     }
                 }
             }
@@ -6490,7 +6824,7 @@
                 }
             },
             "put": {
-                "operationId": "konsumen.update_87",
+                "operationId": "konsumen.update_89",
                 "tags": [
                     "Konsumen"
                 ],
@@ -6689,7 +7023,7 @@
         },
         "/konsumens/{id}/update": {
             "post": {
-                "operationId": "konsumen.update_88",
+                "operationId": "konsumen.update_90",
                 "tags": [
                     "Konsumen"
                 ],
@@ -8515,6 +8849,157 @@
                 }
             }
         },
+        "/pekerjaans/{id}/status": {
+            "put": {
+                "operationId": "pekerjaan.status",
+                "tags": [
+                    "Pekerjaan"
+                ],
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/GeografisStatusRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "500": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "const": "Terjadi kesalahan pada server. Silakan coba lagi."
+                                        }
+                                    },
+                                    "required": [
+                                        "success",
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "409": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "const": "Pekerjaan sudah terdaftar."
+                                        },
+                                        "errors": {
+                                            "type": "object",
+                                            "properties": {
+                                                "name": {
+                                                    "type": "array",
+                                                    "prefixItems": [
+                                                        {
+                                                            "type": "string",
+                                                            "const": "Pekerjaan sudah terdaftar."
+                                                        }
+                                                    ],
+                                                    "minItems": 1,
+                                                    "maxItems": 1
+                                                }
+                                            },
+                                            "required": [
+                                                "name"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "success",
+                                        "message",
+                                        "errors"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "const": "Status pekerjaan berhasil diubah."
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/Pekerjaan"
+                                        }
+                                    },
+                                    "required": [
+                                        "success",
+                                        "message",
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "const": "Pekerjaan tidak ditemukan."
+                                        }
+                                    },
+                                    "required": [
+                                        "success",
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    }
+                }
+            }
+        },
         "/provinsis": {
             "get": {
                 "operationId": "provinsi.index",
@@ -9068,9 +9553,11 @@
                         "$ref": "#/components/responses/ValidationException"
                     }
                 }
-            },
-            "delete": {
-                "operationId": "provinsi.destroy",
+            }
+        },
+        "/provinsis/{id}/status": {
+            "put": {
+                "operationId": "provinsi.status",
                 "tags": [
                     "Provinsi"
                 ],
@@ -9084,6 +9571,15 @@
                         }
                     }
                 ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/GeografisStatusRequest"
+                            }
+                        }
+                    }
+                },
                 "responses": {
                     "500": {
                         "description": "",
@@ -9108,6 +9604,49 @@
                             }
                         }
                     },
+                    "409": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "const": "Provinsi sudah terdaftar."
+                                        },
+                                        "errors": {
+                                            "type": "object",
+                                            "properties": {
+                                                "name": {
+                                                    "type": "array",
+                                                    "prefixItems": [
+                                                        {
+                                                            "type": "string",
+                                                            "const": "Provinsi sudah terdaftar."
+                                                        }
+                                                    ],
+                                                    "minItems": 1,
+                                                    "maxItems": 1
+                                                }
+                                            },
+                                            "required": [
+                                                "name"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "success",
+                                        "message",
+                                        "errors"
+                                    ]
+                                }
+                            }
+                        }
+                    },
                     "200": {
                         "description": "",
                         "content": {
@@ -9120,12 +9659,16 @@
                                         },
                                         "message": {
                                             "type": "string",
-                                            "const": "Provinsi berhasil dihapus."
+                                            "const": "Status provinsi berhasil diubah."
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/Provinsi"
                                         }
                                     },
                                     "required": [
                                         "success",
-                                        "message"
+                                        "message",
+                                        "data"
                                     ]
                                 }
                             }
@@ -9156,6 +9699,9 @@
                     },
                     "401": {
                         "$ref": "#/components/responses/AuthenticationException"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
                     }
                 }
             }
@@ -11409,7 +11955,13 @@
                     "id": {
                         "type": "integer"
                     },
+                    "kode": {
+                        "type": "string"
+                    },
                     "name": {
+                        "type": "string"
+                    },
+                    "status": {
                         "type": "string"
                     },
                     "created_at": {
@@ -11429,7 +11981,9 @@
                 },
                 "required": [
                     "id",
+                    "kode",
                     "name",
+                    "status",
                     "created_at",
                     "updated_at"
                 ],
@@ -11438,12 +11992,16 @@
             "AgamaRequest": {
                 "type": "object",
                 "properties": {
+                    "kode": {
+                        "type": "string"
+                    },
                     "name": {
                         "type": "string",
                         "maxLength": 255
                     }
                 },
                 "required": [
+                    "kode",
                     "name"
                 ],
                 "title": "AgamaRequest"
@@ -11870,6 +12428,15 @@
                 ],
                 "title": "EmailWhitelist"
             },
+            "GeografisStatusRequest": {
+                "type": "object",
+                "properties": {
+                    "status": {
+                        "type": "boolean"
+                    }
+                },
+                "title": "GeografisStatusRequest"
+            },
             "JenisKelamin": {
                 "type": "string",
                 "enum": [
@@ -11884,14 +12451,20 @@
                     "id": {
                         "type": "integer"
                     },
+                    "kode": {
+                        "type": "string"
+                    },
                     "name": {
                         "type": "string"
                     },
-                    "id_provinsi": {
+                    "kode_provinsi": {
                         "type": [
-                            "integer",
+                            "string",
                             "null"
                         ]
+                    },
+                    "status": {
+                        "type": "string"
                     },
                     "created_at": {
                         "type": [
@@ -11910,8 +12483,10 @@
                 },
                 "required": [
                     "id",
+                    "kode",
                     "name",
-                    "id_provinsi",
+                    "kode_provinsi",
+                    "status",
                     "created_at",
                     "updated_at"
                 ],
@@ -11920,17 +12495,21 @@
             "KabupatenKotaRequest": {
                 "type": "object",
                 "properties": {
+                    "kode": {
+                        "type": "string"
+                    },
                     "name": {
                         "type": "string",
                         "maxLength": 255
                     },
-                    "id_provinsi": {
-                        "type": "integer"
+                    "kode_provinsi": {
+                        "type": "string"
                     }
                 },
                 "required": [
+                    "kode",
                     "name",
-                    "id_provinsi"
+                    "kode_provinsi"
                 ],
                 "title": "KabupatenKotaRequest"
             },
@@ -11940,14 +12519,20 @@
                     "id": {
                         "type": "integer"
                     },
+                    "kode": {
+                        "type": "string"
+                    },
                     "name": {
                         "type": "string"
                     },
-                    "id_kabupaten_kota": {
+                    "kode_kabupaten_kota": {
                         "type": [
-                            "integer",
+                            "string",
                             "null"
                         ]
+                    },
+                    "status": {
+                        "type": "string"
                     },
                     "created_at": {
                         "type": [
@@ -11966,8 +12551,10 @@
                 },
                 "required": [
                     "id",
+                    "kode",
                     "name",
-                    "id_kabupaten_kota",
+                    "kode_kabupaten_kota",
+                    "status",
                     "created_at",
                     "updated_at"
                 ],
@@ -11976,17 +12563,24 @@
             "KecamatanRequest": {
                 "type": "object",
                 "properties": {
+                    "kode": {
+                        "type": "string"
+                    },
                     "name": {
                         "type": "string",
                         "maxLength": 255
                     },
-                    "id_kabupaten_kota": {
-                        "type": "integer"
+                    "kode_kabupaten_kota": {
+                        "type": "string"
+                    },
+                    "status": {
+                        "type": "boolean"
                     }
                 },
                 "required": [
+                    "kode",
                     "name",
-                    "id_kabupaten_kota"
+                    "kode_kabupaten_kota"
                 ],
                 "title": "KecamatanRequest"
             },
@@ -11996,14 +12590,20 @@
                     "id": {
                         "type": "integer"
                     },
+                    "kode": {
+                        "type": "string"
+                    },
                     "name": {
                         "type": "string"
                     },
-                    "id_kecamatan": {
+                    "kode_kecamatan": {
                         "type": [
-                            "integer",
+                            "string",
                             "null"
                         ]
+                    },
+                    "status": {
+                        "type": "string"
                     },
                     "created_at": {
                         "type": [
@@ -12022,8 +12622,10 @@
                 },
                 "required": [
                     "id",
+                    "kode",
                     "name",
-                    "id_kecamatan",
+                    "kode_kecamatan",
+                    "status",
                     "created_at",
                     "updated_at"
                 ],
@@ -12032,17 +12634,21 @@
             "KelurahanRequest": {
                 "type": "object",
                 "properties": {
+                    "kode": {
+                        "type": "string"
+                    },
                     "name": {
                         "type": "string",
                         "maxLength": 255
                     },
-                    "id_kecamatan": {
-                        "type": "integer"
+                    "kode_kecamatan": {
+                        "type": "string"
                     }
                 },
                 "required": [
+                    "kode",
                     "name",
-                    "id_kecamatan"
+                    "kode_kecamatan"
                 ],
                 "title": "KelurahanRequest"
             },
@@ -12594,7 +13200,13 @@
                     "id": {
                         "type": "integer"
                     },
+                    "kode": {
+                        "type": "string"
+                    },
                     "name": {
+                        "type": "string"
+                    },
+                    "status": {
                         "type": "string"
                     },
                     "created_at": {
@@ -12614,7 +13226,9 @@
                 },
                 "required": [
                     "id",
+                    "kode",
                     "name",
+                    "status",
                     "created_at",
                     "updated_at"
                 ],
@@ -12623,12 +13237,16 @@
             "PekerjaanRequest": {
                 "type": "object",
                 "properties": {
+                    "kode": {
+                        "type": "string"
+                    },
                     "name": {
                         "type": "string",
                         "maxLength": 255
                     }
                 },
                 "required": [
+                    "kode",
                     "name"
                 ],
                 "title": "PekerjaanRequest"
@@ -12671,7 +13289,13 @@
                     "id": {
                         "type": "integer"
                     },
+                    "kode": {
+                        "type": "string"
+                    },
                     "name": {
+                        "type": "string"
+                    },
+                    "status": {
                         "type": "string"
                     },
                     "created_at": {
@@ -12691,7 +13315,9 @@
                 },
                 "required": [
                     "id",
+                    "kode",
                     "name",
+                    "status",
                     "created_at",
                     "updated_at"
                 ],
@@ -12700,12 +13326,19 @@
             "ProvinsiRequest": {
                 "type": "object",
                 "properties": {
+                    "kode": {
+                        "type": "string"
+                    },
                     "name": {
                         "type": "string",
                         "maxLength": 255
+                    },
+                    "status": {
+                        "type": "boolean"
                     }
                 },
                 "required": [
+                    "kode",
                     "name"
                 ],
                 "title": "ProvinsiRequest"

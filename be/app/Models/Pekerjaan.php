@@ -8,6 +8,8 @@ class Pekerjaan extends Model
 {
     protected $table = 'master.pekerjaans';
     protected $fillable = [
-        'name'
+        'kode',
+        'name',
+        'status'
     ];
 }
