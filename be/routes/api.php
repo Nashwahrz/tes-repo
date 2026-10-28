@@ -55,7 +55,7 @@ use Illuminate\Support\Facades\Route;
             Route::get('/{id}', [AgamaController::class, 'show'])->middleware('permission:agamas.lihat');
             Route::put('/{id}', [AgamaController::class, 'update'])->middleware('permission:agamas.ubah');
             Route::put('/{id}/status', [AgamaController::class, 'status'])->middleware('permission:agamas.ubah');
-            Route::delete('/{id}', [AgamaController::class, 'destroy'])->middleware('permission:agamas.hapus');
+            // Route::delete('/{id}', [AgamaController::class, 'destroy'])->middleware('permission:agamas.hapus');
         });
         Route::prefix('pekerjaans')->middleware('menu.access:pekerjaans')->group(function () {
             Route::get('/', [PekerjaanController::class, 'index'])->middleware('permission:pekerjaans.lihat');
@@ -63,7 +63,7 @@ use Illuminate\Support\Facades\Route;
             Route::get('/{id}', [PekerjaanController::class, 'show'])->middleware('permission:pekerjaans.lihat');
             Route::put('/{id}', [PekerjaanController::class, 'update'])->middleware('permission:pekerjaans.ubah');
             Route::put('/{id}/status', [PekerjaanController::class, 'status'])->middleware('permission:pekerjaans.ubah');
-            Route::delete('/{id}', [PekerjaanController::class, 'destroy'])->middleware('permission:pekerjaans.hapus');
+            // Route::delete('/{id}', [PekerjaanController::class, 'destroy'])->middleware('permission:pekerjaans.hapus');
         });
         Route::prefix('provinsis')->middleware('menu.access:provinsis')->group(function () {
             Route::get('/', [ProvinsiController::class, 'index'])->middleware('permission:provinsis.lihat');
