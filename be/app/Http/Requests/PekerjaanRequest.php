@@ -27,7 +27,24 @@ class PekerjaanRequest extends FormRequest
      */
     public function rules(): array
     {
+
+        if ($this->isMethod('put') || $this->isMethod('patch')) {
+            return [
+                'name' => [
+                    'required',
+                    'string',
+                    'max:255',
+                ],
+            ];
+        }
+
         return [
+            'kode' => [
+                'required',
+                'string',
+                'digits_between:1,10',
+                Rule::unique(Pekerjaan::class, 'kode'),
+            ],
             'name' => [
                 'required',
                 'string',
@@ -40,10 +57,13 @@ class PekerjaanRequest extends FormRequest
     public function messages(): array
     {
         return [
+            'kode.required'      => 'Kode pekerjaan wajib diisi.',
+            'kode.string'        => 'Kode pekerjaan harus berupa string.',
+            'kode.digits_between' => 'Kode pekerjaan harus antara 1 sampai 10 digit.',
+            'kode.unique'        => 'Kode pekerjaan sudah terdaftar.',
             'name.required'      => 'Nama pekerjaan wajib diisi.',
             'name.string'        => 'Nama pekerjaan harus berupa string.',
             'name.max'           => 'Nama pekerjaan tidak boleh lebih dari 255 karakter.',
-            'name.unique'        => 'Nama pekerjaan sudah terdaftar.',
         ];
     }
 

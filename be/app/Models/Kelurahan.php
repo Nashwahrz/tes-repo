@@ -9,12 +9,14 @@ class Kelurahan extends Model
     protected $table = 'master.kelurahans';
 
     protected $fillable = [
+        'kode',
         'name',
-        'id_kecamatan',
+        'kode_kecamatan',
+        'status'
     ];
 
     public function kecamatan()
     {
-        return $this->belongsTo(Kecamatan::class, 'id_kecamatan');
+        return $this->belongsTo(Kecamatan::class, 'kode_kecamatan', 'kode');
     }
 }

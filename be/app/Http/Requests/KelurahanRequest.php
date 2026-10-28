@@ -29,17 +29,38 @@ class KelurahanRequest extends FormRequest
      */
     public function rules(): array
     {
+
+        if ($this->isMethod('put') || $this->isMethod('patch')) {
+            return [
+                'name' => [
+                    'required',
+                    'string',
+                    'max:255',
+                ],
+                'kode_kecamatan' => [
+                    'required',
+                    'string',
+                    Rule::exists(Kecamatan::class, 'kode'),
+                ],
+            ];
+        }
+
         return [
+            'kode' => [
+                'required',
+                'string',
+                'digits_between:1,10',
+               Rule::unique(Kelurahan::class, 'kode'),
+            ],  
             'name' => [
                 'required',
                 'string',
                 'max:255',
-               Rule::unique(Kelurahan::class, 'name'),
             ], 
-            'id_kecamatan' => [
+            'kode_kecamatan' => [
                 'required',
-                'integer',
-               Rule::exists(Kecamatan::class, 'id'),
+                'string',
+               Rule::exists(Kecamatan::class, 'kode'),
             ],
         ];
     }
@@ -47,13 +68,16 @@ class KelurahanRequest extends FormRequest
     public function messages(): array
     {
         return [
+            'kode.required'      => 'kode kelurahan wajib diisi.',
+            'kode.string'        => 'kode kelurahan harus berupa string.',
+            'kode.digits_between'=> 'kode kelurahan harus berupa angka.',
+            'kode.unique'        => 'kode kelurahan sudah terdaftar.',
             'name.required'      => 'Kelurahan wajib diisi.',
             'name.string'        => 'Kelurahan harus berupa string.',
             'name.max'           => 'Kelurahan tidak boleh lebih dari 255 karakter.',
-            'name.unique'        => 'Kelurahan sudah terdaftar.',
-            'id_kecamatan.required'      => 'Kecamatan wajib diisi.',
-            'id_kecamatan.integer'        => 'Kecamatan harus berupa integer.',
-            'id_kecamatan.exists'           => 'Kecamatan tidak ditemukan.',
+            'kode_kecamatan.required'      => 'Kecamatan wajib diisi.',
+            'kode_kecamatan.integer'        => 'Kecamatan harus berupa integer.',
+            'kode_kecamatan.exists'           => 'Kecamatan tidak ditemukan.',
         ];
     }
 

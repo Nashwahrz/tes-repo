@@ -9,12 +9,14 @@ class Kecamatan extends Model
     protected $table = 'master.kecamatans';
 
     protected $fillable = [
+        'kode',
         'name',
-        'id_kabupaten_kota',
+        'kode_kabupaten_kota',
+        'status'
     ];
 
     public function kabupatenKota()
     {
-        return $this->belongsTo(KabupatenKota::class, 'id_kabupaten_kota');
+        return $this->belongsTo(KabupatenKota::class, 'kode_kabupaten_kota', 'kode');
     }
 }

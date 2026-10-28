@@ -9,12 +9,14 @@ class KabupatenKota extends Model
     protected $table = 'master.kabupaten_kotas';
 
     protected $fillable = [
+        'kode',
         'name',
-        'id_provinsi',
+        'kode_provinsi',
+        'status'
     ];
 
     public function provinsi()
     {
-        return $this->belongsTo(Provinsi::class, 'id_provinsi');
+        return $this->belongsTo(Provinsi::class, 'kode_provinsi', 'kode');
     }
 }

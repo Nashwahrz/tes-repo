@@ -8,7 +8,9 @@ class Agama extends Model
 {
     protected $table = 'master.agamas';
     protected $fillable = [
+        'kode',
         'name',
+        'status',
     ];
 
 }

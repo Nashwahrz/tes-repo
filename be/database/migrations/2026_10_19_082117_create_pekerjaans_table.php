@@ -13,7 +13,9 @@ return new class extends Migration
     {
         Schema::create('master.pekerjaans', function (Blueprint $table) {
             $table->id();
-            $table->string('name')->unique();
+            $table->string('kode')->unique();
+            $table->string('name');
+            $table->boolean('status')->default(true);
             $table->timestamps();
         });
     }

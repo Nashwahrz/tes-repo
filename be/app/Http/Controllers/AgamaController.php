@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\AgamaRequest;
+use App\Http\Requests\GeografisStatusRequest;
 use App\Http\Responses\AgamaResponse;
 use App\Repositories\AgamaRepository;
 use Illuminate\Database\UniqueConstraintViolationException;
@@ -74,13 +75,34 @@ class AgamaController extends Controller
                 return $this->agamaResponse->notFound();
             }
 
-            $updatedAgama = $this->agamaRepository->update($agama, $request->validated());
+            $updatedAgama = $this->agamaRepository->update($agama, $request->only('name'));
 
             return $this->agamaResponse->success($updatedAgama, 'Agama berhasil diperbarui.');
         } catch (UniqueConstraintViolationException $e) {
             return $this->agamaResponse->nameTaken();
         } catch (Throwable $e) {
             Log::error('Gagal memperbarui agama: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString(),
+            ]);
+            return $this->agamaResponse->serverError();
+        }
+    }
+    public function status(GeografisStatusRequest $request, int $id)
+    {
+        try {
+            $agama = $this->agamaRepository->findById($id);
+
+            if (!$agama) {
+                return $this->agamaResponse->notFound();
+            }
+
+            $updatedAgama = $this->agamaRepository->update($agama, $request->validated());
+
+            return $this->agamaResponse->success($updatedAgama, 'Status agama berhasil diubah.');
+        } catch (UniqueConstraintViolationException $e) {
+            return $this->agamaResponse->nameTaken();
+        } catch (Throwable $e) {
+            Log::error('Gagal mengaktifkan agama: ' . $e->getMessage(), [
                 'trace' => $e->getTraceAsString(),
             ]);
             return $this->agamaResponse->serverError();

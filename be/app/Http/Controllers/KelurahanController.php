@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\GeografisStatusRequest;
 use App\Http\Requests\KelurahanRequest;
 use App\Http\Responses\KelurahanResponse;
 use App\Repositories\KelurahanRepository;
@@ -74,7 +75,7 @@ class KelurahanController extends Controller
                 return $this->kelurahanResponse->notFound();
             }
 
-            $updatedKelurahan = $this->kelurahanRepository->update($kelurahan, $request->validated());
+            $updatedKelurahan = $this->kelurahanRepository->update($kelurahan, $request->only('name', 'kode_kecamatan'));
 
             return $this->kelurahanResponse->success($updatedKelurahan, 'Kelurahan berhasil diperbarui.');
         } catch (UniqueConstraintViolationException $e) {
@@ -86,6 +87,28 @@ class KelurahanController extends Controller
             return $this->kelurahanResponse->serverError();
         }
     }
+    public function status(GeografisStatusRequest $request, int $id)
+    {
+        try {
+            $kelurahan = $this->kelurahanRepository->findById($id);
+
+            if (!$kelurahan) {
+                return $this->kelurahanResponse->notFound();
+            }
+
+            $updatedKelurahan = $this->kelurahanRepository->update($kelurahan, $request->validated());
+
+            return $this->kelurahanResponse->success($updatedKelurahan, 'Status kelurahan berhasil diubah.');
+        } catch (UniqueConstraintViolationException $e) {
+            return $this->kelurahanResponse->nameTaken();
+        } catch (Throwable $e) {
+            Log::error('Gagal mengaktifkan kelurahan: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString(),
+            ]);
+            return $this->kelurahanResponse->serverError();
+        }
+    }
+
 
     public function destroy(int $id)
     {

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\GeografisStatusRequest;
 use App\Http\Requests\KabupatenKotaRequest;
 use App\Http\Responses\KabupatenKotaResponse;
 use App\Repositories\KabupatenKotaRepository;
@@ -74,13 +75,34 @@ class KabupatenKotaController extends Controller
                 return $this->kabupatenKotaResponse->notFound();
             }
 
-            $updatedKabupatenKota = $this->kabupatenKotaRepository->update($kabupatenKota, $request->validated());
+            $updatedKabupatenKota = $this->kabupatenKotaRepository->update($kabupatenKota, $request->only('name', 'kode_provinsi'));
 
             return $this->kabupatenKotaResponse->success($updatedKabupatenKota, 'Kabupaten kota berhasil diperbarui.');
         } catch (UniqueConstraintViolationException $e) {
             return $this->kabupatenKotaResponse->nameTaken();
         } catch (Throwable $e) {
             Log::error('Gagal memperbarui kabupaten kota: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString(),
+            ]);
+            return $this->kabupatenKotaResponse->serverError();
+        }
+    }
+    public function status(GeografisStatusRequest $request, int $id)
+    {
+        try {
+            $kabupatenkota = $this->kabupatenKotaRepository->findById($id);
+
+            if (!$kabupatenkota) {
+                return $this->kabupatenKotaResponse->notFound();
+            }
+
+            $updatedKabupatenkota = $this->kabupatenKotaRepository->update($kabupatenkota, $request->validated());
+
+            return $this->kabupatenKotaResponse->success($updatedKabupatenkota, 'Status kabupaten kota berhasil diubah.');
+        } catch (UniqueConstraintViolationException $e) {
+            return $this->kabupatenKotaResponse->nameTaken();
+        } catch (Throwable $e) {
+            Log::error('Gagal mengaktifkan kabupaten kota: ' . $e->getMessage(), [
                 'trace' => $e->getTraceAsString(),
             ]);
             return $this->kabupatenKotaResponse->serverError();

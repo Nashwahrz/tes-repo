@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\GeografisStatusRequest;
 use App\Http\Requests\PekerjaanRequest;
 use App\Http\Responses\PekerjaanResponse;
 use App\Repositories\PekerjaanRepository;
@@ -64,6 +65,27 @@ class PekerjaanController extends Controller
             return $this->pekerjaanResponse->serverError();
         }
     }
+    public function status(GeografisStatusRequest $request, int $id)
+    {
+        try {
+            $pekerjaan = $this->pekerjaanRepository->findById($id);
+
+            if (!$pekerjaan) {
+                return $this->pekerjaanResponse->notFound();
+            }
+
+            $updatedPekerjaan = $this->pekerjaanRepository->update($pekerjaan, $request->validated());
+
+            return $this->pekerjaanResponse->success($updatedPekerjaan, 'Status pekerjaan berhasil diubah.');
+        } catch (UniqueConstraintViolationException $e) {
+            return $this->pekerjaanResponse->nameTaken();
+        } catch (Throwable $e) {
+            Log::error('Gagal mengaktifkan pekerjaan: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString(),
+            ]);
+            return $this->pekerjaanResponse->serverError();
+        }
+    }
 
     public function update(PekerjaanRequest $request, int $id)
     {
@@ -74,7 +96,7 @@ class PekerjaanController extends Controller
                 return $this->pekerjaanResponse->notFound();
             }
 
-            $updatedPekerjaan = $this->pekerjaanRepository->update($pekerjaan, $request->validated());
+            $updatedPekerjaan = $this->pekerjaanRepository->update($pekerjaan, $request->only('name'));
 
             return $this->pekerjaanResponse->success($updatedPekerjaan, 'Pekerjaan berhasil diperbarui.');
         } catch (UniqueConstraintViolationException $e) {
