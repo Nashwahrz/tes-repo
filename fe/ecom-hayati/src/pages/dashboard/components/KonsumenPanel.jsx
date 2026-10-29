@@ -8,6 +8,7 @@ import Pager from './Pager';
 import IconButton from './IconButton';
 import ConfirmModal from './ConfirmModal';
 import KonsumenDetailView from './KonsumenDetailView';
+import { compressImage } from '../../../utils/compressImage';
 import {
   getKonsumens, getKonsumenPage, getKonsumen, createKonsumen, updateKonsumen, deleteKonsumen, verifyKonsumen, scanKtp, checkNik, ktpUrl, errorMessage,
   getAgamas, getPekerjaans, getProvinsis, getKabupatens, searchKecamatans, searchKelurahans, searchMaster, getMasterById,
@@ -44,6 +45,8 @@ const matchOpt = (options, text) => {
 const matchId = (options, text) => matchOpt(options, text)?.id;
 const FIELDS = Object.keys(EMPTY);
 const MAX_FILE = 2 * 1024 * 1024; // 2MB, sama dengan BE
+const MAX_PICK = 25 * 1024 * 1024; // foto asli di atas ini ditolak; di bawahnya diperkecil otomatis bila melebihi MAX_FILE
+const TARGET_FILE = 1.9 * 1024 * 1024; // sasaran hasil perkecilan, sedikit di bawah batas BE
 
 // BE mengirim tgl_lahir sebagai ISO (UTC); ambil bagian tanggalnya saja
 const toForm = (k) => Object.fromEntries(FIELDS.map((f) => {
@@ -118,6 +121,8 @@ function KonsumenPanel({ can, userId, onChanged, dealers = [], myDealerId = null
   const [nikDup, setNikDup] = useState(null); // konsumen lain dengan NIK yang sama (hasil BE /konsumens/check-nik)
   const [saving, setSaving] = useState(false);
   const [scanning, setScanning] = useState(false);
+  const [compressing, setCompressing] = useState(false);
+  const [compressNote, setCompressNote] = useState('');
   const [scanNote, setScanNote] = useState('');
   const [ocrFilled, setOcrFilled] = useState({}); // { kolom: true } terisi otomatis dari scan KTP dan belum diubah user; diberi pengingat periksa ulang
   const [ocrMissing, setOcrMissing] = useState({}); // { kolom: true } tidak terbaca oleh scan KTP; tampil di bawah kolomnya
@@ -230,6 +235,7 @@ function KonsumenPanel({ can, userId, onChanged, dealers = [], myDealerId = null
     setTouched({});
     setScanNote('');
     setPicked(null);
+    setCompressNote('');
     setForm(prefill ? toForm(prefill) : EMPTY);
     setGeoQuery({ kecamatan: '', kelurahan: '' });
     setGeoTerm({ kecamatan: '', kelurahan: '' });
@@ -251,7 +257,7 @@ function KonsumenPanel({ can, userId, onChanged, dealers = [], myDealerId = null
     return () => { clearTimeout(timer); ctrl.abort(); };
   }, [form.nik, formOpen, editing]);
 
-  const closeForm = () => { setFormOpen(false); setPicked(null); setEditing(null); };
+  const closeForm = () => { setFormOpen(false); setPicked(null); setCompressNote(''); setEditing(null); };
 
   const handlePick = (lat, lng) => {
     setForm((f) => ({ ...f, latitude: String(lat), longitude: String(lng) }));
@@ -344,20 +350,37 @@ function KonsumenPanel({ can, userId, onChanged, dealers = [], myDealerId = null
     setOcrHints((h) => (value && key in h ? Object.fromEntries(Object.entries(h).filter(([k]) => k !== key)) : h));
   };
 
-  const handleFile = (e) => {
-    const f = e.target.files?.[0];
+  const handleFile = async (e) => {
+    const original = e.target.files?.[0];
     e.target.value = '';
-    if (!f) return;
-    if (!['image/jpeg', 'image/png'].includes(f.type)) {
+    if (!original) return;
+    if (!['image/jpeg', 'image/png'].includes(original.type)) {
       setError('Format file harus JPG, JPEG, atau PNG.');
       return;
     }
-    if (f.size > MAX_FILE) {
-      setError('Ukuran file maksimal 2MB.');
+    if (original.size > MAX_PICK) {
+      setError('Ukuran foto terlalu besar (maksimal 25MB).');
       return;
     }
     setError('');
     setScanNote('');
+    let f = original;
+    // Melebihi 2MB: foto diperkecil otomatis di browser sebelum dipakai
+    if (original.size > MAX_FILE) {
+      setCompressing(true);
+      try {
+        const res = await compressImage(original, TARGET_FILE);
+        f = res.file;
+        setCompressNote(`Foto diperkecil otomatis dari ${(original.size / 1048576).toFixed(1)}MB menjadi ${(f.size / 1048576).toFixed(1)}MB.`);
+      } catch (err) {
+        setError(err.message || 'Foto tidak dapat diperkecil.');
+        return;
+      } finally {
+        setCompressing(false);
+      }
+    } else {
+      setCompressNote('');
+    }
     setPicked(f);
     setTouched((t) => ({ ...t, foto_ktp: true }));
   };
@@ -822,11 +845,11 @@ function KonsumenPanel({ can, userId, onChanged, dealers = [], myDealerId = null
               {shownPreview && <img className="dash-ktp-big" src={shownPreview} alt="Pratinjau KTP" />}
               <input data-testid="konsumen-ktp-file" ref={fileRef} type="file" accept="image/png,image/jpeg" hidden onChange={handleFile} />
               <div className="dash-actions">
-                <button id="btn-konsumen-upload-ktp" data-testid="btn-konsumen-upload-ktp" type="button" className="dash-btn outline" onClick={() => fileRef.current?.click()}>
-                  {shownPreview ? 'Ganti Foto' : 'Pilih Foto KTP'}
+                <button id="btn-konsumen-upload-ktp" data-testid="btn-konsumen-upload-ktp" type="button" className="dash-btn outline" onClick={() => fileRef.current?.click()} disabled={compressing}>
+                  {compressing ? <><Spin />Memperkecil foto...</> : shownPreview ? 'Ganti Foto' : 'Pilih Foto KTP'}
                 </button>
                 {can.scan && (
-                  <button id="btn-konsumen-scan" data-testid="btn-konsumen-scan" type="button" className="dash-btn soft" onClick={handleScan} disabled={!file || scanning}>
+                  <button id="btn-konsumen-scan" data-testid="btn-konsumen-scan" type="button" className="dash-btn soft" onClick={handleScan} disabled={!file || scanning || compressing}>
                     {scanning ? <><Spin />Memindai...</> : 'Pindai KTP (OCR)'}
                   </button>
                 )}
@@ -836,7 +859,8 @@ function KonsumenPanel({ can, userId, onChanged, dealers = [], myDealerId = null
                   <strong>{scanNote.ok ? '✓' : '!'}</strong> {scanNote.text}
                 </p>
               )}
-              <p className="dash-map-hint">JPG/PNG, maksimal 2MB.{editing && ' Kosongkan bila foto tidak diganti.'}{can.scan && ' Pilih foto baru untuk memakai OCR.'}</p>
+              {compressNote && <p data-testid="ktp-compress-note" className="dash-map-hint" role="status">{compressNote}</p>}
+              <p className="dash-map-hint">JPG/PNG. Foto di atas 2MB diperkecil otomatis.{editing && ' Kosongkan bila foto tidak diganti.'}{can.scan && ' Pilih foto baru untuk memakai OCR.'}</p>
               {touched.foto_ktp && errors.foto_ktp && <p data-testid="field-error" className="dash-field-error">{errors.foto_ktp}</p>}
             </div>
 
