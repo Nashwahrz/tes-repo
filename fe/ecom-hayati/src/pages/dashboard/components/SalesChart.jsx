@@ -162,7 +162,7 @@ function SalesChart({
 
         {/* TAB PERIODE: MINGGU, BULAN, TAHUN */}
         <div className="dash-chart-period-tabs" role="tablist" aria-label="Pilih Periode Penjualan">
-          <button id="btn-sales-period-minggu" data-testid="btn-sales-period-minggu"
+          <button id="btn-sales-period-minggu"
             type="button"
             role="tab"
             aria-selected={period === 'minggu'}
@@ -171,7 +171,7 @@ function SalesChart({
           >
             Per Minggu
           </button>
-          <button id="btn-sales-period-bulan" data-testid="btn-sales-period-bulan"
+          <button id="btn-sales-period-bulan"
             type="button"
             role="tab"
             aria-selected={period === 'bulan'}
@@ -180,7 +180,7 @@ function SalesChart({
           >
             Per Bulan
           </button>
-          <button id="btn-sales-period-tahun" data-testid="btn-sales-period-tahun"
+          <button id="btn-sales-period-tahun"
             type="button"
             role="tab"
             aria-selected={period === 'tahun'}
@@ -199,7 +199,7 @@ function SalesChart({
             <div className="dash-chart-selector-wrap">
               <label htmlFor="sales-week-select" className="dash-chart-filter-label">Minggu:</label>
               <select
-                id="sales-week-select" data-testid="sales-week-select"
+                id="sales-week-select"
                 className="dash-chart-select"
                 value={selectedWeek}
                 onChange={(e) => { setSelectedWeek(e.target.value); setHoverIndex(null); }}
@@ -215,7 +215,7 @@ function SalesChart({
             <div className="dash-chart-selector-wrap">
               <label htmlFor="sales-year-select" className="dash-chart-filter-label">Tahun:</label>
               <select
-                id="sales-year-select" data-testid="sales-year-select"
+                id="sales-year-select"
                 className="dash-chart-select"
                 value={selectedYear}
                 onChange={(e) => { setSelectedYear(Number(e.target.value)); setHoverIndex(null); }}
@@ -231,7 +231,7 @@ function SalesChart({
             <div className="dash-chart-selector-wrap">
               <label htmlFor={`${chartId}-dealer`} className="dash-chart-filter-label">Dealer:</label>
               <select
-                id={`${chartId}-dealer`} data-testid={`${chartId}-dealer`}
+                id={`${chartId}-dealer`}
                 className="dash-chart-select"
                 value={dealerSel}
                 onChange={(e) => { setDealerSel(e.target.value); setHoverIndex(null); }}
@@ -247,7 +247,7 @@ function SalesChart({
         <div className="dash-chart-controls-right">
           {/* Toggle Metrik: Rupiah vs Unit */}
           <div className="dash-chart-toggle-group" aria-label="Metrik tampilan">
-            <button id="btn-sales-metric-revenue" data-testid="btn-sales-metric-revenue"
+            <button id="btn-sales-metric-revenue"
               type="button"
               className={`dash-chart-toggle-btn${metric === 'revenue' ? ' active' : ''}`}
               onClick={() => setMetric('revenue')}
@@ -255,7 +255,7 @@ function SalesChart({
             >
               Rp Omset
             </button>
-            <button id="btn-sales-metric-units" data-testid="btn-sales-metric-units"
+            <button id="btn-sales-metric-units"
               type="button"
               className={`dash-chart-toggle-btn${metric === 'units' ? ' active' : ''}`}
               onClick={() => setMetric('units')}
@@ -489,7 +489,7 @@ function SalesChart({
       {onViewAll && (
         <div className="dash-chart-footer">
           <div className="dash-chart-footer-right">
-            <button id="btn-sales-view-all" data-testid="btn-sales-view-all" type="button" className="dash-link dash-chart-view-btn" onClick={onViewAll}>
+            <button id="btn-sales-view-all" type="button" className="dash-link dash-chart-view-btn" onClick={onViewAll}>
               Buka Rekap Tabel Penjualan →
             </button>
           </div>

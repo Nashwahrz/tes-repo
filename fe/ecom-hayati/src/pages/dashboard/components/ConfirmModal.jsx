@@ -8,8 +8,8 @@ function ConfirmModal({ title, children, confirmLabel, busyLabel, busy = false, 
         <h3>{title}</h3>
         {children}
         <div className="dash-modal-actions">
-          <button id="btn-confirm-cancel" data-testid="btn-confirm-cancel" className="dash-btn outline" onClick={onCancel} disabled={busy}>Batal</button>
-          <button id="btn-confirm-submit" data-testid="btn-confirm-submit" className="dash-btn solid" onClick={onConfirm} disabled={busy || confirmDisabled}>
+          <button id="btn-confirm-cancel" className="dash-btn outline" onClick={onCancel} disabled={busy}>Batal</button>
+          <button id="btn-confirm-submit" className="dash-btn solid" onClick={onConfirm} disabled={busy || confirmDisabled}>
             {busy && busyLabel ? <><Spin />{busyLabel}</> : confirmLabel}
           </button>
         </div>

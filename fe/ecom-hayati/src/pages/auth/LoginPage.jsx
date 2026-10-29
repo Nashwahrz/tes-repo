@@ -92,7 +92,7 @@ function LoginPage() {
               <rect x="3" y="5" width="18" height="14" rx="2" />
               <path d="m3 7 9 6 9-6" />
             </svg>
-            <input data-testid="login-email"
+            <input
               className="login-input"
               id="email"
               type="email"
@@ -109,7 +109,7 @@ function LoginPage() {
               <rect x="4" y="11" width="16" height="10" rx="2" />
               <path d="M8 11V7a4 4 0 0 1 8 0v4" />
             </svg>
-            <input data-testid="login-password"
+            <input
               className="login-input"
               id="password"
               type={showPassword ? 'text' : 'password'}
@@ -118,7 +118,7 @@ function LoginPage() {
               onChange={(e) => setPassword(e.target.value)}
               required
             />
-            <button id="login-toggle-password" data-testid="login-toggle-password"
+            <button id="login-toggle-password"
               type="button"
               className="login-toggle"
               onClick={() => setShowPassword((v) => !v)}
@@ -136,7 +136,7 @@ function LoginPage() {
 
           {error && <p className="login-error">{error}</p>}
 
-          <button id="login-submit" data-testid="login-submit" type="submit" className={`login-submit${loading ? ' is-loading' : ''}`} disabled={loading || waitSec > 0}>
+          <button id="login-submit" type="submit" className={`login-submit${loading ? ' is-loading' : ''}`} disabled={loading || waitSec > 0}>
             {loading ? <><span className="auth-spin" aria-hidden="true" /> Memproses...</> : waitSec > 0 ? `Coba lagi dalam ${formatWait(waitSec)}` : 'Masuk →'}
           </button>
         </form>

@@ -102,7 +102,7 @@ function UrlIpLoginPanel({ canEdit }) {
                   {canEdit && (
                     <td className="col-aksi">
                       <div className="dash-actions">
-                        <IconButton id={`btn-urlip-edit-${r.id}`} data-testid={`btn-urlip-edit-${r.id}`} icon="edit" label="Ubah" onClick={() => openForm(r)} />
+                        <IconButton id={`btn-urlip-edit-${r.id}`} icon="edit" label="Ubah" onClick={() => openForm(r)} />
                       </div>
                     </td>
                   )}
@@ -120,24 +120,24 @@ function UrlIpLoginPanel({ canEdit }) {
             <div className="dash-form-group">
               <label htmlFor="urlip-url">URL *</label>
               <input
-                id="urlip-url" data-testid="urlip-url"
+                id="urlip-url"
                 className={`dash-input${touched && urlError ? ' invalid' : ''}`}
                 value={form.url}
                 onChange={(e) => setForm((f) => ({ ...f, url: e.target.value }))}
                 placeholder="http://ip-api.com/json/"
                 autoFocus
               />
-              {touched && urlError && <p data-testid="field-error" className="dash-field-error">{urlError}</p>}
+              {touched && urlError && <p className="dash-field-error">{urlError}</p>}
               <p className="dash-map-hint">Alamat IP ditambahkan di ujung URL, atau tulis <code>{'{ip}'}</code> untuk menentukan posisinya. Layanan harus membalas format ip-api.com.</p>
             </div>
             <label style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14, cursor: 'pointer' }}>
-              <input data-testid="urlip-is-active" type="checkbox" checked={form.is_active} onChange={(e) => setForm((f) => ({ ...f, is_active: e.target.checked }))} />
+              <input id="urlip-is-active" type="checkbox" checked={form.is_active} onChange={(e) => setForm((f) => ({ ...f, is_active: e.target.checked }))} />
               Aktif
             </label>
             {!form.is_active && <p className="dash-alert warning">Bila dinonaktifkan, lokasi pada log login tidak akan terisi.</p>}
             <div className="dash-modal-actions">
-              <button id="btn-urlip-cancel" data-testid="btn-urlip-cancel" type="button" className="dash-btn outline" onClick={() => setEditing(null)} disabled={saving}>Batal</button>
-              <button id="btn-urlip-save" data-testid="btn-urlip-save" type="submit" className="dash-btn solid" disabled={saving}>{saving ? <><Spin />Menyimpan...</> : 'Simpan'}</button>
+              <button id="btn-urlip-cancel" type="button" className="dash-btn outline" onClick={() => setEditing(null)} disabled={saving}>Batal</button>
+              <button id="btn-urlip-save" type="submit" className="dash-btn solid" disabled={saving}>{saving ? <><Spin />Menyimpan...</> : 'Simpan'}</button>
             </div>
           </form>
         </div>

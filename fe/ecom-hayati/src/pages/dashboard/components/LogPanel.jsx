@@ -18,7 +18,7 @@ function LogPanel({ canLogin, canKonsumen, canBlocked }) {
       {tabs.length > 1 && (
         <div className="dash-tabs wide">
           {tabs.map((t) => (
-            <button id={`btn-log-tab-${t.key}`} data-testid={`btn-log-tab-${t.key}`} key={t.key} type="button" className={`dash-tab${tab === t.key ? ' active' : ''}`} onClick={() => setTab(t.key)}>{t.label}</button>
+            <button id={`btn-log-tab-${t.key}`} key={t.key} type="button" className={`dash-tab${tab === t.key ? ' active' : ''}`} onClick={() => setTab(t.key)}>{t.label}</button>
           ))}
         </div>
       )}

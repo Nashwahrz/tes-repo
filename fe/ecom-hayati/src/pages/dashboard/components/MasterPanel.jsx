@@ -55,11 +55,11 @@ function ParentPicker({ parent, value, name, onPick }) {
       {value && (
         <p className="dash-card-desc" style={{ marginBottom: 6 }}>
           Dipilih: <strong>{name || '...'}</strong>{' '}
-          <button id="btn-master-parent-clear" data-testid="btn-master-parent-clear" type="button" className="dash-link" onClick={() => onPick('', '')}>Hapus</button>
+          <button id="btn-master-parent-clear" type="button" className="dash-link" onClick={() => onPick('', '')}>Hapus</button>
         </p>
       )}
       <input
-        id="master-parent" data-testid="master-parent"
+        id="master-parent"
         className="dash-input"
         placeholder={`Ketik nama ${parent.label.toLowerCase()}...`}
         value={query}
@@ -72,7 +72,7 @@ function ParentPicker({ parent, value, name, onPick }) {
           {!busy && results.length === 0 && <li style={{ padding: '8px 10px', color: 'var(--muted)' }}>Tidak ditemukan.</li>}
           {results.map((r) => (
             <li key={r.id}>
-              <button id={`btn-master-parent-option-${r.kode}`} data-testid={`btn-master-parent-option-${r.kode}`} type="button" className="dash-menu-item" style={{ width: '100%', textAlign: 'left', background: 'none', border: 0, padding: '8px 10px', cursor: 'pointer' }} onClick={() => { onPick(String(r.kode), r.name); setQuery(''); }}>
+              <button id={`btn-master-parent-option-${r.kode}`} type="button" className="dash-menu-item" style={{ width: '100%', textAlign: 'left', background: 'none', border: 0, padding: '8px 10px', cursor: 'pointer' }} onClick={() => { onPick(String(r.kode), r.name); setQuery(''); }}>
                 {r.name} <span style={{ color: 'var(--muted)' }}>· {r.kode}</span>
               </button>
             </li>
@@ -259,15 +259,15 @@ function MasterPanel({ tabKey, can }) {
         </h3>
         {perm('tambah') && !unavailable && (
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-            <button id={`btn-master-${tab.key}-import`} data-testid={`btn-master-${tab.key}-import`} className="dash-btn outline" onClick={() => { setSuccess(''); setError(''); setImporting(true); }}>Impor Excel</button>
-            <button id={`btn-master-${tab.key}-add`} data-testid={`btn-master-${tab.key}-add`} className="dash-btn solid" onClick={() => openForm('new')}>+ Tambah {tab.label}</button>
+            <button id={`btn-master-${tab.key}-import`} className="dash-btn outline" onClick={() => { setSuccess(''); setError(''); setImporting(true); }}>Impor Excel</button>
+            <button id={`btn-master-${tab.key}-add`} className="dash-btn solid" onClick={() => openForm('new')}>+ Tambah {tab.label}</button>
           </div>
         )}
       </div>
       <p className="dash-card-desc">Kelola daftar {tab.label.toLowerCase()} yang dipakai sebagai pilihan pada form.</p>
 
       <div className="dash-toolbar">
-        <input data-testid={`master-${tab.key}-search`}
+        <input id={`master-${tab.key}-search`}
           className="dash-input"
           style={{ maxWidth: 320 }}
           type="search"
@@ -277,18 +277,18 @@ function MasterPanel({ tabKey, can }) {
           onChange={(e) => setQuery(e.target.value)}
         />
         {tab.filters && (
-          <select data-testid={`master-${tab.key}-filter-provinsi`} className="dash-input" style={{ maxWidth: 220 }} aria-label="Filter provinsi" value={fProv} onChange={(e) => changeFilter(setFProv, e.target.value, true)}>
+          <select id={`master-${tab.key}-filter-provinsi`} className="dash-input" style={{ maxWidth: 220 }} aria-label="Filter provinsi" value={fProv} onChange={(e) => changeFilter(setFProv, e.target.value, true)}>
             <option value="">Semua provinsi</option>
             {provOptions.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
           </select>
         )}
         {tab.filters?.includes('kabupaten') && (
-          <select data-testid={`master-${tab.key}-filter-kabupaten`} className="dash-input" style={{ maxWidth: 240 }} aria-label="Filter kabupaten/kota" value={fKab} onChange={(e) => changeFilter(setFKab, e.target.value)}>
+          <select id={`master-${tab.key}-filter-kabupaten`} className="dash-input" style={{ maxWidth: 240 }} aria-label="Filter kabupaten/kota" value={fKab} onChange={(e) => changeFilter(setFKab, e.target.value)}>
             <option value="">Semua kabupaten / kota</option>
             {kabOptions.map((k) => <option key={k.id} value={k.id}>{k.name}</option>)}
           </select>
         )}
-        {filtered && <button id={`btn-master-${tab.key}-clear-filter`} data-testid={`btn-master-${tab.key}-clear-filter`} type="button" className="dash-link" onClick={() => { setLoading(true); setPage(1); setFProv(''); setFKab(''); }}>Hapus filter</button>}
+        {filtered && <button id={`btn-master-${tab.key}-clear-filter`} type="button" className="dash-link" onClick={() => { setLoading(true); setPage(1); setFProv(''); setFKab(''); }}>Hapus filter</button>}
       </div>
       {tab.key === 'kecamatan' && filtered && loading && <p className="dash-map-hint">Memuat seluruh data kecamatan untuk disaring. Hanya sekali; berikutnya langsung tampil.</p>}
 
@@ -323,8 +323,8 @@ function MasterPanel({ tabKey, can }) {
                   {showAksi && (
                     <td className="col-aksi">
                       <div className="dash-actions">
-                        {perm('ubah') && <IconButton id={`btn-master-${tab.key}-edit-${r.id}`} data-testid={`btn-master-${tab.key}-edit-${r.id}`} icon="edit" label="Ubah" onClick={() => openForm(r)} />}
-                        <IconButton id={`btn-master-${tab.key}-status-${r.id}`} data-testid={`btn-master-${tab.key}-status-${r.id}`} icon={isActive(r) ? 'ban' : 'check'} label={isActive(r) ? 'Nonaktifkan' : 'Aktifkan'} tone={isActive(r) ? 'danger' : 'ok'} onClick={() => setToToggle(r)} />
+                        {perm('ubah') && <IconButton id={`btn-master-${tab.key}-edit-${r.id}`} icon="edit" label="Ubah" onClick={() => openForm(r)} />}
+                        <IconButton id={`btn-master-${tab.key}-status-${r.id}`} icon={isActive(r) ? 'ban' : 'check'} label={isActive(r) ? 'Nonaktifkan' : 'Aktifkan'} tone={isActive(r) ? 'danger' : 'ok'} onClick={() => setToToggle(r)} />
                       </div>
                     </td>
                   )}
@@ -352,7 +352,7 @@ function MasterPanel({ tabKey, can }) {
             <div className="dash-form-group">
               <label htmlFor="master-kode">Kode{isNew ? ' *' : ''}</label>
               <input
-                id="master-kode" data-testid="master-kode"
+                id="master-kode"
                 className={`dash-input${touched && kodeError ? ' invalid' : ''}`}
                 value={form.kode}
                 onChange={(e) => setForm((f) => ({ ...f, kode: e.target.value }))}
@@ -361,30 +361,30 @@ function MasterPanel({ tabKey, can }) {
                 disabled={!isNew}
                 autoFocus={isNew}
               />
-              {touched && kodeError && <p data-testid="field-error" className="dash-field-error">{kodeError}</p>}
+              {touched && kodeError && <p className="dash-field-error">{kodeError}</p>}
               {!isNew && <p className="dash-map-hint">Kode tidak dapat diubah.</p>}
             </div>
             <div className="dash-form-group">
               <label htmlFor="master-name">Nama *</label>
               <input
-                id="master-name" data-testid="master-name"
+                id="master-name"
                 className={`dash-input${touched && nameError ? ' invalid' : ''}`}
                 value={form.name}
                 onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
                 autoFocus={!isNew}
               />
-              {touched && nameError && <p data-testid="field-error" className="dash-field-error">{nameError}</p>}
+              {touched && nameError && <p className="dash-field-error">{nameError}</p>}
             </div>
             {tab.parent && (
               <div className="dash-form-group">
                 <label htmlFor="master-parent">{tab.parent.label} *</label>
                 <ParentPicker parent={tab.parent} value={form.parent} name={form.parentName} onPick={(kode, name) => setForm((f) => ({ ...f, parent: kode, parentName: name }))} />
-                {touched && parentError && <p data-testid="field-error" className="dash-field-error">{parentError}</p>}
+                {touched && parentError && <p className="dash-field-error">{parentError}</p>}
               </div>
             )}
             <div className="dash-modal-actions">
-              <button id={`btn-master-${tab.key}-cancel`} data-testid={`btn-master-${tab.key}-cancel`} type="button" className="dash-btn outline" onClick={closeForm} disabled={saving}>Batal</button>
-              <button id={`btn-master-${tab.key}-save`} data-testid={`btn-master-${tab.key}-save`} type="submit" className="dash-btn solid" disabled={saving}>{saving ? <><Spin />Menyimpan...</> : 'Simpan'}</button>
+              <button id={`btn-master-${tab.key}-cancel`} type="button" className="dash-btn outline" onClick={closeForm} disabled={saving}>Batal</button>
+              <button id={`btn-master-${tab.key}-save`} type="submit" className="dash-btn solid" disabled={saving}>{saving ? <><Spin />Menyimpan...</> : 'Simpan'}</button>
             </div>
           </form>
         </div>

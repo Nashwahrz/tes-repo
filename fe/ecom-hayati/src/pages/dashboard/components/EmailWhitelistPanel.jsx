@@ -132,7 +132,7 @@ function EmailWhitelistPanel({ can, userId, users = [] }) {
           <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="5" width="18" height="14" rx="2" /><path d="M3 7l9 6 9-6" /></svg>
           Email WhiteList
         </h3>
-        {can.tambah && <button id="btn-whitelist-add" data-testid="btn-whitelist-add" className="dash-btn solid" onClick={() => openForm('new')}>+ Tambah Domain</button>}
+        {can.tambah && <button id="btn-whitelist-add" className="dash-btn solid" onClick={() => openForm('new')}>+ Tambah Domain</button>}
       </div>
       <p className="dash-card-desc">Hanya email dengan domain aktif di daftar ini yang dapat mendaftar akun baru.</p>
 
@@ -140,7 +140,7 @@ function EmailWhitelistPanel({ can, userId, users = [] }) {
       <Toast kind="error" message={error} onClose={() => setError('')} />
 
       <div className="dash-toolbar">
-        <input data-testid="whitelist-search" className="dash-input dash-input-search" type="search" placeholder="Cari domain..." value={query} onChange={(e) => setQuery(e.target.value)} />
+        <input id="whitelist-search" className="dash-input dash-input-search" type="search" placeholder="Cari domain..." value={query} onChange={(e) => setQuery(e.target.value)} />
       </div>
 
       {loading ? (
@@ -170,8 +170,8 @@ function EmailWhitelistPanel({ can, userId, users = [] }) {
                   {(can.ubah || can.hapus) && (
                     <td className="col-aksi">
                       <div className="dash-actions">
-                        {can.ubah && <IconButton id={`btn-whitelist-edit-${r.id}`} data-testid={`btn-whitelist-edit-${r.id}`} icon="edit" label="Ubah" onClick={() => openForm(r)} />}
-                        {can.hapus && <IconButton id={`btn-whitelist-delete-${r.id}`} data-testid={`btn-whitelist-delete-${r.id}`} icon="delete" label="Hapus" tone="danger" onClick={() => setToDelete(r)} />}
+                        {can.ubah && <IconButton id={`btn-whitelist-edit-${r.id}`} icon="edit" label="Ubah" onClick={() => openForm(r)} />}
+                        {can.hapus && <IconButton id={`btn-whitelist-delete-${r.id}`} icon="delete" label="Hapus" tone="danger" onClick={() => setToDelete(r)} />}
                       </div>
                     </td>
                   )}
@@ -189,25 +189,25 @@ function EmailWhitelistPanel({ can, userId, users = [] }) {
             <div className="dash-form-group">
               <label htmlFor="whitelist-domain">Domain *</label>
               <input
-                id="whitelist-domain" data-testid="whitelist-domain"
+                id="whitelist-domain"
                 className={`dash-input${touched && errors.domain ? ' invalid' : ''}`}
                 value={form.domain}
                 onChange={(e) => setForm((f) => ({ ...f, domain: e.target.value }))}
                 placeholder="@gmail.com"
                 autoFocus
               />
-              {touched && errors.domain && <p data-testid="field-error" className="dash-field-error">{errors.domain}</p>}
+              {touched && errors.domain && <p className="dash-field-error">{errors.domain}</p>}
               <p className="dash-map-hint">Diawali @, contoh: @gmail.com. Huruf otomatis dikecilkan.</p>
             </div>
             <div className="dash-form-group">
               <label className="dash-check">
-                <input data-testid="whitelist-is-active" type="checkbox" checked={form.is_active} onChange={(e) => setForm((f) => ({ ...f, is_active: e.target.checked }))} />
+                <input id="whitelist-is-active" type="checkbox" checked={form.is_active} onChange={(e) => setForm((f) => ({ ...f, is_active: e.target.checked }))} />
                 Aktif (domain ini boleh dipakai mendaftar)
               </label>
             </div>
             <div className="dash-modal-actions">
-              <button id="btn-whitelist-cancel" data-testid="btn-whitelist-cancel" type="button" className="dash-btn outline" onClick={closeForm} disabled={saving}>Batal</button>
-              <button id="btn-whitelist-save" data-testid="btn-whitelist-save" type="submit" className="dash-btn solid" disabled={saving}>{saving ? <><Spin />Menyimpan...</> : 'Simpan'}</button>
+              <button id="btn-whitelist-cancel" type="button" className="dash-btn outline" onClick={closeForm} disabled={saving}>Batal</button>
+              <button id="btn-whitelist-save" type="submit" className="dash-btn solid" disabled={saving}>{saving ? <><Spin />Menyimpan...</> : 'Simpan'}</button>
             </div>
           </form>
         </div>

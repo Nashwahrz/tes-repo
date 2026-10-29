@@ -266,7 +266,7 @@ function DashboardPage() {
   };
 
   const renderMenuItem = (m, sub = false) => (
-    <li id={`menu-${MENU_PATHS[m].slice(1).replace(/\//g, '-')}`} data-testid={`menu-${MENU_PATHS[m].slice(1).replace(/\//g, '-')}`} key={m} className={`dash-menu-item${sub ? ' sub' : ''}${menu === m ? ' active' : ''}`} onClick={() => openMenu(m)}>
+    <li id={`menu-${MENU_PATHS[m].slice(1).replace(/\//g, '-')}`} key={m} className={`dash-menu-item${sub ? ' sub' : ''}${menu === m ? ' active' : ''}`} onClick={() => openMenu(m)}>
       {!sub && <Icon name={MENU_ICONS[m]} size={17} />}
       {changed[m] && <span className="dash-menu-dot" title="Ada perubahan data" />}
       {m}
@@ -350,10 +350,10 @@ function DashboardPage() {
             <small>Management Workspace</small>
           </div>
         </div>
-        <button id="btn-sidebar-hide" data-testid="btn-sidebar-hide" type="button" className="dash-collapse" aria-label="Sembunyikan sidebar" title="Sembunyikan sidebar" onClick={toggleSide}>
+        <button id="btn-sidebar-hide" type="button" className="dash-collapse" aria-label="Sembunyikan sidebar" title="Sembunyikan sidebar" onClick={toggleSide}>
           <Icon name="chevronsLeft" size={18} />
         </button>
-        <button id="btn-nav-burger" data-testid="btn-nav-burger"
+        <button id="btn-nav-burger"
           type="button"
           className="dash-burger"
           aria-label={navOpen ? 'Tutup menu' : 'Buka menu'}
@@ -370,7 +370,7 @@ function DashboardPage() {
             const total = n.items.reduce((sum, m) => sum + (badges[m] || 0), 0);
             return (
               <li key={n.group} className={`dash-menu-group${open ? ' open' : ''}${n.items.includes(menu) ? ' has-active' : ''}`}>
-                <button id={`btn-nav-group-${n.group.toLowerCase().replace(/\W+/g, '-')}`} data-testid={`btn-nav-group-${n.group.toLowerCase().replace(/\W+/g, '-')}`} type="button" className="dash-menu-group-head" aria-expanded={open} onClick={() => toggleGroup(n)}>
+                <button id={`btn-nav-group-${n.group.toLowerCase().replace(/\W+/g, '-')}`} type="button" className="dash-menu-group-head" aria-expanded={open} onClick={() => toggleGroup(n)}>
                   <Icon name={n.icon} size={17} />
                   {n.group}
                   {!open && total > 0 && <span className="dash-menu-badge" title={`${total} menunggu`}>{total > 99 ? '99+' : total}</span>}
@@ -389,7 +389,7 @@ function DashboardPage() {
             <strong>{name}</strong>
             <small>{myRole ? `${myRole}${myDealer ? ` · ${myDealer}` : ''}` : 'Pengguna'}</small>
           </div>
-          <button id="btn-logout" data-testid="btn-logout" className="dash-logout" onClick={() => { setNavOpen(false); setConfirmLogout(true); }} title="Keluar dari akun">
+          <button id="btn-logout" className="dash-logout" onClick={() => { setNavOpen(false); setConfirmLogout(true); }} title="Keluar dari akun">
             <Icon name="logout" size={15} />
             Keluar
           </button>
@@ -403,7 +403,7 @@ function DashboardPage() {
       )}
 
       {sideHidden && (
-        <button id="btn-sidebar-show" data-testid="btn-sidebar-show" type="button" className="dash-expand" aria-label="Tampilkan sidebar" title="Tampilkan sidebar" onClick={toggleSide}>
+        <button id="btn-sidebar-show" type="button" className="dash-expand" aria-label="Tampilkan sidebar" title="Tampilkan sidebar" onClick={toggleSide}>
           <Icon name="chevronsRight" size={18} />
         </button>
       )}
@@ -563,7 +563,7 @@ function DashboardPage() {
                     <small>{isAdmin ? 'Total Penjualan' : `Total Penjualan Dealer Anda${salesDealerName ? ` · ${salesDealerName}` : ''}`}</small>
                     <strong>{salesKnown ? rupiah(totalSales(salesRows)) : 'Belum ada data'}</strong>
                     {salesKnown && <span className="dash-proto">Data contoh</span>}
-                    <button id="btn-home-lihat-penjualan" data-testid="btn-home-lihat-penjualan" className="dash-btn light" onClick={() => setMenu(MENU_PENJUALAN)}>Lihat Penjualan</button>
+                    <button id="btn-home-lihat-penjualan" className="dash-btn light" onClick={() => setMenu(MENU_PENJUALAN)}>Lihat Penjualan</button>
                   </div>
                 )}
               </section>
@@ -598,7 +598,7 @@ function DashboardPage() {
                 <div className="dash-card">
                   <div className="dash-card-head">
                     <h3><Icon name="shield" size={17} /> Otorisasi Akun</h3>
-                    <button id="btn-home-lihat-semua-akun" data-testid="btn-home-lihat-semua-akun" type="button" className="dash-link" onClick={() => setMenu(MENU_ACC)}>Lihat semua</button>
+                    <button id="btn-home-lihat-semua-akun" type="button" className="dash-link" onClick={() => setMenu(MENU_ACC)}>Lihat semua</button>
                   </div>
                   <p className="dash-card-desc">
                     {pending.length === 0 ? 'Validasi akun baru sebelum diberi akses ke sistem.' : `${pending.length} akun menunggu persetujuan.`}
@@ -615,7 +615,7 @@ function DashboardPage() {
                             <small title={u.email}>{u.email}</small>
                           </div>
                           <span className="dash-tag">{u.role?.name ?? '-'}</span>
-                          {canActivate && <button id={`btn-home-tinjau-${u.id}`} data-testid={`btn-home-tinjau-${u.id}`} className="dash-btn sm outline" onClick={() => setMenu(MENU_ACC)}>Tinjau</button>}
+                          {canActivate && <button id={`btn-home-tinjau-${u.id}`} className="dash-btn sm outline" onClick={() => setMenu(MENU_ACC)}>Tinjau</button>}
                         </div>
                       ))}
                       {pending.length > 4 && <p className="dash-more">dan {pending.length - 4} akun lainnya</p>}
@@ -628,7 +628,7 @@ function DashboardPage() {
                 <div className="dash-card">
                   <div className="dash-card-head">
                     <h3><Icon name="store" size={17} /> Jaringan Dealer</h3>
-                    <button id="btn-home-lihat-semua-dealer" data-testid="btn-home-lihat-semua-dealer" type="button" className="dash-link" onClick={() => setMenu(MENU_DEALER)}>Lihat semua</button>
+                    <button id="btn-home-lihat-semua-dealer" type="button" className="dash-link" onClick={() => setMenu(MENU_DEALER)}>Lihat semua</button>
                   </div>
                   <p className="dash-card-desc">{dealers.length} dealer terdaftar.</p>
                   {dealers.length === 0 ? (
@@ -651,7 +651,7 @@ function DashboardPage() {
                 <div className={`dash-card${salesKnown ? '' : ' dash-card-wide'}`}>
                   <div className="dash-card-head">
                     <h3><Icon name="id" size={17} /> Konsumen Terbaru</h3>
-                    <button id="btn-home-lihat-semua-konsumen" data-testid="btn-home-lihat-semua-konsumen" type="button" className="dash-link" onClick={() => setMenu(MENU_KONSUMEN)}>Lihat semua</button>
+                    <button id="btn-home-lihat-semua-konsumen" type="button" className="dash-link" onClick={() => setMenu(MENU_KONSUMEN)}>Lihat semua</button>
                   </div>
                   <p className="dash-card-desc">Data konsumen yang terakhir masuk.</p>
                   {recentKonsumen === null ? (
@@ -677,7 +677,7 @@ function DashboardPage() {
                 <div className="dash-card">
                   <div className="dash-card-head">
                     <h3><Icon name="chart" size={17} /> Penjualan Terbaru</h3>
-                    <button id="btn-home-lihat-semua-penjualan" data-testid="btn-home-lihat-semua-penjualan" type="button" className="dash-link" onClick={() => setMenu(MENU_PENJUALAN)}>Lihat semua</button>
+                    <button id="btn-home-lihat-semua-penjualan" type="button" className="dash-link" onClick={() => setMenu(MENU_PENJUALAN)}>Lihat semua</button>
                   </div>
                   <p className="dash-card-desc">Transaksi terakhir di dealer Anda. Data contoh.</p>
                   {salesRows.length === 0 ? (
@@ -708,7 +708,7 @@ function DashboardPage() {
                   ) : (
                     <div className="dash-tiles">
                       {menus.filter((m) => m !== MENU_HOME).map((m) => (
-                        <button id={`btn-tile-${MENU_PATHS[m].slice(1).replace(/\//g, '-')}`} data-testid={`btn-tile-${MENU_PATHS[m].slice(1).replace(/\//g, '-')}`} type="button" className="dash-tile" key={m} onClick={() => setMenu(m)}>
+                        <button id={`btn-tile-${MENU_PATHS[m].slice(1).replace(/\//g, '-')}`} type="button" className="dash-tile" key={m} onClick={() => setMenu(m)}>
                           <span className="dash-tile-icon"><Icon name={MENU_ICONS[m]} size={20} /></span>
                           <span>{m}</span>
                         </button>

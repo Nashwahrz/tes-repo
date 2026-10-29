@@ -72,11 +72,11 @@ function MasterImportModal({ tab, onClose, onImported }) {
           <>
             <p className="dash-card-desc">Unduh template, isi datanya, lalu unggah kembali. Kolom: <strong>{cols}</strong>. Semua data baru berstatus aktif.</p>
             <div className="dash-form-group">
-              <button id="btn-import-template" data-testid="btn-import-template" type="button" className="dash-btn outline" onClick={handleTemplate}>Unduh template Excel</button>
+              <button id="btn-import-template" type="button" className="dash-btn outline" onClick={handleTemplate}>Unduh template Excel</button>
             </div>
             <div className="dash-form-group">
               <label htmlFor="master-file">File Excel (.xlsx)</label>
-              <input id="master-file" data-testid="master-file" className="dash-input" type="file" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" onChange={handleFile} disabled={busy} />
+              <input id="master-file" className="dash-input" type="file" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" onChange={handleFile} disabled={busy} />
               {busy && <p className="dash-map-hint"><Spin /> Membaca file...</p>}
             </div>
           </>
@@ -126,16 +126,16 @@ function MasterImportModal({ tab, onClose, onImported }) {
 
         <div className="dash-modal-actions">
           {phase === 'running' ? (
-            <button id="btn-import-abort" data-testid="btn-import-abort" type="button" className="dash-btn outline" onClick={() => { cancelled.current = true; }}>Batalkan</button>
+            <button id="btn-import-abort" type="button" className="dash-btn outline" onClick={() => { cancelled.current = true; }}>Batalkan</button>
           ) : phase === 'done' ? (
-            <button id="btn-import-done" data-testid="btn-import-done" type="button" className="dash-btn solid" onClick={onClose}>Selesai</button>
+            <button id="btn-import-done" type="button" className="dash-btn solid" onClick={onClose}>Selesai</button>
           ) : (
             <>
-              <button id="btn-import-cancel" data-testid="btn-import-cancel" type="button" className="dash-btn outline" onClick={onClose}>Batal</button>
+              <button id="btn-import-cancel" type="button" className="dash-btn outline" onClick={onClose}>Batal</button>
               {phase === 'ready' && (
                 <>
-                  <button id="btn-import-change-file" data-testid="btn-import-change-file" type="button" className="dash-btn outline" onClick={() => { setPhase('pick'); setParsed({ rows: [], errors: [] }); }}>Ganti file</button>
-                  <button id="btn-import-submit" data-testid="btn-import-submit" type="button" className="dash-btn solid" onClick={handleImport} disabled={total === 0}>Impor {total} data</button>
+                  <button id="btn-import-change-file" type="button" className="dash-btn outline" onClick={() => { setPhase('pick'); setParsed({ rows: [], errors: [] }); }}>Ganti file</button>
+                  <button id="btn-import-submit" type="button" className="dash-btn solid" onClick={handleImport} disabled={total === 0}>Impor {total} data</button>
                 </>
               )}
             </>

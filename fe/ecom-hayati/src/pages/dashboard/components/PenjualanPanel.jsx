@@ -93,25 +93,25 @@ function PenjualanPanel({ rows = [], scopeNote }) {
       </section>
 
       <div className="dash-toolbar">
-        <input data-testid="penjualan-search"
+        <input id="penjualan-search"
           className="dash-input dash-input-search"
           type="search"
           placeholder="Cari no. transaksi, konsumen, motor, atau dealer..."
           value={query}
           onChange={(e) => { setQuery(e.target.value); setPage(1); }}
         />
-        <select data-testid="penjualan-filter-status" className="dash-input dash-select-filter" value={status} onChange={(e) => { setStatus(e.target.value); setPage(1); }}>
+        <select id="penjualan-filter-status" className="dash-input dash-select-filter" value={status} onChange={(e) => { setStatus(e.target.value); setPage(1); }}>
           <option value="">Semua status</option>
           {Object.entries(STATUS).map(([v, s]) => <option key={v} value={v}>{s.label}</option>)}
         </select>
         {dealers.length > 1 && (
-          <select data-testid="penjualan-filter-dealer" className="dash-input dash-select-filter" value={dealer} aria-label="Filter dealer" onChange={(e) => { setDealer(e.target.value); setPage(1); }}>
+          <select id="penjualan-filter-dealer" className="dash-input dash-select-filter" value={dealer} aria-label="Filter dealer" onChange={(e) => { setDealer(e.target.value); setPage(1); }}>
             <option value="">Semua dealer</option>
             {dealers.map(([id, name]) => <option key={id} value={id}>{name}</option>)}
           </select>
         )}
-        <input data-testid="penjualan-date-from" className="dash-input dash-select-filter" type="date" aria-label="Dari tanggal" value={from} max={to || undefined} onChange={(e) => { setFrom(e.target.value); setPage(1); }} />
-        <input data-testid="penjualan-date-to" className="dash-input dash-select-filter" type="date" aria-label="Sampai tanggal" value={to} min={from || undefined} onChange={(e) => { setTo(e.target.value); setPage(1); }} />
+        <input id="penjualan-date-from" className="dash-input dash-select-filter" type="date" aria-label="Dari tanggal" value={from} max={to || undefined} onChange={(e) => { setFrom(e.target.value); setPage(1); }} />
+        <input id="penjualan-date-to" className="dash-input dash-select-filter" type="date" aria-label="Sampai tanggal" value={to} min={from || undefined} onChange={(e) => { setTo(e.target.value); setPage(1); }} />
       </div>
 
       {visible.length === 0 ? (

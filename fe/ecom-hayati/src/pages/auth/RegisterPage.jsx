@@ -97,7 +97,7 @@ function RegisterPage() {
           <label className="login-label" htmlFor="name">Nama</label>
           <div className={`login-field${nameError ? ' invalid' : ''}`}>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="4" /><path d="M4 21a8 8 0 0 1 16 0" /></svg>
-            <input data-testid="register-name"
+            <input
               className="login-input"
               id="name"
               type="text"
@@ -112,7 +112,7 @@ function RegisterPage() {
           <label className="login-label" htmlFor="email">Email</label>
           <div className={`login-field${emailError ? ' invalid' : ''}`}>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="5" width="18" height="14" rx="2" /><path d="m3 7 9 6 9-6" /></svg>
-            <input data-testid="register-email"
+            <input
               className="login-input"
               id="email"
               type="email"
@@ -127,7 +127,7 @@ function RegisterPage() {
           <label className="login-label" htmlFor="role">Role</label>
           <div className="login-field">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="16" rx="2" /><circle cx="9" cy="11" r="2" /><path d="M15 9h3M15 13h3M6 17c.5-2 5.5-2 6 0" /></svg>
-            <select data-testid="register-role"
+            <select
               className="login-input"
               id="role"
               value={id_role}
@@ -148,7 +148,7 @@ function RegisterPage() {
           <label className="login-label" htmlFor="password">Kata Sandi</label>
           <div className={`login-field${passwordError ? ' invalid' : ''}`}>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="4" y="11" width="16" height="10" rx="2" /><path d="M8 11V7a4 4 0 0 1 8 0v4" /></svg>
-            <input data-testid="register-password"
+            <input
               className="login-input"
               id="password"
               type={showPassword ? 'text' : 'password'}
@@ -157,7 +157,7 @@ function RegisterPage() {
               onChange={(e) => setPassword(e.target.value)}
               required
             />
-            <button id="register-toggle-password" data-testid="register-toggle-password"
+            <button id="register-toggle-password"
               type="button"
               className="login-toggle"
               onClick={() => setShowPassword((v) => !v)}
@@ -171,7 +171,7 @@ function RegisterPage() {
           <label className="login-label" htmlFor="password_confirmation">Konfirmasi Kata Sandi</label>
           <div className={`login-field${confirmError ? ' invalid' : ''}`}>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="4" y="11" width="16" height="10" rx="2" /><path d="M8 11V7a4 4 0 0 1 8 0v4" /></svg>
-            <input data-testid="register-password-confirmation"
+            <input
               className="login-input"
               id="password_confirmation"
               type={showPassword ? 'text' : 'password'}
@@ -180,7 +180,7 @@ function RegisterPage() {
               onChange={(e) => setPasswordConfirmation(e.target.value)}
               required
             />
-            <button id="register-toggle-password-confirmation" data-testid="register-toggle-password-confirmation"
+            <button id="register-toggle-password-confirmation"
               type="button"
               className="login-toggle"
               onClick={() => setShowPassword((v) => !v)}
@@ -194,7 +194,7 @@ function RegisterPage() {
           {error && <p className="login-error">{error}</p>}
           {success && <p className="login-success">{success}</p>}
 
-          <button id="register-submit" data-testid="register-submit" type="submit" className={`login-submit${loading ? ' is-loading' : ''}`} disabled={loading}>
+          <button id="register-submit" type="submit" className={`login-submit${loading ? ' is-loading' : ''}`} disabled={loading}>
             {loading ? <><span className="auth-spin" aria-hidden="true" /> Mendaftar...</> : 'Daftar →'}
           </button>
         </form>

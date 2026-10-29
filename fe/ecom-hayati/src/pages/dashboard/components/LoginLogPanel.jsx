@@ -44,7 +44,7 @@ function LoginLogPanel() {
       <p className="dash-card-desc">Catatan login pengguna beserta alamat IP, lokasi, dan perangkat.</p>
 
       <div className="dash-toolbar">
-        <input data-testid="loginlog-search" className="dash-input dash-input-search" type="search" placeholder="Cari pengguna, IP, lokasi, atau perangkat..." value={query} onChange={(e) => { setQuery(e.target.value); setPage(1); }} />
+        <input id="loginlog-search" className="dash-input dash-input-search" type="search" placeholder="Cari pengguna, IP, lokasi, atau perangkat..." value={query} onChange={(e) => { setQuery(e.target.value); setPage(1); }} />
       </div>
 
       <Toast kind="error" message={error} onClose={() => setError('')} />
