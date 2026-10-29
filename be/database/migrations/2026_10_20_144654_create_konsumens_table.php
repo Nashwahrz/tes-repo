@@ -13,13 +13,13 @@ return new class extends Migration
     {
        Schema::create('konsumens', function (Blueprint $table) {
         $table->id();
-        $table->foreignId('id_me')->constrained('users')->cascadeOnDelete();
+        // $table->foreignId('id_me')->constrained('users')->cascadeOnDelete();
         $table->string('nik', 16)->unique(); 
         $table->string('name');
-        $table->foreignId('id_tmp_lahir')
-                ->nullable()
-                ->after('id')
-                ->constrained('master.kabupaten_kotas')
+        $table->string('kode_tmp_lahir')->nullable();
+        $table->foreign('kode_tmp_lahir')
+                ->references('kode')
+                ->on('master.kabupaten_kotas')
                 ->nullOnDelete();
         $table->date('tgl_lahir');
         $table->string('jenis_kelamin');
@@ -28,36 +28,36 @@ return new class extends Migration
         $table->decimal('longitude', 10, 7)->nullable();
         $table->string('rt', 3);    
         $table->string('rw', 3);
-        $table->foreignId('id_kelurahan')
-                ->nullable()
-                ->after('id')
-                ->constrained('master.kelurahans')
+        $table->string('kode_kelurahan')->nullable();
+        $table->foreign('kode_kelurahan')
+                ->references('kode')
+                ->on('master.kelurahans')
                 ->nullOnDelete();
-        $table->foreignId('id_kecamatan')
-                ->nullable()
-                ->after('id')
-                ->constrained('master.kecamatans')
+        $table->string('kode_kecamatan')->nullable();
+        $table->foreign('kode_kecamatan')
+                ->references('kode')
+                ->on('master.kecamatans')
                 ->nullOnDelete();
-        $table->foreignId('id_kabupaten_kota')
-                ->nullable()
-                ->after('id')
-                ->constrained('master.kabupaten_kotas')
+        $table->string('kode_kabupaten_kota')->nullable();
+        $table->foreign('kode_kabupaten_kota')
+                ->references('kode')
+                ->on('master.kabupaten_kotas')
                 ->nullOnDelete();
-        $table->foreignId('id_provinsi')
-                ->nullable()
-                ->after('id')
-                ->constrained('master.provinsis')
+        $table->string('kode_provinsi')->nullable();
+        $table->foreign('kode_provinsi')
+                ->references('kode')
+                ->on('master.provinsis')
                 ->nullOnDelete();
-        $table->foreignId('id_agama')
-                ->nullable()
-                ->after('id')
-                ->constrained('master.agamas')
+        $table->string('kode_agama')->nullable();
+        $table->foreign('kode_agama')
+                ->references('kode')
+                ->on('master.agamas')
                 ->nullOnDelete();
         $table->string('status_perkawinan');
-        $table->foreignId('id_pekerjaan')
-                ->nullable()
-                ->after('id')
-                ->constrained('master.pekerjaans')
+        $table->string('kode_pekerjaan')->nullable();
+        $table->foreign('kode_pekerjaan')
+                ->references('kode')
+                ->on('master.pekerjaans')
                 ->nullOnDelete();
         $table->string('kewarganegaraan');
         $table->string('no_telp', 20);

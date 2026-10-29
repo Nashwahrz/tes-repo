@@ -31,6 +31,32 @@ class KabupatenKotaController extends Controller
             return $this->kabupatenKotaResponse->serverError();
         }
     }
+    public function indexAktif(Request $request)
+    {
+        try {
+            $perPage = min(max((int) $request->query('per_page', 10), 1), 100);
+            $kabupatenKotas = $this->kabupatenKotaRepository->paginateAktif($perPage, $request->query('search'));
+            return $this->kabupatenKotaResponse->list($kabupatenKotas);
+        } catch (Throwable $e) {
+            Log::error('Gagal mengambil data kabupaten kota: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString(),
+            ]);
+            return $this->kabupatenKotaResponse->serverError();
+        }
+    }
+    public function indexNonAktif(Request $request)
+    {
+        try {
+            $perPage = min(max((int) $request->query('per_page', 10), 1), 100);
+            $kabupatenKotas = $this->kabupatenKotaRepository->paginateNonAktif($perPage, $request->query('search'));
+            return $this->kabupatenKotaResponse->list($kabupatenKotas);
+        } catch (Throwable $e) {
+            Log::error('Gagal mengambil data kabupaten kota: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString(),
+            ]);
+            return $this->kabupatenKotaResponse->serverError();
+        }
+    }
 
     
     public function store(KabupatenKotaRequest $request)

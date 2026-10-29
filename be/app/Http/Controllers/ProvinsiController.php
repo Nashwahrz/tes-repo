@@ -32,6 +32,32 @@ class ProvinsiController extends Controller
             return $this->provinsiResponse->serverError();
         }
     }
+    public function indexAktif(Request $request)
+    {
+        try {
+            $perPage = min(max((int) $request->query('per_page', 10), 1), 100);
+            $provinsis = $this->provinsiRepository->paginateAktif($perPage, $request->query('search'));
+            return $this->provinsiResponse->list($provinsis);
+        } catch (Throwable $e) {
+            Log::error('Gagal mengambil data provinsi: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString(),
+            ]);
+            return $this->provinsiResponse->serverError();
+        }
+    }
+    public function indexNonAktif(Request $request)
+    {
+        try {
+            $perPage = min(max((int) $request->query('per_page', 10), 1), 100);
+            $provinsis = $this->provinsiRepository->paginateNonAktif($perPage, $request->query('search'));
+            return $this->provinsiResponse->list($provinsis);
+        } catch (Throwable $e) {
+            Log::error('Gagal mengambil data provinsi: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString(),
+            ]);
+            return $this->provinsiResponse->serverError();
+        }
+    }
 
     
     public function store(ProvinsiRequest $request)

@@ -21,10 +21,10 @@ class Konsumen extends Model
         return LogOptions::defaults()
             ->useLogName('konsumen')
             ->logOnly([
-                 'id_me',
+                //  'id_me',
                  'nik',
                  'name',
-                 'id_tmp_lahir',
+                 'kode_tmp_lahir',
                  'tgl_lahir',
                  'jenis_kelamin',
                  'alamat',
@@ -32,13 +32,13 @@ class Konsumen extends Model
                  'longitude',
                  'rt',
                  'rw',
-                 'id_kelurahan',
-                 'id_kecamatan',
-                 'id_kabupaten_kota',
-                 'id_provinsi',
-                 'id_agama',
+                 'kode_kelurahan',
+                 'kode_kecamatan',
+                 'kode_kabupaten_kota',
+                 'kode_provinsi',
+                 'kode_agama',
                  'status_perkawinan',
-                 'id_pekerjaan',
+                 'kode_pekerjaan',
                  'kewarganegaraan',
                  'no_telp',
                  'email',
@@ -51,10 +51,10 @@ class Konsumen extends Model
             ->dontSubmitEmptyLogs();
     }
     protected $fillable = [
-        'id_me',
+        // 'id_me',
         'nik',
         'name',
-        'id_tmp_lahir',
+        'kode_tmp_lahir',
         'tgl_lahir',
         'jenis_kelamin',
         'alamat',
@@ -62,13 +62,13 @@ class Konsumen extends Model
         'longitude',
         'rt',
         'rw',
-        'id_kelurahan',
-        'id_kecamatan',
-        'id_kabupaten_kota',
-        'id_provinsi',
-        'id_agama',
+        'kode_kelurahan',
+        'kode_kecamatan',
+        'kode_kabupaten_kota',
+        'kode_provinsi',
+        'kode_agama',
         'status_perkawinan',
-        'id_pekerjaan',
+        'kode_pekerjaan',
         'kewarganegaraan',
         'no_telp',
         'email',
@@ -103,10 +103,16 @@ class Konsumen extends Model
             );
         });
     }
-    public function me()
+    public function konsumenMes()
     {
-        return $this->belongsTo(User::class, 'id_me');
+        return $this->hasMany(KonsumenMe::class, 'id_konsumen');
     }
+
+    public function mes()
+    {
+        return $this->belongsToMany(User::class, 'konsumen_mes', 'id_konsumen', 'id_me');
+    }
+
     public function tempatLahir()
     {
         return $this->belongsTo(KabupatenKota::class, 'id_tmp_lahir');

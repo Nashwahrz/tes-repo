@@ -43,4 +43,28 @@ class KecamatanRepository
             ->paginate($perPage)
             ->withQueryString();
     }
+    public function paginateAktif(int $perPage = 10, ?string $search = null): LengthAwarePaginator
+    {
+        return Kecamatan::query()
+            ->when($search, fn ($q) => $q->where(function ($q) use ($search) {
+                $q->where('name', 'ILIKE', "%{$search}%")
+                ->orWhere('kode', 'ILIKE', "%{$search}%");
+            }))
+            ->where('status',true)
+            ->latest('id')
+            ->paginate($perPage)
+            ->withQueryString();
+    }
+    public function paginateNonAktif(int $perPage = 10, ?string $search = null): LengthAwarePaginator
+    {
+        return Kecamatan::query()
+            ->when($search, fn ($q) => $q->where(function ($q) use ($search) {
+                $q->where('name', 'ILIKE', "%{$search}%")
+                ->orWhere('kode', 'ILIKE', "%{$search}%");
+            }))
+            ->where('status',false)
+            ->latest('id')
+            ->paginate($perPage)
+            ->withQueryString();
+    }
 }
