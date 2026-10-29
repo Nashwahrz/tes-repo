@@ -9,6 +9,7 @@ export const MENU_ROLE = 'Role & Hak Akses';
 export const MENU_WHITELIST = 'Email WhiteList';
 export const MENU_SMTP = 'Email SMTP';
 export const MENU_URLIP = 'URL IP Login';
+export const MENU_OCR = 'App Key OCR';
 export const MENU_RATELIMIT = 'Setting Rate Limit';
 export const MENU_LOG = 'Log Aktivitas';
 export const MENU_AGAMA = 'Agama';
@@ -39,6 +40,7 @@ export const MENU_PATHS = {
   [MENU_WHITELIST]: '/email-whitelist',
   [MENU_SMTP]: '/email-smtp',
   [MENU_URLIP]: '/url-ip-login',
+  [MENU_OCR]: '/app-key-ocr',
   [MENU_RATELIMIT]: '/rate-limit',
   [MENU_LOG]: '/log-aktivitas',
   [MENU_AGAMA]: '/data-master/agama',

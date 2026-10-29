@@ -4,7 +4,7 @@ import Toast from './Toast';
 import Loading, { Spin } from './Loading';
 import Pager from './Pager';
 import IconButton from './IconButton';
-import { getAtasanOptions, updateUserStatus } from '../../../api/authServices';
+import { getAtasanOptions, getUsers, updateUserStatus } from '../../../api/authServices';
 
 const TABS = [
   { key: 'semua', label: 'Semua', empty: 'Belum ada akun.' },
@@ -111,6 +111,18 @@ function AccUserPanel({ users: allUsers, dealers, scopeNote, canActivate, loadin
       setSuccess(`Akun ${user.name} ${doneLabel}.`);
       setPick(null);
     } catch (err) {
+      // BE menyimpan status dulu, baru mengirim email notifikasi; bila email gagal, responsnya 500 padahal perubahan sudah tersimpan.
+      // Cek daftar terbaru sebelum melapor gagal.
+      if (err.response?.status >= 500) {
+        const fresh = await getUsers().then((list) => list.find((u) => u.id === user.id)).catch(() => null);
+        const same = (a, b) => String(a ?? '') === String(b ?? '');
+        if (fresh && fresh.status === status && (status !== 'aktif' || (same(fresh.id_dealer, dealerId) && same(fresh.id_atasan, atasanId)))) {
+          onUserUpdated({ ...user, ...fresh });
+          setSuccess(`Akun ${user.name} ${doneLabel}, tetapi server melaporkan kesalahan (kemungkinan email notifikasi gagal terkirim). Periksa pengaturan Email SMTP.`);
+          setPick(null);
+          return;
+        }
+      }
       const data = err.response?.data;
       setError(data?.errors ? Object.values(data.errors).flat().join(' ') : data?.message || 'Tidak dapat terhubung ke server.');
     } finally {

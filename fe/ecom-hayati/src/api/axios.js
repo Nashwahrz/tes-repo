@@ -1,5 +1,6 @@
 // src/api/axios.js
 import axios from 'axios';
+import { recordServerDate } from './serverTime';
 
 const api = axios.create({
   // Atur lewat .env (VITE_API_URL), contoh: https://api.domain.com/api
@@ -21,8 +22,12 @@ api.interceptors.request.use((config) => {
 // Token kedaluwarsa/dicabut -> bersihkan sesi dan kembali ke login.
 // Hanya jika user memang sedang punya token, supaya 401 "password salah" di /login tidak ikut terpicu.
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    recordServerDate(response.headers);
+    return response;
+  },
   (error) => {
+    recordServerDate(error.response?.headers);
     if (error.response?.status === 401 && localStorage.getItem('token')) {
       localStorage.removeItem('token');
       localStorage.removeItem('user');

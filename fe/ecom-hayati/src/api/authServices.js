@@ -8,6 +8,7 @@ export * from './konsumens';
 export * from './whitelist';
 export * from './emailSmtp';
 export * from './urlIpLogin';
+export * from './appKeyOcr';
 export * from './access';
 export * from './rateLimit';
 export * from './blockedUsers';

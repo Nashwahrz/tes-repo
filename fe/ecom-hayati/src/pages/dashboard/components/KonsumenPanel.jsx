@@ -7,7 +7,7 @@ import Loading, { Spin } from './Loading';
 import Pager from './Pager';
 import IconButton from './IconButton';
 import ConfirmModal from './ConfirmModal';
-import KonsumenDetailModal from './KonsumenDetailModal';
+import KonsumenDetailView from './KonsumenDetailView';
 import {
   getKonsumens, getKonsumenPage, getKonsumen, createKonsumen, updateKonsumen, deleteKonsumen, verifyKonsumen, scanKtp, checkNik, ktpUrl, errorMessage,
   getAgamas, getPekerjaans, getProvinsis, getKabupatens, searchKecamatans, searchKelurahans, searchMaster, getMasterById,
@@ -292,7 +292,10 @@ function KonsumenPanel({ can, userId, onChanged, dealers = [], myDealerId = null
   const [pickOpen, setPickOpen] = useState('');
   const runGeoSearch = (key) => setGeoTerm((t) => ({ ...t, [key]: geoQuery[key].trim() }));
   const [geoBusy, setGeoBusy] = useState({ kecamatan: false, kelurahan: false });
+  const [geoFull, setGeoFull] = useState({ kecamatan: false, kelurahan: false }); // daftar penuh milik induk sudah dimuat: tampil langsung, cukup disaring
   const [geoCut, setGeoCut] = useState({ kecamatan: false, kelurahan: false }); // hasil pencarian terpotong: minta kata kunci lebih spesifik
+  // Jeda setelah ketukan terakhir sebelum kecamatan/kelurahan dicari di BE (satu pencarian bisa mengambil banyak halaman)
+  const GEO_SEARCH_DELAY = 500;
   const useGeoSearch = (key, parentId, selectedId, path, search) => {
     const term = geoTerm[key];
     useEffect(() => {
@@ -303,7 +306,7 @@ function KonsumenPanel({ can, userId, onChanged, dealers = [], myDealerId = null
         setGeoBusy((b) => ({ ...b, [key]: true }));
         try {
           const [res, selected] = await Promise.all([
-            parentId && term.length >= 3 ? search(term, parentId, ctrl.signal) : { rows: [], truncated: false },
+            parentId ? search(term, parentId, ctrl.signal) : { rows: [], truncated: false },
             selectedId ? getMasterById(path, selectedId).catch(() => null) : null,
           ]);
           if (!active) return;
@@ -311,12 +314,13 @@ function KonsumenPanel({ can, userId, onChanged, dealers = [], myDealerId = null
           const list = selected && !found.some((o) => o.id === selected.id) ? [selected, ...found] : found;
           setMaster((m) => ({ ...m, [key]: list }));
           setGeoCut((c) => ({ ...c, [key]: res.truncated }));
+          setGeoFull((f) => ({ ...f, [key]: !!res.full }));
         } catch (err) {
           if (active && err?.code !== 'ERR_CANCELED') setMasterNote((n) => n || errorMessage(err));
         } finally {
           if (active) setGeoBusy((b) => ({ ...b, [key]: false }));
         }
-      }, 0);
+      }, term.length >= 3 ? GEO_SEARCH_DELAY : 0); // tunggu user berhenti mengetik; ganti induk/pilihan tanpa jeda
       // Cari ulang / menutup form: permintaan yang masih jalan dihentikan
       return () => { active = false; clearTimeout(timer); ctrl.abort(); };
     }, [formOpen, parentId, selectedId, term]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -400,7 +404,10 @@ function KonsumenPanel({ can, userId, onChanged, dealers = [], myDealerId = null
       if (kabHit) {
         kab = kabHit.id;
         found.id_kabupaten_kota = String(kab);
-        if (!prov && kabHit.id_provinsi) { prov = kabHit.id_provinsi; found.id_provinsi = String(prov); }
+        if (!prov && kabHit.kode_provinsi) { // BE menghubungkan lewat kode; form konsumen menyimpan id
+          prov = (await getProvinsis().catch(() => [])).find((p) => String(p.kode) === String(kabHit.kode_provinsi))?.id;
+          if (prov) found.id_provinsi = String(prov);
+        }
       } else if (kabTexts.length) {
         unmatched.push({ key: 'id_kabupaten_kota', label: LABELS.id_kabupaten_kota, text: kabTexts[0] });
       }
@@ -408,12 +415,13 @@ function KonsumenPanel({ can, userId, onChanged, dealers = [], myDealerId = null
       // Kabupaten/kota tidak terbaca atau tidak cocok: cari kecamatannya di seluruh wilayah; bila namanya tepat satu, kabupaten & provinsinya diambil darinya
       if (!kab && kecText.length >= 3) {
         const hits = (await searchMaster('/kecamatans', kecText, undefined, 100).catch(() => [])).filter((r) => normName(r.name) === normName(kecText));
-        if (hits.length === 1) {
-          kab = hits[0].id_kabupaten_kota;
+        const kabRow = hits.length === 1 ? (await getKabupatens().catch(() => [])).find((k) => String(k.kode) === String(hits[0].kode_kabupaten_kota)) : null;
+        if (kabRow) {
+          kab = kabRow.id;
           found.id_kabupaten_kota = String(kab);
-          if (!prov) {
-            const kabRow = (await getKabupatens().catch(() => [])).find((k) => String(k.id) === String(kab));
-            if (kabRow?.id_provinsi) { prov = kabRow.id_provinsi; found.id_provinsi = String(prov); }
+          if (!prov && kabRow.kode_provinsi) {
+            prov = (await getProvinsis().catch(() => [])).find((p) => String(p.kode) === String(kabRow.kode_provinsi))?.id;
+            if (prov) found.id_provinsi = String(prov);
           }
         }
       }
@@ -524,6 +532,7 @@ function KonsumenPanel({ can, userId, onChanged, dealers = [], myDealerId = null
         .filter((k) => !filter || k.status === filter));
       setSuccess(`Data konsumen ${konsumen.name || konsumen.nik || ''} ${status === 'diterima' ? 'diterima' : 'ditolak'}.`);
       setToVerify(null);
+      setDetail(null);
       onChanged?.();
     } catch (err) {
       setError(errorMessage(err));
@@ -557,8 +566,14 @@ function KonsumenPanel({ can, userId, onChanged, dealers = [], myDealerId = null
         <label htmlFor={id}>{label} *</label>
         {props.idOptions ? (
           // Opsi master [{ id, name }]; yang tersimpan adalah ID-nya. searchKey: opsi diisi lewat pencarian nama (min. 3 huruf)
-          props.searchKey ? (
-            // Satu kolom: ketik nama, klik Cari, lalu pilih dari saran (datalist). Nama yang persis sama langsung terpilih.
+          props.searchKey ? (() => {
+            // Satu kolom: daftar milik induk tampil langsung dan disaring saat mengetik. Bila daftar penuh tidak tersedia,
+            // ketik nama, klik Cari, lalu pilih dari saran. Nama yang persis sama langsung terpilih.
+            const sk = props.searchKey;
+            const full = geoFull[sk];
+            const typed = geoQuery[sk].trim().toLowerCase();
+            const shown = full && typed ? props.idOptions.filter((o) => o.name.toLowerCase().includes(typed)) : props.idOptions;
+            return (
             <>
               <div style={{ display: 'flex', gap: 6 }}>
                 <input
@@ -575,28 +590,30 @@ function KonsumenPanel({ can, userId, onChanged, dealers = [], myDealerId = null
                   }}
                   // Enter = Cari (bukan menyimpan form)
                   onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); if (!form[key] && geoQuery[props.searchKey].trim().length >= 3) runGeoSearch(props.searchKey); } }}
-                  placeholder={props.disabled ? props.hint : `Ketik min. 3 huruf nama ${label.toLowerCase()}, lalu klik Cari`}
+                  placeholder={props.disabled ? props.hint : full ? `Pilih atau ketik untuk menyaring ${label.toLowerCase()}` : `Ketik min. 3 huruf nama ${label.toLowerCase()}, lalu klik Cari`}
                   disabled={props.disabled}
                 />
-                <button
-                  type="button"
-                  className="dash-btn outline"
-                  onClick={() => runGeoSearch(props.searchKey)}
-                  disabled={props.disabled || geoBusy[props.searchKey] || geoQuery[props.searchKey].trim().length < 3}
-                >
-                  {geoBusy[props.searchKey] ? <Spin /> : 'Cari'}
-                </button>
+                {full ? (geoBusy[sk] && <Spin />) : (
+                  <button
+                    type="button"
+                    className="dash-btn outline"
+                    onClick={() => runGeoSearch(sk)}
+                    disabled={props.disabled || geoBusy[sk] || geoQuery[sk].trim().length < 3}
+                  >
+                    {geoBusy[sk] ? <Spin /> : 'Cari'}
+                  </button>
+                )}
               </div>
-              {!props.disabled && !form[key] && !geoBusy[props.searchKey] && geoTerm[props.searchKey].length >= 3 && (
+              {!props.disabled && !form[key] && !geoBusy[sk] && (full || geoTerm[sk].length >= 3) && (
                 <p className="dash-field-hint" style={{ margin: '4px 0 0', fontSize: 12, opacity: 0.7 }}>
-                  {props.idOptions.length === 0
-                    ? (geoCut[props.searchKey] ? 'Terlalu banyak hasil, ketik lebih spesifik' : 'Tidak ditemukan di wilayah ini')
-                    : `${props.idOptions.length} hasil — pilih salah satu`}
+                  {shown.length === 0
+                    ? (geoCut[sk] ? 'Terlalu banyak hasil, ketik lebih spesifik' : 'Tidak ditemukan di wilayah ini')
+                    : `${shown.length} ${full ? `${label.toLowerCase()} di wilayah ini` : 'hasil'} — pilih salah satu`}
                 </p>
               )}
-              {!props.disabled && !form[key] && !geoBusy[props.searchKey] && props.idOptions.length > 0 && (
+              {!props.disabled && !form[key] && !geoBusy[sk] && shown.length > 0 && (
                 <ul className="dash-geo-list" role="listbox" aria-label={label}>
-                  {props.idOptions.map((o) => (
+                  {shown.map((o) => (
                     <li key={o.id}>
                       <button type="button" role="option" onClick={() => setField(key)({ target: { value: String(o.id) } })}>{o.name}</button>
                     </li>
@@ -604,7 +621,8 @@ function KonsumenPanel({ can, userId, onChanged, dealers = [], myDealerId = null
                 </ul>
               )}
             </>
-          ) : (
+            );
+          })() : (
             // Satu kolom: klik/ketik untuk menyaring daftar, lalu pilih salah satu
             <>
               <input
@@ -676,8 +694,28 @@ function KonsumenPanel({ can, userId, onChanged, dealers = [], myDealerId = null
 
   const statusTag = (s) => <span className={`dash-status ${s}`}>{STATUS_LABEL[s] ?? s}</span>;
 
+  const closeDetail = () => { setDetail(null); setToVerify(null); };
+
   return (
     <div>
+      <Toast kind="success" message={success} onClose={() => setSuccess('')} />
+      <Toast kind="error" message={error} onClose={() => setError('')} />
+
+      {detail ? (
+        <KonsumenDetailView
+          detail={detail}
+          names={detailNames}
+          dealerName={dealerName(detail)}
+          statusNode={statusTag(detail.status)}
+          canEdit={can.ubah}
+          canVerify={can.verifikasi}
+          verify={toVerify ? { status: toVerify.status, catatan, onCatatan: setCatatan, saving, own: toVerify.konsumen.id_me === userId, onConfirm: handleVerify, onCancel: () => setToVerify(null) } : null}
+          onVerify={(status) => openVerify(detail, status)}
+          onEdit={(k) => { closeDetail(); openForm(k); }}
+          onBack={closeDetail}
+          onPhotoError={refreshExpiredPhotos}
+        />
+      ) : (<>
       <div className="dash-card-head">
         <h3>
           <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="5" width="18" height="14" rx="2" /><path d="M7 10h4M7 14h6" /><circle cx="16" cy="11" r="1.5" /></svg>
@@ -710,8 +748,6 @@ function KonsumenPanel({ can, userId, onChanged, dealers = [], myDealerId = null
         )}
       </div>
 
-      <Toast kind="success" message={success} onClose={() => setSuccess('')} />
-      <Toast kind="error" message={error} onClose={() => setError('')} />
 
       {loading ? (
         <Loading rows={5} />
@@ -769,18 +805,7 @@ function KonsumenPanel({ can, userId, onChanged, dealers = [], myDealerId = null
         <Pager page={meta.page} lastPage={meta.lastPage} total={meta.total} unit="konsumen" onPage={(p) => { setLoading(true); setPage(p); }} />
       )}
 
-      {detail && (
-        <KonsumenDetailModal
-          detail={detail}
-          names={detailNames}
-          dealerName={dealerName(detail)}
-          statusNode={statusTag(detail.status)}
-          canEdit={can.ubah}
-          onEdit={(k) => { setDetail(null); openForm(k); }}
-          onClose={() => setDetail(null)}
-          onPhotoError={refreshExpiredPhotos}
-        />
-      )}
+      </>)}
 
       {formOpen && (
         <div className="dash-modal-bg">
@@ -896,7 +921,7 @@ function KonsumenPanel({ can, userId, onChanged, dealers = [], myDealerId = null
         </ConfirmModal>
       )}
 
-      {toVerify && (
+      {toVerify && !detail && (
         <ConfirmModal
           title={toVerify.status === 'diterima' ? 'Terima Konsumen' : 'Tolak Konsumen'}
           confirmLabel={toVerify.status === 'diterima' ? 'Ya, Terima' : 'Ya, Tolak'}

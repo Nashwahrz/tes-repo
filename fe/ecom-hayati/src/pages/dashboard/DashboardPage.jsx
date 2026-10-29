@@ -2,7 +2,7 @@
 import { lazy, Suspense, useEffect, useRef, useState } from 'react';
 import { getUsers, getDealers, getKonsumenTotal, getKonsumenStatusTotals, getUserMenus, getUserPermissions, logoutUser } from '../../api/authServices';
 import {
-  MENU_HOME, MENU_PRODUK, MENU_PENJUALAN, MENU_DEALER, MENU_KONSUMEN, MENU_ACC, MENU_ROLE, MENU_WHITELIST, MENU_SMTP, MENU_URLIP, MENU_RATELIMIT, MENU_LOG, MENU_AGAMA, MENU_PEKERJAAN, MENU_PROVINSI, MENU_KABUPATEN, MENU_KECAMATAN, MENU_KELURAHAN, MASTER_MENUS, MENU_PATHS, menuFromPath,
+  MENU_HOME, MENU_PRODUK, MENU_PENJUALAN, MENU_DEALER, MENU_KONSUMEN, MENU_ACC, MENU_ROLE, MENU_WHITELIST, MENU_SMTP, MENU_URLIP, MENU_OCR, MENU_RATELIMIT, MENU_LOG, MENU_AGAMA, MENU_PEKERJAAN, MENU_PROVINSI, MENU_KABUPATEN, MENU_KECAMATAN, MENU_KELURAHAN, MASTER_MENUS, MENU_PATHS, menuFromPath,
 } from './menuPaths';
 import Loading from './components/Loading';
 import Icon from './components/Icon';
@@ -12,6 +12,7 @@ import { rupiah } from './salesAnalytics';
 import ConfirmModal from './components/ConfirmModal';
 import { SALES_PROTOTYPE, salesFor, totalSales } from './salesPrototype';
 import SalesChart from './components/SalesChart';
+import ServerClock from './components/ServerClock';
 import './DashboardPage.css';
 
 // Panel hanya dimuat saat menunya dibuka
@@ -21,6 +22,7 @@ const KonsumenPanel = lazy(() => import('./components/KonsumenPanel'));
 const LogPanel = lazy(() => import('./components/LogPanel'));
 const PenjualanPanel = lazy(() => import('./components/PenjualanPanel'));
 const UrlIpLoginPanel = lazy(() => import('./components/UrlIpLoginPanel'));
+const AppKeyOcrPanel = lazy(() => import('./components/AppKeyOcrPanel'));
 const EmailSmtpPanel = lazy(() => import('./components/EmailSmtpPanel'));
 const EmailWhitelistPanel = lazy(() => import('./components/EmailWhitelistPanel'));
 const RoleAccessPanel = lazy(() => import('./components/RoleAccessPanel'));
@@ -157,6 +159,7 @@ function DashboardPage() {
   const canRole = canRoleMenu || canRolePerm;
   const canWhitelist = hasMenu('email-whitelists') && can('email-whitelists.lihat');
   const canUrlIp = hasMenu('url-ip-logins') && can('url-ip-logins.lihat');
+  const canOcr = hasMenu('app-key-ocrs') && can('app-key-ocrs.lihat');
   const canSmtp = hasMenu('email-smtps') && can('email-smtps.lihat');
   // Data Master: agama & pekerjaan punya menu/permission sendiri di BE
   const canLoginLog = hasMenu('log-users') && can('log-users.lihat');
@@ -165,8 +168,8 @@ function DashboardPage() {
   const canRateLimit = hasMenu('configurasi-rate-limits') && can('configurasi-rate-limits.lihat');
   const canAgama = hasMenu('agamas') && can('agamas.lihat');
   const canPekerjaan = hasMenu('pekerjaans') && can('pekerjaans.lihat');
-  // Wilayah belum punya permission di BE: tampil bagi yang boleh melihat agama/pekerjaan
-  const canWilayah = canAgama || canPekerjaan;
+  // Wilayah punya menu/permission sendiri di BE (provinsis, kabupaten-kotas, kecamatans, kelurahans)
+  const canWil = (url) => hasMenu(url) && can(`${url}.lihat`);
 
   // Kartu ringkasan hanya untuk data yang boleh dilihat role; data konsumen sudah dibatasi BE sesuai dealer user
   const baseStats = [
@@ -282,11 +285,15 @@ function DashboardPage() {
     ...(canWhitelist ? [MENU_WHITELIST] : []),
     ...(canSmtp ? [MENU_SMTP] : []),
     ...(canUrlIp ? [MENU_URLIP] : []),
+    ...(canOcr ? [MENU_OCR] : []),
     ...(canRateLimit ? [MENU_RATELIMIT] : []),
     ...(canLog ? [MENU_LOG] : []),
     ...(canAgama ? [MENU_AGAMA] : []),
     ...(canPekerjaan ? [MENU_PEKERJAAN] : []),
-    ...(canWilayah ? [MENU_PROVINSI, MENU_KABUPATEN, MENU_KECAMATAN, MENU_KELURAHAN] : []),
+    ...(canWil('provinsis') ? [MENU_PROVINSI] : []),
+    ...(canWil('kabupaten-kotas') ? [MENU_KABUPATEN] : []),
+    ...(canWil('kecamatans') ? [MENU_KECAMATAN] : []),
+    ...(canWil('kelurahans') ? [MENU_KELURAHAN] : []),
   ];
   const nav = NAV
     .map((n) => (n.group ? { ...n, items: n.items.filter((m) => menus.includes(m)) } : n))
@@ -510,6 +517,14 @@ function DashboardPage() {
             </div>
           )}
 
+          {menu === MENU_OCR && canOcr && (
+            <div className="dash-card">
+              <Suspense fallback={<Loading rows={3} />}>
+                <AppKeyOcrPanel canEdit={can('app-key-ocrs.ubah')} />
+              </Suspense>
+            </div>
+          )}
+
           {menu === MENU_RATELIMIT && canRateLimit && (
             <div className="dash-card">
               <Suspense fallback={<Loading rows={4} />}>
@@ -539,6 +554,7 @@ function DashboardPage() {
               <section className="dash-welcome">
                 <div className="dash-welcome-text">
                   <small>{today}</small>
+                  <small className="dash-server-time"><ServerClock /></small>
                   <h1>Halo, {name}</h1>
                   <p>{canDealer || canUsers ? `Pantau ${[canDealer && 'jaringan dealer motor', canUsers && 'status akun pengguna'].filter(Boolean).join(' dan ')} dalam satu tampilan.` : 'Pilih menu di samping untuk mulai bekerja.'} {scopeNote}</p>
                 </div>
