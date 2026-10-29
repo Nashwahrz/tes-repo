@@ -31,8 +31,8 @@ class AgamaSeeder extends Seeder
                 continue; 
             }
 
-            if ($i === 0 && strtolower($kode) === 'kode') {
-                continue; 
+            if ($i === 0 && in_array(strtolower($kode), ['id', 'kode'], true)) {
+                continue;
             }
 
             if ($kode === '' || $name === '') {

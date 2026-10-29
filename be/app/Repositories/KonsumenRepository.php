@@ -16,7 +16,7 @@ class KonsumenRepository
         return Konsumen::all();
     }
 
-    public function findById(int|string $id): ?Konsumen
+    public function findById(int $id): ?Konsumen
     {
         return Konsumen::find($id);
     }
@@ -67,7 +67,7 @@ class KonsumenRepository
 
     public function getStatus(?StatusKonsumen $status = null, int $perPage = 10, ?string $search = null): LengthAwarePaginator
     {
-        return Konsumen::with(['me', 'verifiedBy'])
+        return Konsumen::with(['konsumenMes.me', 'verifiedBy'])
             ->when($status, fn ($q) => $q->where('status', $status))
             ->when($search, function ($q) use ($search) {
                 $q->where(function ($q) use ($search) {
@@ -85,12 +85,15 @@ class KonsumenRepository
             'catatan_penolakan' => $catatan_penolakan,
             'status'    => $status
         ]);
-        return $konsumen->fresh(['me', 'verifiedBy']);
+        return $konsumen->fresh(['konsumenMes.me', 'verifiedBy']);
     }
 
-    public function paginate(int $perPage = 10, ?string $search = null): LengthAwarePaginator
+    public function paginate(int $perPage = 10, ?string $search = null, ?int $userId = null): LengthAwarePaginator
     {
-        return Konsumen::query()
+        $userId ??= auth()->id();
+
+        return Konsumen::with(['konsumenMes.me'])
+            ->when($userId, fn ($q) => $q->whereHas('konsumenMes', fn ($q) => $q->where('id_me', $userId)))
             ->when($search, function ($q) use ($search) {
                 $q->where(function ($q) use ($search) {
                     $q->where('name', 'ILIKE', "%{$search}%")
@@ -100,6 +103,20 @@ class KonsumenRepository
             ->latest('id')
             ->paginate($perPage);
     }
+    public function paginateAll(int $perPage = 10, ?string $search = null): LengthAwarePaginator
+    {
+        return Konsumen::with(['konsumenMes.me'])
+            ->when($search, function ($q) use ($search) {
+                $q->where(function ($q) use ($search) {
+                    $q->where('name', 'ILIKE', "%{$search}%")
+                    ->orWhere('nik', 'ILIKE', "%{$search}%");
+                });
+            })
+            ->latest('id')
+            ->paginate($perPage);
+    }
+
+
     public function getAllLogs(int $perPage = 10, ?string $search = null): LengthAwarePaginator
     {
         $logs = Activity::query()

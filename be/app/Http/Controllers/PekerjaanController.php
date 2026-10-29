@@ -31,6 +31,32 @@ class PekerjaanController extends Controller
             return $this->pekerjaanResponse->serverError();
         }
     }
+    public function indexAktif(Request $request)
+    {
+        try {
+            $perPage = min(max((int) $request->query('per_page', 10), 1), 100);
+            $pekerjaans = $this->pekerjaanRepository->paginateAktif($perPage, $request->query('search'));
+            return $this->pekerjaanResponse->list($pekerjaans);
+        } catch (Throwable $e) {
+            Log::error('Gagal mengambil data pekerjaan: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString(),
+            ]);
+            return $this->pekerjaanResponse->serverError();
+        }
+    }
+    public function indexNonAktif(Request $request)
+    {
+        try {
+            $perPage = min(max((int) $request->query('per_page', 10), 1), 100);
+            $pekerjaans = $this->pekerjaanRepository->paginateNonAktif($perPage, $request->query('search'));
+            return $this->pekerjaanResponse->list($pekerjaans);
+        } catch (Throwable $e) {
+            Log::error('Gagal mengambil data pekerjaan: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString(),
+            ]);
+            return $this->pekerjaanResponse->serverError();
+        }
+    }
 
     
     public function store(PekerjaanRequest $request)

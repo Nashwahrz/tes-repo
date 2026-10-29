@@ -10,6 +10,7 @@ use App\Http\Requests\ScanKtpRequest;
 use App\Http\Resources\ActivityLogResource;
 use App\Http\Responses\KonsumenResponse;
 use App\Models\Konsumen;
+use App\Models\KonsumenMe;
 use App\Repositories\KonsumenRepository;
 use App\Services\KtpOcrService;
 use Illuminate\Http\Request;
@@ -30,6 +31,23 @@ class KonsumenController extends Controller
         try {
             $perPage = min(max((int) $request->query('per_page', 10), 1), 100);
             $konsumens = $this->konsumenRepository->paginate(
+                $perPage,
+                $request->query('search'),
+                $request->user()?->id ?? auth()->id()
+            );
+            return $this->konsumenResponse->paginated($konsumens);
+        } catch (Throwable $e) {
+            Log::error('Gagal mengambil data konsumen: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString(),
+            ]);
+            return $this->konsumenResponse->serverError();
+        }
+    }
+    public function indexAll(Request $request)
+    {
+        try {
+            $perPage = min(max((int) $request->query('per_page', 10), 1), 100);
+            $konsumens = $this->konsumenRepository->paginateAll(
                 $perPage,
                 $request->query('search')
             );
@@ -114,7 +132,12 @@ class KonsumenController extends Controller
 
             $konsumen = $this->konsumenRepository->create($data);
 
-            return $this->konsumenResponse->success($konsumen, 'Data konsumen berhasil disimpan.');
+            KonsumenMe::create([
+                'id_me' => auth()->id(),
+                'id_konsumen' => $konsumen->id,
+            ]);
+
+            return $this->konsumenResponse->success($konsumen->load('konsumenMes.me'), 'Data konsumen berhasil disimpan.');
         } catch (Throwable $e) {
             Log::error('Gagal menyimpan konsumen: ' . $e->getMessage(), [
                 'trace' => $e->getTraceAsString(),

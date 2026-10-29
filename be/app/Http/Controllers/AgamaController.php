@@ -31,6 +31,32 @@ class AgamaController extends Controller
             return $this->agamaResponse->serverError();
         }
     }
+    public function indexAktif(Request $request)
+    {
+        try {
+            $perPage = min(max((int) $request->query('per_page', 10), 1), 100);
+            $agamas = $this->agamaRepository->paginateAktif($perPage, $request->query('search'));
+            return $this->agamaResponse->list($agamas);
+        } catch (Throwable $e) {
+            Log::error('Gagal mengambil data agama: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString(),
+            ]);
+            return $this->agamaResponse->serverError();
+        }
+    }
+    public function indexNonAktif(Request $request)
+    {
+        try {
+            $perPage = min(max((int) $request->query('per_page', 10), 1), 100);
+            $agamas = $this->agamaRepository->paginateNonAktif($perPage, $request->query('search'));
+            return $this->agamaResponse->list($agamas);
+        } catch (Throwable $e) {
+            Log::error('Gagal mengambil data agama: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString(),
+            ]);
+            return $this->agamaResponse->serverError();
+        }
+    }
 
     
     public function store(AgamaRequest $request)
