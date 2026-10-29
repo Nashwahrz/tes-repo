@@ -158,7 +158,7 @@ function AccUserPanel({ users: allUsers, dealers, scopeNote, canActivate, loadin
       </p>
 
       <div className="dash-toolbar">
-        <input
+        <input data-testid="acc-search"
           className="dash-input dash-input-search"
           type="search"
           placeholder="Cari nama, email, atau role..."
@@ -166,13 +166,13 @@ function AccUserPanel({ users: allUsers, dealers, scopeNote, canActivate, loadin
           onChange={(e) => { setQuery(e.target.value); setPage(1); }}
         />
         {dealers.length > 0 && (
-          <select className="dash-input dash-select-filter" value={dealerFilter} aria-label="Filter dealer" onChange={(e) => { setDealerFilter(e.target.value); setPage(1); }}>
+          <select data-testid="acc-filter-dealer" className="dash-input dash-select-filter" value={dealerFilter} aria-label="Filter dealer" onChange={(e) => { setDealerFilter(e.target.value); setPage(1); }}>
             <option value="">Semua dealer</option>
             {dealers.map((d) => <option key={d.id} value={d.id}>{d.name}</option>)}
             <option value="none">Tanpa dealer</option>
           </select>
         )}
-        <select className="dash-input dash-select-filter acc-filter" value={tab} onChange={(e) => switchTab(e.target.value)} aria-label="Filter status akun">
+        <select data-testid="acc-filter-status" className="dash-input dash-select-filter acc-filter" value={tab} onChange={(e) => switchTab(e.target.value)} aria-label="Filter status akun">
           {TABS.map((t) => (
             <option key={t.key} value={t.key}>{t.key === 'semua' ? 'Semua status' : t.label} ({counts[t.key] ?? 0})</option>
           ))}
@@ -221,7 +221,7 @@ function AccUserPanel({ users: allUsers, dealers, scopeNote, canActivate, loadin
                         {actionsFor(u).map(([label, status, done]) => {
                           const isAtur = status === 'aktif' && u.status === 'aktif';
                           return (
-                            <IconButton
+                            <IconButton id={`btn-acc-${status}-${u.id}`} data-testid={`btn-acc-${status}-${u.id}`}
                               key={status}
                               icon={ACTION_ICON[isAtur ? 'atur' : status]}
                               label={isAtur ? 'Atur' : label}
@@ -249,7 +249,7 @@ function AccUserPanel({ users: allUsers, dealers, scopeNote, canActivate, loadin
           <div className="dash-modal" onClick={(e) => e.stopPropagation()}>
             <div className="dash-modal-head">
               <h3>{isEdit ? 'Atur Dealer & Atasan' : `${pick.label} Akun`}</h3>
-              <button className="dash-modal-close" aria-label="Tutup" onClick={() => setPick(null)}>
+              <button id="btn-acc-modal-close" data-testid="btn-acc-modal-close" className="dash-modal-close" aria-label="Tutup" onClick={() => setPick(null)}>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><path d="M6 6l12 12M18 6L6 18" /></svg>
               </button>
             </div>
@@ -262,7 +262,7 @@ function AccUserPanel({ users: allUsers, dealers, scopeNote, canActivate, loadin
             {pick.status === 'aktif' && (
               <div className="dash-form-group">
                 <label htmlFor="acc-dealer">Dealer <span className="acc-req">*</span></label>
-                <select id="acc-dealer" className="dash-select full" value={pickDealer} onChange={(e) => setPickDealer(e.target.value)}>
+                <select id="acc-dealer" data-testid="acc-dealer" className="dash-select full" value={pickDealer} onChange={(e) => setPickDealer(e.target.value)}>
                   <option value="" disabled>Pilih dealer</option>
                   {dealers.map((d) => (
                     <option key={d.id} value={d.id}>{d.name}</option>
@@ -274,7 +274,7 @@ function AccUserPanel({ users: allUsers, dealers, scopeNote, canActivate, loadin
               <div className="dash-form-group">
                 <label htmlFor="acc-atasan">Atasan <span className="acc-opt">(opsional)</span></label>
                 <select
-                  id="acc-atasan"
+                  id="acc-atasan" data-testid="acc-atasan"
                   className="dash-select full"
                   value={pickAtasan}
                   disabled={loadingAtasan}
@@ -292,8 +292,8 @@ function AccUserPanel({ users: allUsers, dealers, scopeNote, canActivate, loadin
               </div>
             )}
             <div className="dash-modal-actions">
-              <button className="dash-btn outline" onClick={() => setPick(null)}>Batal</button>
-              <button
+              <button id="btn-acc-modal-cancel" data-testid="btn-acc-modal-cancel" className="dash-btn outline" onClick={() => setPick(null)}>Batal</button>
+              <button id="btn-acc-modal-submit" data-testid="btn-acc-modal-submit"
                 className="dash-btn solid"
                 disabled={(pick.status === 'aktif' && !pickDealer) || busyId === pick.user.id}
                 onClick={() => submit(pick.user, pick.status === 'aktif' ? pickDealer : pick.user.id_dealer, pick.status, pick.doneLabel, pick.status === 'aktif' ? pickAtasan : pick.user.id_atasan)}

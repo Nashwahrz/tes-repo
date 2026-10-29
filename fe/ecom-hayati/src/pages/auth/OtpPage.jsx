@@ -124,7 +124,7 @@ function OtpPage() {
         <form className="login-card" onSubmit={handleSubmit} aria-busy={loading}>
           <div className="otp-boxes" onPaste={handlePaste}>
             {digits.map((d, i) => (
-              <input
+              <input data-testid={`otp-digit-${i}`}
                 key={i}
                 ref={(el) => (inputs.current[i] = el)}
                 className="otp-box"
@@ -144,7 +144,7 @@ function OtpPage() {
           {(lock > 0 || error) && <p className="login-error">{lock > 0 ? `Terlalu banyak percobaan. Silakan coba lagi dalam ${formatWait(lock)}.` : error}</p>}
           {success && <p className="login-success">{success}</p>}
 
-          <button type="submit" className={`login-submit${loading ? ' is-loading' : ''}`} disabled={loading || !email || lock > 0}>
+          <button id="otp-submit" data-testid="otp-submit" type="submit" className={`login-submit${loading ? ' is-loading' : ''}`} disabled={loading || !email || lock > 0}>
             {loading ? <><span className="auth-spin" aria-hidden="true" /> Memverifikasi...</> : 'Verifikasi →'}
           </button>
         </form>
@@ -154,7 +154,7 @@ function OtpPage() {
           {cooldown > 0 ? (
             <span className="otp-timer">Kirim ulang dalam {formatWait(cooldown)}</span>
           ) : (
-            <button type="button" className="otp-resend" onClick={handleResend} disabled={!email || resending}>
+            <button id="otp-resend" data-testid="otp-resend" type="button" className="otp-resend" onClick={handleResend} disabled={!email || resending}>
               {resending ? <><span className="auth-spin" aria-hidden="true" /> Mengirim...</> : 'Kirim Ulang'}
             </button>
           )}

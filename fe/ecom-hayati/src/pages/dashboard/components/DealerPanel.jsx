@@ -157,11 +157,11 @@ function DealerPanel({ dealers: rows, onDealersChange, can, scopeNote }) {
       <div className="dash-form-group">
         <label htmlFor={`dealer-${key}`}>{label}</label>
         {props.textarea ? (
-          <textarea id={`dealer-${key}`} className={cls} rows={3} value={form[key]} onChange={setField(key)} placeholder={props.placeholder} />
+          <textarea id={`dealer-${key}`} data-testid={`dealer-${key}`} className={cls} rows={3} value={form[key]} onChange={setField(key)} placeholder={props.placeholder} />
         ) : (
-          <input id={`dealer-${key}`} className={cls} value={form[key]} onChange={setField(key)} placeholder={props.placeholder} inputMode={props.numeric ? 'decimal' : undefined} />
+          <input id={`dealer-${key}`} data-testid={`dealer-${key}`} className={cls} value={form[key]} onChange={setField(key)} placeholder={props.placeholder} inputMode={props.numeric ? 'decimal' : undefined} />
         )}
-        {touched[key] && errors[key] && <p className="dash-field-error">{errors[key]}</p>}
+        {touched[key] && errors[key] && <p data-testid="field-error" className="dash-field-error">{errors[key]}</p>}
       </div>
     );
   };
@@ -173,11 +173,11 @@ function DealerPanel({ dealers: rows, onDealersChange, can, scopeNote }) {
           <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l1-5h16l1 5" /><path d="M4 9v11h16V9" /><path d="M9 20v-6h6v6" /></svg>
           Data Dealer
         </h3>
-        {can.tambah && <button className="dash-btn solid" onClick={() => openForm('new')}>+ Tambah Dealer</button>}
+        {can.tambah && <button id="btn-dealer-add" data-testid="btn-dealer-add" className="dash-btn solid" onClick={() => openForm('new')}>+ Tambah Dealer</button>}
       </div>
       <p className="dash-card-desc">Kelola dealer: nama, alamat, dan koordinat lokasi. {scopeNote}</p>
 
-      <input
+      <input data-testid="dealer-search"
         className="dash-input dash-input-search"
         type="search"
         placeholder="Cari nama atau alamat dealer..."
@@ -209,9 +209,9 @@ function DealerPanel({ dealers: rows, onDealersChange, can, scopeNote }) {
                   <td className="acc-muted">{d.latitude}, {d.longitude}</td>
                   <td className="col-aksi">
                     <div className="dash-actions">
-                      <IconButton icon="view" label="Detail" onClick={() => setDetailRow(d)} />
-                      {can.ubah && <IconButton icon="edit" label="Ubah" onClick={() => openForm(d)} />}
-                      {can.hapus && <IconButton icon="delete" label="Hapus" tone="danger" onClick={() => setToDelete(d)} />}
+                      <IconButton id={`btn-dealer-detail-${d.id}`} data-testid={`btn-dealer-detail-${d.id}`} icon="view" label="Detail" onClick={() => setDetailRow(d)} />
+                      {can.ubah && <IconButton id={`btn-dealer-edit-${d.id}`} data-testid={`btn-dealer-edit-${d.id}`} icon="edit" label="Ubah" onClick={() => openForm(d)} />}
+                      {can.hapus && <IconButton id={`btn-dealer-delete-${d.id}`} data-testid={`btn-dealer-delete-${d.id}`} icon="delete" label="Hapus" tone="danger" onClick={() => setToDelete(d)} />}
                     </div>
                   </td>
                 </tr>
@@ -226,7 +226,7 @@ function DealerPanel({ dealers: rows, onDealersChange, can, scopeNote }) {
           <div className="dash-modal" onClick={(e) => e.stopPropagation()}>
             <div className="dash-modal-head">
               <h3>Detail Dealer</h3>
-              <button type="button" className="dash-modal-close" onClick={() => setDetailRow(null)} aria-label="Tutup" title="Tutup">
+              <button id="btn-dealer-detail-close" data-testid="btn-dealer-detail-close" type="button" className="dash-modal-close" onClick={() => setDetailRow(null)} aria-label="Tutup" title="Tutup">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M6 6l12 12M18 6L6 18" /></svg>
               </button>
             </div>
@@ -265,8 +265,8 @@ function DealerPanel({ dealers: rows, onDealersChange, can, scopeNote }) {
               {field('longitude', 'Longitude', { numeric: true, placeholder: '106.8456' })}
             </div>
             <div className="dash-modal-actions">
-              <button type="button" className="dash-btn outline" onClick={closeForm}>Batal</button>
-              <button type="submit" className="dash-btn solid" disabled={saving}>{saving ? <><Spin />Menyimpan...</> : 'Simpan'}</button>
+              <button id="btn-dealer-cancel" data-testid="btn-dealer-cancel" type="button" className="dash-btn outline" onClick={closeForm}>Batal</button>
+              <button id="btn-dealer-save" data-testid="btn-dealer-save" type="submit" className="dash-btn solid" disabled={saving}>{saving ? <><Spin />Menyimpan...</> : 'Simpan'}</button>
             </div>
           </form>
         </div>

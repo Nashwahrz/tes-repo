@@ -74,7 +74,7 @@ function KonsumenLogPanel() {
       <p className="dash-card-desc">Catatan siapa menambah, mengubah, memverifikasi, atau menghapus data konsumen.</p>
 
       <div className="dash-toolbar">
-        <input className="dash-input dash-input-search" type="search" placeholder="Cari nama konsumen..." value={query} onChange={(e) => setQuery(e.target.value)} />
+        <input data-testid="konsumenlog-search" className="dash-input dash-input-search" type="search" placeholder="Cari nama konsumen..." value={query} onChange={(e) => setQuery(e.target.value)} />
       </div>
 
       <Toast kind="error" message={error} onClose={() => setError('')} />
@@ -96,7 +96,7 @@ function KonsumenLogPanel() {
                   <td><strong className="dash-cell-name">{l.konsumen || '-'}</strong></td>
                   <td>{AKSI[l.aksi] ?? l.deskripsi ?? l.aksi}</td>
                   <td>{l.oleh?.name ?? 'Sistem'}</td>
-                  <td className="col-aksi"><div className="dash-actions"><IconButton icon="view" label="Perubahan" onClick={() => setDetail(l)} /></div></td>
+                  <td className="col-aksi"><div className="dash-actions"><IconButton id={`btn-konsumenlog-detail-${l.id}`} data-testid={`btn-konsumenlog-detail-${l.id}`} icon="view" label="Perubahan" onClick={() => setDetail(l)} /></div></td>
                 </tr>
               ))}
             </tbody>
@@ -113,7 +113,7 @@ function KonsumenLogPanel() {
           <div className="dash-modal" onClick={(e) => e.stopPropagation()}>
             <div className="dash-modal-head">
               <h3>{AKSI[detail.aksi] ?? detail.aksi}: {detail.konsumen || '-'}</h3>
-              <button type="button" className="dash-modal-close" onClick={() => setDetail(null)} aria-label="Tutup" title="Tutup">
+              <button id="btn-konsumenlog-close" data-testid="btn-konsumenlog-close" type="button" className="dash-modal-close" onClick={() => setDetail(null)} aria-label="Tutup" title="Tutup">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M18 6 6 18M6 6l12 12" /></svg>
               </button>
             </div>

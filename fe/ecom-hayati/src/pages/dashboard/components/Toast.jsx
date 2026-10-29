@@ -14,10 +14,10 @@ function Toast({ kind = 'error', message, onClose }) {
 
   if (!message) return null;
   return (
-    <div className={`dash-toast ${kind}`} role={kind === 'error' ? 'alert' : 'status'}>
+    <div data-testid={`toast-${kind}`} className={`dash-toast ${kind}`} role={kind === 'error' ? 'alert' : 'status'}>
       <span className="dash-toast-icon">{kind === 'error' ? '!' : '✓'}</span>
-      <span className="dash-toast-text">{message}</span>
-      <button type="button" className="dash-toast-close" onClick={onClose} aria-label="Tutup pesan">×</button>
+      <span data-testid="toast-text" className="dash-toast-text">{message}</span>
+      <button id="btn-toast-close" data-testid="btn-toast-close" type="button" className="dash-toast-close" onClick={onClose} aria-label="Tutup pesan">×</button>
     </div>
   );
 }

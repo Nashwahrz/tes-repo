@@ -90,12 +90,12 @@ function BlockedUserLogPanel() {
       <p className="dash-card-desc">Akun dan IP yang diblokir sementara karena terlalu banyak percobaan. Blokir aktif bisa dibuka lebih awal.</p>
 
       <div className="dash-toolbar">
-        <input className="dash-input dash-input-search" type="search" placeholder="Cari email atau IP..." value={query} onChange={(e) => setQuery(e.target.value)} />
-        <select className="dash-input dash-select-filter" value={type} onChange={filter(setType)} aria-label="Filter jenis blokir">
+        <input data-testid="blocked-search" className="dash-input dash-input-search" type="search" placeholder="Cari email atau IP..." value={query} onChange={(e) => setQuery(e.target.value)} />
+        <select data-testid="blocked-filter-type" className="dash-input dash-select-filter" value={type} onChange={filter(setType)} aria-label="Filter jenis blokir">
           <option value="">Semua jenis</option>
           {Object.entries(TYPE_LABEL).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
         </select>
-        <select className="dash-input dash-select-filter" value={status} onChange={filter(setStatus)} aria-label="Filter status blokir">
+        <select data-testid="blocked-filter-status" className="dash-input dash-select-filter" value={status} onChange={filter(setStatus)} aria-label="Filter status blokir">
           <option value="">Semua status</option>
           {Object.entries(STATUS_LABEL).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
         </select>
@@ -130,7 +130,7 @@ function BlockedUserLogPanel() {
                     </td>
                     <td className="col-aksi">
                       <div className="dash-actions">
-                        {st === 'aktif' && <IconButton icon="check" tone="ok" label="Buka Blokir" onClick={() => setTarget(r)} />}
+                        {st === 'aktif' && <IconButton id={`btn-blocked-unblock-${r.id}`} data-testid={`btn-blocked-unblock-${r.id}`} icon="check" tone="ok" label="Buka Blokir" onClick={() => setTarget(r)} />}
                       </div>
                     </td>
                   </tr>

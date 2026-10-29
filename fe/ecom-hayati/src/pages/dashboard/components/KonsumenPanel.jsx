@@ -577,7 +577,7 @@ function KonsumenPanel({ can, userId, onChanged, dealers = [], myDealerId = null
             <>
               <div style={{ display: 'flex', gap: 6 }}>
                 <input
-                  id={id}
+                  id={id} data-testid={id}
                   className={cls}
                   type="text"
                   autoComplete="off"
@@ -594,7 +594,7 @@ function KonsumenPanel({ can, userId, onChanged, dealers = [], myDealerId = null
                   disabled={props.disabled}
                 />
                 {full ? (geoBusy[sk] && <Spin />) : (
-                  <button
+                  <button id={`btn-konsumen-search-${sk}`} data-testid={`btn-konsumen-search-${sk}`}
                     type="button"
                     className="dash-btn outline"
                     onClick={() => runGeoSearch(sk)}
@@ -615,7 +615,7 @@ function KonsumenPanel({ can, userId, onChanged, dealers = [], myDealerId = null
                 <ul className="dash-geo-list" role="listbox" aria-label={label}>
                   {shown.map((o) => (
                     <li key={o.id}>
-                      <button type="button" role="option" onClick={() => setField(key)({ target: { value: String(o.id) } })}>{o.name}</button>
+                      <button id={`btn-konsumen-option-${key}-${o.id}`} data-testid={`btn-konsumen-option-${key}-${o.id}`} type="button" role="option" onClick={() => setField(key)({ target: { value: String(o.id) } })}>{o.name}</button>
                     </li>
                   ))}
                 </ul>
@@ -626,7 +626,7 @@ function KonsumenPanel({ can, userId, onChanged, dealers = [], myDealerId = null
             // Satu kolom: klik/ketik untuk menyaring daftar, lalu pilih salah satu
             <>
               <input
-                id={id}
+                id={id} data-testid={id}
                 className={cls}
                 type="text"
                 autoComplete="off"
@@ -650,7 +650,7 @@ function KonsumenPanel({ can, userId, onChanged, dealers = [], myDealerId = null
                     {list.map((o) => (
                       <li key={o.id}>
                         {/* mousedown dicegah agar kolom tidak blur sebelum klik terbaca */}
-                        <button type="button" role="option" onMouseDown={(e) => e.preventDefault()} onClick={() => { setField(key)({ target: { value: String(o.id) } }); setPickOpen(''); }}>{o.name}</button>
+                        <button id={`btn-konsumen-option-${key}-${o.id}`} data-testid={`btn-konsumen-option-${key}-${o.id}`} type="button" role="option" onMouseDown={(e) => e.preventDefault()} onClick={() => { setField(key)({ target: { value: String(o.id) } }); setPickOpen(''); }}>{o.name}</button>
                       </li>
                     ))}
                   </ul>
@@ -659,14 +659,14 @@ function KonsumenPanel({ can, userId, onChanged, dealers = [], myDealerId = null
             </>
           )
         ) : props.options ? (
-          <select id={id} className={cls} value={selected ?? form[key]} onChange={setField(key)} disabled={props.disabled}>
+          <select id={id} data-testid={id} className={cls} value={selected ?? form[key]} onChange={setField(key)} disabled={props.disabled}>
             <option value="">- Pilih -</option>
             {/* Nilai yang belum ada di daftar (hasil OCR/data lama) tetap ditampilkan */}
             {(form[key] && !selected ? [form[key], ...props.options] : props.options).map((o) => <option key={o} value={o}>{o}</option>)}
           </select>
         ) : (
           <input
-            id={id}
+            id={id} data-testid={id}
             className={cls}
             type={props.type || 'text'}
             value={form[key]}
@@ -677,17 +677,17 @@ function KonsumenPanel({ can, userId, onChanged, dealers = [], myDealerId = null
           />
         )}
         {ocrHints[key] && !form[key] && (
-          <p className="dash-field-error" role="alert">
+          <p data-testid="field-error" className="dash-field-error" role="alert">
             Hasil scan KTP: "{ocrHints[key]}" tidak ada di daftar. Ketik ulang{props.searchKey ? ' lalu klik Cari' : ''} atau pilih manual.
           </p>
         )}
         {ocrMissing[key] && !form[key] && (
-          <p className="dash-field-error" role="alert">Tidak terbaca dari scan KTP. Isi manual sesuai KTP.</p>
+          <p data-testid="field-error" className="dash-field-error" role="alert">Tidak terbaca dari scan KTP. Isi manual sesuai KTP.</p>
         )}
         {ocrFilled[key] && form[key] && (
           <p className="dash-field-warn">Terbaca dari scan KTP, mohon cek lagi dan pastikan sesuai dengan KTP.</p>
         )}
-        {touched[key] && errors[key] && !((ocrHints[key] || ocrMissing[key]) && !form[key]) && <p className="dash-field-error">{errors[key]}</p>}
+        {touched[key] && errors[key] && !((ocrHints[key] || ocrMissing[key]) && !form[key]) && <p data-testid="field-error" className="dash-field-error">{errors[key]}</p>}
       </div>
     );
   };
@@ -721,24 +721,24 @@ function KonsumenPanel({ can, userId, onChanged, dealers = [], myDealerId = null
           <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="5" width="18" height="14" rx="2" /><path d="M7 10h4M7 14h6" /><circle cx="16" cy="11" r="1.5" /></svg>
           Data Konsumen
         </h3>
-        {can.tambah && <button className="dash-btn solid" onClick={() => openForm()}>+ Tambah Konsumen</button>}
+        {can.tambah && <button id="btn-konsumen-add" data-testid="btn-konsumen-add" className="dash-btn solid" onClick={() => openForm()}>+ Tambah Konsumen</button>}
       </div>
       <p className="dash-card-desc">Kelola dokumen KTP konsumen. Unggah foto KTP lalu pindai dengan OCR untuk mengisi data otomatis.</p>
 
       <div className="dash-toolbar">
-        <input
+        <input data-testid="konsumen-search"
           className="dash-input dash-input-search"
           type="search"
           placeholder="Cari nama, NIK, atau no. telp..."
           value={query}
           onChange={(e) => setQuery(e.target.value)}
         />
-        <select className="dash-input dash-select-filter" value={filter} onChange={(e) => { setLoading(true); setPage(1); setFilter(e.target.value); }}>
+        <select data-testid="konsumen-filter-status" className="dash-input dash-select-filter" value={filter} onChange={(e) => { setLoading(true); setPage(1); setFilter(e.target.value); }}>
           <option value="">Semua status</option>
           {Object.entries(STATUS_LABEL).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
         </select>
         {(dealers.length > 0 || myDealerId != null) && (
-          <select className="dash-input dash-select-filter" value={dealerFilter} aria-label="Filter dealer" onChange={(e) => { dealerPicked.current = true; setLoading(true); setPage(1); setDealerFilter(e.target.value); }}>
+          <select data-testid="konsumen-filter-dealer" className="dash-input dash-select-filter" value={dealerFilter} aria-label="Filter dealer" onChange={(e) => { dealerPicked.current = true; setLoading(true); setPage(1); setDealerFilter(e.target.value); }}>
             <option value="">Semua dealer</option>
             {/* Role tanpa akses daftar dealer (mis. ME) hanya mendapat pilihan dealernya sendiri */}
             {dealers.length > 0
@@ -780,8 +780,8 @@ function KonsumenPanel({ can, userId, onChanged, dealers = [], myDealerId = null
                     <td>
                       {k.status === 'pending' ? (
                         <div className="dash-verify">
-                          <IconButton icon="check" label="Terima" tone="ok" onClick={() => openVerify(k, 'diterima')} />
-                          <IconButton icon="close" label="Tolak" tone="danger" onClick={() => openVerify(k, 'ditolak')} />
+                          <IconButton id={`btn-konsumen-accept-${k.id}`} data-testid={`btn-konsumen-accept-${k.id}`} icon="check" label="Terima" tone="ok" onClick={() => openVerify(k, 'diterima')} />
+                          <IconButton id={`btn-konsumen-reject-${k.id}`} data-testid={`btn-konsumen-reject-${k.id}`} icon="close" label="Tolak" tone="danger" onClick={() => openVerify(k, 'ditolak')} />
                         </div>
                       ) : (
                         <span className="acc-muted">-</span>
@@ -790,8 +790,8 @@ function KonsumenPanel({ can, userId, onChanged, dealers = [], myDealerId = null
                   )}
                   <td className="col-aksi">
                     <div className="dash-actions">
-                      <IconButton icon="view" label="Detail" onClick={() => setDetail(k)} />
-                      {can.hapus && <IconButton icon="delete" label="Hapus" tone="danger" onClick={() => setToDelete(k)} />}
+                      <IconButton id={`btn-konsumen-detail-${k.id}`} data-testid={`btn-konsumen-detail-${k.id}`} icon="view" label="Detail" onClick={() => setDetail(k)} />
+                      {can.hapus && <IconButton id={`btn-konsumen-delete-${k.id}`} data-testid={`btn-konsumen-delete-${k.id}`} icon="delete" label="Hapus" tone="danger" onClick={() => setToDelete(k)} />}
                     </div>
                   </td>
                 </tr>
@@ -812,7 +812,7 @@ function KonsumenPanel({ can, userId, onChanged, dealers = [], myDealerId = null
           <form className="dash-modal wide" onClick={(e) => e.stopPropagation()} onSubmit={handleSubmit} noValidate>
             <div className="dash-modal-head">
               <h3>{editing ? 'Ubah Konsumen' : 'Tambah Konsumen'}</h3>
-              <button type="button" className="dash-modal-close" onClick={closeForm} aria-label="Tutup" title="Tutup">
+              <button id="btn-konsumen-form-close" data-testid="btn-konsumen-form-close" type="button" className="dash-modal-close" onClick={closeForm} aria-label="Tutup" title="Tutup">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M6 6l12 12M18 6L6 18" /></svg>
               </button>
             </div>
@@ -820,13 +820,13 @@ function KonsumenPanel({ can, userId, onChanged, dealers = [], myDealerId = null
             <div className="dash-form-group" id="konsumen-foto_ktp">
               <label>Foto KTP{!editing && ' *'}</label>
               {shownPreview && <img className="dash-ktp-big" src={shownPreview} alt="Pratinjau KTP" />}
-              <input ref={fileRef} type="file" accept="image/png,image/jpeg" hidden onChange={handleFile} />
+              <input data-testid="konsumen-ktp-file" ref={fileRef} type="file" accept="image/png,image/jpeg" hidden onChange={handleFile} />
               <div className="dash-actions">
-                <button type="button" className="dash-btn outline" onClick={() => fileRef.current?.click()}>
+                <button id="btn-konsumen-upload-ktp" data-testid="btn-konsumen-upload-ktp" type="button" className="dash-btn outline" onClick={() => fileRef.current?.click()}>
                   {shownPreview ? 'Ganti Foto' : 'Pilih Foto KTP'}
                 </button>
                 {can.scan && (
-                  <button type="button" className="dash-btn soft" onClick={handleScan} disabled={!file || scanning}>
+                  <button id="btn-konsumen-scan" data-testid="btn-konsumen-scan" type="button" className="dash-btn soft" onClick={handleScan} disabled={!file || scanning}>
                     {scanning ? <><Spin />Memindai...</> : 'Pindai KTP (OCR)'}
                   </button>
                 )}
@@ -837,7 +837,7 @@ function KonsumenPanel({ can, userId, onChanged, dealers = [], myDealerId = null
                 </p>
               )}
               <p className="dash-map-hint">JPG/PNG, maksimal 2MB.{editing && ' Kosongkan bila foto tidak diganti.'}{can.scan && ' Pilih foto baru untuk memakai OCR.'}</p>
-              {touched.foto_ktp && errors.foto_ktp && <p className="dash-field-error">{errors.foto_ktp}</p>}
+              {touched.foto_ktp && errors.foto_ktp && <p data-testid="field-error" className="dash-field-error">{errors.foto_ktp}</p>}
             </div>
 
             {field('nik', 'NIK', { placeholder: '16 digit angka', numeric: true, max: 16 })}
@@ -901,8 +901,8 @@ function KonsumenPanel({ can, userId, onChanged, dealers = [], myDealerId = null
             </div>
 
             <div className="dash-modal-actions">
-              <button type="button" className="dash-btn outline" onClick={closeForm}>Batal</button>
-              <button type="submit" className="dash-btn solid" disabled={saving}>{saving ? <><Spin />Menyimpan...</> : 'Simpan'}</button>
+              <button id="btn-konsumen-cancel" data-testid="btn-konsumen-cancel" type="button" className="dash-btn outline" onClick={closeForm}>Batal</button>
+              <button id="btn-konsumen-save" data-testid="btn-konsumen-save" type="submit" className="dash-btn solid" disabled={saving}>{saving ? <><Spin />Menyimpan...</> : 'Simpan'}</button>
             </div>
           </form>
         </div>
@@ -945,7 +945,7 @@ function KonsumenPanel({ can, userId, onChanged, dealers = [], myDealerId = null
             <div className="dash-form-group">
               <label htmlFor="konsumen-catatan">Catatan penolakan *</label>
               <textarea
-                id="konsumen-catatan"
+                id="konsumen-catatan" data-testid="konsumen-catatan"
                 className="dash-input"
                 rows={3}
                 maxLength={255}

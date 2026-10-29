@@ -8,7 +8,7 @@ function KonsumenDetailView({ detail, names: detailNames, dealerName, statusNode
     <div className="konsumen-page">
       <div className="dash-card-head">
         <h3>Detail Konsumen</h3>
-        <button type="button" className="dash-btn outline" onClick={onBack}>← Kembali ke daftar</button>
+        <button id="btn-konsumen-back" data-testid="btn-konsumen-back" type="button" className="dash-btn outline" onClick={onBack}>← Kembali ke daftar</button>
       </div>
       <div>
         {detail.status === 'ditolak' && (
@@ -19,7 +19,7 @@ function KonsumenDetailView({ detail, names: detailNames, dealerName, statusNode
               <small>Ditolak oleh {detail.verified_by?.name ?? detail.verifiedBy?.name}</small>
             )}
             {canEdit && (
-              <button type="button" className="dash-btn sm outline konsumen-reject-edit" onClick={() => { onEdit(detail); }}>Ubah Data</button>
+              <button id="btn-konsumen-edit-rejected" data-testid="btn-konsumen-edit-rejected" type="button" className="dash-btn sm outline konsumen-reject-edit" onClick={() => { onEdit(detail); }}>Ubah Data</button>
             )}
           </div>
         )}
@@ -76,7 +76,7 @@ function KonsumenDetailView({ detail, names: detailNames, dealerName, statusNode
               <div className="dash-form-group">
                 <label htmlFor="konsumen-catatan">Catatan penolakan *</label>
                 <textarea
-                  id="konsumen-catatan"
+                  id="konsumen-catatan" data-testid="konsumen-catatan"
                   className="dash-input"
                   rows={3}
                   maxLength={255}
@@ -89,8 +89,8 @@ function KonsumenDetailView({ detail, names: detailNames, dealerName, statusNode
               </div>
             )}
             <div className="dash-modal-actions">
-              <button type="button" className="dash-btn outline" onClick={verify.onCancel} disabled={verify.saving}>Batal</button>
-              <button
+              <button id="btn-konsumen-verify-cancel" data-testid="btn-konsumen-verify-cancel" type="button" className="dash-btn outline" onClick={verify.onCancel} disabled={verify.saving}>Batal</button>
+              <button id="btn-konsumen-verify-confirm" data-testid="btn-konsumen-verify-confirm"
                 type="button"
                 className="dash-btn solid"
                 onClick={verify.onConfirm}
@@ -102,8 +102,8 @@ function KonsumenDetailView({ detail, names: detailNames, dealerName, statusNode
           </div>
         ) : canVerify && detail.status === 'pending' && (
           <div className="dash-modal-actions">
-            <button type="button" className="dash-btn outline konsumen-verify-reject" onClick={() => onVerify('ditolak')}>Tolak</button>
-            <button type="button" className="dash-btn solid" onClick={() => onVerify('diterima')}>Terima</button>
+            <button id="btn-konsumen-reject" data-testid="btn-konsumen-reject" type="button" className="dash-btn outline konsumen-verify-reject" onClick={() => onVerify('ditolak')}>Tolak</button>
+            <button id="btn-konsumen-accept" data-testid="btn-konsumen-accept" type="button" className="dash-btn solid" onClick={() => onVerify('diterima')}>Terima</button>
           </div>
         )}
       </div>

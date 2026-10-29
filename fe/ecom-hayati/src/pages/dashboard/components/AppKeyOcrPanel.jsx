@@ -82,7 +82,7 @@ function AppKeyOcrPanel({ canEdit }) {
   };
 
   const set = (key) => (e) => setForm((f) => ({ ...f, [key]: e.target.value }));
-  const fieldError = (key) => touched && errors[key] && <p className="dash-field-error">{errors[key]}</p>;
+  const fieldError = (key) => touched && errors[key] && <p data-testid="field-error" className="dash-field-error">{errors[key]}</p>;
 
   return (
     <div>
@@ -123,7 +123,7 @@ function AppKeyOcrPanel({ canEdit }) {
                   {canEdit && (
                     <td className="col-aksi">
                       <div className="dash-actions">
-                        <IconButton icon="edit" label="Ubah" onClick={() => openForm(r)} />
+                        <IconButton id={`btn-ocr-edit-${r.id}`} data-testid={`btn-ocr-edit-${r.id}`} icon="edit" label="Ubah" onClick={() => openForm(r)} />
                       </div>
                     </td>
                   )}
@@ -140,30 +140,30 @@ function AppKeyOcrPanel({ canEdit }) {
             <h3>Ubah App Key OCR</h3>
             <div className="dash-form-group">
               <label htmlFor="ocr-url">URL *</label>
-              <input id="ocr-url" className={`dash-input${touched && errors.url ? ' invalid' : ''}`} value={form.url} onChange={set('url')} placeholder="https://api.ocr.space/parse/image" autoFocus />
+              <input id="ocr-url" data-testid="ocr-url" className={`dash-input${touched && errors.url ? ' invalid' : ''}`} value={form.url} onChange={set('url')} placeholder="https://api.ocr.space/parse/image" autoFocus />
               {fieldError('url')}
             </div>
             <div className="dash-form-group">
               <label htmlFor="ocr-key">API Key *</label>
               <div style={{ display: 'flex', gap: 8 }}>
-                <input id="ocr-key" className={`dash-input${touched && errors.api_key ? ' invalid' : ''}`} type={showKey ? 'text' : 'password'} value={form.api_key} onChange={set('api_key')} autoComplete="off" />
-                <button type="button" className="dash-btn outline" onClick={() => setShowKey((v) => !v)}>{showKey ? 'Sembunyikan' : 'Tampilkan'}</button>
+                <input id="ocr-key" data-testid="ocr-key" className={`dash-input${touched && errors.api_key ? ' invalid' : ''}`} type={showKey ? 'text' : 'password'} value={form.api_key} onChange={set('api_key')} autoComplete="off" />
+                <button id="btn-ocr-toggle-key" data-testid="btn-ocr-toggle-key" type="button" className="dash-btn outline" onClick={() => setShowKey((v) => !v)}>{showKey ? 'Sembunyikan' : 'Tampilkan'}</button>
               </div>
               {fieldError('api_key')}
             </div>
             <div className="dash-form-group">
               <label htmlFor="ocr-ket">Keterangan *</label>
-              <input id="ocr-ket" className={`dash-input${touched && errors.keterangan ? ' invalid' : ''}`} value={form.keterangan} onChange={set('keterangan')} />
+              <input id="ocr-ket" data-testid="ocr-ket" className={`dash-input${touched && errors.keterangan ? ' invalid' : ''}`} value={form.keterangan} onChange={set('keterangan')} />
               {fieldError('keterangan')}
             </div>
             <label style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14, cursor: 'pointer' }}>
-              <input type="checkbox" checked={form.is_active} onChange={(e) => setForm((f) => ({ ...f, is_active: e.target.checked }))} />
+              <input data-testid="ocr-is-active" type="checkbox" checked={form.is_active} onChange={(e) => setForm((f) => ({ ...f, is_active: e.target.checked }))} />
               Aktif
             </label>
             {!form.is_active && <p className="dash-alert warning">Bila dinonaktifkan, pembacaan KTP (OCR) tidak dapat dipakai.</p>}
             <div className="dash-modal-actions">
-              <button type="button" className="dash-btn outline" onClick={() => setEditing(null)} disabled={saving}>Batal</button>
-              <button type="submit" className="dash-btn solid" disabled={saving}>{saving ? <><Spin />Menyimpan...</> : 'Simpan'}</button>
+              <button id="btn-ocr-cancel" data-testid="btn-ocr-cancel" type="button" className="dash-btn outline" onClick={() => setEditing(null)} disabled={saving}>Batal</button>
+              <button id="btn-ocr-save" data-testid="btn-ocr-save" type="submit" className="dash-btn solid" disabled={saving}>{saving ? <><Spin />Menyimpan...</> : 'Simpan'}</button>
             </div>
           </form>
         </div>

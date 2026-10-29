@@ -129,20 +129,20 @@ function EmailSmtpPanel({ can }) {
     <div className="dash-form-group">
       <label htmlFor={`smtp-${key}`}>{label}</label>
       <input
-        id={`smtp-${key}`}
+        id={`smtp-${key}`} data-testid={`smtp-${key}`}
         className={`dash-input${touched && errors[key] ? ' invalid' : ''}`}
         value={form[key]}
         onChange={set(key)}
         {...props}
       />
-      {touched && errors[key] && <p className="dash-field-error">{errors[key]}</p>}
+      {touched && errors[key] && <p data-testid="field-error" className="dash-field-error">{errors[key]}</p>}
     </div>
   );
 
   const select = (key, label, options) => (
     <div className="dash-form-group">
       <label htmlFor={`smtp-${key}`}>{label}</label>
-      <select id={`smtp-${key}`} className="dash-input" value={form[key]} onChange={set(key)}>
+      <select id={`smtp-${key}`} data-testid={`smtp-${key}`} className="dash-input" value={form[key]} onChange={set(key)}>
         {options.map((o) => <option key={o} value={o}>{o === 'null' ? 'Tanpa enkripsi' : o}</option>)}
       </select>
     </div>
@@ -157,7 +157,7 @@ function EmailSmtpPanel({ can }) {
           <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="5" width="18" height="14" rx="2" /><path d="M3 7l9 6 9-6" /></svg>
           Email SMTP
         </h3>
-        {can.tambah && <button className="dash-btn solid" onClick={() => openForm('new')}>+ Tambah SMTP</button>}
+        {can.tambah && <button id="btn-smtp-add" data-testid="btn-smtp-add" className="dash-btn solid" onClick={() => openForm('new')}>+ Tambah SMTP</button>}
       </div>
       <p className="dash-card-desc">Server pengirim email sistem (OTP dan notifikasi).</p>
 
@@ -196,8 +196,8 @@ function EmailSmtpPanel({ can }) {
                   {showActions && (
                     <td className="col-aksi">
                       <div className="dash-actions">
-                        {can.ubah && <IconButton icon="edit" label="Ubah" onClick={() => openForm(r)} />}
-                        {can.hapus && <IconButton icon="delete" label="Hapus" tone="danger" onClick={() => setToDelete(r)} />}
+                        {can.ubah && <IconButton id={`btn-smtp-edit-${r.id}`} data-testid={`btn-smtp-edit-${r.id}`} icon="edit" label="Ubah" onClick={() => openForm(r)} />}
+                        {can.hapus && <IconButton id={`btn-smtp-delete-${r.id}`} data-testid={`btn-smtp-delete-${r.id}`} icon="delete" label="Hapus" tone="danger" onClick={() => setToDelete(r)} />}
                       </div>
                     </td>
                   )}
@@ -228,13 +228,13 @@ function EmailSmtpPanel({ can }) {
             {text('mail_from_name', 'Nama Pengirim *')}
             <div className="dash-form-group">
               <label className="dash-check">
-                <input type="checkbox" checked={form.is_active} onChange={(e) => setForm((f) => ({ ...f, is_active: e.target.checked }))} />
+                <input data-testid="smtp-is-active" type="checkbox" checked={form.is_active} onChange={(e) => setForm((f) => ({ ...f, is_active: e.target.checked }))} />
                 Aktif
               </label>
             </div>
             <div className="dash-modal-actions">
-              <button type="button" className="dash-btn outline" onClick={closeForm} disabled={saving}>Batal</button>
-              <button type="submit" className="dash-btn solid" disabled={saving}>{saving ? <><Spin />Menyimpan...</> : 'Simpan'}</button>
+              <button id="btn-smtp-cancel" data-testid="btn-smtp-cancel" type="button" className="dash-btn outline" onClick={closeForm} disabled={saving}>Batal</button>
+              <button id="btn-smtp-save" data-testid="btn-smtp-save" type="submit" className="dash-btn solid" disabled={saving}>{saving ? <><Spin />Menyimpan...</> : 'Simpan'}</button>
             </div>
           </form>
         </div>

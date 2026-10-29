@@ -168,10 +168,10 @@ function ForgotPasswordPage() {
           <form className="login-card" onSubmit={submitEmail} aria-busy={loading}>
             <label className="login-label" htmlFor="email">Email</label>
             <div className="login-field">
-              <input className="login-input" id="email" type="email" placeholder="contoh: nama@email.com" value={email} onChange={(e) => setEmail(e.target.value)} required autoFocus />
+              <input data-testid="forgot-email" className="login-input" id="email" type="email" placeholder="contoh: nama@email.com" value={email} onChange={(e) => setEmail(e.target.value)} required autoFocus />
             </div>
             {error && <p className="login-error">{error}</p>}
-            <button type="submit" className={`login-submit${loading ? ' is-loading' : ''}`} disabled={loading || cooldown > 0}>
+            <button id="forgot-submit-email" data-testid="forgot-submit-email" type="submit" className={`login-submit${loading ? ' is-loading' : ''}`} disabled={loading || cooldown > 0}>
               {loading ? <><span className="auth-spin" aria-hidden="true" /> Mengirim...</> : cooldown > 0 ? `Coba lagi dalam ${formatWait(cooldown)}` : 'Kirim Kode OTP →'}
             </button>
           </form>
@@ -182,7 +182,7 @@ function ForgotPasswordPage() {
             <form className="login-card" onSubmit={submitOtp} aria-busy={loading}>
               <div className="otp-boxes" onPaste={handlePaste}>
                 {digits.map((d, i) => (
-                  <input
+                  <input data-testid={`forgot-otp-${i}`}
                     key={i}
                     ref={(el) => (inputs.current[i] = el)}
                     className="otp-box"
@@ -200,7 +200,7 @@ function ForgotPasswordPage() {
               </div>
               {(lock > 0 || error) && <p className="login-error">{lock > 0 ? `Terlalu banyak percobaan. Silakan coba lagi dalam ${formatWait(lock)}.` : error}</p>}
               {success && <p className="login-success">{success}</p>}
-              <button type="submit" className={`login-submit${loading ? ' is-loading' : ''}`} disabled={loading || lock > 0}>
+              <button id="forgot-submit-otp" data-testid="forgot-submit-otp" type="submit" className={`login-submit${loading ? ' is-loading' : ''}`} disabled={loading || lock > 0}>
                 {loading ? <><span className="auth-spin" aria-hidden="true" /> Memverifikasi...</> : 'Verifikasi →'}
               </button>
             </form>
@@ -209,7 +209,7 @@ function ForgotPasswordPage() {
               {cooldown > 0 ? (
                 <span className="otp-timer">Kirim ulang dalam {formatWait(cooldown)}</span>
               ) : (
-                <button type="button" className="otp-resend" onClick={resend} disabled={resending}>
+                <button id="forgot-resend" data-testid="forgot-resend" type="button" className="otp-resend" onClick={resend} disabled={resending}>
                   {resending ? <><span className="auth-spin" aria-hidden="true" /> Mengirim...</> : 'Kirim Ulang'}
                 </button>
               )}
@@ -221,8 +221,8 @@ function ForgotPasswordPage() {
           <form className="login-card" onSubmit={submitPassword} aria-busy={loading}>
             <label className="login-label" htmlFor="password">Kata Sandi Baru</label>
             <div className="login-field">
-              <input className="login-input" id="password" type={showPassword ? 'text' : 'password'} placeholder="Min. 8 karakter, huruf besar/kecil, angka, simbol" value={password} onChange={(e) => setPassword(e.target.value)} required autoFocus />
-              <button type="button" className="login-toggle" onClick={() => setShowPassword((v) => !v)} aria-label={showPassword ? 'Sembunyikan kata sandi' : 'Tampilkan kata sandi'}>
+              <input data-testid="forgot-password" className="login-input" id="password" type={showPassword ? 'text' : 'password'} placeholder="Min. 8 karakter, huruf besar/kecil, angka, simbol" value={password} onChange={(e) => setPassword(e.target.value)} required autoFocus />
+              <button id="forgot-toggle-password" data-testid="forgot-toggle-password" type="button" className="login-toggle" onClick={() => setShowPassword((v) => !v)} aria-label={showPassword ? 'Sembunyikan kata sandi' : 'Tampilkan kata sandi'}>
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z" />
                   <circle cx="12" cy="12" r="3" />
@@ -232,11 +232,11 @@ function ForgotPasswordPage() {
             </div>
             <label className="login-label" htmlFor="confirm">Konfirmasi Kata Sandi</label>
             <div className="login-field">
-              <input className="login-input" id="confirm" type={showPassword ? 'text' : 'password'} placeholder="Ulangi kata sandi baru" value={confirm} onChange={(e) => setConfirm(e.target.value)} required />
+              <input data-testid="forgot-password-confirm" className="login-input" id="confirm" type={showPassword ? 'text' : 'password'} placeholder="Ulangi kata sandi baru" value={confirm} onChange={(e) => setConfirm(e.target.value)} required />
             </div>
             {error && <p className="login-error">{error}</p>}
             {success && <p className="login-success">{success}</p>}
-            <button type="submit" className={`login-submit${loading ? ' is-loading' : ''}`} disabled={loading || !!success}>
+            <button id="forgot-submit-password" data-testid="forgot-submit-password" type="submit" className={`login-submit${loading ? ' is-loading' : ''}`} disabled={loading || !!success}>
               {loading ? <><span className="auth-spin" aria-hidden="true" /> Menyimpan...</> : 'Simpan Kata Sandi →'}
             </button>
           </form>

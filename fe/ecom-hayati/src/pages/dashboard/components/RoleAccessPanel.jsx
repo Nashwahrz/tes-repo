@@ -165,7 +165,7 @@ function RoleAccessPanel({ canMenu, canPermission, onSaved }) {
       {tabs.length > 1 && (
         <div className="dash-tabs wide">
           {tabs.map((k) => (
-            <button key={k} className={`dash-tab${tab === k ? ' active' : ''}`} onClick={() => switchTab(k)}>
+            <button id={`btn-role-tab-${k}`} data-testid={`btn-role-tab-${k}`} key={k} className={`dash-tab${tab === k ? ' active' : ''}`} onClick={() => switchTab(k)}>
               {TABS[k].label}
             </button>
           ))}
@@ -191,7 +191,7 @@ function RoleAccessPanel({ canMenu, canPermission, onSaved }) {
       ) : (
         <>
           <div className="dash-toolbar">
-            <input
+            <input data-testid="role-search"
               className="dash-input dash-input-search"
               type="search"
               placeholder={`Cari ${cfg.label.toLowerCase()}...`}
@@ -199,12 +199,12 @@ function RoleAccessPanel({ canMenu, canPermission, onSaved }) {
               onChange={(e) => { setQuery(e.target.value); setPage(1); }}
             />
             {cfg.groupOf && (
-              <select className="dash-input dash-select-filter" value={group} aria-label="Filter grup menu" onChange={(e) => { setGroup(e.target.value); setPage(1); }}>
+              <select data-testid="role-filter-group" className="dash-input dash-select-filter" value={group} aria-label="Filter grup menu" onChange={(e) => { setGroup(e.target.value); setPage(1); }}>
                 <option value="">Semua Grup</option>
                 {groupKeys.map((g) => <option key={g} value={g}>{GROUP_LABEL[g] ?? g}</option>)}
               </select>
             )}
-            <select className="dash-input dash-select-filter" value={roleId ?? ''} aria-label="Pilih role" onChange={(e) => { pickRole(Number(e.target.value)); setPage(1); }}>
+            <select data-testid="role-select" className="dash-input dash-select-filter" value={roleId ?? ''} aria-label="Pilih role" onChange={(e) => { pickRole(Number(e.target.value)); setPage(1); }}>
               {data.roles.map((r) => (
                 <option key={r.id} value={r.id}>{r.name}</option>
               ))}
@@ -231,7 +231,7 @@ function RoleAccessPanel({ canMenu, canPermission, onSaved }) {
                         <td><label htmlFor={`${tab}-${i.id}`}><strong className="dash-cell-name">{cfg.nameOf(i)}</strong></label></td>
                         <td><span className={`dash-status ${on ? 'aktif' : 'nonaktif'}`}>{on ? 'Diizinkan' : 'Tidak'}</span></td>
                         <td className="col-aksi">
-                          <input type="checkbox" className="ra-check" id={`${tab}-${i.id}`} checked={on} disabled={roleLoading} onChange={() => toggle(i.id)} />
+                          <input type="checkbox" className="ra-check" id={`${tab}-${i.id}`} data-testid={`${tab}-${i.id}`} checked={on} disabled={roleLoading} onChange={() => toggle(i.id)} />
                         </td>
                       </tr>
                     );
@@ -244,7 +244,7 @@ function RoleAccessPanel({ canMenu, canPermission, onSaved }) {
           <Pager page={current} lastPage={lastPage} total={shown.length} unit={cfg.label.toLowerCase()} onPage={setPage} />
 
           <div className="dash-modal-actions">
-            <button className="dash-btn solid" onClick={() => setConfirming(true)} disabled={saving || roleLoading || !dirty}>
+            <button id="btn-role-save" data-testid="btn-role-save" className="dash-btn solid" onClick={() => setConfirming(true)} disabled={saving || roleLoading || !dirty}>
               {saving ? <><Spin />Menyimpan...</> : 'Simpan Perubahan'}
             </button>
           </div>
