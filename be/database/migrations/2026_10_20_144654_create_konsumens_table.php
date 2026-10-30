@@ -23,7 +23,8 @@ return new class extends Migration
                 ->nullOnDelete();
         $table->date('tgl_lahir');
         $table->string('jenis_kelamin');
-        $table->string('alamat');
+        $table->string('alamat_ktp');
+        $table->string('alamat_domisili');
         $table->decimal('latitude', 10, 7)->nullable();
         $table->decimal('longitude', 10, 7)->nullable();
         $table->string('rt', 3);    
