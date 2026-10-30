@@ -15,6 +15,9 @@ return new class extends Migration
             $table->id();
             $table->foreignId('id_me')->constrained('users')->cascadeOnDelete();
             $table->foreignId('id_konsumen')->constrained('konsumens')->cascadeOnDelete();
+            $table->enum('status', ['pending', 'diterima', 'ditolak'])->default('pending');
+            $table->text('catatan_penolakan')->nullable();
+            $table->foreignId('diverifikasi_oleh')->nullable()->constrained('users')->nullOnDelete();
             $table->timestamps();
         });
     }

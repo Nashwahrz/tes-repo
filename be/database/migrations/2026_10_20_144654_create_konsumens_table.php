@@ -63,10 +63,10 @@ return new class extends Migration
         $table->string('no_telp', 20);
         $table->string('email');
         $table->string('foto_ktp');
-        $table->enum('status', ['pending', 'diterima', 'ditolak'])
-            ->default('pending');
-        $table->text('catatan_penolakan')->nullable();
-        $table->foreignId('diverifikasi_oleh')->nullable()->constrained('users')->nullOnDelete();
+        // $table->enum('status', ['pending', 'diterima', 'ditolak'])
+        //     ->default('pending');
+        // $table->text('catatan_penolakan')->nullable();
+        // $table->foreignId('diverifikasi_oleh')->nullable()->constrained('users')->nullOnDelete();
         $table->timestamps();
     });
     }

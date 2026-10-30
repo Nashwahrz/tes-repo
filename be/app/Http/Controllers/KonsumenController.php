@@ -8,12 +8,15 @@ use App\Http\Requests\CheckNikRequest;
 use App\Http\Requests\KonsumenRequest;
 use App\Http\Requests\ScanKtpRequest;
 use App\Http\Resources\ActivityLogResource;
+use App\Http\Responses\KonsumenMeResponse;
 use App\Http\Responses\KonsumenResponse;
 use App\Models\Konsumen;
 use App\Models\KonsumenMe;
+use App\Repositories\KonsumenMeRepository;
 use App\Repositories\KonsumenRepository;
 use App\Services\KtpOcrService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Throwable;
@@ -22,7 +25,9 @@ class KonsumenController extends Controller
 {
     public function __construct(
         private KonsumenRepository $konsumenRepository,
+        private KonsumenMeRepository $konsumenMeRepository,
         private KonsumenResponse $konsumenResponse,
+        private KonsumenMeResponse $konsumenMeResponse,
         private KtpOcrService $ktpOcrService
     ) {}
 
@@ -121,23 +126,27 @@ class KonsumenController extends Controller
     public function store(KonsumenRequest $request)
     {
         try {
-            $data = $request->validated();
+            $data   = $request->validated();
+            $hasNewPhoto = $request->hasFile('foto_ktp');
 
-            if ($request->hasFile('foto_ktp')) {
-                $file = $request->file('foto_ktp');
+            if ($hasNewPhoto) {
+                $file     = $request->file('foto_ktp');
                 $filename = 'ktp_' . date('Ymd_His') . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
-                $path = $file->storeAs('ktp', $filename, 'local');
+                $path     = $file->storeAs('ktp', $filename, 'local');
                 $data['foto_ktp'] = $path;
+            } else {
+                unset($data['foto_ktp']);
             }
 
-            $konsumen = $this->konsumenRepository->create($data);
+            $userId = auth()->id();
 
-            KonsumenMe::create([
-                'id_me' => auth()->id(),
-                'id_konsumen' => $konsumen->id,
-            ]);
+            [$konsumen, $isExisting] = $this->konsumenRepository->storeWithMe($data, $userId, $hasNewPhoto);
 
-            return $this->konsumenResponse->success($konsumen->load('konsumenMes.me'), 'Data konsumen berhasil disimpan.');
+            $message = $isExisting
+                ? 'Data konsumen ditemukan, diproses, dan berhasil ditambahkan ke daftar Anda.'
+                : 'Data konsumen berhasil disimpan.';
+
+            return $this->konsumenResponse->success($konsumen, $message);
         } catch (Throwable $e) {
             Log::error('Gagal menyimpan konsumen: ' . $e->getMessage(), [
                 'trace' => $e->getTraceAsString(),
@@ -178,6 +187,8 @@ class KonsumenController extends Controller
                 $filename = 'ktp_' . date('Ymd_His') . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
                 $path = $file->storeAs('ktp', $filename, 'local');
                 $data['foto_ktp'] = $path;
+            } else {
+                unset($data['foto_ktp']);
             }
 
             $updated = $this->konsumenRepository->update($konsumen, $data);
@@ -206,14 +217,53 @@ class KonsumenController extends Controller
             return $this->konsumenResponse->serverError();
         }
     }
+    // public function activate(ActiveKonsumenRequest $request, int $id)
+    // {
+    //     try {
+
+    //         $konsumen = $this->konsumenRepository->findById($id);
+
+    //         if (!$konsumen) {
+    //             return $this->konsumenResponse->notFound('Konsumen tidak ditemukan.');
+    //         }
+
+    //         $status = $request->filled('status')
+    //             ? StatusKonsumen::tryFrom($request->status) ?? StatusKonsumen::Diterima
+    //             : StatusKonsumen::Diterima;
+
+    //         $isDiterima = $status === StatusKonsumen::Diterima;
+            
+    //         $diverifikasi_oleh = auth()->id();
+
+    //         $updatedKonsumen = $this->konsumenRepository->activateKonsumen(
+    //             $konsumen,
+    //             $diverifikasi_oleh ,
+    //             $isDiterima ? null : ($request->input('catatan_penolakan') ? : null),
+    //             $status
+    //         );
+
+    //         $message = $isDiterima
+    //             ? 'Akun Konsumen berhasil diterima.'
+    //             : 'Akun Konsumen berhasil ditolak.';
+
+    //         return $this->konsumenResponse->success($updatedKonsumen, $message);
+    //     } catch (Throwable $e) {
+    //         Log::error('Aktivasi Konsumen gagal: ' . $e->getMessage(), [
+    //             'trace' => $e->getTraceAsString(),
+    //         ]);
+
+    //         return $this->konsumenResponse->serverError();
+    //     }
+    // }
+
     public function activate(ActiveKonsumenRequest $request, int $id)
     {
         try {
 
-            $konsumen = $this->konsumenRepository->findById($id);
+            $konsumen = $this->konsumenMeRepository->findById($id);
 
             if (!$konsumen) {
-                return $this->konsumenResponse->notFound('Konsumen tidak ditemukan.');
+                return $this->konsumenMeResponse->notFound('Konsumen tidak ditemukan.');
             }
 
             $status = $request->filled('status')
@@ -224,7 +274,7 @@ class KonsumenController extends Controller
             
             $diverifikasi_oleh = auth()->id();
 
-            $updatedKonsumen = $this->konsumenRepository->activateKonsumen(
+            $updatedKonsumen = $this->konsumenMeRepository->activateKonsumen(
                 $konsumen,
                 $diverifikasi_oleh ,
                 $isDiterima ? null : ($request->input('catatan_penolakan') ? : null),
@@ -235,13 +285,13 @@ class KonsumenController extends Controller
                 ? 'Akun Konsumen berhasil diterima.'
                 : 'Akun Konsumen berhasil ditolak.';
 
-            return $this->konsumenResponse->success($updatedKonsumen, $message);
+            return $this->konsumenMeResponse->success($updatedKonsumen, $message);
         } catch (Throwable $e) {
             Log::error('Aktivasi Konsumen gagal: ' . $e->getMessage(), [
                 'trace' => $e->getTraceAsString(),
             ]);
 
-            return $this->konsumenResponse->serverError();
+            return $this->konsumenMeResponse->serverError();
         }
     }
     public function fotoKtp(int $id)

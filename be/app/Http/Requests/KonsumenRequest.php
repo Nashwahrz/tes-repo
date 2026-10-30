@@ -7,6 +7,7 @@ use App\Models\Agama;
 use App\Models\KabupatenKota;
 use App\Models\Kecamatan;
 use App\Models\Kelurahan;
+use App\Models\Konsumen;
 use App\Models\Pekerjaan;
 use App\Models\Provinsi;
 use Illuminate\Contracts\Validation\Validator;
@@ -21,9 +22,24 @@ class KonsumenRequest extends FormRequest
         $isUpdate   = $this->isMethod('put') || $this->isMethod('patch');
         $konsumenId = $this->route('id') ?? $this->route('konsumen');
 
+        $nik       = $this->input('nik');
+        $nikExists = !$isUpdate && !empty($nik) && Konsumen::where('nik', $nik)->exists();
+        $nikRules = ['required', 'string', 'digits:16'];
+        if ($isUpdate) {
+            $nikRules[] = Rule::unique('konsumens', 'nik')->ignore($konsumenId);
+        }
+
+        if ($this->hasFile('foto_ktp')) {
+            $fotoKtpRules = ['nullable', 'image', 'mimes:jpg,jpeg,png', 'max:2048'];
+        } elseif ($isUpdate || $nikExists) {
+            $fotoKtpRules = ['nullable', 'string'];
+        } else {
+            $fotoKtpRules = ['required', 'image', 'mimes:jpg,jpeg,png', 'max:2048'];
+        }
+
         return [
-            'foto_ktp'  => [$isUpdate ? 'nullable' : 'required', 'image', 'mimes:jpg,jpeg,png', 'max:2048'],
-            'nik'       => ['required', 'string', 'digits:16', Rule::unique('konsumens', 'nik')->ignore($konsumenId)],
+            'foto_ktp'  => $fotoKtpRules,
+            'nik'       => $nikRules,
             'name'      => ['required', 'string', 'max:255'],
             'tgl_lahir' => ['required', 'date'],
             'jenis_kelamin' => ['required', Rule::enum(JenisKelamin::class)],
