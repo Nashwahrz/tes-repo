@@ -15039,7 +15039,11 @@
                     "jenis_kelamin": {
                         "$ref": "#/components/schemas/JenisKelamin"
                     },
-                    "alamat": {
+                    "alamat_ktp": {
+                        "type": "string",
+                        "maxLength": 255
+                    },
+                    "alamat_domisili": {
                         "type": "string",
                         "maxLength": 255
                     },
@@ -15106,7 +15110,8 @@
                     "name",
                     "tgl_lahir",
                     "jenis_kelamin",
-                    "alamat",
+                    "alamat_ktp",
+                    "alamat_domisili",
                     "latitude",
                     "longitude",
                     "rt",
