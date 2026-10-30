@@ -4,9 +4,11 @@ namespace App\Repositories;
 
 use App\Enums\StatusKonsumen;
 use App\Models\Konsumen;
+use App\Models\KonsumenMe;
 use App\Models\User;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Spatie\Activitylog\Models\Activity;
 
 class KonsumenRepository
@@ -37,6 +39,73 @@ class KonsumenRepository
     }
 
    
+    public function storeWithMe(array $data, int $userId, bool $hasNewPhoto = false): array
+    {
+        return DB::transaction(function () use ($data, $userId, $hasNewPhoto) {
+            $konsumen = $this->findByNik($data['nik']);
+
+            if ($konsumen) {
+                $isDataChanged = $hasNewPhoto;
+                $konsumen->fill($data);
+                if ($konsumen->isDirty()) {
+                    $isDataChanged = true;
+                }
+                $lastAccepted = $konsumen->konsumenMes()
+                    ->where('status', StatusKonsumen::Diterima)
+                    ->whereNotNull('diverifikasi_oleh')
+                    ->latest('id')
+                    ->first();
+
+                $isDiterima = false;
+                $diverifikasiOleh = null;
+
+                if ($lastAccepted) {
+                    $isDiterima = true;
+                    $diverifikasiOleh = $lastAccepted->diverifikasi_oleh;
+                } elseif ($konsumen->status === StatusKonsumen::Diterima && $konsumen->diverifikasi_oleh) {
+                    $isDiterima = true;
+                    $diverifikasiOleh = $konsumen->diverifikasi_oleh;
+                }
+                if (!$isDataChanged && $isDiterima) {
+                    $statusMe         = StatusKonsumen::Diterima;
+                    $verifiedBy       = $diverifikasiOleh;
+                    $catatanPenolakan = null;
+                } else {
+                    $statusMe         = StatusKonsumen::Pending;
+                    $verifiedBy       = null;
+                    $catatanPenolakan = null;
+                }
+
+                $konsumen = $this->update($konsumen, $data);
+                KonsumenMe::firstOrCreate(
+                    [
+                        'id_me'       => $userId,
+                        'id_konsumen' => $konsumen->id,
+                    ],
+                    [
+                        'status'            => $statusMe,
+                        'diverifikasi_oleh' => $verifiedBy,
+                        'catatan_penolakan' => $catatanPenolakan,
+                    ]
+                );
+
+                return [$konsumen, true];
+            }
+
+            $konsumen = $this->create($data);
+
+            KonsumenMe::create([
+                'id_me'             => $userId,
+                'id_konsumen'       => $konsumen->id,
+                'status'            => StatusKonsumen::Pending,
+                'diverifikasi_oleh' => null,
+                'catatan_penolakan' => null,
+            ]);
+
+            return [$konsumen, false];
+        });
+    }
+
     public function create(array $data): Konsumen
     {
         return Konsumen::create($data);

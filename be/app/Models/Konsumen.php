@@ -43,9 +43,9 @@ class Konsumen extends Model
                  'no_telp',
                  'email',
                  'foto_ktp',
-                 'status',
-                 'catatan_penolakan',
-                 'diverifikasi_oleh'
+                //  'status',
+                //  'catatan_penolakan',
+                //  'diverifikasi_oleh'
                 ])
             ->logOnlyDirty()
             ->dontSubmitEmptyLogs();
@@ -73,9 +73,9 @@ class Konsumen extends Model
         'no_telp',
         'email',
         'foto_ktp',
-        'status',
-        'catatan_penolakan',
-        'diverifikasi_oleh',
+        // 'status',
+        // 'catatan_penolakan',
+        // 'diverifikasi_oleh',
     ];
     protected $appends = ['foto_ktp_url'];
     protected function casts(): array
@@ -141,8 +141,8 @@ class Konsumen extends Model
     {
         return $this->belongsTo(Pekerjaan::class, 'id_pekerjaan');
     }
-    public function verifiedBy()
-    {
-        return $this->belongsTo(User::class, 'diverifikasi_oleh');
-    }
+    // public function verifiedBy()
+    // {
+    //     return $this->belongsTo(User::class, 'diverifikasi_oleh');
+    // }
 }
