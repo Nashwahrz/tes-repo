@@ -1,5 +1,6 @@
 // src/pages/RegisterPage.jsx
 import { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { registerUser } from '../../api/authServices';
 import './LoginPage.css';
 
@@ -30,6 +31,7 @@ const validatePassword = (v) => {
 };
 
 function RegisterPage() {
+  const navigate = useNavigate();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -72,7 +74,7 @@ function RegisterPage() {
 
       setSuccess(data?.message || 'Registrasi berhasil! Mengarahkan ke verifikasi OTP...');
       setTimeout(() => {
-        window.location.href = `/otp?email=${encodeURIComponent(email)}`;
+        navigate(`/otp?email=${encodeURIComponent(email)}`);
       }, 1500);
     } catch (err) {
       const data = err.response?.data;
@@ -200,7 +202,7 @@ function RegisterPage() {
         </form>
 
         <p className="login-register">
-          Sudah punya akun?<a href="/">Masuk Sekarang ›</a>
+          Sudah punya akun?<Link to="/">Masuk Sekarang ›</Link>
         </p>
       </div>
     </div>

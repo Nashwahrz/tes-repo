@@ -4,6 +4,7 @@
 import { useEffect, useState } from 'react';
 import { getUrlIpLogins, updateUrlIpLogin, errorMessage } from '../../../api/authServices';
 import Toast from './Toast';
+import Modal from './Modal';
 import Loading, { Spin } from './Loading';
 import IconButton from './IconButton';
 
@@ -114,33 +115,31 @@ function UrlIpLoginPanel({ canEdit }) {
       )}
 
       {editing && (
-        <div className="dash-modal-bg">
-          <form className="dash-modal" onClick={(e) => e.stopPropagation()} onSubmit={handleSubmit} noValidate>
-            <h3>Ubah URL IP Login</h3>
-            <div className="dash-form-group">
-              <label htmlFor="urlip-url">URL *</label>
-              <input
-                id="urlip-url"
-                className={`dash-input${touched && urlError ? ' invalid' : ''}`}
-                value={form.url}
-                onChange={(e) => setForm((f) => ({ ...f, url: e.target.value }))}
-                placeholder="http://ip-api.com/json/"
-                autoFocus
-              />
-              {touched && urlError && <p className="dash-field-error">{urlError}</p>}
-              <p className="dash-map-hint">Alamat IP ditambahkan di ujung URL, atau tulis <code>{'{ip}'}</code> untuk menentukan posisinya. Layanan harus membalas format ip-api.com.</p>
-            </div>
-            <label style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14, cursor: 'pointer' }}>
-              <input id="urlip-is-active" type="checkbox" checked={form.is_active} onChange={(e) => setForm((f) => ({ ...f, is_active: e.target.checked }))} />
-              Aktif
-            </label>
-            {!form.is_active && <p className="dash-alert warning">Bila dinonaktifkan, lokasi pada log login tidak akan terisi.</p>}
-            <div className="dash-modal-actions">
-              <button id="btn-urlip-cancel" type="button" className="dash-btn outline" onClick={() => setEditing(null)} disabled={saving}>Batal</button>
-              <button id="btn-urlip-save" type="submit" className="dash-btn solid" disabled={saving}>{saving ? <><Spin />Menyimpan...</> : 'Simpan'}</button>
-            </div>
-          </form>
-        </div>
+        <Modal as="form" onClose={saving ? undefined : () => setEditing(null)} onSubmit={handleSubmit} noValidate>
+          <h3>Ubah URL IP Login</h3>
+          <div className="dash-form-group">
+            <label htmlFor="urlip-url">URL *</label>
+            <input
+              id="urlip-url"
+              className={`dash-input${touched && urlError ? ' invalid' : ''}`}
+              value={form.url}
+              onChange={(e) => setForm((f) => ({ ...f, url: e.target.value }))}
+              placeholder="http://ip-api.com/json/"
+              autoFocus
+            />
+            {touched && urlError && <p className="dash-field-error">{urlError}</p>}
+            <p className="dash-map-hint">Alamat IP ditambahkan di ujung URL, atau tulis <code>{'{ip}'}</code> untuk menentukan posisinya. Layanan harus membalas format ip-api.com.</p>
+          </div>
+          <label style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14, cursor: 'pointer' }}>
+            <input id="urlip-is-active" type="checkbox" checked={form.is_active} onChange={(e) => setForm((f) => ({ ...f, is_active: e.target.checked }))} />
+            Aktif
+          </label>
+          {!form.is_active && <p className="dash-alert warning">Bila dinonaktifkan, lokasi pada log login tidak akan terisi.</p>}
+          <div className="dash-modal-actions">
+            <button id="btn-urlip-cancel" type="button" className="dash-btn outline" onClick={() => setEditing(null)} disabled={saving}>Batal</button>
+            <button id="btn-urlip-save" type="submit" className="dash-btn solid" disabled={saving}>{saving ? <><Spin />Menyimpan...</> : 'Simpan'}</button>
+          </div>
+        </Modal>
       )}
     </div>
   );

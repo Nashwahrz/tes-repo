@@ -3,6 +3,7 @@
 // UI CRUD dealer, terhubung ke API /dealers.
 import { lazy, Suspense, useEffect, useState } from 'react';
 import Toast from './Toast';
+import Modal from './Modal';
 import { Spin } from './Loading';
 import IconButton from './IconButton';
 import ConfirmModal from './ConfirmModal';
@@ -222,54 +223,50 @@ function DealerPanel({ dealers: rows, onDealersChange, can, scopeNote }) {
       )}
 
       {detail && (
-        <div className="dash-modal-bg" onClick={() => setDetailRow(null)}>
-          <div className="dash-modal" onClick={(e) => e.stopPropagation()}>
-            <div className="dash-modal-head">
-              <h3>Detail Dealer</h3>
-              <button id="btn-dealer-detail-close" type="button" className="dash-modal-close" onClick={() => setDetailRow(null)} aria-label="Tutup" title="Tutup">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M6 6l12 12M18 6L6 18" /></svg>
-              </button>
-            </div>
-            <dl className="dash-detail">
-              {[
-                ['Nama', detail.name],
-                ['Alamat', detail.alamat],
-                ['Koordinat', detail.latitude != null && detail.longitude != null ? (
-                  <a href={`https://www.google.com/maps?q=${detail.latitude},${detail.longitude}`} target="_blank" rel="noreferrer">
-                    {detail.latitude}, {detail.longitude}
-                  </a>
-                ) : null],
-              ].map(([label, value]) => (
-                <div key={label}><dt>{label}</dt><dd>{value || '-'}</dd></div>
-              ))}
-            </dl>
+        <Modal onClose={() => setDetailRow(null)} dismissOnBackdrop>
+          <div className="dash-modal-head">
+            <h3>Detail Dealer</h3>
+            <button id="btn-dealer-detail-close" type="button" className="dash-modal-close" onClick={() => setDetailRow(null)} aria-label="Tutup" title="Tutup">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M6 6l12 12M18 6L6 18" /></svg>
+            </button>
           </div>
-        </div>
+          <dl className="dash-detail">
+            {[
+              ['Nama', detail.name],
+              ['Alamat', detail.alamat],
+              ['Koordinat', detail.latitude != null && detail.longitude != null ? (
+                <a href={`https://www.google.com/maps?q=${detail.latitude},${detail.longitude}`} target="_blank" rel="noreferrer">
+                  {detail.latitude}, {detail.longitude}
+                </a>
+              ) : null],
+            ].map(([label, value]) => (
+              <div key={label}><dt>{label}</dt><dd>{value || '-'}</dd></div>
+            ))}
+          </dl>
+        </Modal>
       )}
 
       {editing && (
-        <div className="dash-modal-bg">
-          <form className="dash-modal" onClick={(e) => e.stopPropagation()} onSubmit={handleSubmit} noValidate>
-            <h3>{isNew ? 'Tambah Dealer' : 'Ubah Dealer'}</h3>
-            {field('name', 'Nama Dealer', { placeholder: 'Contoh: Hayati Motor Pusat' })}
-            {field('alamat', 'Alamat', { textarea: true, placeholder: 'Alamat lengkap dealer' })}
-            <div className="dash-form-group">
-              <label>Lokasi di Peta</label>
-              <Suspense fallback={<div className="dash-map" />}>
-                <MapPicker latitude={form.latitude} longitude={form.longitude} onPick={handlePick} />
-              </Suspense>
-              <p className="dash-map-hint">Cari alamat, klik peta, atau geser marker untuk menentukan titik lokasi dealer.</p>
-            </div>
-            <div className="dash-form-row">
-              {field('latitude', 'Latitude', { numeric: true, placeholder: '-6.2088' })}
-              {field('longitude', 'Longitude', { numeric: true, placeholder: '106.8456' })}
-            </div>
-            <div className="dash-modal-actions">
-              <button id="btn-dealer-cancel" type="button" className="dash-btn outline" onClick={closeForm}>Batal</button>
-              <button id="btn-dealer-save" type="submit" className="dash-btn solid" disabled={saving}>{saving ? <><Spin />Menyimpan...</> : 'Simpan'}</button>
-            </div>
-          </form>
-        </div>
+        <Modal as="form" onClose={closeForm} onSubmit={handleSubmit} noValidate>
+          <h3>{isNew ? 'Tambah Dealer' : 'Ubah Dealer'}</h3>
+          {field('name', 'Nama Dealer', { placeholder: 'Contoh: Hayati Motor Pusat' })}
+          {field('alamat', 'Alamat', { textarea: true, placeholder: 'Alamat lengkap dealer' })}
+          <div className="dash-form-group">
+            <label>Lokasi di Peta</label>
+            <Suspense fallback={<div className="dash-map" />}>
+              <MapPicker latitude={form.latitude} longitude={form.longitude} onPick={handlePick} />
+            </Suspense>
+            <p className="dash-map-hint">Cari alamat, klik peta, atau geser marker untuk menentukan titik lokasi dealer.</p>
+          </div>
+          <div className="dash-form-row">
+            {field('latitude', 'Latitude', { numeric: true, placeholder: '-6.2088' })}
+            {field('longitude', 'Longitude', { numeric: true, placeholder: '106.8456' })}
+          </div>
+          <div className="dash-modal-actions">
+            <button id="btn-dealer-cancel" type="button" className="dash-btn outline" onClick={closeForm}>Batal</button>
+            <button id="btn-dealer-save" type="submit" className="dash-btn solid" disabled={saving}>{saving ? <><Spin />Menyimpan...</> : 'Simpan'}</button>
+          </div>
+        </Modal>
       )}
 
       {confirmSave && (

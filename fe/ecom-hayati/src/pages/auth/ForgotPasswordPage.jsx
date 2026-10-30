@@ -1,6 +1,7 @@
 // src/pages/auth/ForgotPasswordPage.jsx
 // Reset password 3 langkah sesuai BE: kirim OTP -> verifikasi OTP (dapat reset_token) -> password baru.
 import { useEffect, useRef, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { sendResetPasswordOtp, verifyResetPasswordOtp, resetPassword, retryAfterSeconds } from '../../api/authServices';
 import './LoginPage.css';
 import './OtpPage.css';
@@ -22,6 +23,7 @@ const TITLES = {
 };
 
 function ForgotPasswordPage() {
+  const navigate = useNavigate();
   const [step, setStep] = useState('email'); // 'email' | 'otp' | 'password'
   const [email, setEmail] = useState('');
   const [digits, setDigits] = useState(Array(OTP_LENGTH).fill(''));
@@ -119,7 +121,7 @@ function ForgotPasswordPage() {
     try {
       const data = await resetPassword(email, resetToken, password, confirm);
       setSuccess(data?.message || 'Kata sandi berhasil diubah.');
-      setTimeout(() => { window.location.href = '/'; }, 3000);
+      setTimeout(() => { navigate('/', { replace: true }); }, 3000);
     } catch (err) {
       // Token kedaluwarsa/tidak valid: kembali ke awal untuk meminta OTP baru
       if (err.response?.data?.errors?.reset_token) {
@@ -242,7 +244,7 @@ function ForgotPasswordPage() {
           </form>
         )}
 
-        <a className="login-secure" href="/">← Kembali ke halaman login</a>
+        <Link className="login-secure" to="/">← Kembali ke halaman login</Link>
       </div>
     </div>
   );

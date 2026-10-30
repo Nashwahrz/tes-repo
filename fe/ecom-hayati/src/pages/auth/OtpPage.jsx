@@ -1,5 +1,6 @@
 // src/pages/OtpPage.jsx
 import { useEffect, useRef, useState } from 'react';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { sendOtp, verifyOtp, retryAfterSeconds } from '../../api/authServices';
 import './LoginPage.css';
 import './OtpPage.css';
@@ -10,7 +11,9 @@ const OTP_LENGTH = 6;
 const RESEND_SECONDS = 60;
 
 function OtpPage() {
-  const email = new URLSearchParams(window.location.search).get('email') || '';
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const email = searchParams.get('email') || '';
   const [digits, setDigits] = useState(Array(OTP_LENGTH).fill(''));
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -80,7 +83,7 @@ function OtpPage() {
       await verifyOtp(email, otp);
       setSuccess('Email berhasil diverifikasi. Akun Anda menunggu persetujuan (ACC) Super Admin sebelum bisa digunakan.');
       setTimeout(() => {
-        window.location.href = '/';
+        navigate('/', { replace: true });
       }, 4000);
     } catch (err) {
       const wait = retryAfterSeconds(err);
@@ -160,7 +163,7 @@ function OtpPage() {
           )}
         </p>
 
-        <a className="login-secure" href="/">← Kembali ke halaman login</a>
+        <Link className="login-secure" to="/">← Kembali ke halaman login</Link>
       </div>
     </div>
   );

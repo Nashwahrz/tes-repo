@@ -1,6 +1,7 @@
 // src/pages/AccUserPanel.jsx
 import { useEffect, useState } from 'react';
 import Toast from './Toast';
+import Modal from './Modal';
 import Loading, { Spin } from './Loading';
 import Pager from './Pager';
 import IconButton from './IconButton';
@@ -245,64 +246,62 @@ function AccUserPanel({ users: allUsers, dealers, scopeNote, canActivate, loadin
       )}
 
       {pick && (
-        <div className="dash-modal-bg" onClick={() => setPick(null)}>
-          <div className="dash-modal" onClick={(e) => e.stopPropagation()}>
-            <div className="dash-modal-head">
-              <h3>{isEdit ? 'Atur Dealer & Atasan' : `${pick.label} Akun`}</h3>
-              <button id="btn-acc-modal-close" className="dash-modal-close" aria-label="Tutup" onClick={() => setPick(null)}>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><path d="M6 6l12 12M18 6L6 18" /></svg>
-              </button>
-            </div>
-            <p className="acc-who"><strong>{pick.user.name}</strong> · {pick.user.role?.name ?? '-'} · {pick.user.email}</p>
-            {!isEdit && (
-              <p className="dash-card-desc">
-                {pick.status === 'aktif' ? 'Pilih dealer dan atasan sebelum mengaktifkan akun ini.' : `Yakin ingin ${pick.label.toLowerCase()} akun ini?`}
-              </p>
-            )}
-            {pick.status === 'aktif' && (
-              <div className="dash-form-group">
-                <label htmlFor="acc-dealer">Dealer <span className="acc-req">*</span></label>
-                <select id="acc-dealer" className="dash-select full" value={pickDealer} onChange={(e) => setPickDealer(e.target.value)}>
-                  <option value="" disabled>Pilih dealer</option>
-                  {dealers.map((d) => (
-                    <option key={d.id} value={d.id}>{d.name}</option>
-                  ))}
-                </select>
-              </div>
-            )}
-            {pick.status === 'aktif' && (
-              <div className="dash-form-group">
-                <label htmlFor="acc-atasan">Atasan <span className="acc-opt">(opsional)</span></label>
-                <select
-                  id="acc-atasan"
-                  className="dash-select full"
-                  value={pickAtasan}
-                  disabled={loadingAtasan}
-                  onChange={(e) => setPickAtasan(e.target.value)}
-                >
-                  <option value="">
-                    {loadingAtasan ? 'Memuat...' : atasanOptions.length === 0 ? 'Tidak ada pilihan atasan' : 'Tanpa atasan'}
-                  </option>
-                  {atasanOptions.map((a) => (
-                    <option key={a.id} value={a.id}>
-                      {a.name}{a.role?.name ? ` (${a.role.name}${a.dealer?.name ? ` - ${a.dealer.name}` : ''})` : ''}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            )}
-            <div className="dash-modal-actions">
-              <button id="btn-acc-modal-cancel" className="dash-btn outline" onClick={() => setPick(null)}>Batal</button>
-              <button id="btn-acc-modal-submit"
-                className="dash-btn solid"
-                disabled={(pick.status === 'aktif' && !pickDealer) || busyId === pick.user.id}
-                onClick={() => submit(pick.user, pick.status === 'aktif' ? pickDealer : pick.user.id_dealer, pick.status, pick.doneLabel, pick.status === 'aktif' ? pickAtasan : pick.user.id_atasan)}
-              >
-                {busyId === pick.user.id ? <><Spin />Menyimpan...</> : isEdit ? 'Simpan' : `Ya, ${pick.label}`}
-              </button>
-            </div>
+        <Modal onClose={() => setPick(null)} dismissOnBackdrop>
+          <div className="dash-modal-head">
+            <h3>{isEdit ? 'Atur Dealer & Atasan' : `${pick.label} Akun`}</h3>
+            <button id="btn-acc-modal-close" className="dash-modal-close" aria-label="Tutup" onClick={() => setPick(null)}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><path d="M6 6l12 12M18 6L6 18" /></svg>
+            </button>
           </div>
-        </div>
+          <p className="acc-who"><strong>{pick.user.name}</strong> · {pick.user.role?.name ?? '-'} · {pick.user.email}</p>
+          {!isEdit && (
+            <p className="dash-card-desc">
+              {pick.status === 'aktif' ? 'Pilih dealer dan atasan sebelum mengaktifkan akun ini.' : `Yakin ingin ${pick.label.toLowerCase()} akun ini?`}
+            </p>
+          )}
+          {pick.status === 'aktif' && (
+            <div className="dash-form-group">
+              <label htmlFor="acc-dealer">Dealer <span className="acc-req">*</span></label>
+              <select id="acc-dealer" className="dash-select full" value={pickDealer} onChange={(e) => setPickDealer(e.target.value)}>
+                <option value="" disabled>Pilih dealer</option>
+                {dealers.map((d) => (
+                  <option key={d.id} value={d.id}>{d.name}</option>
+                ))}
+              </select>
+            </div>
+          )}
+          {pick.status === 'aktif' && (
+            <div className="dash-form-group">
+              <label htmlFor="acc-atasan">Atasan <span className="acc-opt">(opsional)</span></label>
+              <select
+                id="acc-atasan"
+                className="dash-select full"
+                value={pickAtasan}
+                disabled={loadingAtasan}
+                onChange={(e) => setPickAtasan(e.target.value)}
+              >
+                <option value="">
+                  {loadingAtasan ? 'Memuat...' : atasanOptions.length === 0 ? 'Tidak ada pilihan atasan' : 'Tanpa atasan'}
+                </option>
+                {atasanOptions.map((a) => (
+                  <option key={a.id} value={a.id}>
+                    {a.name}{a.role?.name ? ` (${a.role.name}${a.dealer?.name ? ` - ${a.dealer.name}` : ''})` : ''}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+          <div className="dash-modal-actions">
+            <button id="btn-acc-modal-cancel" className="dash-btn outline" onClick={() => setPick(null)}>Batal</button>
+            <button id="btn-acc-modal-submit"
+              className="dash-btn solid"
+              disabled={(pick.status === 'aktif' && !pickDealer) || busyId === pick.user.id}
+              onClick={() => submit(pick.user, pick.status === 'aktif' ? pickDealer : pick.user.id_dealer, pick.status, pick.doneLabel, pick.status === 'aktif' ? pickAtasan : pick.user.id_atasan)}
+            >
+              {busyId === pick.user.id ? <><Spin />Menyimpan...</> : isEdit ? 'Simpan' : `Ya, ${pick.label}`}
+            </button>
+          </div>
+        </Modal>
       )}
     </div>
   );

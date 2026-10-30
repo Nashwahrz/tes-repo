@@ -2,6 +2,7 @@
 // Riwayat aktivitas konsumen (tambah/ubah/verifikasi/hapus) dari BE /konsumens/logs. Hanya baca.
 import { useEffect, useState } from 'react';
 import Toast from './Toast';
+import Modal from './Modal';
 import Loading from './Loading';
 import Pager from './Pager';
 import IconButton from './IconButton';
@@ -109,31 +110,29 @@ function KonsumenLogPanel() {
       )}
 
       {detail && (
-        <div className="dash-modal-bg" onClick={() => setDetail(null)}>
-          <div className="dash-modal" onClick={(e) => e.stopPropagation()}>
-            <div className="dash-modal-head">
-              <h3>{AKSI[detail.aksi] ?? detail.aksi}: {detail.konsumen || '-'}</h3>
-              <button id="btn-konsumenlog-close" type="button" className="dash-modal-close" onClick={() => setDetail(null)} aria-label="Tutup" title="Tutup">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M18 6 6 18M6 6l12 12" /></svg>
-              </button>
-            </div>
-            <p className="dash-card-desc">Oleh {detail.oleh?.name ?? 'Sistem'} · {fmtWaktu(detail.waktu)}</p>
-            {changes.length === 0 ? (
-              <p className="dash-empty">Tidak ada rincian perubahan.</p>
-            ) : (
-              <div className="dash-table-wrap">
-                <table className="dash-table">
-                  <thead><tr><th>Data</th><th>Sebelum</th><th>Sesudah</th></tr></thead>
-                  <tbody>
-                    {changes.map(([label, lama, baru]) => (
-                      <tr key={label}><td>{label}</td><td className="acc-muted">{lama}</td><td><strong>{baru}</strong></td></tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
+        <Modal onClose={() => setDetail(null)} dismissOnBackdrop>
+          <div className="dash-modal-head">
+            <h3>{AKSI[detail.aksi] ?? detail.aksi}: {detail.konsumen || '-'}</h3>
+            <button id="btn-konsumenlog-close" type="button" className="dash-modal-close" onClick={() => setDetail(null)} aria-label="Tutup" title="Tutup">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M18 6 6 18M6 6l12 12" /></svg>
+            </button>
           </div>
-        </div>
+          <p className="dash-card-desc">Oleh {detail.oleh?.name ?? 'Sistem'} · {fmtWaktu(detail.waktu)}</p>
+          {changes.length === 0 ? (
+            <p className="dash-empty">Tidak ada rincian perubahan.</p>
+          ) : (
+            <div className="dash-table-wrap">
+              <table className="dash-table">
+                <thead><tr><th>Data</th><th>Sebelum</th><th>Sesudah</th></tr></thead>
+                <tbody>
+                  {changes.map(([label, lama, baru]) => (
+                    <tr key={label}><td>{label}</td><td className="acc-muted">{lama}</td><td><strong>{baru}</strong></td></tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </Modal>
       )}
     </div>
   );

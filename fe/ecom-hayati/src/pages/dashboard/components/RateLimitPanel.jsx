@@ -4,6 +4,7 @@
 import { useEffect, useState } from 'react';
 import { getRateLimits, updateRateLimit, errorMessage } from '../../../api/authServices';
 import Toast from './Toast';
+import Modal from './Modal';
 import Loading, { Spin } from './Loading';
 import IconButton from './IconButton';
 
@@ -126,48 +127,46 @@ function RateLimitPanel({ canEdit }) {
       )}
 
       {editing && (
-        <div className="dash-modal-bg">
-          <form className="dash-modal" onClick={(e) => e.stopPropagation()} onSubmit={handleSubmit} noValidate>
-            <div className="dash-modal-head">
-              <h3>Ubah Rate Limit · {title(editing)}</h3>
-              <button id="btn-ratelimit-close" type="button" className="dash-modal-close" onClick={() => setEditing(null)} aria-label="Tutup" title="Tutup" disabled={saving}>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M6 6l12 12M18 6L6 18" /></svg>
-              </button>
-            </div>
-            <div className="dash-form-group">
-              <label htmlFor="rl-req">Jumlah permintaan maksimal *</label>
-              <input
-                id="rl-req"
-                className={`dash-input${touched && errors.request_per_minutes ? ' invalid' : ''}`}
-                inputMode="numeric"
-                value={form.request_per_minutes}
-                onChange={(e) => setForm((f) => ({ ...f, request_per_minutes: e.target.value }))}
-                autoFocus
-              />
-              {touched && errors.request_per_minutes && <p className="dash-field-error">{errors.request_per_minutes}</p>}
-            </div>
-            <div className="dash-form-group">
-              <label htmlFor="rl-min">Dalam rentang (menit) *</label>
-              <input
-                id="rl-min"
-                className={`dash-input${touched && errors.minutes ? ' invalid' : ''}`}
-                inputMode="numeric"
-                value={form.minutes}
-                onChange={(e) => setForm((f) => ({ ...f, minutes: e.target.value }))}
-              />
-              {touched && errors.minutes && <p className="dash-field-error">{errors.minutes}</p>}
-            </div>
-            <label style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14, cursor: 'pointer' }}>
-              <input id="rl-is-active" type="checkbox" checked={form.is_active} onChange={(e) => setForm((f) => ({ ...f, is_active: e.target.checked }))} />
-              Aktifkan pembatasan
-            </label>
-            {!form.is_active && <p className="dash-alert warning">Bila dinonaktifkan, fitur ini tidak lagi dibatasi sehingga rentan disalahgunakan.</p>}
-            <div className="dash-modal-actions">
-              <button id="btn-ratelimit-cancel" type="button" className="dash-btn outline" onClick={() => setEditing(null)} disabled={saving}>Batal</button>
-              <button id="btn-ratelimit-save" type="submit" className="dash-btn solid" disabled={saving}>{saving ? <><Spin />Menyimpan...</> : 'Simpan'}</button>
-            </div>
-          </form>
-        </div>
+        <Modal as="form" onClose={saving ? undefined : () => setEditing(null)} onSubmit={handleSubmit} noValidate>
+          <div className="dash-modal-head">
+            <h3>Ubah Rate Limit · {title(editing)}</h3>
+            <button id="btn-ratelimit-close" type="button" className="dash-modal-close" onClick={() => setEditing(null)} aria-label="Tutup" title="Tutup" disabled={saving}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M6 6l12 12M18 6L6 18" /></svg>
+            </button>
+          </div>
+          <div className="dash-form-group">
+            <label htmlFor="rl-req">Jumlah permintaan maksimal *</label>
+            <input
+              id="rl-req"
+              className={`dash-input${touched && errors.request_per_minutes ? ' invalid' : ''}`}
+              inputMode="numeric"
+              value={form.request_per_minutes}
+              onChange={(e) => setForm((f) => ({ ...f, request_per_minutes: e.target.value }))}
+              autoFocus
+            />
+            {touched && errors.request_per_minutes && <p className="dash-field-error">{errors.request_per_minutes}</p>}
+          </div>
+          <div className="dash-form-group">
+            <label htmlFor="rl-min">Dalam rentang (menit) *</label>
+            <input
+              id="rl-min"
+              className={`dash-input${touched && errors.minutes ? ' invalid' : ''}`}
+              inputMode="numeric"
+              value={form.minutes}
+              onChange={(e) => setForm((f) => ({ ...f, minutes: e.target.value }))}
+            />
+            {touched && errors.minutes && <p className="dash-field-error">{errors.minutes}</p>}
+          </div>
+          <label style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14, cursor: 'pointer' }}>
+            <input id="rl-is-active" type="checkbox" checked={form.is_active} onChange={(e) => setForm((f) => ({ ...f, is_active: e.target.checked }))} />
+            Aktifkan pembatasan
+          </label>
+          {!form.is_active && <p className="dash-alert warning">Bila dinonaktifkan, fitur ini tidak lagi dibatasi sehingga rentan disalahgunakan.</p>}
+          <div className="dash-modal-actions">
+            <button id="btn-ratelimit-cancel" type="button" className="dash-btn outline" onClick={() => setEditing(null)} disabled={saving}>Batal</button>
+            <button id="btn-ratelimit-save" type="submit" className="dash-btn solid" disabled={saving}>{saving ? <><Spin />Menyimpan...</> : 'Simpan'}</button>
+          </div>
+        </Modal>
       )}
     </div>
   );

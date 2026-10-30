@@ -4,6 +4,7 @@
 import { useEffect, useState } from 'react';
 import { getAppKeyOcrs, updateAppKeyOcr, errorMessage } from '../../../api/authServices';
 import Toast from './Toast';
+import Modal from './Modal';
 import Loading, { Spin } from './Loading';
 import IconButton from './IconButton';
 
@@ -135,38 +136,36 @@ function AppKeyOcrPanel({ canEdit }) {
       )}
 
       {editing && (
-        <div className="dash-modal-bg">
-          <form className="dash-modal" onClick={(e) => e.stopPropagation()} onSubmit={handleSubmit} noValidate>
-            <h3>Ubah App Key OCR</h3>
-            <div className="dash-form-group">
-              <label htmlFor="ocr-url">URL *</label>
-              <input id="ocr-url" className={`dash-input${touched && errors.url ? ' invalid' : ''}`} value={form.url} onChange={set('url')} placeholder="https://api.ocr.space/parse/image" autoFocus />
-              {fieldError('url')}
+        <Modal as="form" onClose={saving ? undefined : () => setEditing(null)} onSubmit={handleSubmit} noValidate>
+          <h3>Ubah App Key OCR</h3>
+          <div className="dash-form-group">
+            <label htmlFor="ocr-url">URL *</label>
+            <input id="ocr-url" className={`dash-input${touched && errors.url ? ' invalid' : ''}`} value={form.url} onChange={set('url')} placeholder="https://api.ocr.space/parse/image" autoFocus />
+            {fieldError('url')}
+          </div>
+          <div className="dash-form-group">
+            <label htmlFor="ocr-key">API Key *</label>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <input id="ocr-key" className={`dash-input${touched && errors.api_key ? ' invalid' : ''}`} type={showKey ? 'text' : 'password'} value={form.api_key} onChange={set('api_key')} autoComplete="off" />
+              <button id="btn-ocr-toggle-key" type="button" className="dash-btn outline" onClick={() => setShowKey((v) => !v)}>{showKey ? 'Sembunyikan' : 'Tampilkan'}</button>
             </div>
-            <div className="dash-form-group">
-              <label htmlFor="ocr-key">API Key *</label>
-              <div style={{ display: 'flex', gap: 8 }}>
-                <input id="ocr-key" className={`dash-input${touched && errors.api_key ? ' invalid' : ''}`} type={showKey ? 'text' : 'password'} value={form.api_key} onChange={set('api_key')} autoComplete="off" />
-                <button id="btn-ocr-toggle-key" type="button" className="dash-btn outline" onClick={() => setShowKey((v) => !v)}>{showKey ? 'Sembunyikan' : 'Tampilkan'}</button>
-              </div>
-              {fieldError('api_key')}
-            </div>
-            <div className="dash-form-group">
-              <label htmlFor="ocr-ket">Keterangan *</label>
-              <input id="ocr-ket" className={`dash-input${touched && errors.keterangan ? ' invalid' : ''}`} value={form.keterangan} onChange={set('keterangan')} />
-              {fieldError('keterangan')}
-            </div>
-            <label style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14, cursor: 'pointer' }}>
-              <input id="ocr-is-active" type="checkbox" checked={form.is_active} onChange={(e) => setForm((f) => ({ ...f, is_active: e.target.checked }))} />
-              Aktif
-            </label>
-            {!form.is_active && <p className="dash-alert warning">Bila dinonaktifkan, pembacaan KTP (OCR) tidak dapat dipakai.</p>}
-            <div className="dash-modal-actions">
-              <button id="btn-ocr-cancel" type="button" className="dash-btn outline" onClick={() => setEditing(null)} disabled={saving}>Batal</button>
-              <button id="btn-ocr-save" type="submit" className="dash-btn solid" disabled={saving}>{saving ? <><Spin />Menyimpan...</> : 'Simpan'}</button>
-            </div>
-          </form>
-        </div>
+            {fieldError('api_key')}
+          </div>
+          <div className="dash-form-group">
+            <label htmlFor="ocr-ket">Keterangan *</label>
+            <input id="ocr-ket" className={`dash-input${touched && errors.keterangan ? ' invalid' : ''}`} value={form.keterangan} onChange={set('keterangan')} />
+            {fieldError('keterangan')}
+          </div>
+          <label style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14, cursor: 'pointer' }}>
+            <input id="ocr-is-active" type="checkbox" checked={form.is_active} onChange={(e) => setForm((f) => ({ ...f, is_active: e.target.checked }))} />
+            Aktif
+          </label>
+          {!form.is_active && <p className="dash-alert warning">Bila dinonaktifkan, pembacaan KTP (OCR) tidak dapat dipakai.</p>}
+          <div className="dash-modal-actions">
+            <button id="btn-ocr-cancel" type="button" className="dash-btn outline" onClick={() => setEditing(null)} disabled={saving}>Batal</button>
+            <button id="btn-ocr-save" type="submit" className="dash-btn solid" disabled={saving}>{saving ? <><Spin />Menyimpan...</> : 'Simpan'}</button>
+          </div>
+        </Modal>
       )}
     </div>
   );

@@ -6,6 +6,7 @@
 import { useEffect, useState } from 'react';
 import { getMasterPage, getMasterOptions, getMasterByKode, searchMaster, createMaster, updateMaster, setMasterStatus, errorMessage } from '../../../api/authServices';
 import Toast from './Toast';
+import Modal from './Modal';
 import Loading, { Spin } from './Loading';
 import Pager from './Pager';
 import IconButton from './IconButton';
@@ -346,48 +347,46 @@ function MasterPanel({ tabKey, can }) {
       )}
 
       {editing && (
-        <div className="dash-modal-bg">
-          <form className="dash-modal" onClick={(e) => e.stopPropagation()} onSubmit={handleSubmit} noValidate>
-            <h3>{isNew ? 'Tambah' : 'Ubah'} {tab.label}</h3>
+        <Modal as="form" onClose={saving ? undefined : closeForm} onSubmit={handleSubmit} noValidate>
+          <h3>{isNew ? 'Tambah' : 'Ubah'} {tab.label}</h3>
+          <div className="dash-form-group">
+            <label htmlFor="master-kode">Kode{isNew ? ' *' : ''}</label>
+            <input
+              id="master-kode"
+              className={`dash-input${touched && kodeError ? ' invalid' : ''}`}
+              value={form.kode}
+              onChange={(e) => setForm((f) => ({ ...f, kode: e.target.value }))}
+              inputMode="numeric"
+              maxLength={10}
+              disabled={!isNew}
+              autoFocus={isNew}
+            />
+            {touched && kodeError && <p className="dash-field-error">{kodeError}</p>}
+            {!isNew && <p className="dash-map-hint">Kode tidak dapat diubah.</p>}
+          </div>
+          <div className="dash-form-group">
+            <label htmlFor="master-name">Nama *</label>
+            <input
+              id="master-name"
+              className={`dash-input${touched && nameError ? ' invalid' : ''}`}
+              value={form.name}
+              onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
+              autoFocus={!isNew}
+            />
+            {touched && nameError && <p className="dash-field-error">{nameError}</p>}
+          </div>
+          {tab.parent && (
             <div className="dash-form-group">
-              <label htmlFor="master-kode">Kode{isNew ? ' *' : ''}</label>
-              <input
-                id="master-kode"
-                className={`dash-input${touched && kodeError ? ' invalid' : ''}`}
-                value={form.kode}
-                onChange={(e) => setForm((f) => ({ ...f, kode: e.target.value }))}
-                inputMode="numeric"
-                maxLength={10}
-                disabled={!isNew}
-                autoFocus={isNew}
-              />
-              {touched && kodeError && <p className="dash-field-error">{kodeError}</p>}
-              {!isNew && <p className="dash-map-hint">Kode tidak dapat diubah.</p>}
+              <label htmlFor="master-parent">{tab.parent.label} *</label>
+              <ParentPicker parent={tab.parent} value={form.parent} name={form.parentName} onPick={(kode, name) => setForm((f) => ({ ...f, parent: kode, parentName: name }))} />
+              {touched && parentError && <p className="dash-field-error">{parentError}</p>}
             </div>
-            <div className="dash-form-group">
-              <label htmlFor="master-name">Nama *</label>
-              <input
-                id="master-name"
-                className={`dash-input${touched && nameError ? ' invalid' : ''}`}
-                value={form.name}
-                onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-                autoFocus={!isNew}
-              />
-              {touched && nameError && <p className="dash-field-error">{nameError}</p>}
-            </div>
-            {tab.parent && (
-              <div className="dash-form-group">
-                <label htmlFor="master-parent">{tab.parent.label} *</label>
-                <ParentPicker parent={tab.parent} value={form.parent} name={form.parentName} onPick={(kode, name) => setForm((f) => ({ ...f, parent: kode, parentName: name }))} />
-                {touched && parentError && <p className="dash-field-error">{parentError}</p>}
-              </div>
-            )}
-            <div className="dash-modal-actions">
-              <button id={`btn-master-${tab.key}-cancel`} type="button" className="dash-btn outline" onClick={closeForm} disabled={saving}>Batal</button>
-              <button id={`btn-master-${tab.key}-save`} type="submit" className="dash-btn solid" disabled={saving}>{saving ? <><Spin />Menyimpan...</> : 'Simpan'}</button>
-            </div>
-          </form>
-        </div>
+          )}
+          <div className="dash-modal-actions">
+            <button id={`btn-master-${tab.key}-cancel`} type="button" className="dash-btn outline" onClick={closeForm} disabled={saving}>Batal</button>
+            <button id={`btn-master-${tab.key}-save`} type="submit" className="dash-btn solid" disabled={saving}>{saving ? <><Spin />Menyimpan...</> : 'Simpan'}</button>
+          </div>
+        </Modal>
       )}
 
       {toToggle && (

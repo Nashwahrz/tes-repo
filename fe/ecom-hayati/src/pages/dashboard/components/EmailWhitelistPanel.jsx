@@ -5,6 +5,7 @@ import {
   getEmailWhitelists, createEmailWhitelist, updateEmailWhitelist, deleteEmailWhitelist, errorMessage,
 } from '../../../api/authServices';
 import Toast from './Toast';
+import Modal from './Modal';
 import Loading, { Spin } from './Loading';
 import IconButton from './IconButton';
 import ConfirmModal from './ConfirmModal';
@@ -183,34 +184,32 @@ function EmailWhitelistPanel({ can, userId, users = [] }) {
       )}
 
       {editing && (
-        <div className="dash-modal-bg">
-          <form className="dash-modal" onClick={(e) => e.stopPropagation()} onSubmit={handleSubmit} noValidate>
-            <h3>{isNew ? 'Tambah Domain' : 'Ubah Domain'}</h3>
-            <div className="dash-form-group">
-              <label htmlFor="whitelist-domain">Domain *</label>
-              <input
-                id="whitelist-domain"
-                className={`dash-input${touched && errors.domain ? ' invalid' : ''}`}
-                value={form.domain}
-                onChange={(e) => setForm((f) => ({ ...f, domain: e.target.value }))}
-                placeholder="@gmail.com"
-                autoFocus
-              />
-              {touched && errors.domain && <p className="dash-field-error">{errors.domain}</p>}
-              <p className="dash-map-hint">Diawali @, contoh: @gmail.com. Huruf otomatis dikecilkan.</p>
-            </div>
-            <div className="dash-form-group">
-              <label className="dash-check">
-                <input id="whitelist-is-active" type="checkbox" checked={form.is_active} onChange={(e) => setForm((f) => ({ ...f, is_active: e.target.checked }))} />
-                Aktif (domain ini boleh dipakai mendaftar)
-              </label>
-            </div>
-            <div className="dash-modal-actions">
-              <button id="btn-whitelist-cancel" type="button" className="dash-btn outline" onClick={closeForm} disabled={saving}>Batal</button>
-              <button id="btn-whitelist-save" type="submit" className="dash-btn solid" disabled={saving}>{saving ? <><Spin />Menyimpan...</> : 'Simpan'}</button>
-            </div>
-          </form>
-        </div>
+        <Modal as="form" onClose={saving ? undefined : closeForm} onSubmit={handleSubmit} noValidate>
+          <h3>{isNew ? 'Tambah Domain' : 'Ubah Domain'}</h3>
+          <div className="dash-form-group">
+            <label htmlFor="whitelist-domain">Domain *</label>
+            <input
+              id="whitelist-domain"
+              className={`dash-input${touched && errors.domain ? ' invalid' : ''}`}
+              value={form.domain}
+              onChange={(e) => setForm((f) => ({ ...f, domain: e.target.value }))}
+              placeholder="@gmail.com"
+              autoFocus
+            />
+            {touched && errors.domain && <p className="dash-field-error">{errors.domain}</p>}
+            <p className="dash-map-hint">Diawali @, contoh: @gmail.com. Huruf otomatis dikecilkan.</p>
+          </div>
+          <div className="dash-form-group">
+            <label className="dash-check">
+              <input id="whitelist-is-active" type="checkbox" checked={form.is_active} onChange={(e) => setForm((f) => ({ ...f, is_active: e.target.checked }))} />
+              Aktif (domain ini boleh dipakai mendaftar)
+            </label>
+          </div>
+          <div className="dash-modal-actions">
+            <button id="btn-whitelist-cancel" type="button" className="dash-btn outline" onClick={closeForm} disabled={saving}>Batal</button>
+            <button id="btn-whitelist-save" type="submit" className="dash-btn solid" disabled={saving}>{saving ? <><Spin />Menyimpan...</> : 'Simpan'}</button>
+          </div>
+        </Modal>
       )}
 
       {toDelete && (

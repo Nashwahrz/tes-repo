@@ -5,6 +5,7 @@ import {
   getEmailSmtps, createEmailSmtp, updateEmailSmtp, deleteEmailSmtp, errorMessage,
 } from '../../../api/authServices';
 import Toast from './Toast';
+import Modal from './Modal';
 import Loading, { Spin } from './Loading';
 import IconButton from './IconButton';
 import ConfirmModal from './ConfirmModal';
@@ -209,35 +210,33 @@ function EmailSmtpPanel({ can }) {
       )}
 
       {editing && (
-        <div className="dash-modal-bg">
-          <form className="dash-modal" onClick={(e) => e.stopPropagation()} onSubmit={handleSubmit} noValidate>
-            <h3>{isNew ? 'Tambah SMTP' : 'Ubah SMTP'}</h3>
-            <div className="dash-form-row">
-              {select('mail_mailer', 'Mailer *', MAILERS)}
-              {select('mail_encryption', 'Enkripsi *', ENCRYPTIONS)}
-            </div>
-            <div className="dash-form-row">
-              {text('mail_host', 'Host *', { placeholder: 'smtp.gmail.com', autoFocus: true })}
-              {text('mail_port', 'Port *', { inputMode: 'numeric', placeholder: '587' })}
-            </div>
-            <div className="dash-form-row">
-              {text('mail_username', 'Username', { autoComplete: 'off' })}
-              {text('mail_password', 'Password', { type: 'password', autoComplete: 'new-password' })}
-            </div>
-            {text('mail_from_address', 'Email Pengirim *', { type: 'email', placeholder: 'noreply@domain.com' })}
-            {text('mail_from_name', 'Nama Pengirim *')}
-            <div className="dash-form-group">
-              <label className="dash-check">
-                <input id="smtp-is-active" type="checkbox" checked={form.is_active} onChange={(e) => setForm((f) => ({ ...f, is_active: e.target.checked }))} />
-                Aktif
-              </label>
-            </div>
-            <div className="dash-modal-actions">
-              <button id="btn-smtp-cancel" type="button" className="dash-btn outline" onClick={closeForm} disabled={saving}>Batal</button>
-              <button id="btn-smtp-save" type="submit" className="dash-btn solid" disabled={saving}>{saving ? <><Spin />Menyimpan...</> : 'Simpan'}</button>
-            </div>
-          </form>
-        </div>
+        <Modal as="form" onClose={saving ? undefined : closeForm} onSubmit={handleSubmit} noValidate>
+          <h3>{isNew ? 'Tambah SMTP' : 'Ubah SMTP'}</h3>
+          <div className="dash-form-row">
+            {select('mail_mailer', 'Mailer *', MAILERS)}
+            {select('mail_encryption', 'Enkripsi *', ENCRYPTIONS)}
+          </div>
+          <div className="dash-form-row">
+            {text('mail_host', 'Host *', { placeholder: 'smtp.gmail.com', autoFocus: true })}
+            {text('mail_port', 'Port *', { inputMode: 'numeric', placeholder: '587' })}
+          </div>
+          <div className="dash-form-row">
+            {text('mail_username', 'Username', { autoComplete: 'off' })}
+            {text('mail_password', 'Password', { type: 'password', autoComplete: 'new-password' })}
+          </div>
+          {text('mail_from_address', 'Email Pengirim *', { type: 'email', placeholder: 'noreply@domain.com' })}
+          {text('mail_from_name', 'Nama Pengirim *')}
+          <div className="dash-form-group">
+            <label className="dash-check">
+              <input id="smtp-is-active" type="checkbox" checked={form.is_active} onChange={(e) => setForm((f) => ({ ...f, is_active: e.target.checked }))} />
+              Aktif
+            </label>
+          </div>
+          <div className="dash-modal-actions">
+            <button id="btn-smtp-cancel" type="button" className="dash-btn outline" onClick={closeForm} disabled={saving}>Batal</button>
+            <button id="btn-smtp-save" type="submit" className="dash-btn solid" disabled={saving}>{saving ? <><Spin />Menyimpan...</> : 'Simpan'}</button>
+          </div>
+        </Modal>
       )}
 
       {toDelete && (

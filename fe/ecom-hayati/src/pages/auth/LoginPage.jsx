@@ -1,12 +1,15 @@
 // src/pages/LoginPage.jsx
 import { useEffect, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { loginUser, retryAfterSeconds } from '../../api/authServices';
+import { queryClient } from '../../api/queryClient';
 import './LoginPage.css';
 import { formatWait } from './formatWait';
 
 const LOGO_SRC = '/logo.png';
 
 function LoginPage() {
+  const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -44,8 +47,9 @@ function LoginPage() {
       localStorage.setItem('token', data.token);
       localStorage.setItem('user', JSON.stringify(data.data));
 
-      // Redirect ke dashboard (sesuaikan)
-      window.location.href = '/dashboard';
+      // Buang sisa cache data sesi sebelumnya sebelum masuk dashboard
+      queryClient.clear();
+      navigate('/dashboard', { replace: true });
     } catch (err) {
       // Pesan berasal dari LoginResponse di BE:
       // 401 -> email/password salah, 403 -> akun belum aktif,
@@ -54,7 +58,7 @@ function LoginPage() {
 
       // Email belum diverifikasi -> BE sudah mengirim OTP, arahkan ke halaman OTP
       if (data?.code === 'email_not_verified') {
-        window.location.href = `/otp?email=${encodeURIComponent(email)}`;
+        navigate(`/otp?email=${encodeURIComponent(email)}`);
         return;
       }
 
@@ -132,7 +136,7 @@ function LoginPage() {
             </button>
           </div>
 
-          <p className="login-forgot"><a href="/lupa-password">Lupa kata sandi?</a></p>
+          <p className="login-forgot"><Link to="/lupa-password">Lupa kata sandi?</Link></p>
 
           {error && <p className="login-error">{error}</p>}
 
@@ -142,7 +146,7 @@ function LoginPage() {
         </form>
 
         <p className="login-register">
-          Belum punya akun?<a href="/register">Daftar Sekarang ›</a>
+          Belum punya akun?<Link to="/register">Daftar Sekarang ›</Link>
         </p>
 
                 {/* <span className="login-secure">
