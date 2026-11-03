@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class LogUser extends Model
 {
-    protected $table = 'log_users';
+    protected $table = 'log.log_users';
 
     protected $fillable = [
         'id_user',

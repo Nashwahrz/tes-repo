@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\AppKeyOcrRequest;
+use App\Http\Resources\ActivityLogResource;
 use App\Http\Responses\AppKeyOcrResponse;
 use App\Repositories\AppKeyOcrRepository;
 use Illuminate\Http\Request;
@@ -61,6 +62,19 @@ class AppKeyOcrController extends Controller
             Log::error('Gagal mengupdate app key ocr: ' . $e->getMessage(), [
                 'trace' => $e->getTraceAsString(),
             ]);
+            return $this->appKeyOcrResponse->serverError();
+        }
+    }
+    public function logs(Request $request)
+    {
+        try {
+            $perPage = min(max((int) $request->query('per_page', 10), 1), 100);
+
+            return ActivityLogResource::collection(
+                $this->appKeyOcrRepository->getAllLogs($perPage, $request->query('search'))
+            );
+        } catch (Throwable $e) {
+            Log::error('Gagal mengambil log app key ocr: ' . $e->getMessage());
             return $this->appKeyOcrResponse->serverError();
         }
     }

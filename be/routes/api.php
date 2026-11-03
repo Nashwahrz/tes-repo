@@ -45,6 +45,7 @@ use Illuminate\Support\Facades\Route;
         Route::prefix('dealers')->middleware('menu.access:dealers')->group(function () {
             Route::get('/', [DealerController::class, 'index'])->middleware('permission:dealers.lihat');
             Route::post('/', [DealerController::class, 'store'])->middleware('permission:dealers.tambah');
+            Route::get('/logs', [DealerController::class, 'logs'])->middleware('permission:dealers.logs');
             Route::get('/{id}', [DealerController::class, 'show'])->middleware('permission:dealers.lihat');
             Route::put('/{id}', [DealerController::class, 'update'])->middleware('permission:dealers.ubah');
             Route::delete('/{id}', [DealerController::class, 'destroy'])->middleware('permission:dealers.hapus');
@@ -53,6 +54,7 @@ use Illuminate\Support\Facades\Route;
             Route::get('/', [AgamaController::class, 'index'])->middleware('permission:agamas.lihat');
             Route::get('/aktif', [AgamaController::class, 'indexAktif'])->middleware('permission:agamas.lihat-aktif');
             Route::get('/non-aktif', [AgamaController::class, 'indexNonAktif'])->middleware('permission:agamas.lihat-non-aktif');
+            Route::get('/logs', [AgamaController::class, 'logs'])->middleware('permission:agamas.logs');
             Route::post('/', [AgamaController::class, 'store'])->middleware('permission:agamas.tambah');
             Route::get('/{id}', [AgamaController::class, 'show'])->middleware('permission:agamas.lihat');
             Route::put('/{id}', [AgamaController::class, 'update'])->middleware('permission:agamas.ubah');
@@ -64,6 +66,7 @@ use Illuminate\Support\Facades\Route;
             Route::get('/aktif', [PekerjaanController::class, 'indexAktif'])->middleware('permission:pekerjaans.lihat-aktif');
             Route::get('/non-aktif', [PekerjaanController::class, 'indexNonAktif'])->middleware('permission:pekerjaans.lihat-non-aktif');
             Route::post('/', [PekerjaanController::class, 'store'])->middleware('permission:pekerjaans.tambah');
+            Route::get('/logs', [PekerjaanController::class, 'logs'])->middleware('permission:pekerjaans.logs');
             Route::get('/{id}', [PekerjaanController::class, 'show'])->middleware('permission:pekerjaans.lihat');
             Route::put('/{id}', [PekerjaanController::class, 'update'])->middleware('permission:pekerjaans.ubah');
             Route::put('/{id}/status', [PekerjaanController::class, 'status'])->middleware('permission:pekerjaans.ubah');
@@ -74,6 +77,7 @@ use Illuminate\Support\Facades\Route;
             Route::get('/aktif', [ProvinsiController::class, 'indexAktif'])->middleware('permission:provinsis.lihat-aktif');
             Route::get('/non-aktif', [ProvinsiController::class, 'indexNonAktif'])->middleware('permission:provinsis.lihat-non-aktif');
             Route::post('/', [ProvinsiController::class, 'store'])->middleware('permission:provinsis.tambah');
+            Route::get('/logs', [ProvinsiController::class, 'logs'])->middleware('permission:provinsis.logs');
             Route::get('/{id}', [ProvinsiController::class, 'show'])->middleware('permission:provinsis.lihat');
             Route::put('/{id}', [ProvinsiController::class, 'update'])->middleware('permission:provinsis.ubah');
             Route::put('/{id}/status', [ProvinsiController::class, 'status'])->middleware('permission:provinsis.ubah');
@@ -84,6 +88,7 @@ use Illuminate\Support\Facades\Route;
             Route::post('/', [KabupatenKotaController::class, 'store'])->middleware('permission:kabupaten-kotas.tambah');
             Route::get('/aktif', [KabupatenKotaController::class, 'indexAktif'])->middleware('permission:kabupaten-kotas.lihat-aktif');
             Route::get('/non-aktif', [KabupatenKotaController::class, 'indexNonAktif'])->middleware('permission:kabupaten-kotas.lihat-non-aktif');
+            Route::get('/logs', [KabupatenKotaController::class, 'logs'])->middleware('permission:kabupaten-kotas.logs');
             Route::get('/{id}', [KabupatenKotaController::class, 'show'])->middleware('permission:kabupaten-kotas.lihat');
             Route::put('/{id}', [KabupatenKotaController::class, 'update'])->middleware('permission:kabupaten-kotas.ubah');
             Route::put('/{id}/status', [KabupatenKotaController::class, 'status'])->middleware('permission:kabupaten-kotas.ubah');
@@ -95,6 +100,7 @@ use Illuminate\Support\Facades\Route;
             Route::post('/', [KecamatanController::class, 'store'])->middleware('permission:kecamatans.tambah');
             Route::get('/aktif', [KecamatanController::class, 'indexAktif'])->middleware('permission:kecamatans.lihat-aktif');
             Route::get('/non-aktif', [KecamatanController::class, 'indexNonAktif'])->middleware('permission:kecamatans.lihat-non-aktif');
+            Route::get('/logs', [KecamatanController::class, 'logs'])->middleware('permission:kecamatans.logs');
             Route::get('/{id}', [KecamatanController::class, 'show'])->middleware('permission:kecamatans.lihat');
             Route::put('/{id}', [KecamatanController::class, 'update'])->middleware('permission:kecamatans.ubah');
             Route::put('/{id}/status', [KecamatanController::class, 'status'])->middleware('permission:kecamatans.ubah');
@@ -105,6 +111,7 @@ use Illuminate\Support\Facades\Route;
             Route::get('/aktif', [KelurahanController::class, 'indexAktif'])->middleware('permission:kelurahans.lihat-aktif');
             Route::get('/non-aktif', [KelurahanController::class, 'indexNonAktif'])->middleware('permission:kelurahans.lihat-non-aktif');
             Route::post('/', [KelurahanController::class, 'store'])->middleware('permission:kelurahans.tambah');
+            Route::get('/logs', [KelurahanController::class, 'logs'])->middleware('permission:kelurahans.logs');
             Route::get('/{id}', [KelurahanController::class, 'show'])->middleware('permission:kelurahans.lihat');
             Route::put('/{id}', [KelurahanController::class, 'update'])->middleware('permission:kelurahans.ubah');
             Route::put('/{id}/status', [KelurahanController::class, 'status'])->middleware('permission:kelurahans.ubah');
@@ -112,6 +119,7 @@ use Illuminate\Support\Facades\Route;
         });
         Route::prefix('configurasi-rate-limits')->middleware('menu.access:configurasi-rate-limits')->group(function () {
             Route::get('/', [ConfigurasiRateLimitController::class, 'index'])->middleware('permission:configurasi-rate-limits.lihat');
+             Route::get('/logs', [ConfigurasiRateLimitController::class, 'logs'])->middleware('permission:configurasi-rate-limits.logs');
          //   Route::post('/', [ConfigurasiRateLimitController::class, 'store'])->middleware('permission:configurasi-rate-limits.tambah');
             Route::get('/{id}', [ConfigurasiRateLimitController::class, 'show'])->middleware('permission:configurasi-rate-limits.lihat');
             Route::put('/{id}', [ConfigurasiRateLimitController::class, 'update'])->middleware('permission:configurasi-rate-limits.ubah');
@@ -129,6 +137,7 @@ use Illuminate\Support\Facades\Route;
         Route::prefix('email-smtps')->middleware('menu.access:email-smtps')->group(function () {
             Route::get('/', [EmailSmtpController::class, 'index'])->middleware('permission:email-smtps.lihat');
             Route::post('/', [EmailSmtpController::class, 'store'])->middleware('permission:email-smtps.tambah');
+            Route::get('/logs', [EmailSmtpController::class, 'logs'])->middleware('permission:email-smtps.logs');
             Route::get('/{id}', [EmailSmtpController::class, 'show'])->middleware('permission:email-smtps.lihat');
             Route::put('/{id}', [EmailSmtpController::class, 'update'])->middleware('permission:email-smtps.ubah');
             Route::delete('/{id}', [EmailSmtpController::class, 'destroy'])->middleware('permission:email-smtps.hapus');
@@ -136,11 +145,13 @@ use Illuminate\Support\Facades\Route;
 
         Route::prefix('url-ip-logins')->middleware('menu.access:url-ip-logins')->group(function () {
             Route::get('/', [UrlIpLoginController::class, 'index'])->middleware('permission:url-ip-logins.lihat');
+            Route::get('/logs', [UrlIpLoginController::class, 'logs'])->middleware('permission:url-ip-logins.logs');
             Route::get('/{id}', [UrlIpLoginController::class, 'show'])->middleware('permission:url-ip-logins.lihat');
             Route::put('/{id}', [UrlIpLoginController::class, 'update'])->middleware('permission:url-ip-logins.ubah');
         });
         Route::prefix('app-key-ocrs')->middleware('menu.access:app-key-ocrs')->group(function () {
             Route::get('/', [AppKeyOcrController::class, 'index'])->middleware('permission:app-key-ocrs.lihat');
+            Route::get('/logs', [AppKeyOcrController::class, 'logs'])->middleware('permission:app-key-ocrs.logs');
             Route::get('/{id}', [AppKeyOcrController::class, 'show'])->middleware('permission:app-key-ocrs.lihat');
             Route::put('/{id}', [AppKeyOcrController::class, 'update'])->middleware('permission:app-key-ocrs.ubah');
         });
@@ -152,6 +163,7 @@ use Illuminate\Support\Facades\Route;
             Route::get('/ditolak', [UserController::class, 'ditolakUsers'])->middleware('permission:users.lihat');
             Route::get('/nonaktif', [UserController::class, 'nonaktifUsers'])->middleware('permission:users.lihat');
             Route::get('/atasan-options', [UserController::class, 'getAtasanOptions'])->middleware('permission:users.lihat');
+            Route::get('/logs', [UserController::class, 'logs'])->middleware('permission:users.logs');
             Route::put('/{id}', [UserController::class, 'activate'])->middleware('permission:users.aktivasi');
         });
         Route::prefix('log-users')->middleware('menu.access:log-users')->group(function () {
@@ -163,6 +175,8 @@ use Illuminate\Support\Facades\Route;
             Route::middleware(['menu.access:role-menus', 'permission:role-menus.kelola'])->group(function () {
                 Route::get('/', [RoleMenuController::class, 'index']);
                 Route::get('/menus', [RoleMenuController::class, 'getMenus']);
+                Route::get('/logs', [RoleMenuController::class, 'logMenuRoles']);
+                //Route::get('/menus/logs', [RoleMenuController::class, 'logMenus']);
                 Route::get('/{roleId}', [RoleMenuController::class, 'show']);
                 Route::put('/{roleId}', [RoleMenuController::class, 'update']);
             });
@@ -174,6 +188,8 @@ use Illuminate\Support\Facades\Route;
             Route::middleware(['menu.access:role-menus', 'permission:role-permissions.kelola'])->group(function () {
                 Route::get('/', [RolePermissionController::class, 'index']);
                 Route::get('/permissions', [RolePermissionController::class, 'getPermissions']);
+                Route::get('/logs', [RolePermissionController::class, 'logPermissionRoles']);
+               // Route::get('/permissions/logs', [RolePermissionController::class, 'logPermissions']);
                 Route::get('/{roleId}', [RolePermissionController::class, 'show']);
                 Route::put('/{roleId}', [RolePermissionController::class, 'update']);
             });
@@ -194,13 +210,14 @@ use Illuminate\Support\Facades\Route;
             Route::post('/{id}/update', [KonsumenController::class, 'update'])
                     ->whereNumber('id')
                     ->middleware('permission:konsumens.ubah');
-            Route::delete('/{id}', [KonsumenController::class, 'destroy'])->middleware('permission:konsumens.hapus');
+         //   Route::delete('/{id}', [KonsumenController::class, 'destroy'])->middleware('permission:konsumens.hapus');
             Route::put('/activate/{id}', [KonsumenController::class, 'activate'])->middleware('permission:konsumens.aktivasi');
            
         });
         Route::prefix('email-whitelists')->middleware('menu.access:email-whitelists')->group(function () {
             Route::get('/', [EmailWhiteListController::class, 'index'])->middleware('permission:email-whitelists.lihat');
             Route::post('/', [EmailWhiteListController::class, 'store'])->middleware('permission:email-whitelists.tambah');
+            Route::get('/logs', [EmailWhiteListController::class, 'logs'])->middleware('permission:email-whitelists.logs');
             Route::get('/{id}', [EmailWhiteListController::class, 'show'])->middleware('permission:email-whitelists.lihat');
             Route::put('/{id}', [EmailWhiteListController::class, 'update'])->middleware('permission:email-whitelists.ubah');
             Route::delete('/{id}', [EmailWhiteListController::class, 'destroy'])->middleware('permission:email-whitelists.hapus');

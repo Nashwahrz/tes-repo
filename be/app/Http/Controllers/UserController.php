@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Enums\StatusUser;
 use App\Http\Requests\ActivateUserRequest;
 use App\Http\Requests\GetAtasanOptionsRequest;
+use App\Http\Resources\ActivityLogResource;
 use App\Http\Responses\UserResponse;
 use App\Mail\SendActivateUser;
 use App\Models\Role;
@@ -157,6 +158,19 @@ class UserController extends Controller
                 'trace' => $e->getTraceAsString(),
             ]);
 
+            return $this->userResponse->serverError();
+        }
+    }
+    public function logs(Request $request)
+    {
+        try {
+            $perPage = min(max((int) $request->query('per_page', 10), 1), 100);
+
+            return ActivityLogResource::collection(
+                $this->userRepository->getAllLogs($perPage, $request->query('search'))
+            );
+        } catch (Throwable $e) {
+            Log::error('Gagal mengambil log user: ' . $e->getMessage());
             return $this->userResponse->serverError();
         }
     }

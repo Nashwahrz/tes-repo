@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\GeografisStatusRequest;
 use App\Http\Requests\PekerjaanRequest;
+use App\Http\Resources\ActivityLogResource;
 use App\Http\Responses\PekerjaanResponse;
 use App\Repositories\PekerjaanRepository;
 use Illuminate\Database\UniqueConstraintViolationException;
@@ -151,6 +152,19 @@ class PekerjaanController extends Controller
             Log::error('Gagal menghapus pekerjaan: ' . $e->getMessage(), [
                 'trace' => $e->getTraceAsString(),
             ]);
+            return $this->pekerjaanResponse->serverError();
+        }
+    }
+    public function logs(Request $request)
+    {
+        try {
+            $perPage = min(max((int) $request->query('per_page', 10), 1), 100);
+
+            return ActivityLogResource::collection(
+                $this->pekerjaanRepository->getAllLogs($perPage, $request->query('search'))
+            );
+        } catch (Throwable $e) {
+            Log::error('Gagal mengambil log pekerjaan: ' . $e->getMessage());
             return $this->pekerjaanResponse->serverError();
         }
     }

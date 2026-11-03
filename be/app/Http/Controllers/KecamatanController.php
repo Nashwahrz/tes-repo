@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\GeografisStatusRequest;
 use App\Http\Requests\KecamatanRequest;
+use App\Http\Resources\ActivityLogResource;
 use App\Http\Responses\KecamatanResponse;
 use App\Repositories\KecamatanRepository;
 use Illuminate\Database\UniqueConstraintViolationException;
@@ -153,6 +154,19 @@ class KecamatanController extends Controller
             Log::error('Gagal menghapus kecamatan: ' . $e->getMessage(), [
                 'trace' => $e->getTraceAsString(),
             ]);
+            return $this->kecamatanResponse->serverError();
+        }
+    }
+    public function logs(Request $request)
+    {
+        try {
+            $perPage = min(max((int) $request->query('per_page', 10), 1), 100);
+
+            return ActivityLogResource::collection(
+                $this->kecamatanRepository->getAllLogs($perPage, $request->query('search'))
+            );
+        } catch (Throwable $e) {
+            Log::error('Gagal mengambil log kecamatan: ' . $e->getMessage());
             return $this->kecamatanResponse->serverError();
         }
     }

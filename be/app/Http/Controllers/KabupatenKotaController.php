@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\GeografisStatusRequest;
 use App\Http\Requests\KabupatenKotaRequest;
+use App\Http\Resources\ActivityLogResource;
 use App\Http\Responses\KabupatenKotaResponse;
 use App\Repositories\KabupatenKotaRepository;
 use Illuminate\Database\UniqueConstraintViolationException;
@@ -151,6 +152,19 @@ class KabupatenKotaController extends Controller
             Log::error('Gagal menghapus kabupaten kota: ' . $e->getMessage(), [
                 'trace' => $e->getTraceAsString(),
             ]);
+            return $this->kabupatenKotaResponse->serverError();
+        }
+    }
+    public function logs(Request $request)
+    {
+        try {
+            $perPage = min(max((int) $request->query('per_page', 10), 1), 100);
+
+            return ActivityLogResource::collection(
+                $this->kabupatenKotaRepository->getAllLogs($perPage, $request->query('search'))
+            );
+        } catch (Throwable $e) {
+            Log::error('Gagal mengambil log kabupaten kota: ' . $e->getMessage());
             return $this->kabupatenKotaResponse->serverError();
         }
     }
