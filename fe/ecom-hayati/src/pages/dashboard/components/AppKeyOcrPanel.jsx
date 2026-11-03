@@ -157,7 +157,7 @@ function AppKeyOcrPanel({ canEdit }) {
             {fieldError('keterangan')}
           </div>
           <label style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14, cursor: 'pointer' }}>
-            <input id="ocr-is-active" type="checkbox" checked={form.is_active} onChange={(e) => setForm((f) => ({ ...f, is_active: e.target.checked }))} />
+            <input id="ocr-is-active" type="checkbox" className="dash-switch" role="switch" checked={form.is_active} onChange={(e) => setForm((f) => ({ ...f, is_active: e.target.checked }))} />
             Aktif
           </label>
           {!form.is_active && <p className="dash-alert warning">Bila dinonaktifkan, pembacaan KTP (OCR) tidak dapat dipakai.</p>}

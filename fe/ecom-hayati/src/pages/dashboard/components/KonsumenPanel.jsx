@@ -29,6 +29,11 @@ function KonsumenPanel({ can, userId, onChanged, dealers = [], myDealerId = null
     if (!dealerPicked.current && myDealerId != null) setDealerFilter(String(myDealerId));
   }, [myDealerId]);
   const [reloadKey, setReloadKey] = useState(0);
+  const [pollKey, setPollKey] = useState(0); // naik tiap polling: daftar dimuat ulang diam-diam (tanpa spinner/pesan error)
+  const silentRef = useRef(false);
+  const onChangedRef = useRef(onChanged);
+  useEffect(() => { onChangedRef.current = onChanged; });
+  const sigRef = useRef(''); // tanda status semua baris terakhir; berubah = lencana sidebar perlu diperbarui
   const [page, setPage] = useState(1);
   const [meta, setMeta] = useState(null); // info halaman dari BE; null saat mencari (semua data dimuat)
   const [query, setQuery] = useState('');
@@ -68,16 +73,36 @@ function KonsumenPanel({ can, userId, onChanged, dealers = [], myDealerId = null
           setPage(Math.max(res.meta.lastPage, 1));
           return;
         }
+        const sig = res.rows.map((k) => `${k.konsumen_me_id}:${k.status}`).join('|');
+        const changed = sigRef.current !== '' && sig !== sigRef.current;
+        sigRef.current = sig;
         setRows(res.rows);
         setMeta(res.meta);
         setError('');
         setLoading(false);
+        if (silentRef.current && changed) onChangedRef.current?.();
       })
-      .catch((err) => { if (active) { setError(errorMessage(err)); setLoading(false); } });
+      .catch((err) => { if (active) { if (!silentRef.current) setError(errorMessage(err)); setLoading(false); } });
     return () => { active = false; };
-  }, [filter, dealerFilter, page, reloadKey, loadAll, can.lihatSemua]);
+  }, [filter, dealerFilter, page, reloadKey, pollKey, loadAll, can.lihatSemua]);
 
-  const reload = () => { setLoading(true); setReloadKey((n) => n + 1); };
+  // Realtime: perubahan status dari pengguna lain muncul tanpa refresh halaman. Polling tiap 8 detik saat tab terlihat
+  // dan tidak ada form/dialog terbuka (agar isian tidak terganggu), serta langsung saat tab kembali difokuskan.
+  const busy = !!(formTarget || toDelete || toVerify || saving);
+  useEffect(() => {
+    if (busy) return undefined;
+    const tick = () => {
+      if (document.visibilityState !== 'visible') return;
+      silentRef.current = true;
+      setPollKey((n) => n + 1);
+    };
+    const timer = setInterval(tick, 8000);
+    document.addEventListener('visibilitychange', tick);
+    window.addEventListener('focus', tick);
+    return () => { clearInterval(timer); document.removeEventListener('visibilitychange', tick); window.removeEventListener('focus', tick); };
+  }, [busy]);
+
+  const reload = () => { silentRef.current = false; setLoading(true); setReloadKey((n) => n + 1); };
 
   // BE hanya mengirim kode wilayah/agama/pekerjaan; namanya diambil per kode saat detail dibuka (hasilnya di-cache)
   const [namesFor, setNamesFor] = useState({ id: null, names: {} });

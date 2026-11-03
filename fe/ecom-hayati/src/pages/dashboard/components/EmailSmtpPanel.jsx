@@ -228,7 +228,7 @@ function EmailSmtpPanel({ can }) {
           {text('mail_from_name', 'Nama Pengirim *')}
           <div className="dash-form-group">
             <label className="dash-check">
-              <input id="smtp-is-active" type="checkbox" checked={form.is_active} onChange={(e) => setForm((f) => ({ ...f, is_active: e.target.checked }))} />
+              <input id="smtp-is-active" type="checkbox" className="dash-switch" role="switch" checked={form.is_active} onChange={(e) => setForm((f) => ({ ...f, is_active: e.target.checked }))} />
               Aktif
             </label>
           </div>

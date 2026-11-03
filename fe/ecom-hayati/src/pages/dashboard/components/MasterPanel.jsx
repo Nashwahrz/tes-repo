@@ -10,6 +10,7 @@ import Modal from './Modal';
 import Loading, { Spin } from './Loading';
 import Pager from './Pager';
 import IconButton from './IconButton';
+import Switch from './Switch';
 import ConfirmModal from './ConfirmModal';
 import MasterImportModal from './MasterImportModal';
 
@@ -320,12 +321,15 @@ function MasterPanel({ tabKey, can }) {
                   <td>{r.kode ?? '-'}</td>
                   <td><strong className="dash-cell-name">{r.name}</strong></td>
                   {tab.parent && <td>{r[tab.parent.field] ? parentNames[r[tab.parent.field]] ?? '...' : '-'}</td>}
-                  <td><span className={`dash-status ${isActive(r) ? 'aktif' : 'nonaktif'}`}>{isActive(r) ? 'Aktif' : 'Nonaktif'}</span></td>
+                  <td>
+                    {showAksi
+                      ? <Switch id={`btn-master-${tab.key}-status-${r.id}`} checked={isActive(r)} label={isActive(r) ? 'Nonaktifkan' : 'Aktifkan'} onToggle={() => setToToggle(r)} />
+                      : <span className={`dash-status ${isActive(r) ? 'aktif' : 'nonaktif'}`}>{isActive(r) ? 'Aktif' : 'Nonaktif'}</span>}
+                  </td>
                   {showAksi && (
                     <td className="col-aksi">
                       <div className="dash-actions">
                         {perm('ubah') && <IconButton id={`btn-master-${tab.key}-edit-${r.id}`} icon="edit" label="Ubah" onClick={() => openForm(r)} />}
-                        <IconButton id={`btn-master-${tab.key}-status-${r.id}`} icon={isActive(r) ? 'ban' : 'check'} label={isActive(r) ? 'Nonaktifkan' : 'Aktifkan'} tone={isActive(r) ? 'danger' : 'ok'} onClick={() => setToToggle(r)} />
                       </div>
                     </td>
                   )}

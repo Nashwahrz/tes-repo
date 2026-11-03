@@ -5,6 +5,7 @@ import Modal from './Modal';
 import Loading, { Spin } from './Loading';
 import Pager from './Pager';
 import IconButton from './IconButton';
+import Switch from './Switch';
 import { getAtasanOptions, getUsers, updateUserStatus } from '../../../api/authServices';
 
 const TABS = [
@@ -215,11 +216,21 @@ function AccUserPanel({ users: allUsers, dealers, scopeNote, canActivate, loadin
                   <td>{u.role?.name ?? '-'}</td>
                   <td className="acc-muted">{u.dealer?.name ?? '-'}</td>
                   <td className="acc-muted">{u.atasan?.name ?? '-'}</td>
-                  <td><span className={`dash-status ${u.status}`}>{STATUS_LABEL[u.status] ?? u.status}</span></td>
+                  <td>
+                    {(() => {
+                      // Akun aktif/nonaktif: toggle geser (Nonaktifkan / Aktifkan); status lain tetap berupa label
+                      const flip = canActivate && (u.status === 'aktif' || u.status === 'nonaktif')
+                        ? actionsFor(u).find(([, status]) => status !== u.status)
+                        : null;
+                      return flip
+                        ? <Switch id={`btn-acc-${flip[1]}-${u.id}`} checked={u.status === 'aktif'} label={flip[0]} disabled={busyId === u.id} onToggle={() => handleAction(u, ...flip)} />
+                        : <span className={`dash-status ${u.status}`}>{STATUS_LABEL[u.status] ?? u.status}</span>;
+                    })()}
+                  </td>
                   {canActivate && (
                     <td className="col-aksi">
                       <div className="dash-actions">
-                        {actionsFor(u).map(([label, status, done]) => {
+                        {actionsFor(u).filter(([, status]) => !(canActivate && ['aktif', 'nonaktif'].includes(u.status) && status !== u.status)).map(([label, status, done]) => {
                           const isAtur = status === 'aktif' && u.status === 'aktif';
                           return (
                             <IconButton id={`btn-acc-${status}-${u.id}`}

@@ -201,7 +201,7 @@ function EmailWhitelistPanel({ can, userId, users = [] }) {
           </div>
           <div className="dash-form-group">
             <label className="dash-check">
-              <input id="whitelist-is-active" type="checkbox" checked={form.is_active} onChange={(e) => setForm((f) => ({ ...f, is_active: e.target.checked }))} />
+              <input id="whitelist-is-active" type="checkbox" className="dash-switch" role="switch" checked={form.is_active} onChange={(e) => setForm((f) => ({ ...f, is_active: e.target.checked }))} />
               Aktif (domain ini boleh dipakai mendaftar)
             </label>
           </div>

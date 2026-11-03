@@ -2,6 +2,7 @@
 // Peta OpenStreetMap (Leaflet): klik peta untuk menentukan latitude & longitude.
 import { useEffect, useRef, useState } from 'react';
 import L from 'leaflet';
+import { addBaseLayers } from './mapLayers';
 import 'leaflet/dist/leaflet.css';
 import markerIcon from 'leaflet/dist/images/marker-icon.png';
 import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
@@ -131,48 +132,7 @@ function MapPicker({ latitude, longitude, onPick, desa = '', kecamatan = '', kab
   useEffect(() => {
     const start = toPoint(latitude, longitude);
     const map = L.map(elRef.current).setView(start || DEFAULT_CENTER, start ? PICK_ZOOM : DEFAULT_ZOOM);
-    // Layer Google Maps
-    const googleStreets = L.tileLayer('https://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', {
-      maxZoom: 20,
-      subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
-      attribution: '&copy; Google Maps',
-    });
-
-    const googleHybrid = L.tileLayer('https://{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', {
-      maxZoom: 20,
-      subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
-      attribution: '&copy; Google Maps',
-    });
-
-    const googleSat = L.tileLayer('https://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', {
-      maxZoom: 20,
-      subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
-      attribution: '&copy; Google Maps',
-    });
-
-    const googleTerrain = L.tileLayer('https://{s}.google.com/vt/lyrs=p&x={x}&y={y}&z={z}', {
-      maxZoom: 20,
-      subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
-      attribution: '&copy; Google Maps',
-    });
-
-    const osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      maxZoom: 19,
-      attribution: '&copy; OpenStreetMap',
-    });
-
-    // Default layer: Google Streets (mirip tampilan Google Maps)
-    googleStreets.addTo(map);
-
-    const baseLayers = {
-      '🗺️ Google Maps': googleStreets,
-      '🛰️ Google Satelit + Jalan': googleHybrid,
-      '📷 Google Satelit Polos': googleSat,
-      '⛰️ Google Medan (Terrain)': googleTerrain,
-      '🌐 OpenStreetMap': osm,
-    };
-
-    L.control.layers(baseLayers, null, { position: 'topright' }).addTo(map);
+    addBaseLayers(map); // layer & kontrol jenis peta sama dengan semua peta lain (mapLayers.js)
 
     if (start) markerRef.current = createMarker(map, start);
 

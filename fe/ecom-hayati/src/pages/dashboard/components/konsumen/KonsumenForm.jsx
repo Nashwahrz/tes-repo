@@ -18,6 +18,8 @@ function KonsumenForm({ editing, can, onClose, onSaved, onError }) {
   const [touched, setTouched] = useState({});
   const [file, setFile] = useState(null);
   const [preview, setPreview] = useState('');
+  const [nikList, setNikList] = useState([]); // konsumen terdaftar yang NIK-nya cocok dengan yang diketik
+  const [pickedNik, setPickedNik] = useState(''); // NIK yang datanya sudah diambil dari daftar (daftar disembunyikan)
   const [nikDup, setNikDup] = useState(null); // konsumen lain dengan NIK yang sama (hasil BE /konsumens/check-nik)
   const [saving, setSaving] = useState(false);
   const [scanning, setScanning] = useState(false);
@@ -49,17 +51,32 @@ function KonsumenForm({ editing, can, onClose, onSaved, onError }) {
     if (scanNote) scanNoteRef.current?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
   }, [scanNote]);
 
-  // NIK lengkap diperiksa ke BE agar duplikat ketahuan sebelum submit; gagal cek tidak menghalangi pengisian
+  // NIK (min. 12 digit) dicari ke BE: daftar NIK yang cocok ditampilkan untuk dipilih, dan NIK lengkap yang sama persis ditandai duplikat; gagal cek tidak menghalangi pengisian
   useEffect(() => {
-    if (!/^\d{16}$/.test(form.nik)) return undefined;
+    if (!/^\d{12,16}$/.test(form.nik)) return undefined;
     const ctrl = new AbortController();
     const timer = setTimeout(() => {
       checkNik(form.nik, ctrl.signal)
-        .then(({ list }) => setNikDup(list.find((k) => k.nik === form.nik && k.id !== editing?.id) ?? null))
+        .then(({ list }) => {
+          const others = list.filter((k) => String(k.nik).startsWith(form.nik) && k.id !== editing?.id);
+          setNikList(others);
+          setNikDup(others.find((k) => k.nik === form.nik) ?? null);
+        })
         .catch(() => {});
     }, 400);
     return () => { clearTimeout(timer); ctrl.abort(); };
   }, [form.nik, editing]);
+
+  // Konsumen terdaftar dipilih dari daftar: datanya diambil ke form (user tetap bebas mengubah)
+  const pickKonsumen = (k) => {
+    setForm((f) => ({ ...f, ...toForm(k) }));
+    setPickedNik(String(k.nik));
+    setOcrFilled({});
+    setOcrMissing({});
+    setOcrHints({});
+    setScanNote({ ok: true, text: `Data konsumen ${k.name || '-'} (NIK ${k.nik}) diambil ke form. Periksa kembali sebelum menyimpan.` });
+  };
+  const showNikList = !editing && /^\d{12,16}$/.test(form.nik) && nikList.length > 0 && pickedNik !== form.nik && nikList.every((k) => String(k.nik).startsWith(form.nik));
   const shownNikDup = /^\d{16}$/.test(form.nik) ? nikDup : null;
 
   // NIK yang sudah terdaftar: BE memakai foto KTP yang ada bila tidak ada foto baru
@@ -228,8 +245,20 @@ function KonsumenForm({ editing, can, onClose, onSaved, onError }) {
         </div>
         {shownNikDup && (
           <p className="dash-alert warning" role="status">
-            <strong>!</strong> NIK ini sudah terdaftar atas nama <strong>{shownNikDup.name || '-'}</strong>. Periksa kembali sebelum menyimpan.
+            <strong>!</strong> NIK <strong>{shownNikDup.nik}</strong> sudah terdaftar atas nama <strong>{shownNikDup.name || '-'}</strong>. Periksa kembali sebelum menyimpan.
           </p>
+        )}
+        {showNikList && (
+          <ul className="dash-nik-list" role="listbox" aria-label="NIK terdaftar">
+            <li className="dash-map-hint">NIK terdaftar — pilih untuk mengambil datanya:</li>
+            {nikList.map((k) => (
+              <li key={k.id}>
+                <button type="button" role="option" className="dash-nik-item" onClick={() => pickKonsumen(k)}>
+                  <strong>{k.nik}</strong> — {k.name || '-'}
+                </button>
+              </li>
+            ))}
+          </ul>
         )}
         <div className="dash-form-row">
           {field('kode_tmp_lahir', 'Tempat Lahir', { idOptions: master.tempatLahir })}

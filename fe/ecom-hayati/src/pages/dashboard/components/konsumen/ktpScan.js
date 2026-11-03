@@ -1,8 +1,10 @@
 import { scanKtp, getKabupatens, getProvinsis, searchKecamatans, searchKelurahans, searchMaster } from '../../../../api/authServices';
-import { CHILD_OF, FIELDS, LABELS, SCAN_FIELDS, matchId, matchOpt, normName } from './konsumenForm';
+import { CHILD_OF, FIELDS, LABELS, SCAN_FIELDS, TARGET_FILE, matchId, matchOpt, normName } from './konsumenForm';
+import { enhanceForOcr } from '../../../../utils/enhanceForOcr';
 
 export async function scanKtpToForm(file, master) {
-  let data = await scanKtp(file);
+  // Foto diperbaiki dulu (kontras, ketajaman, ukuran) supaya foto agak blur tetap terbaca; foto yang disimpan tidak berubah
+  let data = await scanKtp(await enhanceForOcr(file, TARGET_FILE));
   // OCR mengirim teks (nama wilayah, agama, pekerjaan); cocokkan ke kode master.
   // Teks yang terbaca tetapi tidak ada di daftar dicatat di `unmatched`: kolomnya dikosongkan dan user diminta mengisinya ulang.
   const found = {};

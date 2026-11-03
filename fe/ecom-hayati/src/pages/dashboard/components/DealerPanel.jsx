@@ -4,6 +4,7 @@
 import { lazy, Suspense, useEffect, useState } from 'react';
 import Toast from './Toast';
 import Modal from './Modal';
+import MapView from './MapView'; // peta hanya-baca bergaya Google Maps di detail dealer
 import { Spin } from './Loading';
 import IconButton from './IconButton';
 import ConfirmModal from './ConfirmModal';
@@ -11,6 +12,7 @@ import { getDealer, createDealer, updateDealer, deleteDealer, errorMessage } fro
 
 // Leaflet (JS + CSS) hanya dimuat saat form dealer dibuka
 const MapPicker = lazy(() => import('./MapPicker'));
+
 
 const EMPTY = { name: '', alamat: '', latitude: '', longitude: '' };
 
@@ -60,6 +62,15 @@ function DealerPanel({ dealers: rows, onDealersChange, can, scopeNote }) {
     getDealer(detailId).then((d) => active && setDetailFresh(d)).catch(() => {});
     return () => { active = false; setDetailFresh(null); };
   }, [detailId]);
+
+  const [copied, setCopied] = useState(false);
+  const hasCoord = (d) => d.latitude != null && d.longitude != null && d.latitude !== '' && d.longitude !== '';
+  const copyCoord = () => {
+    navigator.clipboard?.writeText(`${detail.latitude}, ${detail.longitude}`).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    }).catch(() => {});
+  };
 
   const isNew = editing === 'new';
   const others = rows.filter((d) => d.id !== editing?.id);
@@ -223,26 +234,38 @@ function DealerPanel({ dealers: rows, onDealersChange, can, scopeNote }) {
       )}
 
       {detail && (
-        <Modal onClose={() => setDetailRow(null)} dismissOnBackdrop>
+        <Modal className="dealer-detail-modal" onClose={() => setDetailRow(null)} dismissOnBackdrop>
           <div className="dash-modal-head">
             <h3>Detail Dealer</h3>
             <button id="btn-dealer-detail-close" type="button" className="dash-modal-close" onClick={() => setDetailRow(null)} aria-label="Tutup" title="Tutup">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M6 6l12 12M18 6L6 18" /></svg>
             </button>
           </div>
-          <dl className="dash-detail">
-            {[
-              ['Nama', detail.name],
-              ['Alamat', detail.alamat],
-              ['Koordinat', detail.latitude != null && detail.longitude != null ? (
-                <a href={`https://www.google.com/maps?q=${detail.latitude},${detail.longitude}`} target="_blank" rel="noreferrer">
-                  {detail.latitude}, {detail.longitude}
-                </a>
-              ) : null],
-            ].map(([label, value]) => (
-              <div key={label}><dt>{label}</dt><dd>{value || '-'}</dd></div>
-            ))}
-          </dl>
+
+          <div className="dealer-hero">
+            <span className="dealer-hero-icon" aria-hidden="true">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l1-5h16l1 5" /><path d="M4 9v11h16V9" /><path d="M9 20v-6h6v6" /></svg>
+            </span>
+            <div>
+              <strong className="dealer-hero-name">{detail.name || '-'}</strong>
+              <p className="dealer-hero-addr">{detail.alamat || '-'}</p>
+            </div>
+          </div>
+
+          <MapView latitude={detail.latitude} longitude={detail.longitude} label={detail.name} />
+
+          {hasCoord(detail) && (
+            <>
+              <div className="dealer-coords">
+                <div><span>Latitude</span><strong>{detail.latitude}</strong></div>
+                <div><span>Longitude</span><strong>{detail.longitude}</strong></div>
+              </div>
+              <div className="dealer-detail-actions">
+                <button id="btn-dealer-copy-coord" type="button" className="dash-btn outline" onClick={copyCoord}>{copied ? 'Tersalin ✓' : 'Salin koordinat'}</button>
+                <a id="btn-dealer-open-maps" className="dash-btn solid" href={`https://www.google.com/maps?q=${detail.latitude},${detail.longitude}`} target="_blank" rel="noreferrer">Buka di Google Maps</a>
+              </div>
+            </>
+          )}
         </Modal>
       )}
 

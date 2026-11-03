@@ -131,7 +131,7 @@ function UrlIpLoginPanel({ canEdit }) {
             <p className="dash-map-hint">Alamat IP ditambahkan di ujung URL, atau tulis <code>{'{ip}'}</code> untuk menentukan posisinya. Layanan harus membalas format ip-api.com.</p>
           </div>
           <label style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14, cursor: 'pointer' }}>
-            <input id="urlip-is-active" type="checkbox" checked={form.is_active} onChange={(e) => setForm((f) => ({ ...f, is_active: e.target.checked }))} />
+            <input id="urlip-is-active" type="checkbox" className="dash-switch" role="switch" checked={form.is_active} onChange={(e) => setForm((f) => ({ ...f, is_active: e.target.checked }))} />
             Aktif
           </label>
           {!form.is_active && <p className="dash-alert warning">Bila dinonaktifkan, lokasi pada log login tidak akan terisi.</p>}

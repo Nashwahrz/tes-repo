@@ -2,9 +2,9 @@
 // Perkecil foto di browser (canvas) bila ukurannya melebihi batas. Hasilnya JPEG; foto yang sudah kecil dikembalikan apa adanya.
 // Dimensi dan kualitas diturunkan bertahap, tetapi tidak di bawah batas minimum agar teks KTP masih terbaca (OCR).
 const START_SIDE = 2400; // sisi terpanjang awal (px)
-const MIN_SIDE = 1200;
+const MIN_SIDE = 1600;
 const START_QUALITY = 0.9;
-const MIN_QUALITY = 0.6;
+const MIN_QUALITY = 0.75;
 
 const loadBitmap = async (file) => {
   if (typeof createImageBitmap === 'function') {
