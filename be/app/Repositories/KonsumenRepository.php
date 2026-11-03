@@ -184,6 +184,19 @@ class KonsumenRepository
             ->latest('id')
             ->paginate($perPage);
     }
+    public function paginateDealerAll(int $perPage = 10,?string $search = null,?int $userId = null,?int $dealerId = null): LengthAwarePaginator {
+        return Konsumen::with(['konsumenMes.me'])
+            ->when($userId, fn ($q) => $q->whereHas('konsumenMes', fn ($q) => $q->where('id_me', $userId)))
+            ->when($dealerId, fn ($q) => $q->whereHas('konsumenMes.me', fn ($q) => $q->where('id_dealer', $dealerId)))
+            ->when($search, function ($q) use ($search) {
+                $q->where(function ($q) use ($search) {
+                    $q->where('name', 'ILIKE', "%{$search}%")
+                    ->orWhere('nik', 'ILIKE', "%{$search}%");
+                });
+            })
+            ->latest('id')
+            ->paginate($perPage);
+    }
 
 
     public function getAllLogs(int $perPage = 10, ?string $search = null): LengthAwarePaginator
@@ -203,6 +216,7 @@ class KonsumenRepository
 
         return $logs;
     }
+    
     private function attachUsersMap(LengthAwarePaginator $logs): void
     {
         $userIds = $logs->getCollection()

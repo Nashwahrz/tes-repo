@@ -64,6 +64,28 @@ class KonsumenController extends Controller
             return $this->konsumenResponse->serverError();
         }
     }
+    public function indexDealerAll(Request $request)
+    {
+        try {
+            $user = $request->user();
+            if (!$user->id_dealer) {
+                return $this->konsumenResponse->paginated(
+                    Konsumen::whereRaw('1 = 0')->paginate(10)
+                );
+            }
+            $konsumens = $this->konsumenRepository->paginateDealerAll(
+                perPage: min(max((int) $request->query('per_page', 10), 1), 100),
+                search: $request->query('search'),
+                userId: null,                  
+                dealerId: $user->id_dealer    
+            );
+
+            return $this->konsumenResponse->paginated($konsumens);
+        } catch (Throwable $e) {
+            Log::error('Gagal mengambil data konsumen: ' . $e->getMessage());
+            return $this->konsumenResponse->serverError();
+        }
+    }
 
     public function status(Request $request)
     {

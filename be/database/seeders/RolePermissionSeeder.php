@@ -102,7 +102,7 @@ class RolePermissionSeeder extends Seeder
                 'dealers.tambah',
                 'dealers.ubah',
                 'users.lihat',
-                'konsumens.lihat',
+                'konsumens.lihat-dealer',
                 'konsumens.tambah',
                 'konsumens.ubah',
                // 'konsumens.hapus',
