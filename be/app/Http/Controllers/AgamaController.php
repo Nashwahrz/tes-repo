@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\AgamaRequest;
 use App\Http\Requests\GeografisStatusRequest;
+use App\Http\Resources\ActivityLogResource;
 use App\Http\Responses\AgamaResponse;
 use App\Repositories\AgamaRepository;
 use Illuminate\Database\UniqueConstraintViolationException;
@@ -151,6 +152,19 @@ class AgamaController extends Controller
             Log::error('Gagal menghapus agama: ' . $e->getMessage(), [
                 'trace' => $e->getTraceAsString(),
             ]);
+            return $this->agamaResponse->serverError();
+        }
+    }
+    public function logs(Request $request)
+    {
+        try {
+            $perPage = min(max((int) $request->query('per_page', 10), 1), 100);
+
+            return ActivityLogResource::collection(
+                $this->agamaRepository->getAllLogs($perPage, $request->query('search'))
+            );
+        } catch (Throwable $e) {
+            Log::error('Gagal mengambil log agama: ' . $e->getMessage());
             return $this->agamaResponse->serverError();
         }
     }

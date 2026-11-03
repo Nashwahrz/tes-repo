@@ -3,14 +3,25 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 class Role extends Model
 {
+    use LogsActivity;
     protected $table = 'hak_akses.roles';
 
     protected $fillable = [
         'name'
     ];
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->useLogName('role')
+            ->logOnly(['name'])
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs();
+    }
 
     public function menus()
     {

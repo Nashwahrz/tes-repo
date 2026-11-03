@@ -6,6 +6,7 @@ use App\Models\EmailSmtp;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Cache;
+use Spatie\Activitylog\Models\Activity;
 
 class EmailSmtpRepository
 {
@@ -60,4 +61,20 @@ class EmailSmtpRepository
     //         ->paginate($perPage)
     //         ->withQueryString();
     // }
+    public function getAllLogs(int $perPage = 10, ?string $search = null): LengthAwarePaginator
+    {
+        $logs = Activity::query()
+            ->where('subject_type', EmailSmtp::class)
+            ->with(['causer:id,name', 'subject'])
+            ->when($search, function ($q) use ($search) {
+                        $q->whereHasMorph('subject', [EmailSmtp::class], function ($q) use ($search) {
+                            $q->where('mail_username', 'ILIKE', "%{$search}%");
+                        });
+                    })
+            ->latest()
+            ->paginate($perPage);
+
+      
+        return $logs;
+    }
 }

@@ -5,6 +5,7 @@ namespace App\Repositories;
 use App\Models\Kecamatan;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Spatie\Activitylog\Models\Activity;
 
 class KecamatanRepository
 {
@@ -66,5 +67,22 @@ class KecamatanRepository
             ->latest('id')
             ->paginate($perPage)
             ->withQueryString();
+    }
+    public function getAllLogs(int $perPage = 10, ?string $search = null): LengthAwarePaginator
+    {
+        $logs = Activity::query()
+            ->where('subject_type', Kecamatan::class)
+            ->with(['causer:id,name', 'subject'])
+            ->when($search, function ($q) use ($search) {
+                        $q->whereHasMorph('subject', [Kecamatan::class], function ($q) use ($search) {
+                            $q->where('name', 'ILIKE', "%{$search}%")
+                            ->orWhere('kode', 'ILIKE', "%{$search}%");
+                        });
+                    })
+            ->latest()
+            ->paginate($perPage);
+
+      
+        return $logs;
     }
 }

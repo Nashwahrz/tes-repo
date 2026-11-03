@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\RolePermissionRequest;
+use App\Http\Resources\ActivityLogResource;
 use App\Http\Responses\RolePermissionResponse;
 use App\Repositories\RolePermissionRepository;
 use Illuminate\Http\Request;
@@ -118,6 +119,32 @@ class RolePermissionController extends Controller
                 'trace' => $e->getTraceAsString(),
             ]);
 
+            return $this->rolePermissionResponse->serverError();
+        }
+    }
+    public function logPermissions(Request $request)
+    {
+        try {
+            $perPage = min(max((int) $request->query('per_page', 10), 1), 100);
+
+            return ActivityLogResource::collection(
+                $this->rolePermissionRepository->getAllPermissionLogs($perPage, $request->query('search'))
+            );
+        } catch (Throwable $e) {
+            Log::error('Gagal mengambil log permission: ' . $e->getMessage());
+            return $this->rolePermissionResponse->serverError();
+        }
+    }
+    public function logPermissionRoles(Request $request)
+    {
+        try {
+            $perPage = min(max((int) $request->query('per_page', 10), 1), 100);
+
+            return ActivityLogResource::collection(
+                $this->rolePermissionRepository->getAllPermissionRoleLogs($perPage, $request->query('search'))
+            );
+        } catch (Throwable $e) {
+            Log::error('Gagal mengambil log permission role: ' . $e->getMessage());
             return $this->rolePermissionResponse->serverError();
         }
     }

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\GeografisStatusRequest;
 use App\Http\Requests\KelurahanRequest;
+use App\Http\Resources\ActivityLogResource;
 use App\Http\Responses\KelurahanResponse;
 use App\Repositories\KelurahanRepository;
 use Illuminate\Database\UniqueConstraintViolationException;
@@ -152,6 +153,19 @@ class KelurahanController extends Controller
             Log::error('Gagal menghapus kelurahan: ' . $e->getMessage(), [
                 'trace' => $e->getTraceAsString(),
             ]);
+            return $this->kelurahanResponse->serverError();
+        }
+    }
+    public function logs(Request $request)
+    {
+        try {
+            $perPage = min(max((int) $request->query('per_page', 10), 1), 100);
+
+            return ActivityLogResource::collection(
+                $this->kelurahanRepository->getAllLogs($perPage, $request->query('search'))
+            );
+        } catch (Throwable $e) {
+            Log::error('Gagal mengambil log kelurahan: ' . $e->getMessage());
             return $this->kelurahanResponse->serverError();
         }
     }

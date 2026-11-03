@@ -17,6 +17,7 @@ class Dealer extends Model
     public function getActivitylogOptions(): LogOptions
     {
         return LogOptions::defaults()
+            ->useLogName('dealers')
             ->logOnly(['name', 'alamat', 'latitude', 'longitude'])
             ->logOnlyDirty()
             ->dontSubmitEmptyLogs();

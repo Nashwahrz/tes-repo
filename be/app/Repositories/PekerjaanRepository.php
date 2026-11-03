@@ -5,6 +5,7 @@ namespace App\Repositories;
 use App\Models\Pekerjaan;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Spatie\Activitylog\Models\Activity;
 
 class PekerjaanRepository
 {
@@ -66,5 +67,21 @@ class PekerjaanRepository
             ->latest('id')
             ->paginate($perPage)
             ->withQueryString();
+    }
+    public function getAllLogs(int $perPage = 10, ?string $search = null): LengthAwarePaginator
+    {
+        $logs = Activity::query()
+            ->where('subject_type', Pekerjaan::class)
+            ->with(['causer:id,name', 'subject'])
+            ->when($search, function ($q) use ($search) {
+                        $q->whereHasMorph('subject', [Pekerjaan::class], function ($q) use ($search) {
+                            $q->where('name', 'ILIKE', "%{$search}%")
+                            ->orWhere('kode', 'ILIKE', "%{$search}%");
+                        });
+                    })
+            ->latest()
+            ->paginate($perPage);
+
+        return $logs;
     }
 }

@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('log_users', function (Blueprint $table) {
+        Schema::create('log.log_users', function (Blueprint $table) {
             $table->id();
             $table->foreignId('id_user')->constrained('users')->cascadeOnDelete();
             $table->string('ip_address', 45);
@@ -33,6 +33,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('log_users');
+        Schema::dropIfExists('log.log_users');
     }
 };

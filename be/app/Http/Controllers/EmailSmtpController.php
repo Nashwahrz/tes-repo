@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\EmailSmtpRequest;
+use App\Http\Resources\ActivityLogResource;
 use App\Http\Responses\EmailSmtpResponse;
 use App\Repositories\EmailSmtpRepository;
 use Illuminate\Http\Request;
@@ -90,6 +91,19 @@ class EmailSmtpController extends Controller
             Log::error('Gagal menghapus email smtp: ' . $e->getMessage(), [
                 'trace' => $e->getTraceAsString(),
             ]);
+            return $this->emailSmtpResponse->serverError();
+        }
+    }
+    public function logs(Request $request)
+    {
+        try {
+            $perPage = min(max((int) $request->query('per_page', 10), 1), 100);
+
+            return ActivityLogResource::collection(
+                $this->emailSmtpRepository->getAllLogs($perPage, $request->query('search'))
+            );
+        } catch (Throwable $e) {
+            Log::error('Gagal mengambil log email smtp: ' . $e->getMessage());
             return $this->emailSmtpResponse->serverError();
         }
     }

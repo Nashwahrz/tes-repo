@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\GeografisStatusRequest;
 use App\Http\Requests\ProvinsiRequest;
 use App\Http\Requests\ProvinsiStatusRequest;
+use App\Http\Resources\ActivityLogResource;
 use App\Http\Responses\ProvinsiResponse;
 use App\Repositories\ProvinsiRepository;
 use Illuminate\Database\UniqueConstraintViolationException;
@@ -155,6 +156,19 @@ class ProvinsiController extends Controller
             Log::error('Gagal menghapus provinsi: ' . $e->getMessage(), [
                 'trace' => $e->getTraceAsString(),
             ]);
+            return $this->provinsiResponse->serverError();
+        }
+    }
+    public function logs(Request $request)
+    {
+        try {
+            $perPage = min(max((int) $request->query('per_page', 10), 1), 100);
+
+            return ActivityLogResource::collection(
+                $this->provinsiRepository->getAllLogs($perPage, $request->query('search'))
+            );
+        } catch (Throwable $e) {
+            Log::error('Gagal mengambil log provinsi: ' . $e->getMessage());
             return $this->provinsiResponse->serverError();
         }
     }
