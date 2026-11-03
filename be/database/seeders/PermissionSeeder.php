@@ -28,6 +28,7 @@ class PermissionSeeder extends Seeder
             'role-permissions.kelola',  
             'konsumens.lihat',
             'konsumens.lihat-semua',
+            'konsumens.lihat-dealer',
             'konsumens.tambah',
             'konsumens.ubah',
           //  'konsumens.hapus',
