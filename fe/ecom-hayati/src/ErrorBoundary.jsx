@@ -1,10 +1,10 @@
 import { Component } from 'react'
 
 class ErrorBoundary extends Component {
-  state = { failed: false }
+  state = { failed: false, error: null }
 
-  static getDerivedStateFromError() {
-    return { failed: true }
+  static getDerivedStateFromError(error) {
+    return { failed: true, error }
   }
 
   componentDidCatch(error) {
@@ -18,6 +18,11 @@ class ErrorBoundary extends Component {
         <h2>Terjadi kesalahan</h2>
         <p>Halaman tidak dapat ditampilkan. Muat ulang halaman untuk mencoba lagi.</p>
         <button type="button" onClick={() => window.location.reload()}>Muat ulang</button>
+        {import.meta.env.DEV && (
+          <pre style={{ marginTop: 24, padding: 12, textAlign: 'left', whiteSpace: 'pre-wrap', background: '#fef2f2', color: '#991b1b', fontSize: 12 }}>
+            {String(this.state.error?.stack ?? this.state.error?.message ?? 'Error tidak diketahui').slice(0, 1200)}
+          </pre>
+        )}
       </div>
     )
   }

@@ -29,7 +29,7 @@ function KonsumenDetailView({ detail, names: detailNames, dealerName, statusNode
           {[
             ['NIK', detail.nik], ['Nama', detail.name],
             ['Tempat, Tgl Lahir', [detailNames.tempatLahir, detail.tgl_lahir && String(detail.tgl_lahir).slice(0, 10)].filter(Boolean).join(', ')],
-            ['Jenis Kelamin', detail.jenis_kelamin], ['Alamat', detail.alamat],
+            ['Jenis Kelamin', detail.jenis_kelamin], ['Alamat (KTP)', detail.alamat_ktp], ['Alamat Domisili', detail.alamat_domisili],
             ['Koordinat', detail.latitude && detail.longitude ? (
               <span style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
                 {detail.latitude}, {detail.longitude}

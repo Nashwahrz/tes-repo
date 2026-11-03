@@ -15,11 +15,11 @@ function GeoSearchInput({ name, label, id, cls, ctx, idOptions, searchKey, disab
           className={cls}
           type="text"
           autoComplete="off"
-          value={form[name] ? (idOptions.find((o) => String(o.id) === String(form[name]))?.name ?? geoQuery[sk]) : geoQuery[sk]}
+          value={form[name] ? (idOptions.find((o) => String(o.kode) === String(form[name]))?.name ?? geoQuery[sk]) : geoQuery[sk]}
           onChange={(e) => {
             const text = e.target.value;
             const hit = idOptions.find((o) => o.name.toLowerCase() === text.trim().toLowerCase());
-            setField(name)({ target: { value: hit ? String(hit.id) : '' } });
+            setField(name)({ target: { value: hit ? String(hit.kode) : '' } });
             setGeoQuery((g) => ({ ...g, [sk]: text }));
           }}
           // Enter = Cari (bukan menyimpan form)
@@ -49,8 +49,8 @@ function GeoSearchInput({ name, label, id, cls, ctx, idOptions, searchKey, disab
       {!disabled && !form[name] && !geoBusy[sk] && shown.length > 0 && (
         <ul className="dash-geo-list" role="listbox" aria-label={label}>
           {shown.map((o) => (
-            <li key={o.id}>
-              <button id={`btn-konsumen-option-${name}-${o.id}`} type="button" role="option" onClick={() => setField(name)({ target: { value: String(o.id) } })}>{o.name}</button>
+            <li key={o.kode}>
+              <button id={`btn-konsumen-option-${name}-${o.kode}`} type="button" role="option" onClick={() => setField(name)({ target: { value: String(o.kode) } })}>{o.name}</button>
             </li>
           ))}
         </ul>
@@ -71,7 +71,7 @@ function PickInput({ name, label, id, cls, ctx, idOptions, disabled, hint }) {
         className={cls}
         type="text"
         autoComplete="off"
-        value={form[name] ? (idOptions.find((o) => String(o.id) === String(form[name]))?.name ?? '') : (pickText[name] ?? '')}
+        value={form[name] ? (idOptions.find((o) => String(o.kode) === String(form[name]))?.name ?? '') : (pickText[name] ?? '')}
         onChange={(e) => {
           setPickText((t) => ({ ...t, [name]: e.target.value }));
           if (form[name]) setField(name)({ target: { value: '' } });
@@ -86,9 +86,9 @@ function PickInput({ name, label, id, cls, ctx, idOptions, disabled, hint }) {
         <ul className="dash-geo-list" role="listbox" aria-label={label}>
           {list.length === 0 && <li className="dash-geo-empty">Tidak ditemukan</li>}
           {list.map((o) => (
-            <li key={o.id}>
+            <li key={o.kode}>
               {/* mousedown dicegah agar kolom tidak blur sebelum klik terbaca */}
-              <button id={`btn-konsumen-option-${name}-${o.id}`} type="button" role="option" onMouseDown={(e) => e.preventDefault()} onClick={() => { setField(name)({ target: { value: String(o.id) } }); setPickOpen(''); }}>{o.name}</button>
+              <button id={`btn-konsumen-option-${name}-${o.kode}`} type="button" role="option" onMouseDown={(e) => e.preventDefault()} onClick={() => { setField(name)({ target: { value: String(o.kode) } }); setPickOpen(''); }}>{o.name}</button>
             </li>
           ))}
         </ul>

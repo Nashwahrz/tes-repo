@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import {
-  errorMessage, getAgamas, getPekerjaans, getProvinsis, getKabupatens, searchKecamatans, searchKelurahans, getMasterById,
+  errorMessage, getAgamas, getPekerjaans, getProvinsis, getKabupatens, searchKecamatans, searchKelurahans, getMasterByKode,
 } from '../../../../api/authServices';
 
 // Jeda setelah ketukan terakhir sebelum kecamatan/kelurahan dicari di BE (satu pencarian bisa mengambil banyak halaman)
@@ -17,11 +17,11 @@ function useGeoSearch({ key, parentId, selectedId, path, search, term, setMaster
       try {
         const [res, selected] = await Promise.all([
           parentId ? search(term, parentId, ctrl.signal) : { rows: [], truncated: false },
-          selectedId ? getMasterById(path, selectedId).catch(() => null) : null,
+          selectedId ? getMasterByKode(path, selectedId).catch(() => null) : null,
         ]);
         if (!active) return;
         const found = res.rows;
-        const list = selected && !found.some((o) => o.id === selected.id) ? [selected, ...found] : found;
+        const list = selected && !found.some((o) => o.kode === selected.kode) ? [selected, ...found] : found;
         setMaster((m) => ({ ...m, [key]: list }));
         setCut((c) => ({ ...c, [key]: res.truncated }));
         setFull((f) => ({ ...f, [key]: !!res.full }));
@@ -67,19 +67,19 @@ export function useKonsumenMaster(form) {
   // Kabupaten/kota: dimuat penuh lalu disaring menurut provinsi di FE
   useEffect(() => {
     let active = true;
-    if (!form.id_provinsi) return undefined;
-    getKabupatens(form.id_provinsi)
+    if (!form.kode_provinsi) return undefined;
+    getKabupatens(form.kode_provinsi)
       .then((list) => { if (active) setMaster((m) => ({ ...m, kabupaten: list })); })
       .catch((err) => { if (active) setMasterNote((n) => n || errorMessage(err)); });
     return () => { active = false; };
-  }, [form.id_provinsi]);
+  }, [form.kode_provinsi]);
 
   const shared = { setMaster, setBusy: setGeoBusy, setCut: setGeoCut, setFull: setGeoFull, setNote: setMasterNote };
-  useGeoSearch({ key: 'kecamatan', parentId: form.id_kabupaten_kota, selectedId: form.id_kecamatan, path: '/kecamatans', search: searchKecamatans, term: geoTerm.kecamatan, ...shared });
-  useGeoSearch({ key: 'kelurahan', parentId: form.id_kecamatan, selectedId: form.id_kelurahan, path: '/kelurahans', search: searchKelurahans, term: geoTerm.kelurahan, ...shared });
+  useGeoSearch({ key: 'kecamatan', parentId: form.kode_kabupaten_kota, selectedId: form.kode_kecamatan, path: '/kecamatans', search: searchKecamatans, term: geoTerm.kecamatan, ...shared });
+  useGeoSearch({ key: 'kelurahan', parentId: form.kode_kecamatan, selectedId: form.kode_kelurahan, path: '/kelurahans', search: searchKelurahans, term: geoTerm.kelurahan, ...shared });
 
   return {
-    master: form.id_provinsi ? master : { ...master, kabupaten: [] }, masterNote, geoQuery, setGeoQuery, geoTerm, setGeoTerm, pickText, setPickText, pickOpen, setPickOpen,
+    master: form.kode_provinsi ? master : { ...master, kabupaten: [] }, masterNote, geoQuery, setGeoQuery, geoTerm, setGeoTerm, pickText, setPickText, pickOpen, setPickOpen,
     geoBusy, geoFull, geoCut, runGeoSearch,
   };
 }

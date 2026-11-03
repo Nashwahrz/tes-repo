@@ -28,11 +28,12 @@ export function useDashboardData(user) {
   const usersOn = allowed('users', 'users.lihat');
   const dealersOn = allowed('dealers', 'dealers.lihat');
   const konsumenOn = allowed('konsumens', 'konsumens.lihat');
+  const konsumenAll = allowed('konsumens', 'konsumens.lihat-semua');
 
   const usersQ = useQuery({ queryKey: ['users'], queryFn: () => getUsers(), enabled: usersOn, ...seed(cached?.users) });
   const dealersQ = useQuery({ queryKey: ['dealers'], queryFn: getDealers, enabled: dealersOn, ...seed(cached?.dealers) });
-  const totalQ = useQuery({ queryKey: ['konsumenTotal'], queryFn: getKonsumenTotal, enabled: konsumenOn });
-  const statusQ = useQuery({ queryKey: ['konsumenStatus'], queryFn: getKonsumenStatusTotals, enabled: konsumenOn, refetchInterval: POLL_MS });
+  const totalQ = useQuery({ queryKey: ['konsumenTotal', konsumenAll], queryFn: () => getKonsumenTotal(konsumenAll), enabled: konsumenOn });
+  const statusQ = useQuery({ queryKey: ['konsumenStatus', konsumenAll], queryFn: () => getKonsumenStatusTotals(konsumenAll), enabled: konsumenOn, refetchInterval: POLL_MS });
   const pendingUsersQ = useQuery({ queryKey: ['usersPending'], queryFn: () => getUsers('pending'), enabled: usersOn, refetchInterval: POLL_MS });
 
   // Nama & role dikenali dari konsumen yang diinput sendiri bila daftar user tidak boleh dilihat (ME, Kasir); disimpan di localStorage
@@ -76,7 +77,7 @@ export function useDashboardData(user) {
       qc.setQueryData(['users'], next);
       qc.setQueryData(['usersPending'], next.filter((u) => u.status === 'pending'));
     },
-    setKonsumenStatus: (t) => qc.setQueryData(['konsumenStatus'], t),
+    setKonsumenStatus: (t) => qc.setQueryData(['konsumenStatus', konsumenAll], t),
     setDealers: (update) => qc.setQueryData(['dealers'], (list) => update(list ?? [])),
     reloadUsers: () => qc.invalidateQueries({ queryKey: ['users'] }),
     refetchAccess: () => accessQ.refetch(),

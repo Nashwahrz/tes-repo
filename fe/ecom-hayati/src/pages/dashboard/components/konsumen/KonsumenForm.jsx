@@ -1,5 +1,4 @@
 import { lazy, Suspense, useEffect, useRef, useState } from 'react';
-import Modal from '../Modal';
 import ConfirmModal from '../ConfirmModal';
 import { Spin } from '../Loading';
 import KonsumenField from './KonsumenField';
@@ -14,7 +13,7 @@ const MapPicker = lazy(() => import('../MapPicker'));
 
 const without = (obj, keys) => Object.fromEntries(Object.entries(obj).filter(([k]) => !keys.includes(k)));
 
-function KonsumenForm({ editing, userId, can, onClose, onSaved, onError }) {
+function KonsumenForm({ editing, can, onClose, onSaved, onError }) {
   const [form, setForm] = useState(() => (editing ? toForm(editing) : EMPTY));
   const [touched, setTouched] = useState({});
   const [file, setFile] = useState(null);
@@ -30,6 +29,8 @@ function KonsumenForm({ editing, userId, can, onClose, onSaved, onError }) {
   const [ocrHints, setOcrHints] = useState({}); // { kolom: teks hasil OCR yang tidak cocok dengan daftar }; tampil di bawah kolomnya
   const [confirmSave, setConfirmSave] = useState(false);
   const fileRef = useRef(null);
+  const pageRef = useRef(null);
+  useEffect(() => { pageRef.current?.scrollIntoView({ block: 'start' }); }, []); // halaman penuh: mulai dari atas
   const scanNoteRef = useRef(null);
   const geo = useKonsumenMaster(form);
   const { master, masterNote, setGeoQuery, setGeoTerm, setPickText } = geo;
@@ -61,7 +62,8 @@ function KonsumenForm({ editing, userId, can, onClose, onSaved, onError }) {
   }, [form.nik, editing]);
   const shownNikDup = /^\d{16}$/.test(form.nik) ? nikDup : null;
 
-  const errors = validate(form, file, !editing);
+  // NIK yang sudah terdaftar: BE memakai foto KTP yang ada bila tidak ada foto baru
+  const errors = validate(form, file, !editing && !shownNikDup);
   const hasError = Object.keys(errors).length > 0;
   const shownPreview = file ? preview : editing ? ktpUrl(editing) : '';
 
@@ -71,7 +73,9 @@ function KonsumenForm({ editing, userId, can, onClose, onSaved, onError }) {
   };
 
   const setField = (key) => (e) => {
-    const value = e.target.value;
+    let value = e.target.value;
+    // No. telp: hanya angka, dan + hanya di awal
+    if (key === 'no_telp') value = value.replace(/[^\d+]/g, '').replace(/(?!^)\+/g, '');
     const children = CHILD_OF[key] ?? [];
     setForm((f) => ({ ...f, [key]: value, ...Object.fromEntries(children.map((c) => [c, ''])) }));
     const cleared = Object.fromEntries(children.filter((c) => c in GEO_KEY).map((c) => [GEO_KEY[c], '']));
@@ -162,7 +166,6 @@ function KonsumenForm({ editing, userId, can, onClose, onSaved, onError }) {
   const handleSave = async () => {
     setConfirmSave(false);
     const fd = new FormData();
-    fd.append('id_me', editing?.id_me ?? userId);
     FIELDS.forEach((k) => {
       let v = String(form[k]).trim();
       // BE memakai aturan decimal:7 -> harus tepat 7 angka di belakang koma
@@ -189,12 +192,10 @@ function KonsumenForm({ editing, userId, can, onClose, onSaved, onError }) {
 
   return (
     <>
-      <Modal as="form" className="wide" onClose={onClose} closeOnEscape={false} onSubmit={handleSubmit} noValidate>
-        <div className="dash-modal-head">
+      <form ref={pageRef} className="konsumen-page konsumen-form-page" onSubmit={handleSubmit} noValidate>
+        <div className="dash-card-head">
           <h3>{editing ? 'Ubah Konsumen' : 'Tambah Konsumen'}</h3>
-          <button id="btn-konsumen-form-close" type="button" className="dash-modal-close" onClick={onClose} aria-label="Tutup" title="Tutup">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M6 6l12 12M18 6L6 18" /></svg>
-          </button>
+          <button id="btn-konsumen-form-close" type="button" className="dash-btn outline" onClick={onClose} disabled={saving}>← Kembali ke daftar</button>
         </div>
 
         <div className="dash-form-group" id="konsumen-foto_ktp">
@@ -221,22 +222,27 @@ function KonsumenForm({ editing, userId, can, onClose, onSaved, onError }) {
           {touched.foto_ktp && errors.foto_ktp && <p className="dash-field-error">{errors.foto_ktp}</p>}
         </div>
 
-        {field('nik', 'NIK', { placeholder: '16 digit angka', numeric: true, max: 16 })}
+        <div className="dash-form-row">
+          {field('nik', 'NIK', { placeholder: '16 digit angka', numeric: true, max: 16 })}
+          {field('name', 'Nama Lengkap')}
+        </div>
         {shownNikDup && (
           <p className="dash-alert warning" role="status">
             <strong>!</strong> NIK ini sudah terdaftar atas nama <strong>{shownNikDup.name || '-'}</strong>. Periksa kembali sebelum menyimpan.
           </p>
         )}
-        {field('name', 'Nama Lengkap')}
         <div className="dash-form-row">
-          {field('id_tmp_lahir', 'Tempat Lahir', { idOptions: master.tempatLahir })}
+          {field('kode_tmp_lahir', 'Tempat Lahir', { idOptions: master.tempatLahir })}
           {field('tgl_lahir', 'Tanggal Lahir', { type: 'date' })}
         </div>
         <div className="dash-form-row">
           {field('jenis_kelamin', 'Jenis Kelamin', { options: ['Laki-laki', 'Perempuan'] })}
-          {field('id_agama', 'Agama', { idOptions: master.agama })}
+          {field('kode_agama', 'Agama', { idOptions: master.agama })}
         </div>
-        {field('alamat', 'Alamat')}
+        <div className="dash-form-row">
+          {field('alamat_ktp', 'Alamat Sesuai KTP')}
+          {field('alamat_domisili', 'Alamat Domisili')}
+        </div>
         <div className="dash-form-group">
           <label>Lokasi di Peta *</label>
           <Suspense fallback={<div className="dash-map" />}>
@@ -244,10 +250,10 @@ function KonsumenForm({ editing, userId, can, onClose, onSaved, onError }) {
               latitude={form.latitude}
               longitude={form.longitude}
               onPick={handlePick}
-              desa={nameOf(master.kelurahan, form.id_kelurahan)}
-              kabupaten={nameOf(master.kabupaten, form.id_kabupaten_kota)}
-              kecamatan={nameOf(master.kecamatan, form.id_kecamatan)}
-              provinsi={nameOf(master.provinsi, form.id_provinsi)}
+              desa={nameOf(master.kelurahan, form.kode_kelurahan)}
+              kabupaten={nameOf(master.kabupaten, form.kode_kabupaten_kota)}
+              kecamatan={nameOf(master.kecamatan, form.kode_kecamatan)}
+              provinsi={nameOf(master.provinsi, form.kode_provinsi)}
             />
           </Suspense>
           <p className="dash-map-hint">Cari alamat, klik peta, atau geser marker untuk menentukan titik lokasi konsumen.</p>
@@ -257,25 +263,23 @@ function KonsumenForm({ editing, userId, can, onClose, onSaved, onError }) {
           {field('longitude', 'Longitude', { numeric: true, placeholder: '100.4172000' })}
         </div>
         <div className="dash-form-row">
+          {field('kode_provinsi', 'Provinsi', { idOptions: master.provinsi })}
+          {field('kode_kabupaten_kota', 'Kabupaten / Kota', { idOptions: master.kabupaten, disabled: !form.kode_provinsi, hint: 'Pilih provinsi dulu' })}
+        </div>
+        <div className="dash-form-row">
+          {field('kode_kecamatan', 'Kecamatan', { idOptions: master.kecamatan, searchKey: 'kecamatan', disabled: !form.kode_kabupaten_kota, hint: 'Pilih kabupaten/kota dulu' })}
+          {field('kode_kelurahan', 'Kelurahan / Desa', { idOptions: master.kelurahan, searchKey: 'kelurahan', disabled: !form.kode_kecamatan, hint: 'Pilih kecamatan dulu' })}
+        </div>
+        <div className="dash-form-row three">
           {field('rt', 'RT', { max: 3, numeric: true })}
           {field('rw', 'RW', { max: 3, numeric: true })}
-        </div>
-        <div className="dash-form-row">
-          {field('id_provinsi', 'Provinsi', { idOptions: master.provinsi })}
-          {field('id_kabupaten_kota', 'Kabupaten / Kota', { idOptions: master.kabupaten, disabled: !form.id_provinsi, hint: 'Pilih provinsi dulu' })}
-        </div>
-        <div className="dash-form-row">
-          {field('id_kecamatan', 'Kecamatan', { idOptions: master.kecamatan, searchKey: 'kecamatan', disabled: !form.id_kabupaten_kota, hint: 'Pilih kabupaten/kota dulu' })}
-        </div>
-        <div className="dash-form-row">
-          {field('id_kelurahan', 'Kelurahan / Desa', { idOptions: master.kelurahan, searchKey: 'kelurahan', disabled: !form.id_kecamatan, hint: 'Pilih kecamatan dulu' })}
+          {field('kewarganegaraan', 'Kewarganegaraan', { options: ['WNI', 'WNA'] })}
         </div>
         <div className="dash-form-row">
           {field('status_perkawinan', 'Status Perkawinan', { options: KAWIN })}
-          {field('id_pekerjaan', 'Pekerjaan', { idOptions: master.pekerjaan })}
+          {field('kode_pekerjaan', 'Pekerjaan', { idOptions: master.pekerjaan })}
         </div>
         {masterNote && <p className="dash-map-hint">Sebagian daftar master dari server tidak dapat dimuat. {masterNote}</p>}
-        {field('kewarganegaraan', 'Kewarganegaraan', { options: ['WNI', 'WNA'] })}
         <div className="dash-form-row">
           {field('no_telp', 'No. Telp', { numeric: true, max: 20 })}
           {field('email', 'Email', { type: 'email' })}
@@ -285,7 +289,7 @@ function KonsumenForm({ editing, userId, can, onClose, onSaved, onError }) {
           <button id="btn-konsumen-cancel" type="button" className="dash-btn outline" onClick={onClose}>Batal</button>
           <button id="btn-konsumen-save" type="submit" className="dash-btn solid" disabled={saving}>{saving ? <><Spin />Menyimpan...</> : 'Simpan'}</button>
         </div>
-      </Modal>
+      </form>
 
       {confirmSave && (
         <ConfirmModal

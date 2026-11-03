@@ -1672,3 +1672,11 @@ select.dash-input, .dash-select {
 .konsumen-page-photo { max-height: 320px; margin: 0; }
 .konsumen-verify-panel { margin-top: 16px; padding: 16px; border: 1px solid var(--line); border-radius: 12px; background: #fafafa; }
 @media (max-width: 760px) { .konsumen-page-body { grid-template-columns: 1fr; gap: 8px; } }
+
+/* Form tambah/ubah konsumen: halaman penuh di area konten */
+.konsumen-form-page { max-width: 980px; }
+.konsumen-form-page .dash-form-row > * { flex: 1 1 0; min-width: 0; } /* kolom sama lebar */
+.konsumen-form-page .dash-form-row.three > * { flex: 1 1 0; }
+.konsumen-form-page .dash-input, .konsumen-form-page select.dash-input { width: 100%; box-sizing: border-box; }
+.konsumen-form-page .dash-ktp-big { max-width: 360px; width: 100%; }
+.konsumen-form-page .dash-modal-actions { position: sticky; bottom: 0; background: #fff; }

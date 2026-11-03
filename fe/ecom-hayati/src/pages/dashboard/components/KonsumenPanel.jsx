@@ -9,10 +9,11 @@ import ConfirmModal from './ConfirmModal';
 import KonsumenDetailView from './KonsumenDetailView';
 import { STATUS_LABEL } from './konsumen/konsumenForm';
 import {
-  getKonsumens, getKonsumenPage, getKonsumen, deleteKonsumen, verifyKonsumen, errorMessage, getMasterById,
+  getKonsumens, getKonsumenPage, getKonsumen, deleteKonsumen, verifyKonsumen, errorMessage, getMasterByKode,
 } from '../../../api/authServices';
 
-const KonsumenForm = lazy(() => import('./konsumen/KonsumenForm'));
+// Ekstensi wajib ditulis: di Windows (huruf besar/kecil sama) './konsumen/KonsumenForm' terbaca sebagai konsumenForm.js
+const KonsumenForm = lazy(() => import('./konsumen/KonsumenForm.jsx'));
 
 
 // onChanged: dipanggil setelah data berubah (tambah/ubah/verifikasi/hapus) agar lencana di sidebar ikut diperbarui
@@ -42,7 +43,8 @@ function KonsumenPanel({ can, userId, onChanged, dealers = [], myDealerId = null
   const [detailRow, setDetailRow] = useState(null);
   // Detail ikut memakai data terbaru (URL foto baru) setelah daftar dimuat ulang
   const [detailFresh, setDetailFresh] = useState(null);
-  const detail = detailRow ? { ...(rows.find((r) => r.id === detailRow.id) ?? detailRow), ...(detailFresh?.id === detailRow.id ? detailFresh : {}) } : null;
+  const sameRow = (a, b) => a.konsumen_me_id === b.konsumen_me_id; // satu konsumen bisa tampil beberapa kali (satu per penginput)
+  const detail = detailRow ? { ...(rows.find((r) => sameRow(r, detailRow)) ?? detailRow), ...(detailFresh?.id === detailRow.id ? detailFresh : {}) } : null;
   const setDetail = setDetailRow;
 
 
@@ -52,12 +54,12 @@ function KonsumenPanel({ can, userId, onChanged, dealers = [], myDealerId = null
   const dealerOf = (k) => k.me?.id_dealer;
   const dealerName = (k) => dealers.find((d) => d.id === dealerOf(k))?.name;
   const searching = query.trim() !== '';
-  const loadAll = searching || dealerFilter !== '';
+  const loadAll = searching || dealerFilter !== '' || filter !== ''; // BE belum menyaring status, jadi filter status juga memuat semua data
   useEffect(() => {
     let active = true;
     const load = loadAll
-      ? getKonsumens(filter).then((data) => ({ rows: dealerFilter ? data.filter((k) => String(dealerOf(k)) === dealerFilter) : data, meta: null }))
-      : getKonsumenPage(filter, page);
+      ? getKonsumens(can.lihatSemua, filter).then((data) => ({ rows: dealerFilter ? data.filter((k) => String(dealerOf(k)) === dealerFilter) : data, meta: null }))
+      : getKonsumenPage(can.lihatSemua, filter, page);
     load
       .then((res) => {
         if (!active) return;
@@ -73,11 +75,11 @@ function KonsumenPanel({ can, userId, onChanged, dealers = [], myDealerId = null
       })
       .catch((err) => { if (active) { setError(errorMessage(err)); setLoading(false); } });
     return () => { active = false; };
-  }, [filter, dealerFilter, page, reloadKey, loadAll]);
+  }, [filter, dealerFilter, page, reloadKey, loadAll, can.lihatSemua]);
 
   const reload = () => { setLoading(true); setReloadKey((n) => n + 1); };
 
-  // BE hanya mengirim ID wilayah/agama/pekerjaan; namanya diambil per ID saat detail dibuka (hasilnya di-cache)
+  // BE hanya mengirim kode wilayah/agama/pekerjaan; namanya diambil per kode saat detail dibuka (hasilnya di-cache)
   const [namesFor, setNamesFor] = useState({ id: null, names: {} });
   const detailId = detail?.id;
   const detailNames = namesFor.id === detailId ? namesFor.names : {}; // nama milik detail lain tidak ikut tampil
@@ -85,11 +87,11 @@ function KonsumenPanel({ can, userId, onChanged, dealers = [], myDealerId = null
     if (!detail) return undefined;
     let active = true;
     const refs = {
-      tempatLahir: ['/kabupaten-kotas', detail.id_tmp_lahir], kelurahan: ['/kelurahans', detail.id_kelurahan],
-      kecamatan: ['/kecamatans', detail.id_kecamatan], kabupaten: ['/kabupaten-kotas', detail.id_kabupaten_kota],
-      provinsi: ['/provinsis', detail.id_provinsi], agama: ['/agamas', detail.id_agama], pekerjaan: ['/pekerjaans', detail.id_pekerjaan],
+      tempatLahir: ['/kabupaten-kotas', detail.kode_tmp_lahir], kelurahan: ['/kelurahans', detail.kode_kelurahan],
+      kecamatan: ['/kecamatans', detail.kode_kecamatan], kabupaten: ['/kabupaten-kotas', detail.kode_kabupaten_kota],
+      provinsi: ['/provinsis', detail.kode_provinsi], agama: ['/agamas', detail.kode_agama], pekerjaan: ['/pekerjaans', detail.kode_pekerjaan],
     };
-    Promise.all(Object.entries(refs).map(async ([k, [path, id]]) => [k, (await getMasterById(path, id).catch(() => null))?.name]))
+    Promise.all(Object.entries(refs).map(async ([k, [path, id]]) => [k, (await getMasterByKode(path, id).catch(() => null))?.name]))
       .then((pairs) => { if (active) setNamesFor({ id: detailId, names: Object.fromEntries(pairs) }); });
     return () => { active = false; };
   }, [detailId]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -147,10 +149,12 @@ function KonsumenPanel({ can, userId, onChanged, dealers = [], myDealerId = null
     setSaving(true);
     setError('');
     try {
-      const res = await verifyKonsumen(konsumen.id, status, note);
+      // BE memverifikasi relasi penginput (konsumen_mes), bukan konsumen
+      const res = await verifyKonsumen(konsumen.konsumen_me_id, status, note);
+      const { status: st, catatan_penolakan, diverifikasi_oleh } = res.data;
       // Bila sedang memfilter status tertentu, baris yang statusnya berubah keluar dari daftar
       setRows((list) => list
-        .map((k) => (k.id === konsumen.id ? res.data : k))
+        .map((k) => (sameRow(k, konsumen) ? { ...k, status: st, catatan_penolakan, diverifikasi_oleh } : k))
         .filter((k) => !filter || k.status === filter));
       setSuccess(`Data konsumen ${konsumen.name || konsumen.nik || ''} ${status === 'diterima' ? 'diterima' : 'ditolak'}.`);
       setToVerify(null);
@@ -188,7 +192,17 @@ function KonsumenPanel({ can, userId, onChanged, dealers = [], myDealerId = null
       <Toast kind="success" message={success} onClose={() => setSuccess('')} />
       <Toast kind="error" message={error} onClose={() => setError('')} />
 
-      {detail ? (
+      {formTarget ? (
+        <Suspense fallback={<Loading rows={6} />}>
+          <KonsumenForm
+            editing={formTarget.editing}
+            can={can}
+            onClose={() => setFormTarget(null)}
+            onSaved={handleSaved}
+            onError={setError}
+          />
+        </Suspense>
+      ) : detail ? (
         <KonsumenDetailView
           detail={detail}
           names={detailNames}
@@ -211,6 +225,24 @@ function KonsumenPanel({ can, userId, onChanged, dealers = [], myDealerId = null
         {can.tambah && <button id="btn-konsumen-add" className="dash-btn solid" onClick={() => openForm()}>+ Tambah Konsumen</button>}
       </div>
       <p className="dash-card-desc">Kelola dokumen KTP konsumen. Unggah foto KTP lalu pindai dengan OCR untuk mengisi data otomatis.</p>
+
+      {can.lihatSemua && myDealerId != null && (
+        <div className="dash-tabs" role="tablist" aria-label="Cakupan konsumen">
+          {[['', 'Semua Konsumen'], [String(myDealerId), 'Dealer Saya']].map(([v, l]) => (
+            <button
+              key={l}
+              id={`konsumen-scope-${v === '' ? 'semua' : 'dealer-saya'}`}
+              type="button"
+              role="tab"
+              aria-selected={dealerFilter === v}
+              className={`dash-tab${dealerFilter === v ? ' active' : ''}`}
+              onClick={() => { dealerPicked.current = true; setLoading(true); setPage(1); setDealerFilter(v); }}
+            >
+              {l}
+            </button>
+          ))}
+        </div>
+      )}
 
       <div className="dash-toolbar">
         <input id="konsumen-search"
@@ -254,7 +286,7 @@ function KonsumenPanel({ can, userId, onChanged, dealers = [], myDealerId = null
             </thead>
             <tbody>
               {visible.map((k) => (
-                <tr key={k.id} className={k.status === 'ditolak' ? 'row-rejected' : undefined}>
+                <tr key={k.konsumen_me_id ?? k.id} className={k.status === 'ditolak' ? 'row-rejected' : undefined}>
                   <td>
                     <strong className="dash-cell-name">{k.name || '-'}</strong>
                     <small className="dash-cell-sub">NIK {k.nik || '-'}{dealerName(k) && ` · ${dealerName(k)}`}</small>
@@ -293,20 +325,6 @@ function KonsumenPanel({ can, userId, onChanged, dealers = [], myDealerId = null
       )}
 
       </>)}
-
-
-      {formTarget && (
-        <Suspense fallback={null}>
-          <KonsumenForm
-            editing={formTarget.editing}
-            userId={userId}
-            can={can}
-            onClose={() => setFormTarget(null)}
-            onSaved={handleSaved}
-            onError={setError}
-          />
-        </Suspense>
-      )}
 
 
       {toVerify && !detail && (

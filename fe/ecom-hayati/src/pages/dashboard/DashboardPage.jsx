@@ -127,7 +127,7 @@ function DashboardPage() {
 
   // Segarkan lencana; perubahan dari user sendiri tidak ditandai
   const refreshKonsumenStats = () => {
-    getKonsumenStatusTotals()
+    getKonsumenStatusTotals(can('konsumens.lihat-semua'))
       .then((t) => { markSeen(MENU_KONSUMEN, konsumenSig(t)); data.setKonsumenStatus(t); })
       .catch(() => {});
   };
@@ -229,7 +229,7 @@ function DashboardPage() {
                   myDealerId={myDealerId}
                   userId={user?.id}
                   onChanged={refreshKonsumenStats}
-                  can={{ tambah: can('konsumens.tambah'), ubah: can('konsumens.ubah'), hapus: can('konsumens.hapus'), scan: can('konsumens.scan'), verifikasi: canVerifyKonsumen }}
+                  can={{ tambah: can('konsumens.tambah'), ubah: can('konsumens.ubah'), hapus: can('konsumens.hapus'), scan: can('konsumens.scan'), verifikasi: canVerifyKonsumen, lihatSemua: can('konsumens.lihat-semua') }}
                 />
               </Suspense>
             </div>

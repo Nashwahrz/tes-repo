@@ -36,7 +36,7 @@ function App() {
           {/* DashboardPage tetap terpasang saat pindah menu */}
           <Route element={<RequireAuth />}>
             <Route element={<DashboardPage />}>
-              {Object.values(MENU_PATHS).map((path) => <Route key={path} path={path} />)}
+              {Object.values(MENU_PATHS).map((path) => <Route key={path} path={path} element={null} />)}
             </Route>
           </Route>
           <Route path="*" element={<Navigate to="/" replace />} />

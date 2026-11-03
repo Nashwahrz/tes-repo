@@ -2,38 +2,70 @@
 import api from './axios';
 
 // Konsumen / dokumen KTP (BE: /konsumens, butuh permission konsumens.*)
+// BE menyimpan status verifikasi per relasi penginput (tabel konsumen_mes), bukan di konsumen:
+//   GET /konsumens      -> konsumen milik user yang login
+//   GET /konsumens/all  -> semua konsumen (permission konsumens.lihat-semua)
+// Keduanya berpaginasi { data: [konsumen + konsumen_mes[]], meta } dan belum bisa difilter status di BE.
+// FE meratakan tiap konsumen_mes menjadi satu baris: id = id konsumen, konsumen_me_id = id yang dipakai untuk verifikasi,
+// lalu status, catatan_penolakan, diverifikasi_oleh, id_me, dan me diambil dari relasi tersebut.
 // status: 'pending' | 'diterima' | 'ditolak' (kosong = semua)
-// BE membagi hasil per halaman (10 data): { data: { data: [...], current_page, last_page, per_page, total, ... } }
-const fetchKonsumenPage = async (status, page) =>
-  (await api.get('/konsumens/status', { params: { ...(status ? { status } : {}), page } })).data.data;
+const PER_PAGE = 100;
 
-// Satu halaman saja: { rows, meta: { page, lastPage, total, perPage } }
-export const getKonsumenPage = async (status, page = 1) => {
-  const p = await fetchKonsumenPage(status, page);
-  if (Array.isArray(p)) return { rows: p, meta: { page: 1, lastPage: 1, total: p.length, perPage: p.length } };
-  return { rows: p.data, meta: { page: p.current_page, lastPage: p.last_page, total: p.total, perPage: p.per_page } };
+const currentUserId = () => {
+  try { return JSON.parse(localStorage.getItem('user'))?.id ?? null; } catch { return null; }
 };
 
-// Semua halaman digabung jadi satu array (lebih berat; dipakai hanya untuk pencarian dan hitungan khusus)
-export const getKonsumens = async (status) => {
-  const first = await fetchKonsumenPage(status, 1);
-  if (Array.isArray(first)) return first;
-  const rest = await Promise.all(Array.from({ length: Math.max((first.last_page ?? 1) - 1, 0) }, (_, i) => fetchKonsumenPage(status, i + 2)));
-  return [first, ...rest].flatMap((p) => p.data);
+export const flattenKonsumen = (k, all) => {
+  const { konsumen_mes: mes = [], ...base } = k;
+  const uid = currentUserId();
+  const mine = all ? mes : mes.filter((m) => m.id_me === uid);
+  return mine.map((m) => ({
+    ...base,
+    konsumen_me_id: m.id,
+    id_me: m.id_me,
+    me: m.me ?? null,
+    status: m.status,
+    catatan_penolakan: m.catatan_penolakan,
+    diverifikasi_oleh: m.diverifikasi_oleh,
+    verified_by: m.verified_by ?? null,
+  }));
 };
 
-// Total konsumen dari satu request (halaman pertama); rows ikut dikembalikan agar bisa dipakai tanpa request tambahan
-export const getKonsumenTotal = async () => {
-  const { rows, meta } = await getKonsumenPage(undefined, 1);
+const fetchPage = async (all, page, search) => {
+  const body = (await api.get(all ? '/konsumens/all' : '/konsumens', { params: { page, per_page: PER_PAGE, ...(search ? { search } : {}) } })).data;
+  const m = body.meta ?? {};
+  return {
+    rows: (body.data ?? []).flatMap((k) => flattenKonsumen(k, all)),
+    meta: { page: m.current_page ?? 1, lastPage: m.last_page ?? 1, total: m.total ?? 0, perPage: m.per_page ?? PER_PAGE },
+  };
+};
+
+const byStatus = (rows, status) => (status ? rows.filter((r) => r.status === status) : rows);
+
+// Satu halaman: { rows, meta: { page, lastPage, total, perPage } }. Tanpa filter status memakai paginasi BE;
+// dengan filter status semua halaman dimuat (BE belum menyaring status) dan meta = null
+export const getKonsumenPage = async (all, status, page = 1) => {
+  if (status) return { rows: await getKonsumens(all, status), meta: null };
+  return fetchPage(all, page);
+};
+
+// Semua halaman digabung jadi satu array (lebih berat; dipakai untuk pencarian, filter, dan hitungan)
+export const getKonsumens = async (all, status) => {
+  const first = await fetchPage(all, 1);
+  const rest = await Promise.all(Array.from({ length: Math.max(first.meta.lastPage - 1, 0) }, (_, i) => fetchPage(all, i + 2)));
+  return byStatus([first, ...rest].flatMap((p) => p.rows), status);
+};
+
+// Total konsumen dari halaman pertama; rows ikut dikembalikan agar bisa dipakai tanpa request tambahan
+export const getKonsumenTotal = async (all) => {
+  const { rows, meta } = await fetchPage(all, 1);
   return { total: meta.total, rows };
 };
 
-// Jumlah konsumen menunggu verifikasi dan ditolak (total dari halaman pertama tiap status)
-export const getKonsumenStatusTotals = async () => {
-  const [pending, ditolak] = await Promise.all(
-    ['pending', 'ditolak'].map(async (st) => (await getKonsumenPage(st, 1)).meta.total),
-  );
-  return { pending, ditolak };
+// Jumlah konsumen menunggu verifikasi dan ditolak (dihitung dari seluruh data)
+export const getKonsumenStatusTotals = async (all) => {
+  const rows = await getKonsumens(all);
+  return { pending: byStatus(rows, 'pending').length, ditolak: byStatus(rows, 'ditolak').length };
 };
 
 // Detail satu konsumen (BE: GET /konsumens/{id}); data lebih baru daripada baris di daftar
@@ -50,7 +82,7 @@ export const updateKonsumen = async (id, payload) => {
   return (await api.post(`/konsumens/${id}`, payload, { headers: { 'Content-Type': 'multipart/form-data' } })).data;
 };
 
-// Verifikasi konsumen oleh atasan (BE: PUT /konsumens/activate/{id}).
+// Verifikasi konsumen oleh atasan (BE: PUT /konsumens/activate/{id}); id = konsumen_me_id (bukan id konsumen)
 // status: 'diterima' | 'ditolak'; catatan_penolakan wajib (maks 255 karakter) bila ditolak
 export const verifyKonsumen = async (id, status, catatan_penolakan) =>
   (await api.put(`/konsumens/activate/${id}`, { status, ...(status === 'ditolak' ? { catatan_penolakan } : {}) })).data;
