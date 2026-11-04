@@ -1,10 +1,10 @@
-// src/pages/LoginPage.jsx
+// src/features/auth/pages/LoginPage.jsx
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { loginUser, retryAfterSeconds } from '../../api/authServices';
-import { queryClient } from '../../api/queryClient';
-import './LoginPage.css';
-import { formatWait } from './formatWait';
+import { loginUser, retryAfterSeconds } from '../../../api/authServices';
+import { queryClient } from '../../../api/queryClient';
+import '../styles/LoginPage.css';
+import { formatWait } from '../utils/formatWait';
 
 const LOGO_SRC = '/logo.png';
 

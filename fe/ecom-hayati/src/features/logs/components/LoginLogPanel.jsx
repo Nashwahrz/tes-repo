@@ -1,9 +1,9 @@
-// src/pages/dashboard/components/LoginLogPanel.jsx
+// src/features/logs/components/LoginLogPanel.jsx
 // Riwayat login pengguna dari BE /log-users (IP, lokasi, perangkat). Hanya baca.
 import { useEffect, useState } from 'react';
-import Toast from './Toast';
-import Loading from './Loading';
-import Pager from './Pager';
+import Toast from '../../../shared/components/Toast';
+import Loading from '../../../shared/components/Loading';
+import Pager from '../../../shared/components/Pager';
 import { getLoginLogs, errorMessage } from '../../../api/authServices';
 
 const fmtWaktu = (iso) => (iso ? new Date(iso).toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' }) : '-');

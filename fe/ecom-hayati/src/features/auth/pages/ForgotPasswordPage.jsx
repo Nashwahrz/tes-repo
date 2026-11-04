@@ -1,11 +1,11 @@
-// src/pages/auth/ForgotPasswordPage.jsx
+// src/features/auth/pages/ForgotPasswordPage.jsx
 // Reset password 3 langkah sesuai BE: kirim OTP -> verifikasi OTP (dapat reset_token) -> password baru.
 import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { sendResetPasswordOtp, verifyResetPasswordOtp, resetPassword, retryAfterSeconds } from '../../api/authServices';
-import './LoginPage.css';
-import './OtpPage.css';
-import { formatWait } from './formatWait';
+import { sendResetPasswordOtp, verifyResetPasswordOtp, resetPassword, retryAfterSeconds } from '../../../api/authServices';
+import '../styles/LoginPage.css';
+import '../styles/OtpPage.css';
+import { formatWait } from '../utils/formatWait';
 
 const LOGO_SRC = '/logo.png';
 const OTP_LENGTH = 6;

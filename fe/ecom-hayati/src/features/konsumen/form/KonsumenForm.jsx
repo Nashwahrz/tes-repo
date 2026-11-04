@@ -1,15 +1,15 @@
 import { lazy, Suspense, useEffect, useRef, useState } from 'react';
-import ConfirmModal from '../ConfirmModal';
-import { Spin } from '../Loading';
+import ConfirmModal from '../../../shared/components/ConfirmModal';
+import { Spin } from '../../../shared/components/Loading';
 import KonsumenField from './KonsumenField';
 import { useKonsumenMaster } from './useKonsumenMaster';
 import { scanKtpToForm } from './ktpScan';
-import { compressImage } from '../../../../utils/compressImage';
-import { createKonsumen, updateKonsumen, checkNik, ktpUrl, errorMessage } from '../../../../api/authServices';
-import { CHILD_OF, EMPTY, FIELDS, GEO_KEY, KAWIN, MAX_FILE, MAX_PICK, TARGET_FILE, nameOf, toForm, validate } from './konsumenForm';
+import { compressImage } from '../../../utils/compressImage';
+import { createKonsumen, updateKonsumen, checkNik, ktpUrl, errorMessage } from '../../../api/authServices';
+import { CHILD_OF, EMPTY, FIELDS, GEO_KEY, KAWIN, MAX_FILE, MAX_PICK, TARGET_FILE, nameOf, toForm, validate } from './konsumenFormConfig';
 
 // Leaflet (JS + CSS) hanya dimuat saat form dibuka
-const MapPicker = lazy(() => import('../MapPicker'));
+const MapPicker = lazy(() => import('../../../shared/map/MapPicker'));
 
 const without = (obj, keys) => Object.fromEntries(Object.entries(obj).filter(([k]) => !keys.includes(k)));
 

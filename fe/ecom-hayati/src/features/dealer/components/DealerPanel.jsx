@@ -1,17 +1,17 @@
-// src/pages/DealerPanel.jsx
+// src/features/dealer/components/DealerPanel.jsx
 
 // UI CRUD dealer, terhubung ke API /dealers.
 import { lazy, Suspense, useEffect, useState } from 'react';
-import Toast from './Toast';
-import Modal from './Modal';
-import MapView from './MapView'; // peta hanya-baca bergaya Google Maps di detail dealer
-import { Spin } from './Loading';
-import IconButton from './IconButton';
-import ConfirmModal from './ConfirmModal';
+import Toast from '../../../shared/components/Toast';
+import Modal from '../../../shared/components/Modal';
+import MapView from '../../../shared/map/MapView'; // peta hanya-baca bergaya Google Maps di detail dealer
+import { Spin } from '../../../shared/components/Loading';
+import IconButton from '../../../shared/components/IconButton';
+import ConfirmModal from '../../../shared/components/ConfirmModal';
 import { getDealer, createDealer, updateDealer, deleteDealer, errorMessage } from '../../../api/authServices';
 
 // Leaflet (JS + CSS) hanya dimuat saat form dealer dibuka
-const MapPicker = lazy(() => import('./MapPicker'));
+const MapPicker = lazy(() => import('../../../shared/map/MapPicker'));
 
 
 const EMPTY = { name: '', alamat: '', latitude: '', longitude: '' };

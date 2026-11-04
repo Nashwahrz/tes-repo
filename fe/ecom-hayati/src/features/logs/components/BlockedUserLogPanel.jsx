@@ -1,11 +1,11 @@
-// src/pages/dashboard/components/BlockedUserLogPanel.jsx
+// src/features/logs/components/BlockedUserLogPanel.jsx
 // Akun/IP yang diblokir rate limit dari BE /log-blocked-users, beserta tombol buka blokir.
 import { useEffect, useState } from 'react';
-import Toast from './Toast';
-import Loading from './Loading';
-import Pager from './Pager';
-import IconButton from './IconButton';
-import ConfirmModal from './ConfirmModal';
+import Toast from '../../../shared/components/Toast';
+import Loading from '../../../shared/components/Loading';
+import Pager from '../../../shared/components/Pager';
+import IconButton from '../../../shared/components/IconButton';
+import ConfirmModal from '../../../shared/components/ConfirmModal';
 import { getBlockedUsers, unblockUser, errorMessage } from '../../../api/authServices';
 
 const TYPE_LABEL = { login: 'Login', 'otp-send': 'Kirim OTP', 'otp-verify': 'Verifikasi OTP', 'scan-ktp': 'Scan KTP' };

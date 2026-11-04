@@ -1,0 +1,44 @@
+/* features/accounts/styles/accounts.css
+   Fitur Pengguna & Akses (akun dan role) */
+
+.acc-muted { color: var(--muted); }
+
+.acc-who { margin: 0 0 16px; font-size: 12px; color: var(--muted); }
+
+.acc-who strong { color: var(--ink); }
+
+.acc-req { color: #d92d20; }
+
+.acc-opt { font-weight: 400; color: var(--muted); }
+
+.acc-btn { padding: 5px 12px; font: inherit; font-size: 12px; font-weight: 600; background: #fff; border: 1px solid transparent; border-radius: 8px; cursor: pointer; white-space: nowrap; transition: background 0.15s, color 0.15s, border-color 0.15s; }
+
+.acc-btn.primary { color: #fff; background: #079455; }
+
+.acc-btn.primary:hover { background: #067647; }
+
+/* Tolak / Nonaktifkan: netral dulu, baru memerah saat disorot, agar daftar tidak didominasi warna merah */
+
+.acc-btn.danger { color: #475467; border-color: #d0d5dd; }
+
+.acc-btn.danger:hover { color: #b42318; background: #fef3f2; border-color: #fda29b; }
+
+.acc-btn:disabled, .acc-icon-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.acc-icon-btn { display: grid; place-items: center; width: 30px; height: 30px; color: var(--muted); background: none; border: 0; border-radius: 6px; cursor: pointer; transition: color 0.15s, background 0.15s; }
+
+.acc-icon-btn:hover { color: var(--accent); background: var(--tint); }
+
+.dash-table .acc-btn { font-size: 11.5px; }
+
+/* ---------- Pengguna & Akses: filter & sel pengguna ---------- */
+
+.acc-filter { min-width: 170px; font-weight: 600; cursor: pointer; }
+
+.acc-log-btn { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+
+.acc-user { display: flex; align-items: center; gap: 10px; }
+
+.acc-avatar { flex: none; display: grid; place-items: center; width: 32px; height: 32px; font-size: 13px; font-weight: 700; color: var(--accent); background: var(--tint); border-radius: 50%; }
+
+.ra-check { width: 16px; height: 16px; accent-color: var(--accent); cursor: pointer; }

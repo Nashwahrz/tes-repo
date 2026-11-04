@@ -1,11 +1,11 @@
-// src/pages/dashboard/components/SalesChart.jsx
+// src/features/sales/components/SalesChart.jsx
 import { useId, useMemo, useState } from 'react';
 import {
   getSalesChartData,
   rupiah,
   rupiahCompact,
   WEEK_OPTIONS,
-} from '../salesAnalytics';
+} from '../utils/salesAnalytics';
 
 // Helper membuat kurva Bezier mulus dari sekumpulan koordinat (x, y)
 function getSmoothPath(points) {

@@ -1,5 +1,5 @@
 import { ktpUrl } from '../../../api/authServices';
-import { Spin } from './Loading';
+import { Spin } from '../../../shared/components/Loading';
 
 // Halaman detail konsumen di area konten (sidebar tetap tampil). names: nama wilayah/agama/pekerjaan hasil lookup ID.
 // verify: null atau { status, catatan, onCatatan, saving, own, onConfirm, onCancel } saat konfirmasi terima/tolak dibuka di halaman ini

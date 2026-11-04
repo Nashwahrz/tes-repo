@@ -1,4 +1,4 @@
-// src/pages/dashboard/components/Toast.jsx
+// src/shared/components/Toast.jsx
 // Pesan sukses/gagal yang melayang di bawah layar, selalu terlihat walau halaman atau form sedang di-scroll.
 import { useEffect } from 'react';
 

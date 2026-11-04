@@ -1,11 +1,11 @@
-// src/pages/dashboard/components/KonsumenLogPanel.jsx
+// src/features/logs/components/KonsumenLogPanel.jsx
 // Riwayat aktivitas konsumen (tambah/ubah/verifikasi/hapus) dari BE /konsumens/logs. Hanya baca.
 import { useEffect, useState } from 'react';
-import Toast from './Toast';
-import Modal from './Modal';
-import Loading from './Loading';
-import Pager from './Pager';
-import IconButton from './IconButton';
+import Toast from '../../../shared/components/Toast';
+import Modal from '../../../shared/components/Modal';
+import Loading from '../../../shared/components/Loading';
+import Pager from '../../../shared/components/Pager';
+import IconButton from '../../../shared/components/IconButton';
 import { getKonsumenLogs, errorMessage } from '../../../api/authServices';
 
 const AKSI = { created: 'Ditambah', updated: 'Diubah', deleted: 'Dihapus' };

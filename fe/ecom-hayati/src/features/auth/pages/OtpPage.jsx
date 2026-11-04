@@ -1,10 +1,10 @@
-// src/pages/OtpPage.jsx
+// src/features/auth/pages/OtpPage.jsx
 import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { sendOtp, verifyOtp, retryAfterSeconds } from '../../api/authServices';
-import './LoginPage.css';
-import './OtpPage.css';
-import { formatWait } from './formatWait';
+import { sendOtp, verifyOtp, retryAfterSeconds } from '../../../api/authServices';
+import '../styles/LoginPage.css';
+import '../styles/OtpPage.css';
+import { formatWait } from '../utils/formatWait';
 
 const LOGO_SRC = '/logo.png';
 const OTP_LENGTH = 6;

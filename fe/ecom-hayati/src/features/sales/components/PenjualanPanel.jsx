@@ -1,8 +1,8 @@
-// src/pages/dashboard/components/PenjualanPanel.jsx
+// src/features/sales/components/PenjualanPanel.jsx
 import { useState } from 'react';
-import { SALES_PROTOTYPE } from '../salesPrototype';
+import { SALES_PROTOTYPE } from '../utils/salesPrototype';
 import SalesChart from './SalesChart';
-import Pager from './Pager';
+import Pager from '../../../shared/components/Pager';
 
 const STATUS = {
   lunas: { label: 'Lunas', cls: 'diterima' },

@@ -1,14 +1,14 @@
-// src/pages/dashboard/components/EmailWhitelistPanel.jsx
+// src/features/settings/components/EmailWhitelistPanel.jsx
 // Domain email yang boleh dipakai untuk registrasi (BE: /email-whitelists, permission email-whitelists.*).
 import { useEffect, useState } from 'react';
 import {
   getEmailWhitelists, createEmailWhitelist, updateEmailWhitelist, deleteEmailWhitelist, errorMessage,
 } from '../../../api/authServices';
-import Toast from './Toast';
-import Modal from './Modal';
-import Loading, { Spin } from './Loading';
-import IconButton from './IconButton';
-import ConfirmModal from './ConfirmModal';
+import Toast from '../../../shared/components/Toast';
+import Modal from '../../../shared/components/Modal';
+import Loading, { Spin } from '../../../shared/components/Loading';
+import IconButton from '../../../shared/components/IconButton';
+import ConfirmModal from '../../../shared/components/ConfirmModal';
 
 const EMPTY = { domain: '@', is_active: true };
 const DOMAIN_FORMAT = /^@[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+$/;

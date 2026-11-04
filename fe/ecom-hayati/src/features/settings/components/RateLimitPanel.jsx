@@ -1,12 +1,12 @@
-// src/pages/dashboard/components/RateLimitPanel.jsx
+// src/features/settings/components/RateLimitPanel.jsx
 // Pengaturan rate limit (BE: /configurasi-rate-limits, permission configurasi-rate-limits.lihat/ubah).
 // Baris dibuat lewat seeder: di sini hanya batasnya yang bisa diubah, bukan nama atau jumlah barisnya.
 import { useEffect, useState } from 'react';
 import { getRateLimits, updateRateLimit, errorMessage } from '../../../api/authServices';
-import Toast from './Toast';
-import Modal from './Modal';
-import Loading, { Spin } from './Loading';
-import IconButton from './IconButton';
+import Toast from '../../../shared/components/Toast';
+import Modal from '../../../shared/components/Modal';
+import Loading, { Spin } from '../../../shared/components/Loading';
+import IconButton from '../../../shared/components/IconButton';
 
 const LABELS = {
   login: { title: 'Login', desc: 'Percobaan login per akun dan alamat IP' },

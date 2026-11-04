@@ -1,16 +1,16 @@
 import { lazy, Suspense } from 'react'
 import { Navigate, Outlet, Route, Routes } from 'react-router-dom'
-import { MENU_PATHS } from './pages/dashboard/menuPaths'
-import Loading from './pages/dashboard/components/Loading'
+import { MENU_PATHS } from './features/dashboard/utils/menuPaths'
+import Loading from './shared/components/Loading'
 import ErrorBoundary from './ErrorBoundary'
 import './App.css'
 
 // Tiap halaman dimuat hanya saat URL-nya dibuka
-const LoginPage = lazy(() => import('./pages/auth/LoginPage'))
-const RegisterPage = lazy(() => import('./pages/auth/RegisterPage'))
-const DashboardPage = lazy(() => import('./pages/dashboard/DashboardPage'))
-const OtpPage = lazy(() => import('./pages/auth/OtpPage'))
-const ForgotPasswordPage = lazy(() => import('./pages/auth/ForgotPasswordPage'))
+const LoginPage = lazy(() => import('./features/auth/pages/LoginPage'))
+const RegisterPage = lazy(() => import('./features/auth/pages/RegisterPage'))
+const DashboardPage = lazy(() => import('./features/dashboard/DashboardPage'))
+const OtpPage = lazy(() => import('./features/auth/pages/OtpPage'))
+const ForgotPasswordPage = lazy(() => import('./features/auth/pages/ForgotPasswordPage'))
 
 const isLoggedIn = () => !!localStorage.getItem('token')
 

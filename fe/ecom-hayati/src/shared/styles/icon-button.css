@@ -1,0 +1,24 @@
+/* shared/styles/icon-button.css
+   Komponen IconButton */
+
+/* ---------- Tombol ikon di tabel & sel ringkas ---------- */
+
+.ico-btn { display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px; font: inherit; font-size: 12px; font-weight: 600; white-space: nowrap; color: var(--muted); background: none; border: 1px solid transparent; border-radius: 8px; cursor: pointer; transition: color 0.15s, background 0.15s, border-color 0.15s; }
+
+.ico-btn.compact { justify-content: center; width: 30px; height: 30px; padding: 0; }
+
+.ico-btn:hover:not(:disabled) { color: var(--accent); background: var(--tint); }
+
+.ico-btn.danger { color: #b42318; }
+
+.ico-btn.danger:hover:not(:disabled) { color: #b42318; background: #fef3f2; }
+
+/* Terima / Setujui: satu-satunya tombol terisi, hanya untuk aksi verifikasi */
+
+.ico-btn.ok { color: #fff; background: #079455; }
+
+.ico-btn.ok:hover:not(:disabled) { color: #fff; background: #067647; }
+
+.ico-btn:focus-visible { outline: none; box-shadow: var(--ring); }
+
+.ico-btn:disabled { opacity: 0.45; cursor: not-allowed; }

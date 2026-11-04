@@ -1,24 +1,24 @@
-// src/pages/dashboard/components/KonsumenPanel.jsx
-// UI konsumen (dokumen KTP): lihat, verifikasi, hapus. Tambah/ubah ada di konsumen/KonsumenForm.
+// src/features/konsumen/components/KonsumenPanel.jsx
+// UI konsumen (dokumen KTP): lihat, verifikasi. BE tidak lagi menyediakan hapus konsumen. Tambah/ubah ada di konsumen/KonsumenForm.
 import { lazy, Suspense, useEffect, useRef, useState } from 'react';
-import Toast from './Toast';
-import Loading from './Loading';
-import Pager from './Pager';
-import IconButton from './IconButton';
-import ConfirmModal from './ConfirmModal';
+import Toast from '../../../shared/components/Toast';
+import Loading from '../../../shared/components/Loading';
+import Pager from '../../../shared/components/Pager';
+import IconButton from '../../../shared/components/IconButton';
+import ConfirmModal from '../../../shared/components/ConfirmModal';
 import KonsumenDetailView from './KonsumenDetailView';
-import { STATUS_LABEL } from './konsumen/konsumenForm';
+import { STATUS_LABEL } from '../form/konsumenFormConfig';
 import {
-  getKonsumens, getKonsumenPage, getKonsumen, deleteKonsumen, verifyKonsumen, errorMessage, getMasterByKode,
+  getKonsumens, getKonsumenPage, getKonsumen, verifyKonsumen, errorMessage, getMasterByKode,
 } from '../../../api/authServices';
 
 // Ekstensi wajib ditulis: di Windows (huruf besar/kecil sama) './konsumen/KonsumenForm' terbaca sebagai konsumenForm.js
-const KonsumenForm = lazy(() => import('./konsumen/KonsumenForm.jsx'));
+const KonsumenForm = lazy(() => import('../form/KonsumenForm.jsx'));
 
 
-// onChanged: dipanggil setelah data berubah (tambah/ubah/verifikasi/hapus) agar lencana di sidebar ikut diperbarui
+// onChanged: dipanggil setelah data berubah (tambah/ubah/verifikasi) agar lencana di sidebar ikut diperbarui
 // dealers & myDealerId: filter dealer tampil untuk semua role. Awalnya hanya konsumen dealer user sendiri; "Semua dealer" menampilkan lintas dealer.
-function KonsumenPanel({ can, userId, onChanged, dealers = [], myDealerId = null }) {
+function KonsumenPanel({ can, userId, onChanged, dealers = [], myDealerId = null, users = [] }) {
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('');
@@ -42,14 +42,17 @@ function KonsumenPanel({ can, userId, onChanged, dealers = [], myDealerId = null
 
   const [formTarget, setFormTarget] = useState(null); // { editing } saat form terbuka; editing = konsumen yang diubah (null = menambah baru)
   const [saving, setSaving] = useState(false);
-  const [toDelete, setToDelete] = useState(null);
   const [toVerify, setToVerify] = useState(null); // { konsumen, status: 'diterima' | 'ditolak' }
   const [catatan, setCatatan] = useState('');
   const [detailRow, setDetailRow] = useState(null);
   // Detail ikut memakai data terbaru (URL foto baru) setelah daftar dimuat ulang
   const [detailFresh, setDetailFresh] = useState(null);
   const sameRow = (a, b) => a.konsumen_me_id === b.konsumen_me_id; // satu konsumen bisa tampil beberapa kali (satu per penginput)
-  const detail = detailRow ? { ...(rows.find((r) => sameRow(r, detailRow)) ?? detailRow), ...(detailFresh?.id === detailRow.id ? detailFresh : {}) } : null;
+  const detailRaw = detailRow ? { ...(rows.find((r) => sameRow(r, detailRow)) ?? detailRow), ...(detailFresh?.id === detailRow.id ? detailFresh : {}) } : null;
+  // BE hanya mengirim id pemverifikasi (diverifikasi_oleh) tanpa relasinya: namanya dicari dari daftar akun
+  const detail = detailRaw && !detailRaw.verified_by && detailRaw.diverifikasi_oleh
+    ? { ...detailRaw, verified_by: users.find((u) => u.id === detailRaw.diverifikasi_oleh) ?? null }
+    : detailRaw;
   const setDetail = setDetailRow;
 
 
@@ -63,8 +66,8 @@ function KonsumenPanel({ can, userId, onChanged, dealers = [], myDealerId = null
   useEffect(() => {
     let active = true;
     const load = loadAll
-      ? getKonsumens(can.lihatSemua, filter).then((data) => ({ rows: dealerFilter ? data.filter((k) => String(dealerOf(k)) === dealerFilter) : data, meta: null }))
-      : getKonsumenPage(can.lihatSemua, filter, page);
+      ? getKonsumens(can.mode, filter).then((data) => ({ rows: dealerFilter ? data.filter((k) => String(dealerOf(k)) === dealerFilter) : data, meta: null }))
+      : getKonsumenPage(can.mode, filter, page);
     load
       .then((res) => {
         if (!active) return;
@@ -84,11 +87,11 @@ function KonsumenPanel({ can, userId, onChanged, dealers = [], myDealerId = null
       })
       .catch((err) => { if (active) { if (!silentRef.current) setError(errorMessage(err)); setLoading(false); } });
     return () => { active = false; };
-  }, [filter, dealerFilter, page, reloadKey, pollKey, loadAll, can.lihatSemua]);
+  }, [filter, dealerFilter, page, reloadKey, pollKey, loadAll, can.mode]);
 
   // Realtime: perubahan status dari pengguna lain muncul tanpa refresh halaman. Polling tiap 8 detik saat tab terlihat
   // dan tidak ada form/dialog terbuka (agar isian tidak terganggu), serta langsung saat tab kembali difokuskan.
-  const busy = !!(formTarget || toDelete || toVerify || saving);
+  const busy = !!(formTarget || toVerify || saving);
   useEffect(() => {
     if (busy) return undefined;
     const tick = () => {
@@ -192,22 +195,6 @@ function KonsumenPanel({ can, userId, onChanged, dealers = [], myDealerId = null
     }
   };
 
-  const handleDelete = async () => {
-    setSaving(true);
-    setError('');
-    try {
-      await deleteKonsumen(toDelete.id);
-      setRows((list) => list.filter((k) => k.id !== toDelete.id));
-      setSuccess(`Data konsumen ${toDelete.name || toDelete.nik || ''} dihapus.`);
-      onChanged?.();
-    } catch (err) {
-      setError(errorMessage(err));
-    } finally {
-      setSaving(false);
-      setToDelete(null);
-    }
-  };
-
   const statusTag = (s) => <span className={`dash-status ${s}`}>{STATUS_LABEL[s] ?? s}</span>;
 
   const closeDetail = () => { setDetail(null); setToVerify(null); };
@@ -281,7 +268,7 @@ function KonsumenPanel({ can, userId, onChanged, dealers = [], myDealerId = null
           <option value="">Semua status</option>
           {Object.entries(STATUS_LABEL).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
         </select>
-        {(dealers.length > 0 || myDealerId != null) && (
+        {can.mode !== 'dealer' && (dealers.length > 0 || myDealerId != null) && (
           <select id="konsumen-filter-dealer" className="dash-input dash-select-filter" value={dealerFilter} aria-label="Filter dealer" onChange={(e) => { dealerPicked.current = true; setLoading(true); setPage(1); setDealerFilter(e.target.value); }}>
             <option value="">Semua dealer</option>
             {/* Role tanpa akses daftar dealer (mis. ME) hanya mendapat pilihan dealernya sendiri */}
@@ -335,7 +322,6 @@ function KonsumenPanel({ can, userId, onChanged, dealers = [], myDealerId = null
                   <td className="col-aksi">
                     <div className="dash-actions">
                       <IconButton id={`btn-konsumen-detail-${k.id}`} icon="view" label="Detail" onClick={() => setDetail(k)} />
-                      {can.hapus && <IconButton id={`btn-konsumen-delete-${k.id}`} icon="delete" label="Hapus" tone="danger" onClick={() => setToDelete(k)} />}
                     </div>
                   </td>
                 </tr>
@@ -391,11 +377,6 @@ function KonsumenPanel({ can, userId, onChanged, dealers = [], myDealerId = null
         </ConfirmModal>
       )}
 
-      {toDelete && (
-        <ConfirmModal title="Hapus Konsumen" confirmLabel="Ya, Hapus" busy={saving} onConfirm={handleDelete} onCancel={() => setToDelete(null)}>
-          <p className="dash-card-desc">Yakin ingin menghapus <strong>{toDelete.name || toDelete.nik || 'konsumen ini'}</strong>? Tindakan ini tidak dapat dibatalkan.</p>
-        </ConfirmModal>
-      )}
     </div>
   );
 }

@@ -1,0 +1,16 @@
+/* features/sales/styles/sales.css
+   Halaman Penjualan */
+
+/* Penanda prototipe pada angka penjualan */
+
+.dash-proto { padding: 1px 8px; font-size: 10.5px; font-weight: 600; color: #fff; background: rgba(0, 0, 0, 0.22); border-radius: 999px; }
+
+/* Ringkasan di halaman Penjualan: kartu kecil satu baris (bukan kartu besar beranimasi ikon seperti di Ringkasan) */
+
+.dash-stats-compact .dash-stat { flex-direction: column; align-items: flex-start; justify-content: center; gap: 2px; min-height: 0; padding: 14px 18px; box-shadow: none; }
+
+.dash-stats-compact .dash-stat small { margin: 0; font-size: 12px; }
+
+.dash-stats-compact .dash-stat-val { white-space: nowrap; }
+
+.dash-stats-compact .dash-stat-val strong { font-size: 24px; }

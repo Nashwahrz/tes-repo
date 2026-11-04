@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
-import Icon from './Icon';
-import { MENU_ICONS } from '../navConfig';
-import { MENU_PATHS } from '../menuPaths';
+import Icon from '../../../shared/components/Icon';
+import { MENU_ICONS } from '../utils/navConfig';
+import { MENU_PATHS } from '../utils/menuPaths';
 
 const LOGO_SRC = '/logo.png';
 

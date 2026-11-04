@@ -1,10 +1,10 @@
-// src/pages/dashboard/components/MasterImportModal.jsx
+// src/features/master/components/MasterImportModal.jsx
 // Tambah data master lewat file Excel (.xlsx): pilih file -> periksa -> impor. Template diunduh dari sini.
 import { useRef, useState } from 'react';
 import { importMaster, errorMessage } from '../../../api/authServices';
 import { downloadMasterTemplate, parseMasterExcel } from '../../../api/masterExcel';
-import { Spin } from './Loading';
-import Modal from './Modal';
+import { Spin } from '../../../shared/components/Loading';
+import Modal from '../../../shared/components/Modal';
 
 const SHOW = 10; // jumlah baris masalah yang ditampilkan
 const BIG = 2000; // di atas ini, beri peringatan karena tiap baris dikirim sebagai satu permintaan

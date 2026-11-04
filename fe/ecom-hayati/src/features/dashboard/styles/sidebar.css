@@ -1,0 +1,282 @@
+/* features/dashboard/styles/sidebar.css
+   Sidebar, menu, grup menu, avatar, logout, dan tombol buka/tutup sidebar */
+
+/* ---------- Sidebar ---------- */
+
+.dash-side {
+  position: sticky;
+  top: 0;
+  align-self: flex-start;
+  display: flex;
+  flex-direction: column;
+  width: 230px;
+  height: 100vh;
+  padding: 18px 12px;
+  background: #fff;
+  border-right: 1px solid var(--line);
+  box-sizing: border-box;
+}
+
+.dash-brand { display: flex; align-items: center; gap: 10px; padding: 0 8px 22px; }
+
+.dash-brand img { width: 34px; height: 34px; object-fit: contain; }
+
+.dash-brand strong { display: block; font-size: 17px; font-weight: 600; line-height: 1.1; }
+
+.dash-brand small { font-size: 10px; font-weight: 600; color: var(--accent); }
+
+.dash-menu { list-style: none; margin: 0; padding: 0; flex: 1; min-height: 0; overflow-y: auto; overflow-x: hidden; overscroll-behavior: contain; }
+
+/* x hidden: geser hover menu (translateX) tidak memunculkan scrollbar horizontal */
+
+.dash-menu::-webkit-scrollbar { width: 6px; }
+
+.dash-menu::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 6px; }
+
+.dash-menu::-webkit-scrollbar-thumb { background: #b5b5b5; border-radius: 6px; }
+
+.dash-menu::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+
+.dash-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 10px 12px;
+  margin-bottom: 6px;
+  font-size: 12.5px;
+  font-weight: 500;
+  color: #3a3a3a;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.dash-menu-item:hover { background: #f4f4f4; }
+
+.dash-menu-item.active {
+  color: #fff;
+  font-weight: 600;
+  background: var(--grad);
+  box-shadow: 0 4px 10px rgba(179, 36, 0, 0.28);
+}
+
+.dash-menu-item svg { flex-shrink: 0; }
+
+.dash-side-foot {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 8px 0;
+  border-top: 1px solid var(--line);
+}
+
+.dash-avatar {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 34px;
+  height: 34px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #fff;
+  background: var(--grad);
+  border-radius: 50%;
+}
+
+.dash-side-user { min-width: 0; flex: 1; }
+
+.dash-side-user strong { display: block; font-size: 12px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.dash-side-user small { font-size: 10px; color: var(--muted); }
+
+@media (max-width: 900px) {
+  .dash-side { position: static; width: auto; height: auto; }
+}
+
+/* ---------- Sidebar ---------- */
+
+.dash-side { box-shadow: 2px 0 14px rgba(27, 27, 27, 0.03); }
+
+.dash-brand { border-bottom: 1px solid var(--line); margin-bottom: 14px; }
+
+.dash-menu-item { position: relative; transition: background 0.15s, color 0.15s, transform 0.15s, box-shadow 0.15s; }
+
+.dash-menu-item:hover:not(.active) { color: var(--accent); background: var(--tint); transform: translateX(3px); }
+
+.dash-menu-item.active::before {
+  content: '';
+  position: absolute;
+  left: -12px;
+  top: 20%;
+  width: 4px;
+  height: 60%;
+  background: var(--orange);
+  border-radius: 0 4px 4px 0;
+}
+
+.dash-side-foot {
+  margin-top: 10px;
+  padding: 12px;
+  background: #faf6f3;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  flex-wrap: wrap;
+}
+
+.dash-avatar { box-shadow: 0 3px 8px rgba(179, 36, 0, 0.3); }
+
+.dash-logout {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  padding: 8px 12px;
+  margin-top: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--accent);
+  background: #fff;
+  border: 1px solid var(--tint-line);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: color 0.15s, background 0.15s, border-color 0.15s, box-shadow 0.15s, transform 0.15s;
+}
+
+.dash-logout:hover {
+  color: #fff;
+  background: var(--grad);
+  border-color: transparent;
+  box-shadow: 0 6px 14px rgba(179, 36, 0, 0.3);
+  transform: translateY(-1px);
+}
+
+.dash-logout:active { transform: translateY(0); box-shadow: none; }
+
+.dash-logout:focus-visible { outline: none; box-shadow: var(--ring); }
+
+/* Tombol menu & lapisan penutup hanya dipakai di layar kecil */
+
+.dash-burger, .dash-scrim { display: none; }
+
+/* Tombol sembunyikan/tampilkan sidebar hanya untuk desktop */
+
+.dash-collapse, .dash-expand {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  color: var(--muted);
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.dash-collapse:hover, .dash-expand:hover { background: #f3f3f3; color: var(--ink); }
+
+.dash-collapse:focus-visible, .dash-expand:focus-visible { outline: none; box-shadow: var(--ring); }
+
+.dash-collapse { position: absolute; top: 20px; right: 10px; }
+
+.dash-expand { position: fixed; top: 14px; left: 14px; z-index: 20; box-shadow: var(--shadow-sm); }
+
+.dash-side.hidden { display: none; }
+
+.dash-brand { padding-right: 40px; }
+
+.dash:has(.dash-expand) .dash-content { padding-left: 64px; }
+
+@media (max-width: 900px) {
+  /* Sidebar menjadi bilah atas: logo + tombol menu. Menu dan akun tersembunyi sampai tombol ditekan. */
+  .dash-side {
+    position: sticky;
+    top: 0;
+    z-index: 40;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    align-self: stretch;
+    width: 100%;
+    padding: 10px 14px;
+    max-height: 100vh;
+    overflow-y: auto;
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+    box-shadow: var(--shadow-sm);
+  }
+  .dash-brand { padding: 0; }
+  .dash-burger {
+    display: grid;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+    margin-left: auto;
+    color: var(--accent);
+    background: var(--tint);
+    border: 1px solid var(--tint-line);
+    border-radius: 10px;
+    cursor: pointer;
+  }
+  .dash-burger:focus-visible { outline: none; box-shadow: var(--ring); }
+  .dash-collapse, .dash-expand { display: none; }
+  .dash-side.hidden { display: flex; }
+  .dash:has(.dash-expand) .dash-content { padding-left: 14px; }
+  .dash-menu, .dash-side-foot { display: none; }
+  .dash-side.open .dash-menu {
+    display: block;
+    flex: 0 0 100%;
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid var(--line);
+  }
+  .dash-side.open .dash-menu-item { padding: 12px; margin-bottom: 4px; }
+  .dash-side.open .dash-side-foot { display: flex; flex: 0 0 100%; box-sizing: border-box; margin-top: 8px; }
+  .dash-side.open .dash-logout { padding: 11px 12px; }
+  .dash-scrim { display: block; position: fixed; inset: 0; z-index: 30; background: rgba(0, 0, 0, 0.35); }
+}
+
+@media (max-width: 400px) {
+  .dash-brand small { display: none; }
+}
+
+/* Lencana jumlah data menunggu di menu sidebar */
+
+/* Grup menu + submenu */
+
+.dash-menu-group { margin-bottom: 2px; }
+
+.dash-menu-group-head {
+  display: flex; align-items: center; gap: 10px; width: 100%; padding: 10px 12px; font: inherit; font-size: 12.5px; font-weight: 600;
+  color: #3a3a3a; text-align: left; background: none; border: 0; border-radius: 8px; cursor: pointer; transition: background 0.15s, color 0.15s;
+}
+
+.dash-menu-group-head:hover { color: var(--accent); background: var(--tint); }
+
+.dash-menu-group.has-active > .dash-menu-group-head { color: var(--accent); }
+
+.dash-menu-chevron { display: inline-flex; margin-left: auto; transition: transform 0.2s; }
+
+.dash-menu-group-head .dash-menu-badge + .dash-menu-chevron, .dash-menu-group-head .dash-menu-dot-inline + .dash-menu-chevron { margin-left: 8px; }
+
+.dash-menu-group.open > .dash-menu-group-head .dash-menu-chevron { transform: rotate(180deg); }
+
+.dash-menu-dot.dash-menu-dot-inline { position: static; top: auto; left: auto; margin-left: auto; flex-shrink: 0; }
+
+.dash-menu-item.sub { padding: 8px 12px; font-size: 12.5px; margin-bottom: 2px; }
+
+.dash-menu-item.sub .dash-menu-dot { left: auto; right: 38px; top: 50%; margin-top: -6px; }
+
+.dash-menu-badge { margin-left: auto; min-width: 20px; padding: 1px 6px; font-size: 11px; font-weight: 700; line-height: 18px; text-align: center; color: #fff; background: #d92d20; border-radius: 999px; }
+
+.dash-menu-item.active .dash-menu-badge { color: var(--accent); background: #fff; }
+
+/* Titik penanda perubahan data di ikon menu sidebar */
+
+.dash-menu-dot { position: absolute; top: 7px; left: 24px; width: 9px; height: 9px; background: #d92d20; border: 2px solid #fff; border-radius: 50%; box-sizing: content-box; animation: dash-dot 1.8s ease-out infinite; }
+
+@keyframes dash-dot { 0% { box-shadow: 0 0 0 0 rgba(217, 45, 32, 0.55); } 70%, 100% { box-shadow: 0 0 0 7px rgba(217, 45, 32, 0); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .dash-menu-dot { animation: none; }
+}

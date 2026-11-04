@@ -1,0 +1,94 @@
+/* features/konsumen/styles/konsumen.css
+   Fitur Konsumen: tabel, detail, form, daftar NIK, verifikasi */
+
+.dash-ktp-thumb { width: 64px; height: 40px; object-fit: cover; border: 1px solid var(--line); border-radius: 6px; background: #f3f4f6; }
+
+.dash-ktp-big { display: block; width: 100%; max-height: 240px; object-fit: contain; margin: 0 0 10px; border: 1px solid var(--line); border-radius: 10px; background: #f3f4f6; }
+
+.dash-ktp-thumb { transition: transform 0.15s, box-shadow 0.15s; }
+
+.dash-ktp-thumb:hover { transform: scale(1.6); box-shadow: var(--shadow-md); position: relative; z-index: 2; }
+
+.dash-verify { display: flex; gap: 6px; margin-top: 8px; }
+
+@media (max-width: 640px) {
+  .dash-ktp-big { max-height: 180px; }
+}
+
+/* Tabel konsumen: kolom data tidak dipecah ke baris baru; hanya Nama yang membungkus (per kata) */
+
+.konsumen-table { width: 100%; }
+
+.konsumen-table th, .konsumen-table td { vertical-align: middle; }
+
+.konsumen-table th { white-space: nowrap; }
+
+.konsumen-table td { white-space: nowrap; }
+
+.konsumen-table td:nth-child(1) { white-space: normal; min-width: 160px; overflow-wrap: break-word; }
+
+.konsumen-table td .dash-note { white-space: normal; max-width: 220px; display: -webkit-box; -webkit-box-orient: vertical; box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; overflow: hidden; }
+
+.konsumen-reject { margin: 0 0 14px; padding: 12px 14px; border: 1px solid #fecdca; border-radius: 10px; background: #fef3f2; }
+
+.konsumen-reject strong { display: block; font-size: 12px; font-weight: 700; letter-spacing: 0.02em; color: #b42318; }
+
+.konsumen-reject p { margin: 4px 0 0; font-size: 14px; line-height: 1.45; color: #7a271a; white-space: pre-wrap; overflow-wrap: break-word; }
+
+.konsumen-reject small { display: block; margin-top: 6px; font-size: 12px; color: #b42318; opacity: 0.8; }
+
+.konsumen-table .dash-verify { margin-top: 0; flex-wrap: nowrap; }
+
+.dash-verify .ico-btn.danger { border-color: #fda29b; }
+
+.dash-verify .ico-btn.danger:hover:not(:disabled) { border-color: #d92d20; }
+
+.konsumen-reject-edit { margin-top: 10px; }
+
+.dash-btn.konsumen-verify-reject { color: #b42318; border-color: #fda29b; }
+
+.dash-btn.konsumen-verify-reject:hover:not(:disabled) { border-color: #d92d20; background: #fef3f2; }
+
+/* Baris konsumen ditolak diberi latar merah tipis */
+
+.dash-table tbody tr.row-rejected { background: #fef3f2; }
+
+.dash-table tbody tr.row-rejected:hover { background: #fee4e2; }
+
+/* Detail konsumen sebagai halaman di area konten (bukan popup): foto di kiri, data di kanan */
+
+.konsumen-page-body { display: grid; grid-template-columns: minmax(240px, 360px) 1fr; gap: 20px; align-items: start; }
+
+.konsumen-page-photo { max-height: 320px; margin: 0; }
+
+.konsumen-verify-panel { margin-top: 16px; padding: 16px; border: 1px solid var(--line); border-radius: 12px; background: #fafafa; }
+
+@media (max-width: 760px) {
+  .konsumen-page-body { grid-template-columns: 1fr; gap: 8px; }
+}
+
+/* Form tambah/ubah konsumen: halaman penuh di area konten */
+
+.konsumen-form-page { max-width: 980px; }
+
+.konsumen-form-page .dash-form-row > * { flex: 1 1 0; min-width: 0; }
+
+/* kolom sama lebar */
+
+.konsumen-form-page .dash-form-row.three > * { flex: 1 1 0; }
+
+.konsumen-form-page .dash-input, .konsumen-form-page select.dash-input { width: 100%; box-sizing: border-box; }
+
+.konsumen-form-page .dash-ktp-big { max-width: 360px; width: 100%; }
+
+.konsumen-form-page .dash-modal-actions { position: sticky; bottom: 0; background: #fff; }
+
+/* Daftar NIK terdaftar di form konsumen */
+
+.dash-nik-list { list-style: none; margin: 0 0 12px; padding: 4px; border: 1px solid #d9d9d9; border-radius: 8px; background: #fff; }
+
+.dash-nik-list .dash-map-hint { margin: 4px 8px; }
+
+.dash-nik-item { display: block; width: 100%; padding: 8px; border: 0; border-radius: 6px; background: none; text-align: left; cursor: pointer; font: inherit; }
+
+.dash-nik-item:hover, .dash-nik-item:focus-visible { background: #f2f2f2; }

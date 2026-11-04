@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import {
   errorMessage, getAgamas, getPekerjaans, getProvinsis, getKabupatens, searchKecamatans, searchKelurahans, getMasterByKode,
-} from '../../../../api/authServices';
+} from '../../../api/authServices';
 
 // Jeda setelah ketukan terakhir sebelum kecamatan/kelurahan dicari di BE (satu pencarian bisa mengambil banyak halaman)
 const GEO_SEARCH_DELAY = 500;

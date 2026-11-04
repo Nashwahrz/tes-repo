@@ -1,0 +1,881 @@
+/* features/dashboard/styles/dashboard.css
+   Tata letak, variabel tema, tombol, kartu, tabel, form, dan responsif dasar dashboard */
+
+.dash {
+  --accent: #c42d00;
+  --accent-dark: #a02000;
+  --orange: #ea1a1a;
+  --orange-dark: #b8000d;
+  --tint: #fff0e6;
+  --tint-line: #fbd3b8;
+  --ink: #1b1b1b;
+  --muted: #6f6f6f;
+  --line: #ebebeb;
+  --grad: linear-gradient(100deg, #b32400, #e05a00);
+  font-family: 'Poppins', system-ui, 'Segoe UI', Roboto, sans-serif;
+  font-size: 13px;
+  line-height: 1.45;
+  letter-spacing: 0;
+  display: flex;
+  min-height: 100vh;
+  text-align: left;
+  background: #f7f7f7;
+  color: var(--ink);
+}
+
+.dash button { font-family: inherit; }
+
+/* index.css memberi h1/h2 letter-spacing negatif & warna gelap; reset di sini */
+
+.dash h1,
+.dash h2 {
+  font-family: inherit;
+  letter-spacing: 0;
+}
+
+/* ---------- Main ---------- */
+
+.dash-main { flex: 1; min-width: 0; }
+
+.dash-content { padding: 22px 26px 40px; }
+
+/* ---------- Greeting ---------- */
+
+.dash-hello {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 20px 24px;
+  margin-bottom: 20px;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+}
+
+.dash-hello h1 { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; margin: 0 0 8px; font-size: 22px; font-weight: 600; color: var(--ink); }
+
+.dash-hello p { max-width: 560px; margin: 0; font-size: 12.5px; line-height: 1.6; color: var(--muted); }
+
+/* ---------- Buttons ---------- */
+
+.dash-btn {
+  padding: 10px 16px;
+  font-size: 12px;
+  font-weight: 600;
+  border: 0;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.dash-btn.outline { color: var(--ink); background: #fff; border: 1px solid var(--line); }
+
+.dash-btn.light { color: var(--ink); background: #fff; }
+
+.dash-btn.ghost { color: #fff; background: rgba(0, 0, 0, 0.18); }
+
+.dash-btn.soft { color: var(--accent); background: var(--tint); }
+
+.dash-btn.solid { color: #fff; background: var(--grad); }
+
+/* ---------- Stats ---------- */
+
+.dash-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  margin-bottom: 18px;
+}
+
+.dash-stat {
+  padding: 16px;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+}
+
+.dash-stat-top { display: flex; align-items: center; justify-content: space-between; min-height: 32px; margin-bottom: 16px; }
+
+.dash-stat-icon {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  color: var(--accent);
+  background: var(--tint);
+  border-radius: 8px;
+}
+
+.dash-tag {
+  padding: 2px 8px;
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--accent);
+  background: var(--tint);
+  border-radius: 999px;
+}
+
+.dash-stat small { display: block; font-size: 11px; color: var(--muted); }
+
+.dash-stat-val { display: flex; align-items: baseline; gap: 8px; }
+
+.dash-stat-val strong { font-size: 26px; font-weight: 600; line-height: 1.2; }
+
+.dash-stat-val span { font-size: 11px; color: var(--muted); }
+
+/* ---------- Cards ---------- */
+
+.dash-grid {
+  display: grid;
+  grid-template-columns: 1fr 1.25fr;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.dash-card {
+  padding: 18px;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+}
+
+.dash-card-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 6px; }
+
+.dash-card-head h3 { display: flex; align-items: center; gap: 8px; margin: 0; font-size: 14px; font-weight: 600; }
+
+.dash-card-head h3 svg { color: var(--accent); }
+
+.dash-card-desc { margin: 0 0 14px; font-size: 11px; color: var(--muted); }
+
+.dash-badge {
+  padding: 3px 10px;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--accent);
+  background: var(--tint);
+  border: 1px solid var(--tint-line);
+  border-radius: 999px;
+}
+
+.dash-item {
+  padding: 14px;
+  margin-bottom: 10px;
+  background: #fffaf6;
+  border: 1px solid var(--tint-line);
+  border-radius: 10px;
+}
+
+.dash-item-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+
+.dash-item strong { display: block; font-size: 13px; font-weight: 600; }
+
+.dash-item small { display: block; font-size: 11px; color: var(--muted); }
+
+.dash-item-actions { display: flex; gap: 8px; margin-top: 12px; }
+
+.dash-item-actions .dash-btn { flex: 1; padding: 8px 12px; }
+
+.dash-empty { margin: 0; font-size: 12px; color: var(--muted); }
+
+.dash-table { width: 100%; border-collapse: collapse; }
+
+.dash-table th, .dash-table td { padding: 10px 12px; text-align: left; border-bottom: 1px solid var(--line); }
+
+.dash-table th { font-size: 11px; font-weight: 600; color: var(--muted); }
+
+/* ---------- Topbar ---------- */
+
+.dash-top {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 26px;
+  background: #fff;
+  border-bottom: 1px solid var(--line);
+}
+
+.dash-search {
+  flex: 1;
+  max-width: 400px;
+  padding: 9px 16px;
+  font: inherit;
+  font-size: 12px;
+  background: #f3f3f3;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  outline: none;
+}
+
+.dash-search:focus { background: #fff; border-color: var(--accent); }
+
+.dash-top-right { display: flex; align-items: center; gap: 22px; margin-left: auto; text-align: right; font-size: 10px; color: var(--muted); }
+
+.dash-top-right strong { display: block; font-size: 11px; font-weight: 600; color: var(--ink); }
+
+/* ---------- Hero ---------- */
+
+.dash-hero {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 30px 34px;
+  margin-bottom: 20px;
+  color: #fff;
+  background: linear-gradient(100deg, #b32400 0%, #dc5200 50%, #ff8c00 100%);
+  border-radius: 14px;
+  box-shadow: 0 12px 26px rgba(179, 36, 0, 0.28);
+}
+
+.dash-hero::after {
+  content: '';
+  position: absolute;
+  right: -40px;
+  bottom: -60px;
+  width: 260px;
+  height: 260px;
+  border: 28px solid rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+}
+
+.dash-hero > * { position: relative; z-index: 1; }
+
+.dash-chip { display: inline-block; padding: 4px 12px; margin-bottom: 16px; font-size: 11px; font-weight: 500; color: #fff; background: rgba(0, 0, 0, 0.18); border-radius: 6px; }
+
+.dash-hero small { display: block; font-size: 12px; font-weight: 500; color: #fff; opacity: 0.9; }
+
+.dash-hero h2 { display: flex; align-items: center; flex-wrap: wrap; gap: 14px; margin: 8px 0 16px; font-size: 40px; font-weight: 600; line-height: 1.1; color: #fff; }
+
+.dash-delta { padding: 4px 10px; font-size: 11px; font-weight: 500; line-height: 1.2; color: #fff; background: rgba(0, 0, 0, 0.18); border-radius: 6px; }
+
+.dash-hero-sub { display: flex; gap: 12px; flex-wrap: wrap; }
+
+.dash-hero-sub span { padding: 6px 12px; font-size: 11px; color: #fff; background: rgba(0, 0, 0, 0.16); border-radius: 6px; }
+
+.dash-hero-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+
+/* ---------- Dealer rows ---------- */
+
+.dash-row { display: flex; align-items: center; gap: 12px; padding: 11px 12px; margin-bottom: 8px; background: #f7f7f7; border-radius: 10px; }
+
+.dash-row-icon { display: grid; place-items: center; flex-shrink: 0; width: 30px; height: 30px; color: var(--accent); background: var(--tint); border-radius: 8px; }
+
+.dash-row-body { flex: 1; min-width: 0; font-size: 12px; font-weight: 600; }
+
+.dash-row-body small { display: block; font-weight: 400; color: var(--muted); font-size: 10.5px; }
+
+.dash-row-right { text-align: right; font-size: 10.5px; font-weight: 500; color: var(--muted); white-space: nowrap; }
+
+/* ---------- Persetujuan Akun ---------- */
+
+.dash-tabs { display: inline-flex; gap: 4px; padding: 4px; margin-bottom: 16px; background: #f3f3f3; border-radius: 10px; }
+
+.dash-tab { padding: 7px 16px; font-size: 12px; font-weight: 500; color: var(--muted); background: transparent; border: 0; border-radius: 8px; cursor: pointer; }
+
+.dash-tab.active { color: #fff; font-weight: 600; background: var(--grad); }
+
+.dash-alert { padding: 10px 12px; margin: 0 0 14px; font-size: 12px; border-radius: 8px; }
+
+.dash-alert.error { color: var(--accent-dark); background: var(--tint); border: 1px solid var(--tint-line); }
+
+.dash-alert.success { color: #067647; background: #ecfdf3; border: 1px solid #abefc6; }
+
+.dash-table-wrap { overflow-x: auto; overflow-y: hidden; overscroll-behavior-x: contain; scrollbar-width: thin; }
+
+/* y hidden: cegah scrollbar vertikal berkedip akibat pembulatan tinggi */
+
+.dash-table td { font-size: 12px; vertical-align: middle; }
+
+.dash-empty-cell { padding: 28px 12px !important; text-align: center !important; color: var(--muted); }
+
+.dash-cell-name { display: block; font-weight: 600; }
+
+.dash-cell-sub { display: block; font-size: 11px; color: var(--muted); }
+
+.dash-select {
+  min-width: 170px;
+  color: var(--ink);
+  padding: 8px 10px;
+  font: inherit;
+  font-size: 12px;
+  background: #f7f7f7;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  outline: none;
+}
+
+.dash-select:focus { background: #fff; border-color: var(--accent); }
+
+.dash-actions { display: flex; gap: 8px; }
+
+.dash-actions .dash-btn { padding: 8px 14px; }
+
+.dash-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+/* ---------- Form & modal (Dealer) ---------- */
+
+.dash-alert.warning { color: #93370d; background: #fffaeb; border: 1px solid #fedf89; }
+
+/* Pesan penting (mis. hasil OCR): lebih besar, tebal, dengan ikon, dan berkedip sekali agar terlihat */
+
+.dash-alert-big { display: flex; align-items: flex-start; gap: 10px; padding: 14px 16px; margin: 12px 0 0; font-size: 14px; font-weight: 600; line-height: 1.4; animation: dash-notice 0.9s ease-out; }
+
+.dash-alert-big strong { flex: none; display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 50%; color: #fff; font-size: 13px; }
+
+.dash-alert-big.success strong { background: #079455; }
+
+.dash-alert-big.warning strong { background: #dc6803; }
+
+.dash-alert-big.yellow { --pulse: 234, 179, 8; color: #713f12; background: #fefce8; border: 1px solid #fde047; }
+
+.dash-alert-big.yellow strong { background: #ca8a04; }
+
+@keyframes dash-notice { 0% { transform: scale(0.97); box-shadow: 0 0 0 0 rgba(var(--pulse, 7, 148, 85), 0.45); } 60% { transform: scale(1.01); box-shadow: 0 0 0 8px rgba(var(--pulse, 7, 148, 85), 0); } 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(var(--pulse, 7, 148, 85), 0); } }
+
+.dash-alert.info { color: #475467; background: #f2f4f7; border: 1px solid #e4e7ec; }
+
+.dash-input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px 12px;
+  font: inherit;
+  font-size: 12.5px;
+  color: var(--ink);
+  background: #f7f7f7;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  outline: none;
+  resize: vertical;
+}
+
+.dash-input:focus { background: #fff; border-color: var(--accent); }
+
+.dash-input.invalid { border-color: #d92d20; background: #fffbfa; }
+
+.dash-input-search { max-width: 340px; margin-bottom: 14px; }
+
+.dash-form-group { margin-bottom: 14px; flex: 1; }
+
+.dash-form-group label { display: block; margin-bottom: 6px; font-size: 12px; font-weight: 600; }
+
+.dash-form-row { display: flex; gap: 12px; }
+
+.dash-field-error { margin: 4px 0 0; font-size: 11px; color: #d92d20; }
+
+.dash-field-warn { margin: 4px 0 0; font-size: 11px; color: #b45309; }
+
+.dash-modal-bg {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  background: rgba(0, 0, 0, 0.4);
+}
+
+.dash-modal {
+  width: 100%;
+  max-width: 560px;
+  max-height: 92vh;
+  overflow-y: auto;
+  padding: 22px;
+  background: #fff;
+  border-radius: 14px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
+}
+
+.dash-modal.wide { max-width: 680px; }
+
+.dash-toolbar { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 14px; }
+
+.dash-toolbar .dash-input-search { margin-bottom: 0; flex: 1; }
+
+.dash-select-filter { width: auto; min-width: 170px; }
+
+.dash-status { display: inline-block; padding: 3px 9px; font-size: 11px; font-weight: 600; border-radius: 999px; white-space: nowrap; }
+
+.dash-status.pending { color: #b54708; background: #fffaeb; }
+
+.dash-status.diterima { color: #067647; background: #ecfdf3; }
+
+.dash-status.ditolak { color: #b42318; background: #fef3f2; }
+
+.dash-status.aktif { color: #b42318; background: #fef3f2; }
+
+.dash-status.dibuka { color: #067647; background: #ecfdf3; }
+
+.dash-status.kedaluwarsa { color: #475467; background: #f2f4f7; }
+
+.dash-note { display: block; margin-top: 4px; font-size: 11px; color: var(--muted); }
+
+.dash-detail { margin: 0 0 12px; }
+
+.dash-detail > div { display: flex; gap: 10px; padding: 6px 0; border-bottom: 1px solid var(--line); font-size: 12px; }
+
+.dash-detail dt { width: 140px; flex-shrink: 0; color: var(--muted); }
+
+.dash-detail dd { margin: 0; word-break: break-word; }
+
+.dash-modal h3 { margin: 0 0 16px; font-size: 16px; font-weight: 600; }
+
+.dash-modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 8px; }
+
+@media (max-width: 900px) {
+  .dash { flex-direction: column; }
+  .dash-stats { grid-template-columns: repeat(2, 1fr); }
+  .dash-grid { grid-template-columns: 1fr; }
+  .dash-hero { flex-direction: column; align-items: flex-start; }
+  .dash-hero h2 { font-size: 30px; }
+  .dash-top-right { display: none; }
+  .dash-hello { flex-direction: column; align-items: flex-start; }
+}
+
+/* =====================================================================
+   Polesan tampilan (tema oranye-merah): interaksi, kedalaman, animasi
+   ===================================================================== */
+
+.dash {
+  --shadow-sm: 0 1px 2px rgba(27, 27, 27, 0.05), 0 1px 3px rgba(27, 27, 27, 0.06);
+  --shadow-md: 0 6px 18px rgba(27, 27, 27, 0.08);
+  --ring: 0 0 0 3px rgba(196, 45, 0, 0.16);
+}
+
+/* Scrollbar tipis */
+
+.dash ::-webkit-scrollbar { width: 8px; height: 8px; }
+
+.dash ::-webkit-scrollbar-thumb { background: #d9d9d9; border-radius: 8px; }
+
+.dash ::-webkit-scrollbar-thumb:hover { background: #bdbdbd; }
+
+/* ---------- Topbar ---------- */
+
+.dash-top { position: sticky; top: 0; z-index: 10; box-shadow: var(--shadow-sm); }
+
+.dash-search {
+  padding-left: 38px;
+  background: #f3f3f3 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236f6f6f' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='M21 21l-4.3-4.3'/%3E%3C/svg%3E") no-repeat 14px center;
+  transition: border-color 0.15s, box-shadow 0.15s, background-color 0.15s;
+}
+
+.dash-search:focus { background-color: #fff; box-shadow: var(--ring); }
+
+.dash-top-right > div { padding: 6px 14px; background: #faf6f3; border: 1px solid var(--line); border-radius: 10px; }
+
+.dash-top-right strong { font-size: 14px; color: var(--accent); }
+
+/* ---------- Tombol ---------- */
+
+.dash-btn {
+  transition: transform 0.15s, box-shadow 0.15s, background 0.15s, border-color 0.15s, color 0.15s, filter 0.15s;
+}
+
+.dash-btn:not(:disabled):hover { transform: translateY(-1px); }
+
+.dash-btn:not(:disabled):active { transform: translateY(0); }
+
+.dash-btn:focus-visible { outline: none; box-shadow: var(--ring); }
+
+.dash-btn.solid { box-shadow: 0 3px 10px rgba(179, 36, 0, 0.28); }
+
+.dash-btn.solid:not(:disabled):hover { box-shadow: 0 7px 16px rgba(179, 36, 0, 0.36); filter: brightness(1.06); }
+
+.dash-btn.outline:not(:disabled):hover { color: var(--accent); border-color: var(--accent); background: #fffaf6; }
+
+.dash-btn.soft:not(:disabled):hover { background: #ffe3d0; }
+
+.dash-btn.light { box-shadow: 0 3px 10px rgba(0, 0, 0, 0.12); }
+
+.dash-btn.light:not(:disabled):hover { background: #fff6ef; }
+
+.dash-btn.ghost:not(:disabled):hover { background: rgba(0, 0, 0, 0.28); }
+
+/* ---------- Kartu & statistik ---------- */
+
+.dash-card, .dash-stat, .dash-hello { box-shadow: var(--shadow-sm); }
+
+.dash-stat { position: relative; overflow: hidden; transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s; }
+
+.dash-stat::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 3px;
+  background: var(--grad);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.25s;
+}
+
+.dash-stat:hover { transform: translateY(-3px); border-color: var(--tint-line); box-shadow: var(--shadow-md); }
+
+.dash-stat:hover::after { transform: scaleX(1); }
+
+.dash-stat-icon { transition: color 0.2s, background 0.2s; }
+
+.dash-stat:hover .dash-stat-icon { color: #fff; background: var(--grad); }
+
+.dash-card-head h3 svg { padding: 5px; box-sizing: content-box; background: var(--tint); border-radius: 8px; }
+
+.dash-item { transition: border-color 0.15s, box-shadow 0.15s; }
+
+.dash-item:hover { border-color: var(--accent); box-shadow: var(--shadow-sm); }
+
+.dash-row { transition: background 0.15s, transform 0.15s; }
+
+.dash-row:hover { background: var(--tint); transform: translateX(2px); }
+
+.dash-empty {
+  padding: 22px 12px;
+  text-align: center;
+  background: #faf6f3;
+  border: 1px dashed var(--tint-line);
+  border-radius: 10px;
+}
+
+.dash-hero-actions .dash-btn { padding: 11px 20px; }
+
+/* ---------- Tabel ---------- */
+
+.dash-table-wrap { border: 1px solid var(--line); border-radius: 12px; }
+
+.dash-table th {
+  padding-top: 12px;
+  padding-bottom: 12px;
+  font-size: 10.5px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  background: #faf6f3;
+  border-bottom: 1px solid var(--tint-line);
+}
+
+.dash-table tbody tr { transition: background 0.12s; }
+
+.dash-table tbody tr:hover { background: #fffaf6; }
+
+.dash-table tbody tr:last-child td { border-bottom: 0; }
+
+.dash-tag { border: 1px solid var(--tint-line); }
+
+/* ---------- Form ---------- */
+
+.dash-input, .dash-select { transition: border-color 0.15s, box-shadow 0.15s, background 0.15s; }
+
+.dash-input:focus, .dash-select:focus { box-shadow: var(--ring); }
+
+.dash-input.invalid:focus { box-shadow: 0 0 0 3px rgba(217, 45, 32, 0.15); }
+
+select.dash-input, .dash-select {
+  appearance: none;
+  padding-right: 32px;
+  cursor: pointer;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236f6f6f' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+}
+
+.dash-input-search[type='search'] {
+  padding-left: 36px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='15' height='15' viewBox='0 0 24 24' fill='none' stroke='%236f6f6f' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='M21 21l-4.3-4.3'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: 12px center;
+}
+
+/* ---------- Modal ---------- */
+
+@keyframes dash-fade { from { opacity: 0; } to { opacity: 1; } }
+
+@keyframes dash-pop { from { opacity: 0; transform: translateY(12px) scale(0.97); } to { opacity: 1; transform: none; } }
+
+.dash-modal-bg { backdrop-filter: blur(3px); animation: dash-fade 0.15s ease-out; }
+
+.dash-modal { border-top: 4px solid var(--orange); animation: dash-pop 0.2s ease-out; }
+
+.dash-modal h3 { padding-bottom: 12px; border-bottom: 1px solid var(--line); }
+
+.dash-modal-actions { padding-top: 14px; margin-top: 14px; border-top: 1px solid var(--line); }
+
+.dash-modal-actions .dash-btn { padding: 10px 20px; }
+
+.dash-alert { animation: dash-fade 0.2s ease-out; }
+
+.dash-status { box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.05); }
+
+@media (prefers-reduced-motion: reduce) {
+  .dash *, .dash-modal, .dash-modal-bg { animation: none !important; transition: none !important; }
+}
+
+/* ---------- Tombol silang modal ---------- */
+
+.dash-modal-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 16px; border-bottom: 1px solid var(--line); }
+
+.dash-modal-head h3 { flex: 1; margin: 0; border-bottom: 0; }
+
+.dash-modal-close { display: grid; place-items: center; flex-shrink: 0; width: 30px; height: 30px; margin-top: -4px; color: var(--muted); background: transparent; border: 0; border-radius: 8px; cursor: pointer; transition: color 0.15s, background 0.15s, transform 0.15s; }
+
+.dash-modal-close:hover { color: var(--accent); background: var(--tint); transform: rotate(90deg); }
+
+.dash-modal-close:focus-visible { outline: none; box-shadow: var(--ring); }
+
+/* ---------- Panel Akun (AccUserPanel) ---------- */
+
+.dash-status.aktif { color: #067647; background: #ecfdf3; }
+
+.dash-status.nonaktif { color: #475467; background: #f2f4f7; }
+
+.dash-select.full { width: 100%; box-sizing: border-box; padding: 10px 12px; }
+
+.dash-actions { align-items: center; gap: 6px; }
+
+/* ---------- Tabel konsumen: tombol verifikasi di kolom status, aksi lain tetap rapi ---------- */
+
+.dash-btn.sm { padding: 5px 10px; font-size: 12px; border-radius: 8px; white-space: nowrap; }
+
+.dash-btn.ok { color: #fff; background: #079455; }
+
+.dash-btn.ok:not(:disabled):hover { background: #067647; }
+
+.dash-btn.reject { color: #b42318; background: #fff; border: 1px solid #fda29b; }
+
+.dash-btn.reject:not(:disabled):hover { background: #fef3f2; border-color: #d92d20; }
+
+.dash-table td .dash-actions { flex-wrap: nowrap; }
+
+.dash-table td .dash-actions .dash-btn { white-space: nowrap; }
+
+/* =====================================================================
+   Responsif
+   - <= 900px (tablet/ponsel): sidebar menjadi bilah atas yang menempel, menu bisa digeser ke samping
+   - <= 640px (ponsel): form, modal, tabel, dan filter disesuaikan agar tidak terpotong
+   ===================================================================== */
+
+@media (max-width: 900px) {
+  /* Bilah atas sudah ditempati sidebar; header biasa mengalir di bawahnya */
+  .dash-top { position: static; padding: 10px 14px; }
+  .dash-content { padding: 16px 14px 32px; }
+  .dash-hello, .dash-hero { padding: 18px 18px; }
+  .dash-table { min-width: 620px; }
+}
+
+@media (max-width: 640px) {
+  .dash-card { padding: 14px; }
+  .dash-hello h1 { font-size: 19px; }
+  .dash-hero h2 { font-size: 24px; }
+  .dash-hero-actions { width: 100%; }
+  .dash-hero-actions .dash-btn { flex: 1; text-align: center; }
+  .dash-card-head { flex-wrap: wrap; }
+  .dash-row { flex-wrap: wrap; }
+  /* Filter & pencarian memenuhi lebar */
+  .dash-toolbar > * { flex: 1 1 100%; min-width: 0; }
+  .dash-input-search, .dash-toolbar .dash-input-search { max-width: none; width: 100%; }
+  .dash-select-filter { width: 100%; min-width: 0; }
+  .dash-toolbar input[type='date'].dash-select-filter { flex: 1 1 calc(50% - 5px); }
+  .dash-tabs { max-width: 100%; overflow-x: auto; }
+  /* Form & modal */
+  .dash-modal-bg { padding: 8px; }
+  .dash-modal { padding: 16px; max-height: 94vh; }
+  .dash-form-row { flex-direction: column; gap: 0; }
+  .dash-modal-actions { flex-wrap: wrap; }
+  .dash-modal-actions .dash-btn { flex: 1; }
+  .dash-detail > div { flex-direction: column; gap: 2px; }
+  .dash-detail dt { width: auto; }
+}
+
+@media (max-width: 400px) {
+  .dash-stats { grid-template-columns: 1fr; }
+}
+
+/* Mode gelap OS: pastikan teks & dropdown tetap terbaca (latar kontrol terang, teks gelap) */
+
+.dash select, .dash input, .dash textarea { color: var(--ink); }
+
+.dash select option { color: var(--ink); background: #fff; }
+
+/* Kotak centang berlabel (form whitelist) */
+
+.dash-check { display: flex; align-items: center; gap: 8px; margin: 0; font-weight: 500; cursor: pointer; }
+
+.dash-check input { width: 16px; height: 16px; accent-color: var(--accent); }
+
+/* =====================================================================
+   Tampilan tabel yang lebih tenang: font sedikit lebih kecil, status berupa teks + titik
+   (bukan lencana), tanpa huruf kapital/ornamen pada header, dan tombol aksi yang ringan
+   ===================================================================== */
+
+.dash-table th, .dash-table td { padding: 9px 12px; }
+
+.dash-table td { font-size: 11.5px; }
+
+.dash-table .dash-cell-sub { font-size: 10.5px; }
+
+.dash-table th {
+  font-size: 11px;
+  letter-spacing: 0;
+  text-transform: none;
+  background: #fafafa;
+  border-bottom: 1px solid var(--line);
+}
+
+.dash-table tbody tr:hover { background: #fafafa; }
+
+/* Status: titik berwarna + teks, tanpa latar dan bingkai */
+
+.dash-table .dash-status { display: inline-flex; align-items: center; gap: 6px; padding: 0; font-size: 11.5px; background: none; box-shadow: none; }
+
+.dash-table .dash-tag { padding: 0; font-size: inherit; font-weight: 500; background: none; border: 0; }
+
+/* Aksi dalam tabel: lebih kecil; Hapus tanpa latar merah muda */
+
+.dash-table .dash-actions .dash-btn { padding: 5px 10px; font-size: 11.5px; }
+
+.dash-table .dash-btn.soft { color: #b42318; background: none; }
+
+.dash-table .dash-btn.soft:not(:disabled):hover { background: #fef3f2; }
+
+.dash-table .dash-btn.sm { font-size: 11.5px; }
+
+/* Judul kartu dan penghitung: tanpa kotak ikon dan lencana */
+
+.dash-card-head h3 svg { padding: 0; background: none; border-radius: 0; }
+
+.dash-card-head .dash-badge { padding: 0; font-size: 11px; font-weight: 500; color: var(--muted); background: none; border: 0; }
+
+/* =====================================================================
+   Ringkasan yang lebih ringkas: kartu statistik kecil tanpa ikon/satuan/lencana,
+   banner penjualan tipis, tanpa ornamen (lingkaran, garis bawah, bayangan besar)
+   ===================================================================== */
+
+.dash-stats { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; margin-bottom: 14px; }
+
+.dash-stat { padding: 11px 14px; box-shadow: none; }
+
+.dash-stat::after { display: none; }
+
+.dash-stat:hover { transform: none; box-shadow: none; border-color: var(--line); }
+
+.dash-stat small { margin-bottom: 2px; }
+
+.dash-stat > strong { display: block; font-size: 22px; font-weight: 600; line-height: 1.2; }
+
+.dash-stat.attention > strong { color: var(--accent); }
+
+.dash-hero { padding: 14px 18px; margin-bottom: 14px; box-shadow: none; border-radius: 12px; }
+
+.dash-hero::after { display: none; }
+
+.dash-hero h2 { margin: 2px 0 0; font-size: 22px; }
+
+.dash-hero-actions .dash-btn, .dash-hero > .dash-btn { padding: 8px 16px; font-size: 12px; box-shadow: none; }
+
+/* Ringkasan: tiga kartu besar (Dealer, Akun Aktif, Konsumen) dengan angka yang menonjol */
+
+.dash-stats { grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 18px; }
+
+.dash-stat { display: flex; flex-direction: column; justify-content: center; min-height: 118px; padding: 22px 26px; border-radius: 14px; box-shadow: var(--shadow-sm); }
+
+.dash-stat small { margin: 0 0 6px; font-size: 13px; font-weight: 500; }
+
+.dash-stat > strong { font-size: 42px; font-weight: 600; line-height: 1.1; }
+
+@media (max-width: 900px) {
+  .dash-stats { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 640px) {
+  .dash-stats { grid-template-columns: 1fr; }
+  .dash-stat { min-height: 96px; }
+}
+
+/* =====================================================================
+   Ringkasan: satu banner sambutan (sapaan + penjualan), kartu statistik berwarna dengan ikon,
+   dan menu dalam bentuk ubin
+   ===================================================================== */
+
+.dash-stat { flex-direction: row; align-items: center; gap: 16px; }
+
+.dash-stat-icon { flex: none; width: 52px; height: 52px; border-radius: 14px; }
+
+.dash-stat-body { display: flex; flex-direction: column; min-width: 0; }
+
+.dash-stat-body small { margin: 0 0 2px; }
+
+.dash-stat-body em { margin-top: 4px; font-size: 12px; font-style: normal; color: var(--muted); }
+
+.dash-stat.tone-orange .dash-stat-icon { color: var(--accent); background: var(--tint); }
+
+.dash-stat.tone-green .dash-stat-icon { color: #067647; background: #ecfdf3; }
+
+.dash-stat.tone-blue .dash-stat-icon { color: #175cd3; background: #eff8ff; }
+
+.dash-stat.tone-green > .dash-stat-body > strong { color: #067647; }
+
+.dash-stat.tone-blue > .dash-stat-body > strong { color: #175cd3; }
+
+.dash-stat.tone-orange > .dash-stat-body > strong { color: var(--accent); }
+
+.dash-stat.tone-orange:hover .dash-stat-icon { color: var(--accent); background: var(--tint); }
+
+.dash-stat.tone-green:hover .dash-stat-icon { color: #067647; background: #ecfdf3; }
+
+.dash-stat.tone-blue:hover .dash-stat-icon { color: #175cd3; background: #eff8ff; }
+
+@media (max-width: 640px) {
+  .dash-stat-icon { width: 44px; height: 44px; }
+}
+
+/* Perbaikan kartu statistik: isi rata kiri dan angka besar (strong kini berada di dalam .dash-stat-body) */
+
+.dash-stat { justify-content: flex-start; min-height: 112px; padding: 20px 24px; }
+
+.dash-stat-body strong { font-size: 40px; font-weight: 600; line-height: 1.1; }
+
+.dash-stat.tone-red .dash-stat-icon, .dash-stat.tone-red:hover .dash-stat-icon { color: #b42318; background: #fef3f2; }
+
+.dash-stat.tone-red > .dash-stat-body > strong { color: #b42318; }
+
+.dash-row .dash-status { display: inline-flex; align-items: center; gap: 6px; padding: 0; font-size: 11.5px; background: none; box-shadow: none; }
+
+/* Kartu daftar di Ringkasan: dua kolom sama lebar, tinggi sama, jarak seragam 16px */
+
+.dash-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; align-items: stretch; margin-bottom: 16px; }
+
+.dash-card { display: flex; flex-direction: column; padding: 20px; box-shadow: none; }
+
+.dash-card-head { margin-bottom: 2px; }
+
+.dash-card-desc { margin-bottom: 14px; }
+
+.dash-card > .dash-empty { margin-top: 4px; }
+
+.dash-stats { margin-bottom: 16px; }
+
+@media (max-width: 900px) {
+  .dash-grid { grid-template-columns: 1fr; }
+}
+
+.dash-table td.col-aksi, .dash-table th.col-aksi { width: 1%; white-space: nowrap; }
+
+.dash-table th.col-aksi { padding-left: 22px; }
+
+/* sejajar dengan ikon tombol (padding sel 12px + padding tombol 10px) */
+
+.dash-table .dash-actions { flex-wrap: wrap; gap: 4px; justify-content: flex-start; }
+
+.dash-cell-clamp { display: -webkit-box; max-width: 320px; overflow: hidden; -webkit-box-orient: vertical; box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; }
+
+.dash-table .dash-cell-sub { margin-top: 1px; }
+
+.dash-submenu { list-style: none; margin: 2px 0 4px 18px; padding: 0 0 0 10px; border-left: 2px solid var(--line); }
+
+/* =====================================================================
+   Grafik & Tren Penjualan (SalesChart)
+   ===================================================================== */
+
+.dash-tabs.wide { display: flex; padding: 6px; border-radius: 12px; }
+
+.dash-tabs.wide .dash-tab { padding: 10px 24px; font-size: 13px; border-radius: 10px; }

@@ -1,4 +1,4 @@
-// src/pages/MapPicker.jsx
+// src/shared/map/MapPicker.jsx
 // Peta OpenStreetMap (Leaflet): klik peta untuk menentukan latitude & longitude.
 import { useEffect, useRef, useState } from 'react';
 import L from 'leaflet';

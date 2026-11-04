@@ -1,12 +1,12 @@
-// src/pages/dashboard/components/AppKeyOcrPanel.jsx
+// src/features/settings/components/AppKeyOcrPanel.jsx
 // URL dan API key layanan OCR yang dipakai BE untuk membaca KTP (BE: /app-key-ocrs).
 // Baris dibuat lewat seeder: di sini hanya bisa diubah. BE mewajibkan url, api_key, keterangan, dan is_active.
 import { useEffect, useState } from 'react';
 import { getAppKeyOcrs, updateAppKeyOcr, errorMessage } from '../../../api/authServices';
-import Toast from './Toast';
-import Modal from './Modal';
-import Loading, { Spin } from './Loading';
-import IconButton from './IconButton';
+import Toast from '../../../shared/components/Toast';
+import Modal from '../../../shared/components/Modal';
+import Loading, { Spin } from '../../../shared/components/Loading';
+import IconButton from '../../../shared/components/IconButton';
 
 // Mengikuti AppKeyOcrRequest di BE
 function validate(f) {

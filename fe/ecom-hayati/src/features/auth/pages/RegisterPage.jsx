@@ -1,8 +1,8 @@
-// src/pages/RegisterPage.jsx
+// src/features/auth/pages/RegisterPage.jsx
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { registerUser } from '../../api/authServices';
-import './LoginPage.css';
+import { registerUser } from '../../../api/authServices';
+import '../styles/LoginPage.css';
 
 const LOGO_SRC = '/logo.png';
 

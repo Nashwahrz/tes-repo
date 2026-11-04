@@ -1,11 +1,11 @@
-// src/pages/AccUserPanel.jsx
+// src/features/accounts/components/AccUserPanel.jsx
 import { useEffect, useState } from 'react';
-import Toast from './Toast';
-import Modal from './Modal';
-import Loading, { Spin } from './Loading';
-import Pager from './Pager';
-import IconButton from './IconButton';
-import Switch from './Switch';
+import Toast from '../../../shared/components/Toast';
+import Modal from '../../../shared/components/Modal';
+import Loading, { Spin } from '../../../shared/components/Loading';
+import Pager from '../../../shared/components/Pager';
+import IconButton from '../../../shared/components/IconButton';
+import Switch from '../../../shared/components/Switch';
 import { getAtasanOptions, getUsers, updateUserStatus } from '../../../api/authServices';
 
 const TABS = [

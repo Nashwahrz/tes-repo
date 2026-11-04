@@ -1,0 +1,6 @@
+/* shared/styles/pager.css
+   Komponen Pager */
+
+.dash-pager { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-top: 14px; font-size: 14px; color: var(--muted, #6b7280); }
+
+.dash-pager .dash-btn:disabled { opacity: 0.5; cursor: not-allowed; }

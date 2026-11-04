@@ -1,11 +1,11 @@
-import Icon from './Icon';
-import Loading from './Loading';
-import SalesChart from './SalesChart';
-import ServerClock from './ServerClock';
-import { rupiah } from '../salesAnalytics';
-import { totalSales } from '../salesPrototype';
-import { MENU_ICONS } from '../navConfig';
-import { MENU_PENJUALAN, MENU_DEALER, MENU_KONSUMEN, MENU_ACC, MENU_HOME, MENU_PATHS } from '../menuPaths';
+import Icon from '../../../shared/components/Icon';
+import Loading from '../../../shared/components/Loading';
+import SalesChart from '../../sales/components/SalesChart';
+import ServerClock from '../../dashboard/components/ServerClock';
+import { rupiah } from '../../sales/utils/salesAnalytics';
+import { totalSales } from '../../sales/utils/salesPrototype';
+import { MENU_ICONS } from '../../dashboard/utils/navConfig';
+import { MENU_PENJUALAN, MENU_DEALER, MENU_KONSUMEN, MENU_ACC, MENU_HOME, MENU_PATHS } from '../../dashboard/utils/menuPaths';
 
 const KONSUMEN_STATUS = { pending: 'Menunggu', diterima: 'Diterima', ditolak: 'Ditolak' };
 

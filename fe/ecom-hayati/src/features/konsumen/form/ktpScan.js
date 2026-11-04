@@ -1,6 +1,6 @@
-import { scanKtp, getKabupatens, getProvinsis, searchKecamatans, searchKelurahans, searchMaster } from '../../../../api/authServices';
-import { CHILD_OF, FIELDS, LABELS, SCAN_FIELDS, TARGET_FILE, matchId, matchOpt, normName } from './konsumenForm';
-import { enhanceForOcr } from '../../../../utils/enhanceForOcr';
+import { scanKtp, getKabupatens, getProvinsis, searchKecamatans, searchKelurahans, searchMaster } from '../../../api/authServices';
+import { CHILD_OF, FIELDS, LABELS, SCAN_FIELDS, TARGET_FILE, matchId, matchOpt, normName } from './konsumenFormConfig';
+import { enhanceForOcr } from '../../../utils/enhanceForOcr';
 
 export async function scanKtpToForm(file, master) {
   // Foto diperbaiki dulu (kontras, ketajaman, ukuran) supaya foto agak blur tetap terbaca; foto yang disimpan tidak berubah

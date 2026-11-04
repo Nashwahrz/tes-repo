@@ -1,17 +1,17 @@
-// src/pages/dashboard/components/MasterPanel.jsx
+// src/features/master/components/MasterPanel.jsx
 // Kelola data master: agama, pekerjaan (BE: /agamas, /pekerjaans) dan wilayah (provinsi, kabupaten/kota, kecamatan, kelurahan).
 // Data baru bisa ditambahkan lewat formulir (satu per satu) atau impor Excel (MasterImportModal).
 // Tiap data punya kode (unik, tidak bisa diubah) dan status. Data tidak dihapus, hanya dinonaktifkan (PUT {path}/{id}/status).
 // Induk wilayah dihubungkan lewat kode (kode_provinsi, kode_kabupaten_kota, kode_kecamatan).
 import { useEffect, useState } from 'react';
 import { getMasterPage, getMasterOptions, getMasterByKode, searchMaster, createMaster, updateMaster, setMasterStatus, errorMessage } from '../../../api/authServices';
-import Toast from './Toast';
-import Modal from './Modal';
-import Loading, { Spin } from './Loading';
-import Pager from './Pager';
-import IconButton from './IconButton';
-import Switch from './Switch';
-import ConfirmModal from './ConfirmModal';
+import Toast from '../../../shared/components/Toast';
+import Modal from '../../../shared/components/Modal';
+import Loading, { Spin } from '../../../shared/components/Loading';
+import Pager from '../../../shared/components/Pager';
+import IconButton from '../../../shared/components/IconButton';
+import Switch from '../../../shared/components/Switch';
+import ConfirmModal from '../../../shared/components/ConfirmModal';
 import MasterImportModal from './MasterImportModal';
 
 // filters: filter induk di atas tabel. Kelurahan tidak punya karena BE belum menyaring per induk dan datanya puluhan ribu.

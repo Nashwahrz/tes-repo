@@ -1,4 +1,4 @@
-// src/pages/dashboard/salesPrototype.js
+// src/features/sales/utils/salesPrototype.js
 // PROTOTIPE: BE belum punya tabel/endpoint penjualan, jadi tampilan memakai data contoh di bawah ini.
 // Saat API tersedia: ubah SALES_PROTOTYPE menjadi false, hapus SALES_ROWS, dan isi baris dari response API
 // (BE sebaiknya sudah membatasi baris ke dealer milik user non-Super Admin, seperti data konsumen).

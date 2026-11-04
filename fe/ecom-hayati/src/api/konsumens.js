@@ -5,7 +5,8 @@ import api from './axios';
 // BE menyimpan status verifikasi per relasi penginput (tabel konsumen_mes), bukan di konsumen:
 //   GET /konsumens      -> konsumen milik user yang login
 //   GET /konsumens/all  -> semua konsumen (permission konsumens.lihat-semua)
-// Keduanya berpaginasi { data: [konsumen + konsumen_mes[]], meta } dan belum bisa difilter status di BE.
+//   GET /konsumens/dealer-all -> konsumen yang diinput ME satu dealer dengan user (permission konsumens.lihat-dealer)
+// Ketiganya berpaginasi { data: [konsumen + konsumen_mes[]], meta } dan belum bisa difilter status di BE.
 // FE meratakan tiap konsumen_mes menjadi satu baris: id = id konsumen, konsumen_me_id = id yang dipakai untuk verifikasi,
 // lalu status, catatan_penolakan, diverifikasi_oleh, id_me, dan me diambil dari relasi tersebut.
 // status: 'pending' | 'diterima' | 'ditolak' (kosong = semua)
@@ -15,10 +16,23 @@ const currentUserId = () => {
   try { return JSON.parse(localStorage.getItem('user'))?.id ?? null; } catch { return null; }
 };
 
-export const flattenKonsumen = (k, all) => {
+const currentDealerId = () => {
+  try { return JSON.parse(localStorage.getItem('user'))?.id_dealer ?? null; } catch { return null; }
+};
+
+// mode: 'all' (semua konsumen) | 'dealer' (konsumen dealer user) | 'mine' (milik sendiri). Boolean lama tetap diterima: true = 'all', false = 'mine'.
+const normMode = (mode) => (mode === true ? 'all' : mode === false || !mode ? 'mine' : mode);
+const ENDPOINT = { all: '/konsumens/all', dealer: '/konsumens/dealer-all', mine: '/konsumens' };
+
+export const flattenKonsumen = (k, modeArg) => {
+  const mode = normMode(modeArg);
   const { konsumen_mes: mes = [], ...base } = k;
   const uid = currentUserId();
-  const mine = all ? mes : mes.filter((m) => m.id_me === uid);
+  const dealer = currentDealerId();
+  // BE dealer-all mengembalikan semua penginput sebuah konsumen; yang ditampilkan hanya penginput di dealer user
+  const mine = mode === 'all' ? mes
+    : mode === 'dealer' ? (dealer == null ? mes : mes.filter((m) => String(m.me?.id_dealer) === String(dealer)))
+      : mes.filter((m) => m.id_me === uid);
   return mine.map((m) => ({
     ...base,
     konsumen_me_id: m.id,
@@ -32,10 +46,11 @@ export const flattenKonsumen = (k, all) => {
 };
 
 const fetchPage = async (all, page, search) => {
-  const body = (await api.get(all ? '/konsumens/all' : '/konsumens', { params: { page, per_page: PER_PAGE, ...(search ? { search } : {}) } })).data;
+  const mode = normMode(all);
+  const body = (await api.get(ENDPOINT[mode], { params: { page, per_page: PER_PAGE, ...(search ? { search } : {}) } })).data;
   const m = body.meta ?? {};
   return {
-    rows: (body.data ?? []).flatMap((k) => flattenKonsumen(k, all)),
+    rows: (body.data ?? []).flatMap((k) => flattenKonsumen(k, mode)),
     meta: { page: m.current_page ?? 1, lastPage: m.last_page ?? 1, total: m.total ?? 0, perPage: m.per_page ?? PER_PAGE },
   };
 };
@@ -99,8 +114,6 @@ export const checkNik = async (nik, signal) => {
   const d = (await api.post('/konsumens/check-nik', { nik }, { signal })).data.data ?? {};
   return { isRegistered: !!d.is_registered, list: d.list ?? [] };
 };
-
-export const deleteKonsumen = async (id) => (await api.delete(`/konsumens/${id}`)).data;
 
 // OCR KTP: kirim gambar, terima field hasil baca (nik, name, tgl_lahir, dst.)
 export const scanKtp = async (file) => {

@@ -14,7 +14,7 @@ export function deriveAccess(access) {
   const canDealer = hasMenu('dealers') && can('dealers.lihat');
   const canUsers = hasMenu('users') && can('users.lihat');
   const canSales = hasMenu('penjualan');
-  const canKonsumen = hasMenu('konsumens') && can('konsumens.lihat');
+  const canKonsumen = hasMenu('konsumens') && (can('konsumens.lihat') || can('konsumens.lihat-dealer') || can('konsumens.lihat-semua'));
   // Menu Pengguna & Akses cukup users.lihat; tombol setujui/tolak/atur hanya muncul bila users.aktivasi dicentang
   const canAcc = canUsers;
   const canActivate = canAcc && can('users.aktivasi');

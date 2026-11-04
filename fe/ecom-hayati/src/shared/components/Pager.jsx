@@ -1,4 +1,4 @@
-// src/pages/dashboard/components/Pager.jsx
+// src/shared/components/Pager.jsx
 // Kontrol halaman: Sebelumnya / Berikutnya + info halaman. Tidak tampil bila hanya ada satu halaman.
 function Pager({ page, lastPage, total, unit, onPage }) {
   if (lastPage <= 1) return null;

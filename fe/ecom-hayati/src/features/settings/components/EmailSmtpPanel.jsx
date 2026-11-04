@@ -1,14 +1,14 @@
-// src/pages/dashboard/components/EmailSmtpPanel.jsx
+// src/features/settings/components/EmailSmtpPanel.jsx
 // Pengaturan SMTP pengirim email (BE: /email-smtps, permission email-smtps.*).
 import { useEffect, useState } from 'react';
 import {
   getEmailSmtps, createEmailSmtp, updateEmailSmtp, deleteEmailSmtp, errorMessage,
 } from '../../../api/authServices';
-import Toast from './Toast';
-import Modal from './Modal';
-import Loading, { Spin } from './Loading';
-import IconButton from './IconButton';
-import ConfirmModal from './ConfirmModal';
+import Toast from '../../../shared/components/Toast';
+import Modal from '../../../shared/components/Modal';
+import Loading, { Spin } from '../../../shared/components/Loading';
+import IconButton from '../../../shared/components/IconButton';
+import ConfirmModal from '../../../shared/components/ConfirmModal';
 
 const MAILERS = ['smtp', 'sendmail', 'mail'];
 const ENCRYPTIONS = ['null', 'tls', 'ssl'];

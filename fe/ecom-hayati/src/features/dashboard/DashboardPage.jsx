@@ -1,36 +1,50 @@
-// src/pages/DashboardPage.jsx
+// src/features/dashboard/DashboardPage.jsx
 import { lazy, Suspense, useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { logoutUser, getKonsumenStatusTotals } from '../../api/authServices';
 import {
   MENU_HOME, MENU_PRODUK, MENU_PENJUALAN, MENU_DEALER, MENU_KONSUMEN, MENU_ACC, MENU_ROLE, MENU_WHITELIST, MENU_SMTP, MENU_URLIP, MENU_OCR, MENU_RATELIMIT, MENU_LOG, MASTER_MENUS, MENU_PATHS, menuFromPath,
-} from './menuPaths';
-import Loading from './components/Loading';
-import Icon from './components/Icon';
+} from './utils/menuPaths';
+import Loading from '../../shared/components/Loading';
+import Icon from '../../shared/components/Icon';
 import Sidebar from './components/Sidebar';
-import HomeView from './components/HomeView';
-import ConfirmModal from './components/ConfirmModal';
-import { NAV } from './navConfig';
-import { clearCache } from './dashboardCache';
-import { deriveAccess } from './dashboardAccess';
-import { useDashboardData } from './useDashboardData';
-import { useChangeWatcher, accSig, konsumenSig } from './useChangeWatcher';
-import { SALES_PROTOTYPE, salesFor } from './salesPrototype';
-import './DashboardPage.css';
+import HomeView from '../home/components/HomeView';
+import ConfirmModal from '../../shared/components/ConfirmModal';
+import { NAV } from './utils/navConfig';
+import { clearCache } from './utils/dashboardCache';
+import { deriveAccess } from './utils/dashboardAccess';
+import { useDashboardData } from './hooks/useDashboardData';
+import { useChangeWatcher, accSig, konsumenSig } from './hooks/useChangeWatcher';
+import { SALES_PROTOTYPE, salesFor } from '../sales/utils/salesPrototype';
+// Urutan impor = urutan cascade: dasar dashboard dulu, lalu komponen bersama, lalu tiap fitur
+import './styles/dashboard.css';
+import './styles/sidebar.css';
+import '../../shared/styles/toast.css';
+import '../../shared/styles/loading.css';
+import '../../shared/styles/switch.css';
+import '../../shared/styles/pager.css';
+import '../../shared/styles/icon-button.css';
+import '../../shared/styles/map.css';
+import '../konsumen/styles/konsumen.css';
+import '../accounts/styles/accounts.css';
+import '../dealer/styles/dealer.css';
+import '../home/styles/home.css';
+import '../sales/styles/sales.css';
+import '../sales/styles/sales-chart.css';
 
 // Panel hanya dimuat saat menunya dibuka
-const AccUserPanel = lazy(() => import('./components/AccUserPanel'));
-const DealerPanel = lazy(() => import('./components/DealerPanel'));
-const KonsumenPanel = lazy(() => import('./components/KonsumenPanel'));
-const LogPanel = lazy(() => import('./components/LogPanel'));
-const PenjualanPanel = lazy(() => import('./components/PenjualanPanel'));
-const UrlIpLoginPanel = lazy(() => import('./components/UrlIpLoginPanel'));
-const AppKeyOcrPanel = lazy(() => import('./components/AppKeyOcrPanel'));
-const EmailSmtpPanel = lazy(() => import('./components/EmailSmtpPanel'));
-const EmailWhitelistPanel = lazy(() => import('./components/EmailWhitelistPanel'));
-const RoleAccessPanel = lazy(() => import('./components/RoleAccessPanel'));
-const RateLimitPanel = lazy(() => import('./components/RateLimitPanel'));
-const MasterPanel = lazy(() => import('./components/MasterPanel'));
+const AccUserPanel = lazy(() => import('../accounts/components/AccUserPanel'));
+const DealerPanel = lazy(() => import('../dealer/components/DealerPanel'));
+const KonsumenPanel = lazy(() => import('../konsumen/components/KonsumenPanel'));
+const LogPanel = lazy(() => import('../logs/components/LogPanel'));
+const PenjualanPanel = lazy(() => import('../sales/components/PenjualanPanel'));
+const UrlIpLoginPanel = lazy(() => import('../settings/components/UrlIpLoginPanel'));
+const AppKeyOcrPanel = lazy(() => import('../settings/components/AppKeyOcrPanel'));
+const EmailSmtpPanel = lazy(() => import('../settings/components/EmailSmtpPanel'));
+const EmailWhitelistPanel = lazy(() => import('../settings/components/EmailWhitelistPanel'));
+const RoleAccessPanel = lazy(() => import('../accounts/components/RoleAccessPanel'));
+const RateLimitPanel = lazy(() => import('../settings/components/RateLimitPanel'));
+const MasterPanel = lazy(() => import('../master/components/MasterPanel'));
 
 const ROLE_ADMIN = 'Super Admin';
 
@@ -72,6 +86,8 @@ function DashboardPage() {
   // Menu sidebar & tombol aksi mengikuti menu/permission role dari BE
   const acc = deriveAccess(access);
   const { can, menus, canDealer, canUsers, canSales, canKonsumen, canAcc, canActivate, canRoleMenu, canRolePerm, canRole, canWhitelist, canUrlIp, canOcr, canSmtp, canLoginLog, canKonsumenLog, canLog, canRateLimit, canVerifyKonsumen } = acc;
+  // Endpoint daftar konsumen menurut permission: semua > dealer sendiri > milik sendiri
+  const konsumenMode = can('konsumens.lihat-semua') ? 'all' : can('konsumens.lihat-dealer') ? 'dealer' : 'mine';
 
   // Kartu ringkasan hanya untuk data yang boleh dilihat role; data konsumen sudah dibatasi BE sesuai dealer user
   const baseStats = [
@@ -127,7 +143,7 @@ function DashboardPage() {
 
   // Segarkan lencana; perubahan dari user sendiri tidak ditandai
   const refreshKonsumenStats = () => {
-    getKonsumenStatusTotals(can('konsumens.lihat-semua'))
+    getKonsumenStatusTotals(konsumenMode)
       .then((t) => { markSeen(MENU_KONSUMEN, konsumenSig(t)); data.setKonsumenStatus(t); })
       .catch(() => {});
   };
@@ -226,10 +242,11 @@ function DashboardPage() {
                 <KonsumenPanel
                   key={konsumenKey}
                   dealers={dealers}
+                  users={data.allUsers}
                   myDealerId={myDealerId}
                   userId={user?.id}
                   onChanged={refreshKonsumenStats}
-                  can={{ tambah: can('konsumens.tambah'), ubah: can('konsumens.ubah'), hapus: can('konsumens.hapus'), scan: can('konsumens.scan'), verifikasi: canVerifyKonsumen, lihatSemua: can('konsumens.lihat-semua') }}
+                  can={{ tambah: can('konsumens.tambah'), ubah: can('konsumens.ubah'), scan: can('konsumens.scan'), verifikasi: canVerifyKonsumen, lihatSemua: can('konsumens.lihat-semua'), mode: konsumenMode }}
                 />
               </Suspense>
             </div>

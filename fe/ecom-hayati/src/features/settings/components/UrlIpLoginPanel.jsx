@@ -1,12 +1,12 @@
-// src/pages/dashboard/components/UrlIpLoginPanel.jsx
+// src/features/settings/components/UrlIpLoginPanel.jsx
 // URL layanan geolokasi IP yang dipakai BE untuk mengisi kota/negara di log login (BE: /url-ip-logins).
 // Baris dibuat lewat seeder: di sini hanya URL dan statusnya yang bisa diubah.
 import { useEffect, useState } from 'react';
 import { getUrlIpLogins, updateUrlIpLogin, errorMessage } from '../../../api/authServices';
-import Toast from './Toast';
-import Modal from './Modal';
-import Loading, { Spin } from './Loading';
-import IconButton from './IconButton';
+import Toast from '../../../shared/components/Toast';
+import Modal from '../../../shared/components/Modal';
+import Loading, { Spin } from '../../../shared/components/Loading';
+import IconButton from '../../../shared/components/IconButton';
 
 // Mengikuti UrlIpLoginRequest di BE: wajib dan berupa URL valid
 function validateUrl(value) {

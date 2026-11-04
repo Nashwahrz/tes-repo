@@ -1,0 +1,28 @@
+/* shared/styles/toast.css
+   Komponen Toast */
+
+/* ---------- Toast: pesan melayang di bawah layar, di atas modal ---------- */
+
+.dash-toast { position: fixed; left: 50%; bottom: 28px; transform: translateX(-50%); z-index: 100; display: flex; align-items: flex-start; gap: 10px; width: max-content; max-width: min(520px, calc(100vw - 32px)); padding: 12px 14px; font-size: 13px; font-weight: 600; line-height: 1.4; border-radius: 12px; box-shadow: 0 10px 30px rgba(16, 24, 40, 0.22); animation: dash-toast-in 0.25s ease-out; }
+
+.dash-toast.error { color: #7a271a; background: #fef3f2; border: 1px solid #fda29b; }
+
+.dash-toast.success { color: #054f31; background: #ecfdf3; border: 1px solid #75e0a7; }
+
+.dash-toast-icon { flex: none; display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 50%; color: #fff; font-size: 13px; }
+
+.dash-toast.error .dash-toast-icon { background: #d92d20; }
+
+.dash-toast.success .dash-toast-icon { background: #079455; }
+
+.dash-toast-text { flex: 1; word-break: break-word; }
+
+.dash-toast-close { flex: none; padding: 0 2px; font-size: 20px; line-height: 1; color: inherit; background: none; border: 0; cursor: pointer; opacity: 0.6; }
+
+.dash-toast-close:hover { opacity: 1; }
+
+@keyframes dash-toast-in { from { opacity: 0; transform: translate(-50%, 12px); } to { opacity: 1; transform: translate(-50%, 0); } }
+
+@media (max-width: 640px) {
+  .dash-toast { bottom: 14px; max-width: calc(100vw - 24px); }
+}

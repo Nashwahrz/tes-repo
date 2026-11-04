@@ -1,9 +1,9 @@
 // Kelola hak akses role: menu (/role-menus) dan permission (/role-permissions)
 import { useEffect, useRef, useState } from 'react';
-import Toast from './Toast';
-import Loading, { Spin } from './Loading';
-import Pager from './Pager';
-import ConfirmModal from './ConfirmModal';
+import Toast from '../../../shared/components/Toast';
+import Loading, { Spin } from '../../../shared/components/Loading';
+import Pager from '../../../shared/components/Pager';
+import ConfirmModal from '../../../shared/components/ConfirmModal';
 import {
   getRoleMenus, getRoleMenu, updateRoleMenus, getRolePermissions, getRolePermission, updateRolePermissions, errorMessage,
 } from '../../../api/authServices';

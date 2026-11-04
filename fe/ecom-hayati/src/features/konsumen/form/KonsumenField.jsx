@@ -1,4 +1,4 @@
-import { Spin } from '../Loading';
+import { Spin } from '../../../shared/components/Loading';
 
 function GeoSearchInput({ name, label, id, cls, ctx, idOptions, searchKey, disabled, hint }) {
   const { form, setField, geo } = ctx;
