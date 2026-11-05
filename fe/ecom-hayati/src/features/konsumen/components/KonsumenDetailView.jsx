@@ -23,7 +23,7 @@ function KonsumenDetailView({ detail, names: detailNames, dealerName, statusNode
               <button id="btn-konsumen-edit-revisi" type="button" className="dash-btn sm outline konsumen-reject-edit" onClick={() => onEdit(detail)}>Perbaiki Data</button>
             )}
             {detail.status === 'ditolak' && canAdd && (
-              <button id="btn-konsumen-add-rejected" type="button" className="dash-btn sm outline konsumen-reject-edit" onClick={() => onAdd(detail)}>Input Data Baru</button>
+              <button id="btn-konsumen-add-rejected" type="button" className="dash-btn sm outline konsumen-reject-edit" onClick={onAdd}>Input Data Baru</button>
             )}
           </div>
         )}

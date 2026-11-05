@@ -15,8 +15,8 @@ const MapPicker = lazy(() => import('../../../shared/map/MapPicker'));
 
 const without = (obj, keys) => Object.fromEntries(Object.entries(obj).filter(([k]) => !keys.includes(k)));
 
-function KonsumenForm({ editing, prefill, takeFrom, can, onClose, onSaved, onError }) {
-  const [form, setForm] = useState(() => (editing ? toForm(editing) : takeFrom ? toForm(takeFrom) : prefill ? toForm(prefill) : EMPTY)); // prefill: input baru berbekal data pengajuan yang ditolak (foto wajib diunggah ulang)
+function KonsumenForm({ editing, takeFrom, can, onClose, onSaved, onError }) {
+  const [form, setForm] = useState(() => (editing ? toForm(editing) : takeFrom ? toForm(takeFrom) : EMPTY));
   const [touched, setTouched] = useState({});
   const [file, setFile] = useState(null);
   const [preview, setPreview] = useState('');

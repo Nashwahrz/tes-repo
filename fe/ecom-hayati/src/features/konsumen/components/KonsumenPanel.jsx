@@ -50,7 +50,7 @@ function KonsumenPanel({ can, userId, onChanged, dealers = [], myDealerId = null
   const [success, setSuccess] = useState('');
   const [error, setError] = useState('');
 
-  const [formTarget, setFormTarget] = useState(null); // { editing, prefill } saat form terbuka; editing = konsumen yang diubah (null = menambah baru); prefill = data awal untuk input baru (mis. dari pengajuan ditolak)
+  const [formTarget, setFormTarget] = useState(null); // { editing, takeFrom } saat form terbuka; editing = konsumen yang diubah (null = menambah baru); takeFrom = konsumen terdaftar yang diambil datanya
   const [saving, setSaving] = useState(false);
   const [toVerify, setToVerify] = useState(null); // { konsumen, status: 'diterima' | 'revisi' | 'ditolak' }
   const [catatan, setCatatan] = useState('');
@@ -161,11 +161,11 @@ function KonsumenPanel({ can, userId, onChanged, dealers = [], myDealerId = null
   const paged = meta ? visible : visible.slice((curPage - 1) * PAGE_SIZE, curPage * PAGE_SIZE);
   const rowOffset = meta ? (meta.page - 1) * (meta.perPage ?? PAGE_SIZE) : (curPage - 1) * PAGE_SIZE; // nomor urut berlanjut antar halaman
 
-  // prefill: data konsumen yang diubah; foto lama dipakai bila tidak memilih foto baru
-  const openForm = (editing, prefill = null, takeFrom = null) => {
+  // editing: pengajuan yang diperbaiki (foto lama dipakai bila tidak memilih foto baru); takeFrom: konsumen terdaftar yang diambil
+  const openForm = (editing, takeFrom = null) => {
     setSuccess('');
     setError('');
-    setFormTarget({ editing: editing ?? null, prefill, takeFrom });
+    setFormTarget({ editing: editing ?? null, takeFrom });
   };
   const handleSaved = (message) => {
     setSuccess(message);
@@ -224,7 +224,6 @@ function KonsumenPanel({ can, userId, onChanged, dealers = [], myDealerId = null
         <Suspense fallback={<Loading rows={6} />}>
           <KonsumenForm
             editing={formTarget.editing}
-            prefill={formTarget.prefill}
             takeFrom={formTarget.takeFrom}
             can={can}
             onClose={() => setFormTarget(null)}
@@ -244,8 +243,8 @@ function KonsumenPanel({ can, userId, onChanged, dealers = [], myDealerId = null
           verify={toVerify ? { text: VERIFY_TEXT[toVerify.status], status: toVerify.status, catatan, onCatatan: setCatatan, saving, own: toVerify.konsumen.id_me === userId, onConfirm: handleVerify, onCancel: () => setToVerify(null) } : null}
           onVerify={(status) => openVerify(detail, status)}
           onEdit={(k) => { closeDetail(); openForm(k); }}
-          onAdd={(k) => { closeDetail(); openForm(null, k); }}
-          onTake={(k) => { closeDetail(); openForm(null, null, k); }}
+          onAdd={() => { closeDetail(); openForm(); }} // pengajuan ditolak: input data baru, form kosong
+          onTake={(k) => { closeDetail(); openForm(null, k); }}
           canTake={can.tambah}
           onBack={closeDetail}
           onPhotoError={refreshExpiredPhotos}
@@ -332,7 +331,7 @@ function KonsumenPanel({ can, userId, onChanged, dealers = [], myDealerId = null
                   <td>
                     {can.tambah && k.status === 'diterima' && k.id_temp == null ? (
                       // Konsumen terdaftar: nama bisa diklik, membuka form tambah yang sama seperti saat NIK-nya sudah terdaftar
-                      <button id={`btn-konsumen-name-${k.id}`} type="button" className="dash-link dash-cell-name" title="Ambil data konsumen ini" onClick={() => openForm(null, null, k)}><strong>{k.name || '-'}</strong></button>
+                      <button id={`btn-konsumen-name-${k.id}`} type="button" className="dash-link dash-cell-name" title="Ambil data konsumen ini" onClick={() => openForm(null, k)}><strong>{k.name || '-'}</strong></button>
                     ) : (
                       <strong className="dash-cell-name">{k.name || '-'}</strong>
                     )}
@@ -369,7 +368,7 @@ function KonsumenPanel({ can, userId, onChanged, dealers = [], myDealerId = null
                         <IconButton id={`btn-konsumen-edit-${k.id}`} icon="edit" label="Perbaiki" onClick={() => openForm(k)} />
                       )}
                       {can.tambah && k.status === 'diterima' && k.id_temp == null && (
-                        <IconButton id={`btn-konsumen-take-${k.id}`} icon="plus" label="Ambil Data" onClick={() => openForm(null, null, k)} />
+                        <IconButton id={`btn-konsumen-take-${k.id}`} icon="plus" label="Ambil Data" onClick={() => openForm(null, k)} />
                       )}
                     </div>
                   </td>
