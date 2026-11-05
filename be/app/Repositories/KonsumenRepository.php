@@ -207,10 +207,16 @@ class KonsumenRepository
                 'name' => $item->verifikator_name,
             ] : null;
             $item->verifiedBy = $item->verified_by;
+            $isTemp = ($item->sumber ?? null) === 'temp' || !empty($item->id_temp);
+            $routeParams = ['id' => $item->id];
+            if ($isTemp) {
+                $routeParams['type'] = 'temp';
+            }
+
             $item->foto_ktp_url = $item->foto_ktp ? URL::temporarySignedRoute(
                 'konsumens.foto-ktp',
                 now()->addMinutes(10),
-                ['id' => $item->id],
+                $routeParams,
                 false
             ) : null;
 
