@@ -81,7 +81,7 @@ class TempKonsumen extends Model
             }
 
             return URL::temporarySignedRoute(
-                'konsumens.foto-ktp',
+                'temp.temp_konsumens.foto-ktp',
                 now()->addMinutes(10),
                 ['id' => $this->getKey()],
                 false

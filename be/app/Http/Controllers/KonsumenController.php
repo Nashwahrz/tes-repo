@@ -347,10 +347,15 @@ class KonsumenController extends Controller
         }
     }
 
-    public function fotoKtp(int $id)
+    public function fotoKtp(Request $request, int $id)
     {
-        $konsumen = Konsumen::withoutGlobalScopes()->find($id)
-            ?? TempKonsumen::withoutGlobalScopes()->find($id);
+        if ($request->query('type') === 'temp') {
+            $konsumen = TempKonsumen::withoutGlobalScopes()->find($id)
+                ?? Konsumen::withoutGlobalScopes()->find($id);
+        } else {
+            $konsumen = Konsumen::withoutGlobalScopes()->find($id)
+                ?? TempKonsumen::withoutGlobalScopes()->find($id);
+        }
 
         if (!$konsumen || !$konsumen->foto_ktp) {
             abort(404, 'Foto KTP tidak ditemukan.');
@@ -358,11 +363,6 @@ class KonsumenController extends Controller
 
         if (Storage::disk('local')->exists($konsumen->foto_ktp)) {
             $filePath = Storage::disk('local')->path($konsumen->foto_ktp);
-            return response()->file($filePath);
-        }
-
-        if (Storage::disk('public')->exists($konsumen->foto_ktp)) {
-            $filePath = Storage::disk('public')->path($konsumen->foto_ktp);
             return response()->file($filePath);
         }
 
