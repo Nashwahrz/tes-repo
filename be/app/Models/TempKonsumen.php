@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\JenisKelamin;
 use App\Enums\StatusKonsumen;
+use App\Enums\TypeTempKonsumen;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\URL;
@@ -54,6 +55,7 @@ class TempKonsumen extends Model
     protected function casts(): array
     {
         return [
+            'tipe'            => TypeTempKonsumen::class,
             'tgl_lahir'       => 'date',
             'jenis_kelamin'   => JenisKelamin::class,
             'status'          => StatusKonsumen::class,

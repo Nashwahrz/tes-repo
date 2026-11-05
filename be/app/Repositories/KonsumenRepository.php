@@ -242,4 +242,5 @@ class KonsumenRepository
 
         return $logs;
     }
+    
 }

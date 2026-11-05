@@ -235,11 +235,15 @@ class TempKonsumenRepository
                     'foto_ktp'            => $tempKonsumen->foto_ktp,
                 ];
 
+                if (empty($konsumenData['foto_ktp'])) {
+                    unset($konsumenData['foto_ktp']);
+                }
+
+                $isEditOrRevisi = $tempKonsumen->tipe === TypeTempKonsumen::Edit
+                    || $tempKonsumen->tipe === TypeTempKonsumen::Revisi;
+
                 if ($konsumen) {
-                    $isExistingOwner = KonsumenMe::where('id_me', $tempKonsumen->id_me)
-                        ->where('id_konsumen', $konsumen->id)
-                        ->exists();
-                    if ($isExistingOwner && $tempKonsumen->tipe === TypeTempKonsumen::Edit) {
+                    if ($isEditOrRevisi) {
                         $konsumen->update($konsumenData);
                     }
                 } else {
