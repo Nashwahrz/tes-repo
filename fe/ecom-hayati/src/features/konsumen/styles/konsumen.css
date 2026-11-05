@@ -25,7 +25,9 @@
 
 .konsumen-table td { white-space: nowrap; }
 
-.konsumen-table td:nth-child(1) { white-space: normal; min-width: 160px; overflow-wrap: break-word; }
+/* Kolom No selalu sempit; kolom nama (kedua) boleh membungkus */
+.konsumen-table .col-no { width: 1%; white-space: nowrap; text-align: right; color: var(--muted); }
+.konsumen-table td:nth-child(2) { white-space: normal; min-width: 160px; overflow-wrap: break-word; }
 
 .konsumen-table td .dash-note { white-space: normal; max-width: 220px; display: -webkit-box; -webkit-box-orient: vertical; box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; overflow: hidden; }
 

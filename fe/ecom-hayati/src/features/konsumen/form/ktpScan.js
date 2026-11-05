@@ -1,10 +1,22 @@
 import { scanKtp, getKabupatens, getProvinsis, searchKecamatans, searchKelurahans, searchMaster } from '../../../api/authServices';
 import { CHILD_OF, FIELDS, LABELS, SCAN_FIELDS, TARGET_FILE, matchId, matchOpt, normName } from './konsumenFormConfig';
 import { enhanceForOcr } from '../../../utils/enhanceForOcr';
+import { looksLikeKtp } from './ktpCheck';
 
 export async function scanKtpToForm(file, master) {
   // Foto diperbaiki dulu (kontras, ketajaman, ukuran) supaya foto agak blur tetap terbaca; foto yang disimpan tidak berubah
-  let data = await scanKtp(await enhanceForOcr(file, TARGET_FILE));
+  const res = await scanKtp(await enhanceForOcr(file, TARGET_FILE));
+  // NIK sudah terdaftar: BE membungkus hasil baca di scanned_data
+  let data = res?.scanned_data ?? res;
+  // Bukan KTP (tidak ada NIK 16 digit / kata kunci KTP): form tidak diisi, isian yang ada tidak tertimpa
+  const check = looksLikeKtp(data);
+  if (!check.isKtp) {
+    return {
+      notKtp: true,
+      formPatch: {}, geoQuery: { kecamatan: '', kelurahan: '' }, hints: {}, filled: {}, missing: {}, touched: {},
+      note: { ok: false, text: 'Foto ini tidak terdeteksi sebagai KTP (NIK 16 digit dan tulisan khas KTP tidak ditemukan). Pastikan yang difoto adalah KTP, seluruh kartu terlihat, jelas, dan tidak silau, lalu ganti foto.' },
+    };
+  }
   // OCR mengirim teks (nama wilayah, agama, pekerjaan); cocokkan ke kode master.
   // Teks yang terbaca tetapi tidak ada di daftar dicatat di `unmatched`: kolomnya dikosongkan dan user diminta mengisinya ulang.
   const found = {};

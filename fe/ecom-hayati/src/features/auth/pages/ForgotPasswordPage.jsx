@@ -32,6 +32,7 @@ function ForgotPasswordPage() {
   const [confirm, setConfirm] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
+  const [fieldErr, setFieldErr] = useState({}); // pesan per kolom di bawah kolomnya (bukan pop-up bawaan browser)
   const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
   const [resending, setResending] = useState(false);
@@ -78,9 +79,14 @@ function ForgotPasswordPage() {
     setCooldown(RESEND_SECONDS);
   };
 
+  const clearField = (key) => { if (fieldErr[key]) setFieldErr((f) => ({ ...f, [key]: '' })); };
+
   const submitEmail = async (e) => {
     e.preventDefault();
     clearMessages();
+    const msg = !email.trim() ? 'Email wajib diisi.' : !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim()) ? 'Format email tidak valid (contoh: nama@email.com).' : '';
+    setFieldErr({ email: msg });
+    if (msg) { document.getElementById('email')?.focus(); return; }
     setLoading(true);
     try {
       await sendCode();
@@ -116,7 +122,12 @@ function ForgotPasswordPage() {
   const submitPassword = async (e) => {
     e.preventDefault();
     clearMessages();
-    if (password !== confirm) { setError('Konfirmasi kata sandi tidak cocok.'); return; }
+    const errs = {};
+    if (!password) errs.password = 'Kata sandi baru wajib diisi.';
+    if (!confirm) errs.confirm = 'Konfirmasi kata sandi wajib diisi.';
+    else if (password !== confirm) errs.confirm = 'Konfirmasi kata sandi tidak cocok.';
+    setFieldErr(errs);
+    if (Object.keys(errs).length) { document.getElementById(errs.password ? 'password' : 'confirm')?.focus(); return; }
     setLoading(true);
     try {
       const data = await resetPassword(email, resetToken, password, confirm);
@@ -167,11 +178,12 @@ function ForgotPasswordPage() {
         </p>
 
         {step === 'email' && (
-          <form className="login-card" onSubmit={submitEmail} aria-busy={loading}>
+          <form className="login-card" onSubmit={submitEmail} aria-busy={loading} noValidate>
             <label className="login-label" htmlFor="email">Email</label>
-            <div className="login-field">
-              <input className="login-input" id="email" type="email" placeholder="contoh: nama@email.com" value={email} onChange={(e) => setEmail(e.target.value)} required autoFocus />
+            <div className={`login-field${fieldErr.email ? ' invalid' : ''}`}>
+              <input className="login-input" id="email" type="email" placeholder="contoh: nama@email.com" value={email} onChange={(e) => { setEmail(e.target.value); clearField('email'); }} aria-invalid={!!fieldErr.email} autoFocus />
             </div>
+            {fieldErr.email && <p className="field-error" role="alert">{fieldErr.email}</p>}
             {error && <p className="login-error">{error}</p>}
             <button id="forgot-submit-email" type="submit" className={`login-submit${loading ? ' is-loading' : ''}`} disabled={loading || cooldown > 0}>
               {loading ? <><span className="auth-spin" aria-hidden="true" /> Mengirim...</> : cooldown > 0 ? `Coba lagi dalam ${formatWait(cooldown)}` : 'Kirim Kode OTP →'}
@@ -220,10 +232,10 @@ function ForgotPasswordPage() {
         )}
 
         {step === 'password' && (
-          <form className="login-card" onSubmit={submitPassword} aria-busy={loading}>
+          <form className="login-card" onSubmit={submitPassword} aria-busy={loading} noValidate>
             <label className="login-label" htmlFor="password">Kata Sandi Baru</label>
-            <div className="login-field">
-              <input className="login-input" id="password" type={showPassword ? 'text' : 'password'} placeholder="Min. 8 karakter, huruf besar/kecil, angka, simbol" value={password} onChange={(e) => setPassword(e.target.value)} required autoFocus />
+            <div className={`login-field${fieldErr.password ? ' invalid' : ''}`}>
+              <input className="login-input" id="password" type={showPassword ? 'text' : 'password'} placeholder="Min. 8 karakter, huruf besar/kecil, angka, simbol" value={password} onChange={(e) => { setPassword(e.target.value); clearField('password'); }} aria-invalid={!!fieldErr.password} autoFocus />
               <button id="forgot-toggle-password" type="button" className="login-toggle" onClick={() => setShowPassword((v) => !v)} aria-label={showPassword ? 'Sembunyikan kata sandi' : 'Tampilkan kata sandi'}>
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z" />
@@ -232,10 +244,12 @@ function ForgotPasswordPage() {
                 </svg>
               </button>
             </div>
+            {fieldErr.password && <p className="field-error" role="alert">{fieldErr.password}</p>}
             <label className="login-label" htmlFor="confirm">Konfirmasi Kata Sandi</label>
-            <div className="login-field">
-              <input className="login-input" id="confirm" type={showPassword ? 'text' : 'password'} placeholder="Ulangi kata sandi baru" value={confirm} onChange={(e) => setConfirm(e.target.value)} required />
+            <div className={`login-field${fieldErr.confirm ? ' invalid' : ''}`}>
+              <input className="login-input" id="confirm" type={showPassword ? 'text' : 'password'} placeholder="Ulangi kata sandi baru" value={confirm} onChange={(e) => { setConfirm(e.target.value); clearField('confirm'); }} aria-invalid={!!fieldErr.confirm} />
             </div>
+            {fieldErr.confirm && <p className="field-error" role="alert">{fieldErr.confirm}</p>}
             {error && <p className="login-error">{error}</p>}
             {success && <p className="login-success">{success}</p>}
             <button id="forgot-submit-password" type="submit" className={`login-submit${loading ? ' is-loading' : ''}`} disabled={loading || !!success}>

@@ -9,7 +9,7 @@ import ConfirmModal from '../../../shared/components/ConfirmModal';
 import KonsumenDetailView from './KonsumenDetailView';
 import { STATUS_LABEL } from '../form/konsumenFormConfig';
 import {
-  getKonsumens, getKonsumenPage, getKonsumen, verifyKonsumen, errorMessage, getMasterByKode,
+  getKonsumens, getKonsumenPage, getKonsumen, verifyKonsumen, errorMessage, getMasterByKode, PAGE_SIZE,
 } from '../../../api/authServices';
 
 // Ekstensi wajib ditulis: di Windows (huruf besar/kecil sama) './konsumen/KonsumenForm' terbaca sebagai konsumenForm.js
@@ -35,6 +35,7 @@ function KonsumenPanel({ can, userId, onChanged, dealers = [], myDealerId = null
   useEffect(() => { onChangedRef.current = onChanged; });
   const sigRef = useRef(''); // tanda status semua baris terakhir; berubah = lencana sidebar perlu diperbarui
   const [page, setPage] = useState(1);
+  const [localPage, setLocalPage] = useState(1); // halaman saat semua data dimuat (pencarian/filter): dipecah di FE
   const [meta, setMeta] = useState(null); // info halaman dari BE; null saat mencari (semua data dimuat)
   const [query, setQuery] = useState('');
   const [success, setSuccess] = useState('');
@@ -145,6 +146,11 @@ function KonsumenPanel({ can, userId, onChanged, dealers = [], myDealerId = null
   const visible = q
     ? rows.filter((k) => `${k.name ?? ''} ${k.nik ?? ''} ${k.no_telp ?? ''}`.toLowerCase().includes(q))
     : rows;
+  // BE memaginasi (meta) saat tanpa pencarian/filter; selain itu seluruh data sudah dimuat dan dipecah per halaman di sini
+  const localPages = Math.max(Math.ceil(visible.length / PAGE_SIZE), 1);
+  const curPage = Math.min(localPage, localPages);
+  const paged = meta ? visible : visible.slice((curPage - 1) * PAGE_SIZE, curPage * PAGE_SIZE);
+  const rowOffset = meta ? (meta.page - 1) * (meta.perPage ?? PAGE_SIZE) : (curPage - 1) * PAGE_SIZE; // nomor urut berlanjut antar halaman
 
   // prefill: data konsumen yang diubah; foto lama dipakai bila tidak memilih foto baru
   const openForm = (prefill) => {
@@ -248,7 +254,7 @@ function KonsumenPanel({ can, userId, onChanged, dealers = [], myDealerId = null
               role="tab"
               aria-selected={dealerFilter === v}
               className={`dash-tab${dealerFilter === v ? ' active' : ''}`}
-              onClick={() => { dealerPicked.current = true; setLoading(true); setPage(1); setDealerFilter(v); }}
+              onClick={() => { dealerPicked.current = true; setLoading(true); setPage(1); setLocalPage(1); setDealerFilter(v); }}
             >
               {l}
             </button>
@@ -262,14 +268,14 @@ function KonsumenPanel({ can, userId, onChanged, dealers = [], myDealerId = null
           type="search"
           placeholder="Cari nama, NIK, atau no. telp..."
           value={query}
-          onChange={(e) => setQuery(e.target.value)}
+          onChange={(e) => { setQuery(e.target.value); setLocalPage(1); }}
         />
-        <select id="konsumen-filter-status" className="dash-input dash-select-filter" value={filter} onChange={(e) => { setLoading(true); setPage(1); setFilter(e.target.value); }}>
+        <select id="konsumen-filter-status" className="dash-input dash-select-filter" value={filter} onChange={(e) => { setLoading(true); setPage(1); setLocalPage(1); setFilter(e.target.value); }}>
           <option value="">Semua status</option>
           {Object.entries(STATUS_LABEL).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
         </select>
         {can.mode !== 'dealer' && (dealers.length > 0 || myDealerId != null) && (
-          <select id="konsumen-filter-dealer" className="dash-input dash-select-filter" value={dealerFilter} aria-label="Filter dealer" onChange={(e) => { dealerPicked.current = true; setLoading(true); setPage(1); setDealerFilter(e.target.value); }}>
+          <select id="konsumen-filter-dealer" className="dash-input dash-select-filter" value={dealerFilter} aria-label="Filter dealer" onChange={(e) => { dealerPicked.current = true; setLoading(true); setPage(1); setLocalPage(1); setDealerFilter(e.target.value); }}>
             <option value="">Semua dealer</option>
             {/* Role tanpa akses daftar dealer (mis. ME) hanya mendapat pilihan dealernya sendiri */}
             {dealers.length > 0
@@ -289,6 +295,7 @@ function KonsumenPanel({ can, userId, onChanged, dealers = [], myDealerId = null
           <table className="dash-table konsumen-table">
             <thead>
               <tr>
+                <th className="col-no">No</th>
                 <th>Konsumen</th>
                 <th className="col-telp">No. Telp</th>
                 <th className="col-status">Status</th>
@@ -297,8 +304,9 @@ function KonsumenPanel({ can, userId, onChanged, dealers = [], myDealerId = null
               </tr>
             </thead>
             <tbody>
-              {visible.map((k) => (
+              {paged.map((k, idx) => (
                 <tr key={k.konsumen_me_id ?? k.id} className={k.status === 'ditolak' ? 'row-rejected' : undefined}>
+                  <td className="col-no">{rowOffset + idx + 1}</td>
                   <td>
                     <strong className="dash-cell-name">{k.name || '-'}</strong>
                     <small className="dash-cell-sub">NIK {k.nik || '-'}{dealerName(k) && ` · ${dealerName(k)}`}</small>
@@ -331,9 +339,11 @@ function KonsumenPanel({ can, userId, onChanged, dealers = [], myDealerId = null
         </div>
       )}
 
-      {!loading && meta && (
+      {!loading && (meta ? (
         <Pager page={meta.page} lastPage={meta.lastPage} total={meta.total} unit="konsumen" onPage={(p) => { setLoading(true); setPage(p); }} />
-      )}
+      ) : (
+        <Pager page={curPage} lastPage={localPages} total={visible.length} unit="konsumen" onPage={setLocalPage} />
+      ))}
 
       </>)}
 

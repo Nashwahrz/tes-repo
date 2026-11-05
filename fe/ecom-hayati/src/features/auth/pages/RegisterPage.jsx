@@ -38,32 +38,32 @@ function RegisterPage() {
   const [password_confirmation, setPasswordConfirmation] = useState('');
   const [id_role, setIdRole] = useState('');
   const [error, setError] = useState('');
+  const [submitted, setSubmitted] = useState(false); // setelah klik Daftar: kolom kosong ikut diberi pesan
   const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
-  const nameError = validateName(name);
-  const emailError = validateEmail(email);
-  const passwordError = validatePassword(password);
-  const confirmError = password_confirmation && password !== password_confirmation ? 'Konfirmasi password tidak cocok.' : '';
+  // Pesan tampil di bawah kolom (bukan pop-up bawaan browser): kolom kosong baru ditandai setelah klik Daftar
+  const req = (sub, v, msg) => (sub && !String(v).trim() ? msg : '');
+  const errorsFor = (sub) => ({
+    name: req(sub, name, 'Nama wajib diisi.') || validateName(name),
+    email: req(sub, email, 'Email wajib diisi.') || validateEmail(email),
+    role: sub && !id_role ? 'Role wajib dipilih.' : '',
+    password: req(sub, password, 'Kata sandi wajib diisi.') || validatePassword(password),
+    confirm: req(sub, password_confirmation, 'Konfirmasi kata sandi wajib diisi.') || (password_confirmation && password !== password_confirmation ? 'Konfirmasi password tidak cocok.' : ''),
+  });
+  const { name: nameError, email: emailError, role: roleError, password: passwordError, confirm: confirmError } = errorsFor(submitted);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     setSuccess('');
 
-    if (nameError || emailError || passwordError) {
-      setError('Periksa kembali data yang Anda isi.');
-      return;
-    }
-
-    if (password !== password_confirmation) {
-      setError('Konfirmasi password tidak cocok.');
-      return;
-    }
-
-    if (!id_role) {
-      setError('Silakan pilih role terlebih dahulu.');
+    setSubmitted(true);
+    const errs = errorsFor(true);
+    const first = ['name', 'email', 'role', 'password', 'confirm'].find((k) => errs[k]);
+    if (first) {
+      document.getElementById(first === 'confirm' ? 'password_confirmation' : first)?.focus();
       return;
     }
 
@@ -95,7 +95,7 @@ function RegisterPage() {
         <h1 className="login-title">Buat Akun Baru</h1>
         <p className="login-subtitle">Lengkapi data berikut untuk mendaftar</p>
 
-        <form className="login-card" onSubmit={handleSubmit} aria-busy={loading}>
+        <form className="login-card" onSubmit={handleSubmit} aria-busy={loading} noValidate>
           <label className="login-label" htmlFor="name">Nama</label>
           <div className={`login-field${nameError ? ' invalid' : ''}`}>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="4" /><path d="M4 21a8 8 0 0 1 16 0" /></svg>
@@ -106,10 +106,10 @@ function RegisterPage() {
               placeholder="Masukkan nama lengkap"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              required
+              aria-invalid={!!nameError}
             />
           </div>
-          {nameError && <p className="field-error">{nameError}</p>}
+          {nameError && <p className="field-error" role="alert">{nameError}</p>}
 
           <label className="login-label" htmlFor="email">Email</label>
           <div className={`login-field${emailError ? ' invalid' : ''}`}>
@@ -121,20 +121,20 @@ function RegisterPage() {
               placeholder="contoh: nama@email.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              required
+              aria-invalid={!!emailError}
             />
           </div>
-          {emailError && <p className="field-error">{emailError}</p>}
+          {emailError && <p className="field-error" role="alert">{emailError}</p>}
 
           <label className="login-label" htmlFor="role">Role</label>
-          <div className="login-field">
+          <div className={`login-field${roleError ? ' invalid' : ''}`}>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="16" rx="2" /><circle cx="9" cy="11" r="2" /><path d="M15 9h3M15 13h3M6 17c.5-2 5.5-2 6 0" /></svg>
             <select
               className="login-input"
               id="role"
               value={id_role}
               onChange={(e) => setIdRole(e.target.value)}
-              required
+              aria-invalid={!!roleError}
             >
               <option value="" disabled>
                 -- Pilih Role --
@@ -146,6 +146,7 @@ function RegisterPage() {
               ))}
             </select>
           </div>
+          {roleError && <p className="field-error" role="alert">{roleError}</p>}
 
           <label className="login-label" htmlFor="password">Kata Sandi</label>
           <div className={`login-field${passwordError ? ' invalid' : ''}`}>
@@ -157,7 +158,7 @@ function RegisterPage() {
               placeholder="Masukkan kata sandi"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              required
+              aria-invalid={!!passwordError}
             />
             <button id="register-toggle-password"
               type="button"
@@ -168,7 +169,7 @@ function RegisterPage() {
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z" /><circle cx="12" cy="12" r="3" />{showPassword && <path d="M3 3l18 18" />}</svg>
             </button>
           </div>
-          {passwordError && <p className="field-error">{passwordError}</p>}
+          {passwordError && <p className="field-error" role="alert">{passwordError}</p>}
 
           <label className="login-label" htmlFor="password_confirmation">Konfirmasi Kata Sandi</label>
           <div className={`login-field${confirmError ? ' invalid' : ''}`}>
@@ -180,7 +181,7 @@ function RegisterPage() {
               placeholder="Ulangi kata sandi"
               value={password_confirmation}
               onChange={(e) => setPasswordConfirmation(e.target.value)}
-              required
+              aria-invalid={!!confirmError}
             />
             <button id="register-toggle-password-confirmation"
               type="button"
@@ -191,7 +192,7 @@ function RegisterPage() {
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z" /><circle cx="12" cy="12" r="3" />{showPassword && <path d="M3 3l18 18" />}</svg>
             </button>
           </div>
-          {confirmError && <p className="field-error">{confirmError}</p>}
+          {confirmError && <p className="field-error" role="alert">{confirmError}</p>}
 
           {error && <p className="login-error">{error}</p>}
           {success && <p className="login-success">{success}</p>}

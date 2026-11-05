@@ -11,6 +11,7 @@ import api from './axios';
 // lalu status, catatan_penolakan, diverifikasi_oleh, id_me, dan me diambil dari relasi tersebut.
 // status: 'pending' | 'diterima' | 'ditolak' (kosong = semua)
 const PER_PAGE = 100;
+export const PAGE_SIZE = 10; // baris per halaman di daftar konsumen
 
 const currentUserId = () => {
   try { return JSON.parse(localStorage.getItem('user'))?.id ?? null; } catch { return null; }
@@ -45,13 +46,14 @@ export const flattenKonsumen = (k, modeArg) => {
   }));
 };
 
-const fetchPage = async (all, page, search) => {
+// perPage: isi satu halaman; memuat semua data memakai PER_PAGE (besar), tampilan daftar memakai PAGE_SIZE
+const fetchPage = async (all, page, search, perPage = PER_PAGE) => {
   const mode = normMode(all);
-  const body = (await api.get(ENDPOINT[mode], { params: { page, per_page: PER_PAGE, ...(search ? { search } : {}) } })).data;
+  const body = (await api.get(ENDPOINT[mode], { params: { page, per_page: perPage, ...(search ? { search } : {}) } })).data;
   const m = body.meta ?? {};
   return {
     rows: (body.data ?? []).flatMap((k) => flattenKonsumen(k, mode)),
-    meta: { page: m.current_page ?? 1, lastPage: m.last_page ?? 1, total: m.total ?? 0, perPage: m.per_page ?? PER_PAGE },
+    meta: { page: m.current_page ?? 1, lastPage: m.last_page ?? 1, total: m.total ?? 0, perPage: m.per_page ?? perPage },
   };
 };
 
@@ -61,7 +63,7 @@ const byStatus = (rows, status) => (status ? rows.filter((r) => r.status === sta
 // dengan filter status semua halaman dimuat (BE belum menyaring status) dan meta = null
 export const getKonsumenPage = async (all, status, page = 1) => {
   if (status) return { rows: await getKonsumens(all, status), meta: null };
-  return fetchPage(all, page);
+  return fetchPage(all, page, undefined, PAGE_SIZE);
 };
 
 // Semua halaman digabung jadi satu array (lebih berat; dipakai untuk pencarian, filter, dan hitungan)

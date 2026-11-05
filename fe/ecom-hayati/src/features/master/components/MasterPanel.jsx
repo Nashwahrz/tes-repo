@@ -4,7 +4,7 @@
 // Tiap data punya kode (unik, tidak bisa diubah) dan status. Data tidak dihapus, hanya dinonaktifkan (PUT {path}/{id}/status).
 // Induk wilayah dihubungkan lewat kode (kode_provinsi, kode_kabupaten_kota, kode_kecamatan).
 import { useEffect, useState } from 'react';
-import { getMasterPage, getMasterOptions, getMasterByKode, searchMaster, createMaster, updateMaster, setMasterStatus, errorMessage } from '../../../api/authServices';
+import { getMasterPage, getMasterOptions, getChildrenByParent, getMasterByKode, searchMaster, createMaster, updateMaster, setMasterStatus, errorMessage } from '../../../api/authServices';
 import Toast from '../../../shared/components/Toast';
 import Modal from '../../../shared/components/Modal';
 import Loading, { Spin } from '../../../shared/components/Loading';
@@ -14,7 +14,7 @@ import Switch from '../../../shared/components/Switch';
 import ConfirmModal from '../../../shared/components/ConfirmModal';
 import MasterImportModal from './MasterImportModal';
 
-// filters: filter induk di atas tabel. Kelurahan tidak punya karena BE belum menyaring per induk dan datanya puluhan ribu.
+// filters: filter induk di atas tabel. Kelurahan (puluhan ribu data) baru disaring setelah kecamatan dipilih: hanya anak kecamatan itu yang dimuat.
 // perm: awalan permission BE (<perm>.lihat/tambah/ubah; ganti status memakai .ubah); parent: kolom kode induk + endpoint induk (untuk menampilkan namanya)
 const PAGE_SIZE = 10;
 const TABS = [
@@ -23,7 +23,7 @@ const TABS = [
   { key: 'provinsi', label: 'Provinsi', path: '/provinsis', perm: 'provinsis', wilayah: true },
   { key: 'kabupaten', label: 'Kabupaten / Kota', path: '/kabupaten-kotas', perm: 'kabupaten-kotas', wilayah: true, parent: { field: 'kode_provinsi', label: 'Provinsi', path: '/provinsis' }, filters: ['provinsi'] },
   { key: 'kecamatan', label: 'Kecamatan', path: '/kecamatans', perm: 'kecamatans', wilayah: true, parent: { field: 'kode_kabupaten_kota', label: 'Kabupaten / Kota', path: '/kabupaten-kotas' }, filters: ['provinsi', 'kabupaten'] },
-  { key: 'kelurahan', label: 'Kelurahan', path: '/kelurahans', perm: 'kelurahans', wilayah: true, parent: { field: 'kode_kecamatan', label: 'Kecamatan', path: '/kecamatans' } },
+  { key: 'kelurahan', label: 'Kelurahan', path: '/kelurahans', perm: 'kelurahans', wilayah: true, parent: { field: 'kode_kecamatan', label: 'Kecamatan', path: '/kecamatans' }, filters: ['provinsi', 'kabupaten', 'kecamatan'] },
 ];
 const isActive = (r) => r.status !== false;
 // Kabupaten/kota milik satu provinsi (kode); semua status ikut, karena ini layar kelola
@@ -94,16 +94,27 @@ function MasterPanel({ tabKey, can }) {
   const [page, setPage] = useState(1);
   const [query, setQuery] = useState('');
   const [search, setSearch] = useState(''); // query yang sudah ditunda (debounce) dan dikirim ke BE
+  // Kelurahan: data tetap tampil per halaman seperti biasa, tetapi filter wilayahnya baru dijalankan saat Cari diklik
+  // (setelah provinsi, kabupaten/kota, dan kecamatan terisi semua), bukan tiap kali pilihan dropdown berubah
+  const manual = tab.key === 'kelurahan';
+  const [appliedKec, setAppliedKec] = useState(''); // kode kecamatan yang sudah dijalankan lewat Cari
   const [loading, setLoading] = useState(true);
   const [fProv, setFProv] = useState(''); // filter provinsi (kode) pada tab kabupaten/kecamatan
   const [fKab, setFKab] = useState(''); // filter kabupaten/kota (kode) pada tab kecamatan
+  const [fKec, setFKec] = useState(''); // filter kecamatan (kode) pada tab kelurahan
+  const [kecOptions, setKecOptions] = useState([]);
   const [provOptions, setProvOptions] = useState([]);
   const [kabOptions, setKabOptions] = useState([]);
   const [reloadKey, setReloadKey] = useState(0);
   const [unavailable, setUnavailable] = useState(false);
-  const [editing, setEditing] = useState(null); // null | 'new' | row
+  // Tautan dari form konsumen (?tambah=1&induk=<kode induk>): form tambah langsung terbuka dengan induk terisi
+  const [auto] = useState(() => {
+    const q = new URLSearchParams(window.location.search);
+    return q.get('tambah') === '1' && can(`${tab.perm}.tambah`) ? { induk: tab.parent ? q.get('induk') ?? '' : '' } : null;
+  });
+  const [editing, setEditing] = useState(auto ? 'new' : null); // null | 'new' | row
   const [importing, setImporting] = useState(false);
-  const [form, setForm] = useState({ kode: '', name: '', parent: '', parentName: '' });
+  const [form, setForm] = useState({ kode: '', name: '', parent: auto?.induk ?? '', parentName: '' });
   const [parentNames, setParentNames] = useState({}); // kode induk -> nama, untuk kolom induk di tabel
   const [touched, setTouched] = useState(false);
   const [toToggle, setToToggle] = useState(null); // baris yang statusnya akan diganti
@@ -111,7 +122,12 @@ function MasterPanel({ tabKey, can }) {
   const [success, setSuccess] = useState('');
   const [error, setError] = useState('');
 
-  const filtered = !!(tab.filters && (fProv || fKab));
+  // Kelurahan baru difilter setelah kecamatan dipilih (provinsi & kabupaten hanya mempersempit pilihan kecamatan)
+  const byKecamatan = tab.key === 'kelurahan';
+  const kabCode = fKab; // nilai filter sudah berupa kode
+  const filtered = byKecamatan ? !!appliedKec : !!(tab.filters && (fProv || fKab));
+  const filterReady = !!(fProv && fKab && fKec); // Cari baru bisa diklik bila semua filter terisi
+  const runFilter = () => { setLoading(true); setPage(1); setAppliedKec(fKec); };
 
   // Pilihan filter: provinsi (sekali), kabupaten/kota menurut provinsi yang dipilih
   useEffect(() => {
@@ -123,11 +139,20 @@ function MasterPanel({ tabKey, can }) {
     kabupatenOf(fProv).then(setKabOptions).catch(() => {});
   }, [tab.filters, fProv]);
 
+  // Kecamatan milik kabupaten/kota terpilih (semua status), hanya untuk tab kelurahan
+  useEffect(() => {
+    if (!byKecamatan || !fKab) return undefined;
+    let active = true;
+    getChildrenByParent('/kecamatans', 'kode_kabupaten_kota', kabCode).then((l) => active && setKecOptions(l)).catch(() => active && setKecOptions([]));
+    return () => { active = false; };
+  }, [byKecamatan, fKab, kabCode]);
+
+  // Mengganti filter induk mengosongkan filter di bawahnya (provinsi > kabupaten/kota > kecamatan)
   const changeFilter = (setter, value, resetKab = false) => {
-    setLoading(true);
-    setPage(1);
+    if (!manual) { setLoading(true); setPage(1); } // kelurahan: hanya mengubah pilihan, data dimuat saat Cari
     setter(value);
     if (resetKab) setFKab('');
+    if (resetKab || setter === setFKab) setFKec('');
   };
 
   useEffect(() => {
@@ -135,13 +160,16 @@ function MasterPanel({ tabKey, can }) {
     if (filtered) {
       // BE belum menyaring per induk: seluruh data tab dimuat sekali (di-cache), disaring dan dipecah per halaman di sini
       (async () => {
-        const all = await getMasterOptions(tab.path);
         let list;
-        if (tab.key === 'kabupaten') list = all.filter((r) => String(r.kode_provinsi) === fProv);
-        else if (fKab) list = all.filter((r) => String(r.kode_kabupaten_kota) === fKab);
+        if (byKecamatan) list = await getChildrenByParent(tab.path, 'kode_kecamatan', appliedKec);
         else {
-          const kodes = new Set((await kabupatenOf(fProv)).map((k) => String(k.kode)));
-          list = all.filter((r) => kodes.has(String(r.kode_kabupaten_kota)));
+          const all = await getMasterOptions(tab.path);
+          if (tab.key === 'kabupaten') list = all.filter((r) => String(r.kode_provinsi) === fProv);
+          else if (fKab) list = all.filter((r) => String(r.kode_kabupaten_kota) === fKab);
+          else {
+            const kodes = new Set((await kabupatenOf(fProv)).map((k) => String(k.kode)));
+            list = all.filter((r) => kodes.has(String(r.kode_kabupaten_kota)));
+          }
         }
         const q = search.toLowerCase();
         if (q) list = list.filter((r) => r.name.toLowerCase().includes(q) || String(r.kode).toLowerCase().includes(q));
@@ -176,7 +204,7 @@ function MasterPanel({ tabKey, can }) {
       })
       .finally(() => active && setLoading(false));
     return () => { active = false; };
-  }, [tab.path, page, search, reloadKey, fProv, fKab]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [tab.path, page, search, reloadKey, manual ? '' : fProv, manual ? '' : fKab, appliedKec]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Pencarian ditunda 400 ms setelah berhenti mengetik, lalu kembali ke halaman pertama
   useEffect(() => {
@@ -201,6 +229,17 @@ function MasterPanel({ tabKey, can }) {
   const isNew = editing === 'new';
   // Mengikuti request BE: kode wajib & hanya angka (1-10 digit) saat tambah; induk wajib pada wilayah
   const kodeError = !isNew ? '' : !form.kode.trim() ? 'Kode wajib diisi.' : !/^\d{1,10}$/.test(form.kode.trim()) ? 'Kode harus berupa angka 1-10 digit.' : '';
+  // Parameter tautan dipakai sekali; nama induk yang terisi otomatis dicari dari kodenya
+  useEffect(() => {
+    if (!auto) return undefined;
+    window.history.replaceState(window.history.state, '', window.location.pathname);
+    if (!auto.induk) return undefined;
+    let active = true;
+    getMasterByKode(tab.parent.path, auto.induk)
+      .then((r) => { if (active && r) setForm((f) => (f.parent === auto.induk && !f.parentName ? { ...f, parentName: r.name } : f)); })
+      .catch(() => {});
+    return () => { active = false; };
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
   const parentError = tab.parent && !form.parent ? `${tab.parent.label} wajib dipilih.` : '';
 
   const openForm = (row) => {
@@ -281,17 +320,25 @@ function MasterPanel({ tabKey, can }) {
         {tab.filters && (
           <select id={`master-${tab.key}-filter-provinsi`} className="dash-input" style={{ maxWidth: 220 }} aria-label="Filter provinsi" value={fProv} onChange={(e) => changeFilter(setFProv, e.target.value, true)}>
             <option value="">Semua provinsi</option>
-            {provOptions.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
+            {provOptions.map((p) => <option key={p.kode} value={p.kode}>{p.name}</option>)}
           </select>
         )}
         {tab.filters?.includes('kabupaten') && (
           <select id={`master-${tab.key}-filter-kabupaten`} className="dash-input" style={{ maxWidth: 240 }} aria-label="Filter kabupaten/kota" value={fKab} onChange={(e) => changeFilter(setFKab, e.target.value)}>
             <option value="">Semua kabupaten / kota</option>
-            {kabOptions.map((k) => <option key={k.id} value={k.id}>{k.name}</option>)}
+            {kabOptions.map((k) => <option key={k.kode} value={k.kode}>{k.name}</option>)}
           </select>
         )}
-        {filtered && <button id={`btn-master-${tab.key}-clear-filter`} type="button" className="dash-link" onClick={() => { setLoading(true); setPage(1); setFProv(''); setFKab(''); }}>Hapus filter</button>}
+        {tab.filters?.includes('kecamatan') && (
+          <select id={`master-${tab.key}-filter-kecamatan`} className="dash-input" style={{ maxWidth: 240 }} aria-label="Filter kecamatan" value={fKec} disabled={!fKab} onChange={(e) => changeFilter(setFKec, e.target.value)}>
+            <option value="">{fKab ? 'Pilih kecamatan' : 'Pilih kabupaten/kota dulu'}</option>
+            {kecOptions.map((k) => <option key={k.kode} value={k.kode}>{k.name}</option>)}
+          </select>
+        )}
+        {manual && <button id={`btn-master-${tab.key}-filter-apply`} type="button" className="dash-btn solid" onClick={runFilter} disabled={!filterReady || loading} title={filterReady ? '' : 'Isi provinsi, kabupaten/kota, dan kecamatan dulu'}>{loading && appliedKec !== fKec ? <Spin /> : 'Cari'}</button>}
+        {(filtered || fProv || fKab) && <button id={`btn-master-${tab.key}-clear-filter`} type="button" className="dash-link" onClick={() => { setPage(1); setFProv(''); setFKab(''); setFKec(''); if (!manual || appliedKec) setLoading(true); setAppliedKec(''); }}>Hapus filter</button>}
       </div>
+      {manual && !filtered && <p className="dash-map-hint">Untuk menyaring per kecamatan, isi provinsi, kabupaten/kota, dan kecamatan, lalu klik Cari. Tanpa filter, seluruh kelurahan tampil per halaman.</p>}
       {tab.key === 'kecamatan' && filtered && loading && <p className="dash-map-hint">Memuat seluruh data kecamatan untuk disaring. Hanya sekali; berikutnya langsung tampil.</p>}
 
       <Toast kind="success" message={success} onClose={() => setSuccess('')} />

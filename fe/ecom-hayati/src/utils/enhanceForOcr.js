@@ -74,7 +74,7 @@ export async function enhanceForOcr(file, maxBytes) {
     const srcW = bitmap.width || bitmap.naturalWidth;
     const srcH = bitmap.height || bitmap.naturalHeight;
     const longest = Math.max(srcW, srcH);
-    const side = longest > MAX_SIDE ? MAX_SIDE : Math.max(longest, Math.min(TARGET_SIDE, longest * 2)); // perbesar maks 2x
+    const side = longest > MAX_SIDE ? MAX_SIDE : Math.max(longest, Math.min(TARGET_SIDE, longest * 3)); // perbesar maks 3x
     const scale = side / longest;
     const w = Math.round(srcW * scale);
     const h = Math.round(srcH * scale);

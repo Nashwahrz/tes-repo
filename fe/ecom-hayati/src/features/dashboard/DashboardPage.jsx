@@ -3,7 +3,7 @@ import { lazy, Suspense, useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { logoutUser, getKonsumenStatusTotals } from '../../api/authServices';
 import {
-  MENU_HOME, MENU_PRODUK, MENU_PENJUALAN, MENU_DEALER, MENU_KONSUMEN, MENU_ACC, MENU_ROLE, MENU_WHITELIST, MENU_SMTP, MENU_URLIP, MENU_OCR, MENU_RATELIMIT, MENU_LOG, MASTER_MENUS, MENU_PATHS, menuFromPath,
+  MENU_HOME, MENU_PRODUK, MENU_PENJUALAN, MENU_DEALER, MENU_KONSUMEN, MENU_ACC, MENU_ROLE, MENU_WHITELIST, MENU_SMTP, MENU_URLIP, MENU_OCR, MENU_RATELIMIT, MENU_LOG, MENU_KECAMATAN, MENU_KELURAHAN, MASTER_MENUS, MENU_PATHS, menuFromPath,
 } from './utils/menuPaths';
 import Loading from '../../shared/components/Loading';
 import Icon from '../../shared/components/Icon';
@@ -246,7 +246,7 @@ function DashboardPage() {
                   myDealerId={myDealerId}
                   userId={user?.id}
                   onChanged={refreshKonsumenStats}
-                  can={{ tambah: can('konsumens.tambah'), ubah: can('konsumens.ubah'), scan: can('konsumens.scan'), verifikasi: canVerifyKonsumen, lihatSemua: can('konsumens.lihat-semua'), mode: konsumenMode }}
+                  can={{ tambah: can('konsumens.tambah'), ubah: can('konsumens.ubah'), scan: can('konsumens.scan'), verifikasi: canVerifyKonsumen, lihatSemua: can('konsumens.lihat-semua'), mode: konsumenMode, masterAdd: { kecamatan: menus.includes(MENU_KECAMATAN) && can('kecamatans.tambah'), kelurahan: menus.includes(MENU_KELURAHAN) && can('kelurahans.tambah') } }}
                 />
               </Suspense>
             </div>

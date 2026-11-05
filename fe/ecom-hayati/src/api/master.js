@@ -87,6 +87,8 @@ const listByParent = (path, parentKey, parentKode) => {
   }
   return parentCache.get(key);
 };
+// Untuk layar kelola data master (semua status): semua anak dari satu induk, mis. kelurahan milik satu kecamatan
+export const getChildrenByParent = (path, parentKey, parentKode) => listByParent(path, parentKey, parentKode);
 // Daftar penuh milik induk (dari kode induk) lebih dulu (full: true; user tinggal memilih/menyaring). Bila kosong,
 // kembali ke pencarian nama (full: false).
 // parentKode = kode induk (dari form konsumen); BE menghubungkan wilayah lewat kode.
@@ -145,6 +147,8 @@ const dropOptionCache = (path) => {
     for (const k of map.keys()) if (k.startsWith(`${path}${sep}`) || k.startsWith(`${path}/aktif${sep}`)) map.delete(k);
   });
 };
+// Dipakai saat data master mungkin berubah di tempat lain (mis. tab lain): daftar induk/pencarian dimuat ulang pada pemakaian berikutnya
+export const refreshMasterOptions = (path) => { dropOptionCache(path); searchCache.clear(); };
 export const createMaster = async (path, payload) => {
   const res = (await api.post(path, payload)).data;
   dropOptionCache(path);

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import {
-  errorMessage, getAgamas, getPekerjaans, getProvinsis, getKabupatens, searchKecamatans, searchKelurahans, getMasterByKode,
+  errorMessage, getAgamas, getPekerjaans, getProvinsis, getKabupatens, searchKecamatans, searchKelurahans, getMasterByKode, refreshMasterOptions,
 } from '../../../api/authServices';
 
 // Jeda setelah ketukan terakhir sebelum kecamatan/kelurahan dicari di BE (satu pencarian bisa mengambil banyak halaman)
@@ -8,7 +8,7 @@ const GEO_SEARCH_DELAY = 500;
 
 // Kecamatan & kelurahan: BE belum menyaring per induk dan datanya ribuan, jadi dicari lewat nama (min. 3 huruf)
 // lalu disaring menurut induknya. Pilihan yang sudah tersimpan selalu ikut tampil.
-function useGeoSearch({ key, parentId, selectedId, path, search, term, setMaster, setBusy, setCut, setFull, setNote }) {
+function useGeoSearch({ key, parentId, selectedId, path, search, term, reload, setMaster, setBusy, setCut, setFull, setNote }) {
   useEffect(() => {
     let active = true;
     const ctrl = new AbortController();
@@ -33,7 +33,7 @@ function useGeoSearch({ key, parentId, selectedId, path, search, term, setMaster
     }, term.length >= 3 ? GEO_SEARCH_DELAY : 0); // tunggu user berhenti mengetik; ganti induk/pilihan tanpa jeda
     // Cari ulang / menutup form: permintaan yang masih jalan dihentikan
     return () => { active = false; clearTimeout(timer); ctrl.abort(); };
-  }, [parentId, selectedId, term]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [parentId, selectedId, term, reload]); // eslint-disable-line react-hooks/exhaustive-deps
 }
 
 const NONE = { kecamatan: false, kelurahan: false };
@@ -42,14 +42,18 @@ export function useKonsumenMaster(form) {
   const [master, setMaster] = useState({ agama: [], pekerjaan: [], provinsi: [], kabupaten: [], kecamatan: [], kelurahan: [], tempatLahir: [] });
   const [masterNote, setMasterNote] = useState('');
   const [geoQuery, setGeoQuery] = useState({ kecamatan: '', kelurahan: '' }); // teks yang sedang diketik
-  const [geoTerm, setGeoTerm] = useState({ kecamatan: '', kelurahan: '' }); // kata kunci yang dicari (baru berubah saat user menekan Cari)
   // Dropdown yang daftarnya sudah dimuat penuh (provinsi, kabupaten/kota, agama, pekerjaan): disaring langsung saat mengetik
   const [pickText, setPickText] = useState({});
   const [pickOpen, setPickOpen] = useState('');
   const [geoBusy, setGeoBusy] = useState(NONE);
   const [geoFull, setGeoFull] = useState(NONE); // daftar penuh milik induk sudah dimuat: tampil langsung, cukup disaring
   const [geoCut, setGeoCut] = useState(NONE); // hasil pencarian terpotong: minta kata kunci lebih spesifik
-  const runGeoSearch = (key) => setGeoTerm((t) => ({ ...t, [key]: geoQuery[key].trim() }));
+  // Kecamatan/kelurahan selalu tampil sebagai dropdown berisi semua data milik induknya (tanpa mengetik dulu).
+  // Pencarian nama (min. 3 huruf) hanya dipakai bila daftar penuh induk tidak tersedia, dan berjalan otomatis tanpa tombol Cari.
+  const geoTerm = Object.fromEntries(['kecamatan', 'kelurahan'].map((key) => {
+    const typed = geoQuery[key].trim();
+    return [key, !geoFull[key] && typed.length >= 3 ? typed : ''];
+  }));
 
   useEffect(() => {
     let active = true;
@@ -74,12 +78,24 @@ export function useKonsumenMaster(form) {
     return () => { active = false; };
   }, [form.kode_provinsi]);
 
+  // Muat ulang daftar kecamatan/kelurahan (data baru bisa ditambahkan di tab lain lewat tautan "Tambah ...")
+  const [reload, setReload] = useState({ kecamatan: 0, kelurahan: 0 });
+  const reloadGeo = (key) => { refreshMasterOptions(key === 'kecamatan' ? '/kecamatans' : '/kelurahans'); setReload((r) => ({ ...r, [key]: r[key] + 1 })); };
+  const emptyKey = `${!!form.kode_kabupaten_kota && master.kecamatan.length === 0}|${!!form.kode_kecamatan && master.kelurahan.length === 0}`;
+  // Kembali ke tab ini dengan daftar masih kosong: otomatis dimuat ulang
+  useEffect(() => {
+    if (emptyKey === 'false|false') return undefined;
+    const onFocus = () => { if (emptyKey.startsWith('true')) reloadGeo('kecamatan'); if (emptyKey.endsWith('true')) reloadGeo('kelurahan'); };
+    window.addEventListener('focus', onFocus);
+    return () => window.removeEventListener('focus', onFocus);
+  }, [emptyKey]);
+
   const shared = { setMaster, setBusy: setGeoBusy, setCut: setGeoCut, setFull: setGeoFull, setNote: setMasterNote };
-  useGeoSearch({ key: 'kecamatan', parentId: form.kode_kabupaten_kota, selectedId: form.kode_kecamatan, path: '/kecamatans', search: searchKecamatans, term: geoTerm.kecamatan, ...shared });
-  useGeoSearch({ key: 'kelurahan', parentId: form.kode_kecamatan, selectedId: form.kode_kelurahan, path: '/kelurahans', search: searchKelurahans, term: geoTerm.kelurahan, ...shared });
+  useGeoSearch({ key: 'kecamatan', parentId: form.kode_kabupaten_kota, selectedId: form.kode_kecamatan, path: '/kecamatans', search: searchKecamatans, term: geoTerm.kecamatan, reload: reload.kecamatan, ...shared });
+  useGeoSearch({ key: 'kelurahan', parentId: form.kode_kecamatan, selectedId: form.kode_kelurahan, path: '/kelurahans', search: searchKelurahans, term: geoTerm.kelurahan, reload: reload.kelurahan, ...shared });
 
   return {
-    master: form.kode_provinsi ? master : { ...master, kabupaten: [] }, masterNote, geoQuery, setGeoQuery, geoTerm, setGeoTerm, pickText, setPickText, pickOpen, setPickOpen,
-    geoBusy, geoFull, geoCut, runGeoSearch,
+    master: form.kode_provinsi ? master : { ...master, kabupaten: [] }, masterNote, geoQuery, setGeoQuery, pickText, setPickText, pickOpen, setPickOpen,
+    geoBusy, geoFull, geoCut, reloadGeo,
   };
 }

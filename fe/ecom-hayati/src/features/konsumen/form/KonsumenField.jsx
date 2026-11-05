@@ -1,12 +1,23 @@
 import { Spin } from '../../../shared/components/Loading';
+import { MENU_PATHS, MENU_KECAMATAN, MENU_KELURAHAN } from '../../dashboard/utils/menuPaths';
+
+// Jalan keluar saat induk belum punya data: buka halaman master di tab baru (form konsumen tetap utuh)
+const ADD_MASTER = {
+  kecamatan: { menu: MENU_KECAMATAN, parentField: 'kode_kabupaten_kota', label: 'Kecamatan', parent: 'kabupaten/kota' },
+  kelurahan: { menu: MENU_KELURAHAN, parentField: 'kode_kecamatan', label: 'Kelurahan / Desa', parent: 'kecamatan' },
+};
 
 function GeoSearchInput({ name, label, id, cls, ctx, idOptions, searchKey, disabled, hint }) {
-  const { form, setField, geo } = ctx;
-  const { geoFull, geoQuery, setGeoQuery, geoBusy, geoTerm, geoCut, runGeoSearch } = geo;
+  const { form, setField, geo, can } = ctx;
+  const { geoFull, geoQuery, setGeoQuery, geoBusy, geoCut, reloadGeo, pickOpen, setPickOpen } = geo;
+  const add = ADD_MASTER[searchKey];
+  const open = pickOpen === name; // daftar hanya terbuka saat kolom difokuskan
   const sk = searchKey;
   const full = geoFull[sk];
-  const typed = geoQuery[sk].trim().toLowerCase();
-  const shown = full && typed ? idOptions.filter((o) => o.name.toLowerCase().includes(typed)) : idOptions;
+  const filled = !!form[name];
+  // Teks yang diketik hanya menyaring daftar; saat sudah terisi, seluruh pilihan tetap tampil agar mudah diganti
+  const typed = filled ? '' : geoQuery[sk].trim().toLowerCase();
+  const shown = typed ? idOptions.filter((o) => o.name.toLowerCase().includes(typed)) : idOptions;
   return (
     <>
       <div style={{ display: 'flex', gap: 6 }}>
@@ -21,36 +32,48 @@ function GeoSearchInput({ name, label, id, cls, ctx, idOptions, searchKey, disab
             const hit = idOptions.find((o) => o.name.toLowerCase() === text.trim().toLowerCase());
             setField(name)({ target: { value: hit ? String(hit.kode) : '' } });
             setGeoQuery((g) => ({ ...g, [sk]: text }));
+            setPickOpen(name);
           }}
-          // Enter = Cari (bukan menyimpan form)
-          onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); if (!form[name] && geoQuery[sk].trim().length >= 3) runGeoSearch(sk); } }}
-          placeholder={disabled ? hint : full ? `Pilih atau ketik untuk menyaring ${label.toLowerCase()}` : `Ketik min. 3 huruf nama ${label.toLowerCase()}, lalu klik Cari`}
+          onFocus={(e) => { setPickOpen(name); if (form[name]) e.target.select(); }}
+          onBlur={() => setPickOpen((k) => (k === name ? '' : k))}
+          // Enter hanya mencegah form tersimpan; daftar disaring otomatis saat mengetik
+          onKeyDown={(e) => { if (e.key === 'Enter') e.preventDefault(); if (e.key === 'Escape') setPickOpen(''); }}
+          placeholder={disabled ? hint : `Pilih atau ketik untuk menyaring ${label.toLowerCase()}`}
           disabled={disabled}
         />
-        {full ? (geoBusy[sk] && <Spin />) : (
-          <button
-            id={`btn-konsumen-search-${sk}`}
-            type="button"
-            className="dash-btn outline"
-            onClick={() => runGeoSearch(sk)}
-            disabled={disabled || geoBusy[sk] || geoQuery[sk].trim().length < 3}
-          >
-            {geoBusy[sk] ? <Spin /> : 'Cari'}
-          </button>
-        )}
+        {geoBusy[sk] && <Spin />}
       </div>
-      {!disabled && !form[name] && !geoBusy[sk] && (full || geoTerm[sk].length >= 3) && (
+      {!disabled && !form[name] && geoBusy[sk] && (
+        <p className="dash-field-hint" style={{ margin: '4px 0 0', fontSize: 12, opacity: 0.7 }}>Memuat {label.toLowerCase()}...</p>
+      )}
+      {open && !disabled && !form[name] && !geoBusy[sk] && (
         <p className="dash-field-hint" style={{ margin: '4px 0 0', fontSize: 12, opacity: 0.7 }}>
           {shown.length === 0
-            ? (geoCut[sk] ? 'Terlalu banyak hasil, ketik lebih spesifik' : 'Tidak ditemukan di wilayah ini')
-            : `${shown.length} ${full ? `${label.toLowerCase()} di wilayah ini` : 'hasil'} — pilih salah satu`}
+            ? (geoCut[sk] ? 'Terlalu banyak hasil, ketik lebih spesifik' : typed ? `Tidak ada ${label.toLowerCase()} yang cocok di wilayah ini` : `Tidak ada data ${label.toLowerCase()} di wilayah ini`)
+            : `${shown.length} ${label.toLowerCase()}${full || !typed ? ' di wilayah ini' : ''} — pilih salah satu`}
         </p>
       )}
-      {!disabled && !form[name] && !geoBusy[sk] && shown.length > 0 && (
+      {!disabled && !form[name] && !geoBusy[sk] && idOptions.length === 0 && add && (
+        <div className="dash-alert warning" role="note" style={{ marginTop: 6 }}>
+          <span>
+            Belum ada data {add.label.toLowerCase()} di {add.parent} ini.{' '}
+            {can?.masterAdd?.[sk] ? (
+              <>
+                <a id={`link-konsumen-add-${sk}`} href={`${MENU_PATHS[add.menu]}?tambah=1&induk=${encodeURIComponent(form[add.parentField])}`} target="_blank" rel="noopener noreferrer">
+                  Tambah {add.label} baru ↗
+                </a>
+                {' '}(dibuka di tab baru, isian di sini tidak hilang). Setelah disimpan, kembali ke tab ini atau{' '}
+                <button id={`btn-konsumen-reload-${sk}`} type="button" className="dash-link" onClick={() => reloadGeo(sk)}>muat ulang</button>.
+              </>
+            ) : 'Hubungi admin untuk menambahkan datanya.'}
+          </span>
+        </div>
+      )}
+      {open && !disabled && !geoBusy[sk] && shown.length > 0 && (
         <ul className="dash-geo-list" role="listbox" aria-label={label}>
           {shown.map((o) => (
             <li key={o.kode}>
-              <button id={`btn-konsumen-option-${name}-${o.kode}`} type="button" role="option" onClick={() => setField(name)({ target: { value: String(o.kode) } })}>{o.name}</button>
+              <button id={`btn-konsumen-option-${name}-${o.kode}`} type="button" role="option" aria-selected={String(o.kode) === String(form[name])} onMouseDown={(e) => e.preventDefault()} onClick={() => { setField(name)({ target: { value: String(o.kode) } }); setPickOpen(''); }}>{o.name}</button>
             </li>
           ))}
         </ul>
@@ -62,7 +85,7 @@ function GeoSearchInput({ name, label, id, cls, ctx, idOptions, searchKey, disab
 function PickInput({ name, label, id, cls, ctx, idOptions, disabled, hint }) {
   const { form, setField, geo } = ctx;
   const { pickText, setPickText, pickOpen, setPickOpen } = geo;
-  const q = (pickText[name] ?? '').trim().toLowerCase();
+  const q = form[name] ? '' : (pickText[name] ?? '').trim().toLowerCase(); // terisi: tampilkan seluruh pilihan
   const list = idOptions.filter((o) => o.name.toLowerCase().includes(q));
   return (
     <>
@@ -82,13 +105,13 @@ function PickInput({ name, label, id, cls, ctx, idOptions, disabled, hint }) {
         placeholder={disabled ? hint : `Cari / pilih ${label.toLowerCase()}`}
         disabled={disabled}
       />
-      {pickOpen === name && !disabled && !form[name] && (
+      {pickOpen === name && !disabled && (
         <ul className="dash-geo-list" role="listbox" aria-label={label}>
           {list.length === 0 && <li className="dash-geo-empty">Tidak ditemukan</li>}
           {list.map((o) => (
             <li key={o.kode}>
               {/* mousedown dicegah agar kolom tidak blur sebelum klik terbaca */}
-              <button id={`btn-konsumen-option-${name}-${o.kode}`} type="button" role="option" onMouseDown={(e) => e.preventDefault()} onClick={() => { setField(name)({ target: { value: String(o.kode) } }); setPickOpen(''); }}>{o.name}</button>
+              <button id={`btn-konsumen-option-${name}-${o.kode}`} type="button" role="option" aria-selected={String(o.kode) === String(form[name])} onMouseDown={(e) => e.preventDefault()} onClick={() => { setField(name)({ target: { value: String(o.kode) } }); setPickOpen(''); }}>{o.name}</button>
             </li>
           ))}
         </ul>
@@ -128,7 +151,7 @@ function KonsumenField({ name, label, ctx, ...props }) {
       )}
       {ocr.hints[name] && !form[name] && (
         <p className="dash-field-error" role="alert">
-          Hasil scan KTP: "{ocr.hints[name]}" tidak ada di daftar. Ketik ulang{props.searchKey ? ' lalu klik Cari' : ''} atau pilih manual.
+          Hasil scan KTP: "{ocr.hints[name]}" tidak ada di daftar. Ketik ulang atau pilih manual.
         </p>
       )}
       {ocr.missing[name] && !form[name] && (

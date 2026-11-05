@@ -13,6 +13,7 @@ function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [fieldErr, setFieldErr] = useState({}); // pesan per kolom, tampil di bawah kolomnya (bukan pop-up bawaan browser)
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [blockedUntil, setBlockedUntil] = useState(0); // epoch ms; 0 = tidak diblokir
@@ -38,6 +39,15 @@ function LoginPage() {
     e.preventDefault();
     if (waitSec > 0) return;
     setError('');
+    const errs = {};
+    if (!email.trim()) errs.email = 'Email wajib diisi.';
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) errs.email = 'Format email tidak valid (contoh: nama@email.com).';
+    if (!password) errs.password = 'Kata sandi wajib diisi.';
+    setFieldErr(errs);
+    if (Object.keys(errs).length) {
+      document.getElementById(errs.email ? 'email' : 'password')?.focus();
+      return;
+    }
     setLoading(true);
 
     try {
@@ -89,9 +99,9 @@ function LoginPage() {
         <h1 className="login-title">Selamat Datang Kembali</h1>
         <p className="login-subtitle">Masuk ke akun Anda untuk melanjutkan aktivitas hari ini</p>
 
-        <form className="login-card" onSubmit={handleSubmit} aria-busy={loading}>
+        <form className="login-card" onSubmit={handleSubmit} aria-busy={loading} noValidate>
           <label className="login-label" htmlFor="email">Email</label>
-          <div className="login-field">
+          <div className={`login-field${fieldErr.email ? ' invalid' : ''}`}>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <rect x="3" y="5" width="18" height="14" rx="2" />
               <path d="m3 7 9 6 9-6" />
@@ -102,13 +112,14 @@ function LoginPage() {
               type="email"
               placeholder="contoh: nama@email.com"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
+              onChange={(e) => { setEmail(e.target.value); if (fieldErr.email) setFieldErr((f) => ({ ...f, email: '' })); }}
+              aria-invalid={!!fieldErr.email}
             />
           </div>
+          {fieldErr.email && <p className="field-error" role="alert">{fieldErr.email}</p>}
 
           <label className="login-label" htmlFor="password">Kata Sandi</label>
-          <div className="login-field">
+          <div className={`login-field${fieldErr.password ? ' invalid' : ''}`}>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <rect x="4" y="11" width="16" height="10" rx="2" />
               <path d="M8 11V7a4 4 0 0 1 8 0v4" />
@@ -119,8 +130,8 @@ function LoginPage() {
               type={showPassword ? 'text' : 'password'}
               placeholder="Masukkan kata sandi"
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
+              onChange={(e) => { setPassword(e.target.value); if (fieldErr.password) setFieldErr((f) => ({ ...f, password: '' })); }}
+              aria-invalid={!!fieldErr.password}
             />
             <button id="login-toggle-password"
               type="button"
@@ -135,6 +146,8 @@ function LoginPage() {
               </svg>
             </button>
           </div>
+
+          {fieldErr.password && <p className="field-error" role="alert">{fieldErr.password}</p>}
 
           <p className="login-forgot"><Link to="/lupa-password">Lupa kata sandi?</Link></p>
 
