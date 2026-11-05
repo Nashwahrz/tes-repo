@@ -10,13 +10,14 @@ use App\Http\Requests\ScanKtpRequest;
 use App\Http\Resources\ActivityLogResource;
 use App\Http\Responses\KonsumenMeResponse;
 use App\Http\Responses\KonsumenResponse;
+use App\Http\Responses\TempKonsumenResponse;
 use App\Models\Konsumen;
-use App\Models\KonsumenMe;
+use App\Models\TempKonsumen;
 use App\Repositories\KonsumenMeRepository;
 use App\Repositories\KonsumenRepository;
+use App\Repositories\TempKonsumenRepository;
 use App\Services\KtpOcrService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Throwable;
@@ -25,8 +26,10 @@ class KonsumenController extends Controller
 {
     public function __construct(
         private KonsumenRepository $konsumenRepository,
+        private TempKonsumenRepository $tempKonsumenRepository,
         private KonsumenMeRepository $konsumenMeRepository,
         private KonsumenResponse $konsumenResponse,
+        private TempKonsumenResponse $tempKonsumenResponse,
         private KonsumenMeResponse $konsumenMeResponse,
         private KtpOcrService $ktpOcrService
     ) {}
@@ -48,6 +51,7 @@ class KonsumenController extends Controller
             return $this->konsumenResponse->serverError();
         }
     }
+
     public function indexAll(Request $request)
     {
         try {
@@ -64,6 +68,7 @@ class KonsumenController extends Controller
             return $this->konsumenResponse->serverError();
         }
     }
+
     public function indexDealerAll(Request $request)
     {
         try {
@@ -76,8 +81,8 @@ class KonsumenController extends Controller
             $konsumens = $this->konsumenRepository->paginateDealerAll(
                 perPage: min(max((int) $request->query('per_page', 10), 1), 100),
                 search: $request->query('search'),
-                userId: null,                  
-                dealerId: $user->id_dealer    
+                userId: null,
+                dealerId: $user->id_dealer
             );
 
             return $this->konsumenResponse->paginated($konsumens);
@@ -94,18 +99,23 @@ class KonsumenController extends Controller
                 ? StatusKonsumen::tryFrom($request->query('status'))
                 : null;
 
-            $konsumens = $this->konsumenRepository->getStatus($status);
+            $perPage = min(max((int) $request->query('per_page', 10), 1), 100);
 
-            return $this->konsumenResponse->list($konsumens, 'Daftar konsumen berhasil diambil.');
+            $konsumens = $this->tempKonsumenRepository->getStatus(
+                status: $status,
+                perPage: $perPage,
+                search: $request->query('search')
+            );
+
+            return $this->tempKonsumenResponse->list($konsumens, 'Daftar konsumen berhasil diambil.');
         } catch (Throwable $e) {
             Log::error('Gagal mengambil status konsumen: ' . $e->getMessage(), [
                 'trace' => $e->getTraceAsString(),
             ]);
-            return $this->konsumenResponse->serverError();
+            return $this->tempKonsumenResponse->serverError();
         }
     }
 
-   
     public function scanKtp(ScanKtpRequest $request)
     {
         try {
@@ -119,6 +129,15 @@ class KonsumenController extends Controller
                         $existingKonsumen,
                         $extractedData,
                         "Konsumen dengan NIK {$extractedData['nik']} sudah terdaftar atas nama {$existingKonsumen->name}."
+                    );
+                }
+
+                $existingTemp = $this->tempKonsumenRepository->findByNik($extractedData['nik']);
+                if ($existingTemp) {
+                    return $this->tempKonsumenResponse->scanExisting(
+                        $existingTemp,
+                        $extractedData,
+                        "Pengajuan konsumen dengan NIK {$extractedData['nik']} sudah ada dengan status: {$existingTemp->status->label()}."
                     );
                 }
             }
@@ -136,6 +155,13 @@ class KonsumenController extends Controller
             $keyword = $request->validated('nik');
             $konsumens = $this->konsumenRepository->searchByNik($keyword);
 
+            // if ($konsumens->isEmpty()) {
+            //     $tempKonsumens = $this->tempKonsumenRepository->searchByNik($keyword);
+            //     if ($tempKonsumens->isNotEmpty()) {
+            //         return $this->tempKonsumenResponse->searchResult($tempKonsumens, $keyword);
+            //     }
+            // }
+
             return $this->konsumenResponse->searchResult($konsumens, $keyword);
         } catch (Throwable $e) {
             Log::error('Gagal mencari data konsumen: ' . $e->getMessage(), [
@@ -148,7 +174,7 @@ class KonsumenController extends Controller
     public function store(KonsumenRequest $request)
     {
         try {
-            $data   = $request->validated();
+            $data = $request->validated();
             $hasNewPhoto = $request->hasFile('foto_ktp');
 
             if ($hasNewPhoto) {
@@ -156,52 +182,49 @@ class KonsumenController extends Controller
                 $filename = 'ktp_' . date('Ymd_His') . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
                 $path     = $file->storeAs('ktp', $filename, 'local');
                 $data['foto_ktp'] = $path;
-            } else {
+            } elseif (empty($data['foto_ktp'])) {
                 unset($data['foto_ktp']);
             }
 
             $userId = auth()->id();
 
-            [$konsumen, $isExisting] = $this->konsumenRepository->storeWithMe($data, $userId, $hasNewPhoto);
+            [$konsumen, $isExisting, $isDataChanged] = $this->tempKonsumenRepository->storeWithMe($data, $userId, $hasNewPhoto);
 
             $message = $isExisting
-                ? 'Data konsumen ditemukan, diproses, dan berhasil ditambahkan ke daftar Anda.'
-                : 'Data konsumen berhasil disimpan.';
+                ? ($isDataChanged
+                    ? 'Data konsumen ditemukan dengan perubahan, diajukan untuk verifikasi.'
+                    : 'Data konsumen ditemukan (sesuai data terdaftar) dan langsung ditambahkan ke daftar konsumen Anda.')
+                : 'Data pengajuan konsumen berhasil disimpan dan menunggu verifikasi.';
 
-            return $this->konsumenResponse->success($konsumen, $message);
+            return $this->tempKonsumenResponse->success($konsumen, $message);
         } catch (Throwable $e) {
             Log::error('Gagal menyimpan konsumen: ' . $e->getMessage(), [
                 'trace' => $e->getTraceAsString(),
             ]);
-            return $this->konsumenResponse->serverError();
+            return $this->tempKonsumenResponse->serverError();
         }
     }
 
     public function show(int $id)
     {
         try {
-            $konsumen = $this->konsumenRepository->findById($id);
+            $konsumen = $this->tempKonsumenRepository->findById($id)
+                ?? $this->konsumenRepository->findById($id);
 
             if (!$konsumen) {
-                return $this->konsumenResponse->notFound();
+                return $this->tempKonsumenResponse->notFound();
             }
 
-            return $this->konsumenResponse->success($konsumen, 'Detail konsumen berhasil ditemukan.');
+            return $this->tempKonsumenResponse->success($konsumen, 'Detail konsumen berhasil ditemukan.');
         } catch (Throwable $e) {
             Log::error('Gagal mengambil detail konsumen: ' . $e->getMessage());
-            return $this->konsumenResponse->serverError();
+            return $this->tempKonsumenResponse->serverError();
         }
     }
 
     public function update(KonsumenRequest $request, int $id)
     {
         try {
-            $konsumen = $this->konsumenRepository->findById($id);
-
-            if (!$konsumen) {
-                return $this->konsumenResponse->notFound();
-            }
-
             $data = $request->validated();
 
             if ($request->hasFile('foto_ktp')) {
@@ -209,83 +232,88 @@ class KonsumenController extends Controller
                 $filename = 'ktp_' . date('Ymd_His') . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
                 $path = $file->storeAs('ktp', $filename, 'local');
                 $data['foto_ktp'] = $path;
-            } else {
+            } elseif (empty($data['foto_ktp'])) {
                 unset($data['foto_ktp']);
             }
 
-            $updated = $this->konsumenRepository->update($konsumen, $data);
+            $userId = auth()->id();
 
-            return $this->konsumenResponse->success($updated, 'Data konsumen berhasil diperbarui.');
+            $tempKonsumen = $this->tempKonsumenRepository->findById($id);
+
+            if ($tempKonsumen) {
+                if ($tempKonsumen->status === StatusKonsumen::Diterima) {
+                    $data['id_me']             = $userId;
+                    $data['id_konsumen']       = $tempKonsumen->id_konsumen;
+                    $data['tipe']              = 'edit';
+                    $data['status']            = StatusKonsumen::Pending;
+                    $data['catatan']           = null;
+                    $data['diverifikasi_oleh'] = null;
+                    $data['diverifikasi_at']   = null;
+                    $updated = $this->tempKonsumenRepository->create($data);
+                } else {
+                    $data['status']            = StatusKonsumen::Pending;
+                    $data['catatan']           = null;
+                    $data['diverifikasi_oleh'] = null;
+                    $data['diverifikasi_at']   = null;
+                    $updated = $this->tempKonsumenRepository->update($tempKonsumen, $data);
+                }
+
+                return $this->tempKonsumenResponse->success($updated, 'Data konsumen berhasil diperbarui dan diajukan kembali.');
+            }
+
+            $konsumen = $this->konsumenRepository->findById($id);
+            if ($konsumen) {
+                $tempData = array_merge($data, [
+                    'id_me'             => $userId,
+                    'id_konsumen'       => $konsumen->id,
+                    'tipe'              => 'edit',
+                    'status'            => StatusKonsumen::Pending,
+                    'catatan'           => null,
+                    'data_sebelumnya'   => $konsumen->toArray(),
+                    'diverifikasi_oleh' => null,
+                    'diverifikasi_at'   => null,
+                ]);
+
+                $updated = $this->tempKonsumenRepository->create($tempData);
+                return $this->tempKonsumenResponse->success($updated, 'Perubahan data konsumen berhasil diajukan dan menunggu verifikasi.');
+            }
+
+            return $this->tempKonsumenResponse->notFound();
         } catch (Throwable $e) {
             Log::error('Gagal memperbarui konsumen: ' . $e->getMessage());
-            return $this->konsumenResponse->serverError();
+            return $this->tempKonsumenResponse->serverError();
         }
     }
 
     public function destroy(int $id)
     {
         try {
-            $konsumen = $this->konsumenRepository->findById($id);
-
-            if (!$konsumen) {
-                return $this->konsumenResponse->notFound();
+            $tempKonsumen = $this->tempKonsumenRepository->findById($id);
+            if ($tempKonsumen) {
+                $this->tempKonsumenRepository->delete($tempKonsumen);
+                return $this->tempKonsumenResponse->deleted('Pengajuan konsumen berhasil dihapus.');
             }
 
-            $this->konsumenRepository->delete($konsumen);
+            $konsumen = $this->konsumenRepository->findById($id);
+            if ($konsumen) {
+                $this->konsumenRepository->delete($konsumen);
+                return $this->konsumenResponse->deleted('Data konsumen berhasil dihapus.');
+            }
 
-            return $this->konsumenResponse->deleted();
+            return $this->tempKonsumenResponse->notFound();
         } catch (Throwable $e) {
             Log::error('Gagal menghapus konsumen: ' . $e->getMessage());
-            return $this->konsumenResponse->serverError();
+            return $this->tempKonsumenResponse->serverError();
         }
     }
-    // public function activate(ActiveKonsumenRequest $request, int $id)
-    // {
-    //     try {
-
-    //         $konsumen = $this->konsumenRepository->findById($id);
-
-    //         if (!$konsumen) {
-    //             return $this->konsumenResponse->notFound('Konsumen tidak ditemukan.');
-    //         }
-
-    //         $status = $request->filled('status')
-    //             ? StatusKonsumen::tryFrom($request->status) ?? StatusKonsumen::Diterima
-    //             : StatusKonsumen::Diterima;
-
-    //         $isDiterima = $status === StatusKonsumen::Diterima;
-            
-    //         $diverifikasi_oleh = auth()->id();
-
-    //         $updatedKonsumen = $this->konsumenRepository->activateKonsumen(
-    //             $konsumen,
-    //             $diverifikasi_oleh ,
-    //             $isDiterima ? null : ($request->input('catatan_penolakan') ? : null),
-    //             $status
-    //         );
-
-    //         $message = $isDiterima
-    //             ? 'Akun Konsumen berhasil diterima.'
-    //             : 'Akun Konsumen berhasil ditolak.';
-
-    //         return $this->konsumenResponse->success($updatedKonsumen, $message);
-    //     } catch (Throwable $e) {
-    //         Log::error('Aktivasi Konsumen gagal: ' . $e->getMessage(), [
-    //             'trace' => $e->getTraceAsString(),
-    //         ]);
-
-    //         return $this->konsumenResponse->serverError();
-    //     }
-    // }
 
     public function activate(ActiveKonsumenRequest $request, int $id)
     {
         try {
+            $tempKonsumen = $this->tempKonsumenRepository->findById($id);
 
-            $konsumen = $this->konsumenMeRepository->findById($id);
-
-            if (!$konsumen) {
-                return $this->konsumenMeResponse->notFound('Konsumen tidak ditemukan.');
+            if (!$tempKonsumen) {
+                return $this->tempKonsumenResponse->notFound('Data pengajuan konsumen tidak ditemukan.');
             }
 
             $status = $request->filled('status')
@@ -293,32 +321,36 @@ class KonsumenController extends Controller
                 : StatusKonsumen::Diterima;
 
             $isDiterima = $status === StatusKonsumen::Diterima;
-            
+            $isRevisi   = $status === StatusKonsumen::Revisi;
             $diverifikasi_oleh = auth()->id();
 
-            $updatedKonsumen = $this->konsumenMeRepository->activateKonsumen(
-                $konsumen,
-                $diverifikasi_oleh ,
-                $isDiterima ? null : ($request->input('catatan_penolakan') ? : null),
+            $updatedKonsumen = $this->tempKonsumenRepository->activateKonsumen(
+                $tempKonsumen,
+                $diverifikasi_oleh,
+                $isDiterima ? null : ($request->input('catatan_penolakan') ?: null),
                 $status
             );
 
             $message = $isDiterima
-                ? 'Akun Konsumen berhasil diterima.'
-                : 'Akun Konsumen berhasil ditolak.';
+                ? 'Akun Konsumen berhasil diterima dan dipindahkan ke data konsumen.'
+                : ($isRevisi
+                    ? 'Pengajuan Konsumen diminta untuk direvisi.'
+                    : 'Pengajuan Konsumen berhasil ditolak.');
 
-            return $this->konsumenMeResponse->success($updatedKonsumen, $message);
+            return $this->tempKonsumenResponse->success($updatedKonsumen, $message);
         } catch (Throwable $e) {
             Log::error('Aktivasi Konsumen gagal: ' . $e->getMessage(), [
                 'trace' => $e->getTraceAsString(),
             ]);
 
-            return $this->konsumenMeResponse->serverError();
+            return $this->tempKonsumenResponse->serverError();
         }
     }
+
     public function fotoKtp(int $id)
     {
-        $konsumen = Konsumen::withoutGlobalScopes()->find($id);
+        $konsumen = Konsumen::withoutGlobalScopes()->find($id)
+            ?? TempKonsumen::withoutGlobalScopes()->find($id);
 
         if (!$konsumen || !$konsumen->foto_ktp) {
             abort(404, 'Foto KTP tidak ditemukan.');
@@ -343,12 +375,11 @@ class KonsumenController extends Controller
             $perPage = min(max((int) $request->query('per_page', 10), 1), 100);
 
             return ActivityLogResource::collection(
-                $this->konsumenRepository->getAllLogs($perPage, $request->query('search'))
+                $this->tempKonsumenRepository->getAllLogs($perPage, $request->query('search'))
             );
         } catch (Throwable $e) {
             Log::error('Gagal mengambil log konsumen: ' . $e->getMessage());
-            return $this->konsumenResponse->serverError();
+            return $this->tempKonsumenResponse->serverError();
         }
     }
 }
-

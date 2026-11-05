@@ -5,105 +5,40 @@ namespace App\Repositories;
 use App\Enums\StatusKonsumen;
 use App\Models\Konsumen;
 use App\Models\KonsumenMe;
+use App\Models\TempKonsumen;
 use App\Models\User;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\URL;
 use Spatie\Activitylog\Models\Activity;
 
 class KonsumenRepository
 {
     public function all(): Collection
     {
-        return Konsumen::all();
+        return Konsumen::with(['konsumenMes.me'])->get();
     }
 
     public function findById(int $id): ?Konsumen
     {
-        return Konsumen::find($id);
+        return Konsumen::with(['konsumenMes.me'])->find($id);
     }
 
     public function findByNik(string $nik): ?Konsumen
     {
-        return Konsumen::where('nik', $nik)->first();
+        return Konsumen::with(['konsumenMes.me'])->where('nik', $nik)->first();
     }
 
     public function searchByNik(string $keyword, int $limit = 10): Collection
     {
-        return Konsumen::where(function ($q) use ($keyword) {
-            $q->where('nik', 'ILIKE', "%{$keyword}%")
-              ->orWhere('name', 'ILIKE', "%{$keyword}%");
-        })
-        ->limit($limit)
-        ->get();
-    }
-
-   
-    public function storeWithMe(array $data, int $userId, bool $hasNewPhoto = false): array
-    {
-        return DB::transaction(function () use ($data, $userId, $hasNewPhoto) {
-            $konsumen = $this->findByNik($data['nik']);
-
-            if ($konsumen) {
-                $isDataChanged = $hasNewPhoto;
-                $konsumen->fill($data);
-                if ($konsumen->isDirty()) {
-                    $isDataChanged = true;
-                }
-                $lastAccepted = $konsumen->konsumenMes()
-                    ->where('status', StatusKonsumen::Diterima)
-                    ->whereNotNull('diverifikasi_oleh')
-                    ->latest('id')
-                    ->first();
-
-                $isDiterima = false;
-                $diverifikasiOleh = null;
-
-                if ($lastAccepted) {
-                    $isDiterima = true;
-                    $diverifikasiOleh = $lastAccepted->diverifikasi_oleh;
-                } elseif ($konsumen->status === StatusKonsumen::Diterima && $konsumen->diverifikasi_oleh) {
-                    $isDiterima = true;
-                    $diverifikasiOleh = $konsumen->diverifikasi_oleh;
-                }
-                if (!$isDataChanged && $isDiterima) {
-                    $statusMe         = StatusKonsumen::Diterima;
-                    $verifiedBy       = $diverifikasiOleh;
-                    $catatanPenolakan = null;
-                } else {
-                    $statusMe         = StatusKonsumen::Pending;
-                    $verifiedBy       = null;
-                    $catatanPenolakan = null;
-                }
-
-                $konsumen = $this->update($konsumen, $data);
-                KonsumenMe::firstOrCreate(
-                    [
-                        'id_me'       => $userId,
-                        'id_konsumen' => $konsumen->id,
-                    ],
-                    [
-                        'status'            => $statusMe,
-                        'diverifikasi_oleh' => $verifiedBy,
-                        'catatan_penolakan' => $catatanPenolakan,
-                    ]
-                );
-
-                return [$konsumen, true];
-            }
-
-            $konsumen = $this->create($data);
-
-            KonsumenMe::create([
-                'id_me'             => $userId,
-                'id_konsumen'       => $konsumen->id,
-                'status'            => StatusKonsumen::Pending,
-                'diverifikasi_oleh' => null,
-                'catatan_penolakan' => null,
-            ]);
-
-            return [$konsumen, false];
-        });
+        return Konsumen::with(['konsumenMes.me'])
+            ->where(function ($q) use ($keyword) {
+                $q->where('nik', 'ILIKE', "%{$keyword}%")
+                  ->orWhere('name', 'ILIKE', "%{$keyword}%");
+            })
+            ->limit($limit)
+            ->get();
     }
 
     public function create(array $data): Konsumen
@@ -111,93 +46,179 @@ class KonsumenRepository
         return Konsumen::create($data);
     }
 
-    
     public function update(Konsumen $konsumen, array $data): Konsumen
     {
         $konsumen->update($data);
-        return $konsumen->fresh();
+        return $konsumen->fresh(['konsumenMes.me']);
     }
 
-  
     public function delete(Konsumen $konsumen): bool
     {
         return (bool) $konsumen->delete();
-    }
-    // public function getStatus(?StatusKonsumen $status = null): Collection
-    // {
-    //     $query = Konsumen::with(['me', 'verifiedBy']);
-
-    //     if ($status) {
-    //         $query->where('status', $status);
-    //     }
-
-    //     return $query->get();
-    // }
-
-    public function getStatus(?StatusKonsumen $status = null, int $perPage = 10, ?string $search = null): LengthAwarePaginator
-    {
-        return Konsumen::with(['konsumenMes.me', 'verifiedBy'])
-            ->when($status, fn ($q) => $q->where('status', $status))
-            ->when($search, function ($q) use ($search) {
-                $q->where(function ($q) use ($search) {
-                    $q->where('name', 'like', "%{$search}%")
-                    ->orWhere('nik', 'like', "%{$search}%");
-                });
-            })
-            ->latest('id')
-            ->paginate($perPage);
-    }
-    public function activateKonsumen(Konsumen $konsumen, ?int $diverifikasi_oleh, string|null $catatan_penolakan, StatusKonsumen $status): Konsumen
-    {
-        $konsumen->update([
-            'diverifikasi_oleh' => $diverifikasi_oleh,
-            'catatan_penolakan' => $catatan_penolakan,
-            'status'    => $status
-        ]);
-        return $konsumen->fresh(['konsumenMes.me', 'verifiedBy']);
     }
 
     public function paginate(int $perPage = 10, ?string $search = null, ?int $userId = null): LengthAwarePaginator
     {
         $userId ??= auth()->id();
 
-        return Konsumen::with(['konsumenMes.me'])
-            ->when($userId, fn ($q) => $q->whereHas('konsumenMes', fn ($q) => $q->where('id_me', $userId)))
-            ->when($search, function ($q) use ($search) {
-                $q->where(function ($q) use ($search) {
-                    $q->where('name', 'ILIKE', "%{$search}%")
-                    ->orWhere('nik', 'ILIKE', "%{$search}%");
-                });
-            })
-            ->latest('id')
-            ->paginate($perPage);
-    }
-    public function paginateAll(int $perPage = 10, ?string $search = null): LengthAwarePaginator
-    {
-        return Konsumen::with(['konsumenMes.me'])
-            ->when($search, function ($q) use ($search) {
-                $q->where(function ($q) use ($search) {
-                    $q->where('name', 'ILIKE', "%{$search}%")
-                    ->orWhere('nik', 'ILIKE', "%{$search}%");
-                });
-            })
-            ->latest('id')
-            ->paginate($perPage);
-    }
-    public function paginateDealerAll(int $perPage = 10,?string $search = null,?int $userId = null,?int $dealerId = null): LengthAwarePaginator {
-        return Konsumen::with(['konsumenMes.me'])
-            ->when($userId, fn ($q) => $q->whereHas('konsumenMes', fn ($q) => $q->where('id_me', $userId)))
-            ->when($dealerId, fn ($q) => $q->whereHas('konsumenMes.me', fn ($q) => $q->where('id_dealer', $dealerId)))
-            ->when($search, function ($q) use ($search) {
-                $q->where(function ($q) use ($search) {
-                    $q->where('name', 'ILIKE', "%{$search}%")
-                    ->orWhere('nik', 'ILIKE', "%{$search}%");
-                });
-            })
-            ->latest('id')
-            ->paginate($perPage);
+        return $this->paginateCombined(perPage: $perPage, search: $search, userId: $userId);
     }
 
+    public function paginateAll(int $perPage = 10, ?string $search = null): LengthAwarePaginator
+    {
+        return $this->paginateCombined(perPage: $perPage, search: $search, userId: null);
+    }
+
+    public function paginateDealerAll(int $perPage = 10, ?string $search = null, ?int $userId = null, ?int $dealerId = null): LengthAwarePaginator
+    {
+        return $this->paginateCombined(perPage: $perPage, search: $search, userId: $userId, dealerId: $dealerId);
+    }
+
+    public function paginateCombined(
+        int $perPage = 10,
+        ?string $search = null,
+        ?int $userId = null,
+        ?int $dealerId = null
+    ): LengthAwarePaginator {
+        $tempQuery = DB::table('temp.temp_konsumens as t')
+            ->leftJoin('users as u', 'u.id', '=', 't.id_me')
+            ->leftJoin('users as v', 'v.id', '=', 't.diverifikasi_oleh')
+            ->select([
+                't.id',
+                DB::raw('t.id as id_temp'),
+                't.id_konsumen',
+                't.id_me',
+                't.tipe',
+                't.nik',
+                't.name',
+                't.kode_tmp_lahir',
+                't.tgl_lahir',
+                't.jenis_kelamin',
+                't.alamat_ktp',
+                't.alamat_domisili',
+                't.latitude',
+                't.longitude',
+                't.rt',
+                't.rw',
+                't.kode_kelurahan',
+                't.kode_kecamatan',
+                't.kode_kabupaten_kota',
+                't.kode_provinsi',
+                't.kode_agama',
+                't.status_perkawinan',
+                't.kode_pekerjaan',
+                't.kewarganegaraan',
+                't.no_telp',
+                't.email',
+                't.foto_ktp',
+                't.status',
+                't.catatan as catatan_penolakan',
+                't.diverifikasi_oleh',
+                't.diverifikasi_at',
+                't.created_at',
+                't.updated_at',
+                DB::raw("'temp' as sumber"),
+                'u.name as me_name',
+                'u.email as me_email',
+                'u.id_dealer as me_id_dealer',
+                'v.name as verifikator_name'
+            ])
+            ->when($userId, fn ($q) => $q->where('t.id_me', $userId))
+            ->when($dealerId, fn ($q) => $q->where('u.id_dealer', $dealerId))
+            ->whereIn('t.status', [StatusKonsumen::Pending->value, StatusKonsumen::Revisi->value, StatusKonsumen::Ditolak->value]);
+
+        $konsumenQuery = DB::table('konsumens as k')
+            ->join('konsumen_mes as km', 'km.id_konsumen', '=', 'k.id')
+            ->leftJoin('users as u', 'u.id', '=', 'km.id_me')
+            ->select([
+                'k.id',
+                DB::raw('NULL::bigint as id_temp'),
+                DB::raw('k.id as id_konsumen'),
+                'km.id_me',
+                DB::raw("'tetap' as tipe"),
+                'k.nik',
+                'k.name',
+                'k.kode_tmp_lahir',
+                'k.tgl_lahir',
+                'k.jenis_kelamin',
+                'k.alamat_ktp',
+                'k.alamat_domisili',
+                'k.latitude',
+                'k.longitude',
+                'k.rt',
+                'k.rw',
+                'k.kode_kelurahan',
+                'k.kode_kecamatan',
+                'k.kode_kabupaten_kota',
+                'k.kode_provinsi',
+                'k.kode_agama',
+                'k.status_perkawinan',
+                'k.kode_pekerjaan',
+                'k.kewarganegaraan',
+                'k.no_telp',
+                'k.email',
+                'k.foto_ktp',
+                DB::raw("'diterima' as status"),
+                DB::raw('NULL::text as catatan_penolakan'),
+                DB::raw('NULL::bigint as diverifikasi_oleh'),
+                DB::raw('NULL::timestamp as diverifikasi_at'),
+                'k.created_at',
+                'k.updated_at',
+                DB::raw("'konsumen' as sumber"),
+                'u.name as me_name',
+                'u.email as me_email',
+                'u.id_dealer as me_id_dealer',
+                DB::raw('NULL::varchar as verifikator_name')
+            ])
+            ->when($userId, fn ($q) => $q->where('km.id_me', $userId))
+            ->when($dealerId, fn ($q) => $q->where('u.id_dealer', $dealerId))
+            ->whereNotIn('k.id', function ($query) use ($userId) {
+                $query->select('id_konsumen')
+                    ->from('temp.temp_konsumens')
+                    ->when($userId, fn ($q) => $q->where('id_me', $userId))
+                    ->whereNotNull('id_konsumen')
+                    ->whereIn('status', [StatusKonsumen::Pending->value, StatusKonsumen::Revisi->value]);
+            });
+
+        $union = $tempQuery->unionAll($konsumenQuery);
+
+        $paginator = DB::query()
+            ->fromSub($union, 'combined')
+            ->when($search, function ($q) use ($search) {
+                $q->where(function ($q) use ($search) {
+                    $q->where('name', 'ILIKE', "%{$search}%")
+                      ->orWhere('nik', 'ILIKE', "%{$search}%")
+                      ->orWhere('no_telp', 'ILIKE', "%{$search}%")
+                      ->orWhere('status', 'ILIKE', "%{$search}%");
+                });
+            })
+            ->orderByDesc('updated_at')
+            ->paginate($perPage);
+
+        $paginator->getCollection()->transform(function ($item) {
+            $item->me = (object) [
+                'id'        => $item->id_me,
+                'name'      => $item->me_name,
+                'email'     => $item->me_email,
+                'id_dealer' => $item->me_id_dealer,
+            ];
+            $item->verified_by = $item->verifikator_name ? (object) [
+                'id'   => $item->diverifikasi_oleh,
+                'name' => $item->verifikator_name,
+            ] : null;
+            $item->verifiedBy = $item->verified_by;
+            $item->foto_ktp_url = $item->foto_ktp ? URL::temporarySignedRoute(
+                'konsumens.foto-ktp',
+                now()->addMinutes(10),
+                ['id' => $item->id],
+                false
+            ) : null;
+
+            return $item;
+        });
+
+        return $paginator;
+    }
 
     public function getAllLogs(int $perPage = 10, ?string $search = null): LengthAwarePaginator
     {
@@ -205,35 +226,14 @@ class KonsumenRepository
             ->where('subject_type', Konsumen::class)
             ->with(['causer:id,name', 'subject'])
             ->when($search, function ($q) use ($search) {
-                        $q->whereHasMorph('subject', [Konsumen::class], function ($q) use ($search) {
-                            $q->where('name', 'like', "%{$search}%");
-                        });
-                    })
+                $q->whereHasMorph('subject', [Konsumen::class], function ($q) use ($search) {
+                    $q->where('name', 'ILIKE', "%{$search}%")
+                      ->orWhere('nik', 'ILIKE', "%{$search}%");
+                });
+            })
             ->latest()
             ->paginate($perPage);
 
-        $this->attachUsersMap($logs);
-
         return $logs;
     }
-    
-    private function attachUsersMap(LengthAwarePaginator $logs): void
-    {
-        $userIds = $logs->getCollection()
-            ->flatMap(fn ($log) => [
-                data_get($log->properties, 'old.id_me'),
-                data_get($log->properties, 'attributes.id_me'),
-                data_get($log->properties, 'old.diverifikasi_oleh'),
-                data_get($log->properties, 'attributes.diverifikasi_oleh'),
-            ])
-            ->filter()
-            ->unique()
-            ->values();
-
-        $users = User::whereIn('id', $userIds)->pluck('name', 'id');
-
-        $logs->getCollection()->each(
-            fn ($log) => $log->setRelation('users_map', $users)
-        );
-    }    
 }

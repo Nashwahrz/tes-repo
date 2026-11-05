@@ -10,6 +10,7 @@ use App\Models\Kelurahan;
 use App\Models\Konsumen;
 use App\Models\Pekerjaan;
 use App\Models\Provinsi;
+use App\Models\TempKonsumen;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
@@ -26,7 +27,11 @@ class KonsumenRequest extends FormRequest
         $nikExists = !$isUpdate && !empty($nik) && Konsumen::where('nik', $nik)->exists();
         $nikRules = ['required', 'string', 'digits:16'];
         if ($isUpdate) {
-            $nikRules[] = Rule::unique('konsumens', 'nik')->ignore($konsumenId);
+            $temp = TempKonsumen::find($konsumenId);
+            $ignoreKonsumenId = $temp ? $temp->id_konsumen : $konsumenId;
+            if ($ignoreKonsumenId) {
+                $nikRules[] = Rule::unique('konsumens', 'nik')->ignore($ignoreKonsumenId);
+            }
         }
 
         if ($this->hasFile('foto_ktp')) {

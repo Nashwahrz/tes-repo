@@ -201,7 +201,7 @@ use Illuminate\Support\Facades\Route;
             Route::get('/all', [KonsumenController::class, 'indexAll'])->middleware('permission:konsumens.lihat-semua');
             Route::get('/dealer-all', [KonsumenController::class, 'indexDealerAll'])->middleware('permission:konsumens.lihat-dealer');
             Route::post('/', [KonsumenController::class, 'store'])->middleware('permission:konsumens.tambah');
-            Route::get('/status', [KonsumenController::class, 'status'])->middleware('permission:konsumens.lihat');
+           // Route::get('/status', [KonsumenController::class, 'status'])->middleware('permission:konsumens.lihat');
             Route::get('/logs', [KonsumenController::class, 'logs'])->middleware('permission:konsumens.logs');
             Route::get('/{id}', [KonsumenController::class, 'show'])->middleware('permission:konsumens.lihat');
             // Route::put('/{id}', [KonsumenController::class, 'update'])->middleware('permission:konsumens.ubah');
