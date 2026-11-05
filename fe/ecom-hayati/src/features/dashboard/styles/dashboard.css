@@ -394,6 +394,7 @@
 .dash-toolbar .dash-input-search { margin-bottom: 0; flex: 1; }
 
 .dash-select-filter { width: auto; min-width: 170px; }
+.dash-verify-select { min-width: 150px; padding-top: 7px; padding-bottom: 7px; font-size: 13px; }
 
 .dash-status { display: inline-block; padding: 3px 9px; font-size: 11px; font-weight: 600; border-radius: 999px; white-space: nowrap; }
 
@@ -402,6 +403,7 @@
 .dash-status.diterima { color: #067647; background: #ecfdf3; }
 
 .dash-status.ditolak { color: #b42318; background: #fef3f2; }
+.dash-status.revisi { color: #175cd3; background: #eff8ff; }
 
 .dash-status.aktif { color: #b42318; background: #fef3f2; }
 
@@ -879,3 +881,5 @@ select.dash-input, .dash-select {
 .dash-tabs.wide { display: flex; padding: 6px; border-radius: 12px; }
 
 .dash-tabs.wide .dash-tab { padding: 10px 24px; font-size: 13px; border-radius: 10px; }
+
+.dash-table th.col-no, .dash-table td.col-no { width: 1%; white-space: nowrap; text-align: right; color: var(--muted); }

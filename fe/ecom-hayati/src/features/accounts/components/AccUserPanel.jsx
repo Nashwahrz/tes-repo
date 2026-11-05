@@ -193,6 +193,7 @@ function AccUserPanel({ users: allUsers, dealers, scopeNote, canActivate, loadin
           <table className="dash-table">
             <thead>
               <tr>
+                <th className="col-no">No</th>
                 <th>Pengguna</th>
                 <th>Role</th>
                 <th>Dealer</th>
@@ -202,8 +203,9 @@ function AccUserPanel({ users: allUsers, dealers, scopeNote, canActivate, loadin
               </tr>
             </thead>
             <tbody>
-              {userPage.items.map((u) => (
+              {userPage.items.map((u, idx) => (
                 <tr key={u.id}>
+                  <td className="col-no">{(userPage.current - 1) * PAGE_SIZE + idx + 1}</td>
                   <td>
                     <div className="acc-user">
                       <span className="acc-avatar" aria-hidden="true">{(u.name ?? '?').trim().charAt(0).toUpperCase()}</span>

@@ -15,14 +15,15 @@ const MapPicker = lazy(() => import('../../../shared/map/MapPicker'));
 
 const without = (obj, keys) => Object.fromEntries(Object.entries(obj).filter(([k]) => !keys.includes(k)));
 
-function KonsumenForm({ editing, can, onClose, onSaved, onError }) {
-  const [form, setForm] = useState(() => (editing ? toForm(editing) : EMPTY));
+function KonsumenForm({ editing, prefill, takeFrom, can, onClose, onSaved, onError }) {
+  const [form, setForm] = useState(() => (editing ? toForm(editing) : takeFrom ? toForm(takeFrom) : prefill ? toForm(prefill) : EMPTY)); // prefill: input baru berbekal data pengajuan yang ditolak (foto wajib diunggah ulang)
   const [touched, setTouched] = useState({});
   const [file, setFile] = useState(null);
   const [preview, setPreview] = useState('');
   const [nikList, setNikList] = useState([]); // konsumen terdaftar yang NIK-nya cocok dengan yang diketik
-  const [pickedRecord, setPickedRecord] = useState(null); // konsumen terdaftar yang datanya diambil ke form (acuan untuk mendeteksi perubahan)
-  const [pickedNik, setPickedNik] = useState(''); // NIK yang datanya sudah diambil dari daftar (daftar disembunyikan)
+  // takeFrom: konsumen terdaftar yang diambil dari daftar (tombol "Ambil Data"); sama seperti memilih NIK terdaftar saat menambah
+  const [pickedRecord, setPickedRecord] = useState(takeFrom ?? null); // konsumen terdaftar yang datanya diambil ke form (acuan untuk mendeteksi perubahan)
+  const [pickedNik, setPickedNik] = useState(takeFrom ? String(takeFrom.nik) : ''); // NIK yang datanya sudah diambil dari daftar (daftar disembunyikan)
   const [nikDup, setNikDup] = useState(null); // konsumen lain dengan NIK yang sama (hasil BE /konsumens/check-nik)
   const [saving, setSaving] = useState(false);
   const [scanning, setScanning] = useState(false);

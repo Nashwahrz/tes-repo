@@ -9,7 +9,7 @@ import api from './axios';
 // Ketiganya berpaginasi { data: [konsumen + konsumen_mes[]], meta } dan belum bisa difilter status di BE.
 // FE meratakan tiap konsumen_mes menjadi satu baris: id = id konsumen, konsumen_me_id = id yang dipakai untuk verifikasi,
 // lalu status, catatan_penolakan, diverifikasi_oleh, id_me, dan me diambil dari relasi tersebut.
-// status: 'pending' | 'diterima' | 'ditolak' (kosong = semua)
+// status: 'pending' | 'diterima' | 'revisi' | 'ditolak' (kosong = semua)
 const PER_PAGE = 100;
 export const PAGE_SIZE = 10; // baris per halaman di daftar konsumen
 
@@ -27,6 +27,16 @@ const ENDPOINT = { all: '/konsumens/all', dealer: '/konsumens/dealer-all', mine:
 
 export const flattenKonsumen = (k, modeArg) => {
   const mode = normMode(modeArg);
+  // Format BE baru (gabungan temp_konsumens + konsumens): baris sudah datar, satu baris per penginput; BE sudah menyaring per user/dealer.
+  // id_temp = id pengajuan di temp_konsumens (dipakai untuk verifikasi); null untuk konsumen yang sudah diterima.
+  if (!Array.isArray(k.konsumen_mes)) {
+    return [{
+      ...k,
+      konsumen_me_id: k.id_temp ?? null,
+      me: k.me ?? null,
+      verified_by: k.verified_by ?? null,
+    }];
+  }
   const { konsumen_mes: mes = [], ...base } = k;
   const uid = currentUserId();
   const dealer = currentDealerId();
@@ -79,10 +89,10 @@ export const getKonsumenTotal = async (all) => {
   return { total: meta.total, rows };
 };
 
-// Jumlah konsumen menunggu verifikasi dan ditolak (dihitung dari seluruh data)
+// Jumlah konsumen menunggu verifikasi dan yang perlu diinput ulang (ditolak + revisi), dihitung dari seluruh data
 export const getKonsumenStatusTotals = async (all) => {
   const rows = await getKonsumens(all);
-  return { pending: byStatus(rows, 'pending').length, ditolak: byStatus(rows, 'ditolak').length };
+  return { pending: byStatus(rows, 'pending').length, ditolak: byStatus(rows, 'ditolak').length + byStatus(rows, 'revisi').length };
 };
 
 // Detail satu konsumen (BE: GET /konsumens/{id}); data lebih baru daripada baris di daftar
@@ -100,9 +110,9 @@ export const updateKonsumen = async (id, payload) => {
 };
 
 // Verifikasi konsumen oleh atasan (BE: PUT /konsumens/activate/{id}); id = konsumen_me_id (bukan id konsumen)
-// status: 'diterima' | 'ditolak'; catatan_penolakan wajib (maks 255 karakter) bila ditolak
+// status: 'diterima' | 'revisi' | 'ditolak'; catatan_penolakan wajib (maks 255 karakter) bila revisi/ditolak
 export const verifyKonsumen = async (id, status, catatan_penolakan) =>
-  (await api.put(`/konsumens/activate/${id}`, { status, ...(status === 'ditolak' ? { catatan_penolakan } : {}) })).data;
+  (await api.put(`/konsumens/activate/${id}`, { status, ...(status !== 'diterima' ? { catatan_penolakan } : {}) })).data;
 
 // Riwayat aktivitas konsumen (BE: GET /konsumens/logs, butuh permission konsumens.logs); BE memaginasi: { data: [...], meta }
 export const getKonsumenLogs = async (page = 1, search = '') => {

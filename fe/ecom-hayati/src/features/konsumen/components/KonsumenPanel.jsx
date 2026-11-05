@@ -13,6 +13,12 @@ import {
 } from '../../../api/authServices';
 
 // Ekstensi wajib ditulis: di Windows (huruf besar/kecil sama) './konsumen/KonsumenForm' terbaca sebagai konsumenForm.js
+const VERIFY_TEXT = {
+  diterima: { title: 'Terima Konsumen', confirm: 'Ya, Terima', verb: 'menerima' },
+  revisi: { title: 'Minta Revisi Konsumen', confirm: 'Ya, Minta Revisi', verb: 'meminta revisi' },
+  ditolak: { title: 'Tolak Konsumen', confirm: 'Ya, Tolak', verb: 'menolak' },
+};
+const VERIFY_DONE = { diterima: 'diterima', revisi: 'dikembalikan untuk direvisi', ditolak: 'ditolak' };
 const KonsumenForm = lazy(() => import('../form/KonsumenForm.jsx'));
 
 
@@ -22,12 +28,15 @@ function KonsumenPanel({ can, userId, onChanged, dealers = [], myDealerId = null
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('');
-  const [dealerFilter, setDealerFilter] = useState(myDealerId != null ? String(myDealerId) : ''); // id dealer penginput; kosong = semua dealer
+  // Cakupan data ditentukan BE menurut izin: 'all' (super admin) semua dealer, 'dealer' hanya dealer user, 'mine' hanya input sendiri.
+  // Pilihan lintas dealer hanya bermakna untuk 'all'; selain itu BE sudah membatasi datanya.
+  const [dealerFilter, setDealerFilter] = useState(can.mode === 'all' && myDealerId != null ? String(myDealerId) : ''); // id dealer penginput; kosong = semua dealer
+  const [onlyMine, setOnlyMine] = useState(false); // true = hanya konsumen yang diinput user ini sendiri (bawaan: semua data dealer)
   const dealerPicked = useRef(false); // true setelah user memilih sendiri, agar bawaan tidak menimpa pilihan
   // Dealer user bisa baru diketahui setelah daftar akun termuat: jadikan bawaan selama belum memilih
   useEffect(() => {
-    if (!dealerPicked.current && myDealerId != null) setDealerFilter(String(myDealerId));
-  }, [myDealerId]);
+    if (!dealerPicked.current && can.mode === 'all' && myDealerId != null) setDealerFilter(String(myDealerId));
+  }, [myDealerId, can.mode]);
   const [reloadKey, setReloadKey] = useState(0);
   const [pollKey, setPollKey] = useState(0); // naik tiap polling: daftar dimuat ulang diam-diam (tanpa spinner/pesan error)
   const silentRef = useRef(false);
@@ -41,9 +50,9 @@ function KonsumenPanel({ can, userId, onChanged, dealers = [], myDealerId = null
   const [success, setSuccess] = useState('');
   const [error, setError] = useState('');
 
-  const [formTarget, setFormTarget] = useState(null); // { editing } saat form terbuka; editing = konsumen yang diubah (null = menambah baru)
+  const [formTarget, setFormTarget] = useState(null); // { editing, prefill } saat form terbuka; editing = konsumen yang diubah (null = menambah baru); prefill = data awal untuk input baru (mis. dari pengajuan ditolak)
   const [saving, setSaving] = useState(false);
-  const [toVerify, setToVerify] = useState(null); // { konsumen, status: 'diterima' | 'ditolak' }
+  const [toVerify, setToVerify] = useState(null); // { konsumen, status: 'diterima' | 'revisi' | 'ditolak' }
   const [catatan, setCatatan] = useState('');
   const [detailRow, setDetailRow] = useState(null);
   // Detail ikut memakai data terbaru (URL foto baru) setelah daftar dimuat ulang
@@ -63,11 +72,11 @@ function KonsumenPanel({ can, userId, onChanged, dealers = [], myDealerId = null
   const dealerOf = (k) => k.me?.id_dealer;
   const dealerName = (k) => dealers.find((d) => d.id === dealerOf(k))?.name;
   const searching = query.trim() !== '';
-  const loadAll = searching || dealerFilter !== '' || filter !== ''; // BE belum menyaring status, jadi filter status juga memuat semua data
+  const loadAll = searching || dealerFilter !== '' || filter !== '' || onlyMine; // BE belum menyaring status, jadi filter status juga memuat semua data
   useEffect(() => {
     let active = true;
     const load = loadAll
-      ? getKonsumens(can.mode, filter).then((data) => ({ rows: dealerFilter ? data.filter((k) => String(dealerOf(k)) === dealerFilter) : data, meta: null }))
+      ? getKonsumens(can.mode, filter).then((data) => ({ rows: data.filter((k) => (!dealerFilter || String(dealerOf(k)) === dealerFilter) && (!onlyMine || k.id_me === userId)), meta: null }))
       : getKonsumenPage(can.mode, filter, page);
     load
       .then((res) => {
@@ -88,7 +97,7 @@ function KonsumenPanel({ can, userId, onChanged, dealers = [], myDealerId = null
       })
       .catch((err) => { if (active) { if (!silentRef.current) setError(errorMessage(err)); setLoading(false); } });
     return () => { active = false; };
-  }, [filter, dealerFilter, page, reloadKey, pollKey, loadAll, can.mode]);
+  }, [filter, dealerFilter, onlyMine, userId, page, reloadKey, pollKey, loadAll, can.mode]);
 
   // Realtime: perubahan status dari pengguna lain muncul tanpa refresh halaman. Polling tiap 8 detik saat tab terlihat
   // dan tidak ada form/dialog terbuka (agar isian tidak terganggu), serta langsung saat tab kembali difokuskan.
@@ -153,10 +162,10 @@ function KonsumenPanel({ can, userId, onChanged, dealers = [], myDealerId = null
   const rowOffset = meta ? (meta.page - 1) * (meta.perPage ?? PAGE_SIZE) : (curPage - 1) * PAGE_SIZE; // nomor urut berlanjut antar halaman
 
   // prefill: data konsumen yang diubah; foto lama dipakai bila tidak memilih foto baru
-  const openForm = (prefill) => {
+  const openForm = (editing, prefill = null, takeFrom = null) => {
     setSuccess('');
     setError('');
-    setFormTarget({ editing: prefill ?? null });
+    setFormTarget({ editing: editing ?? null, prefill, takeFrom });
   };
   const handleSaved = (message) => {
     setSuccess(message);
@@ -172,27 +181,28 @@ function KonsumenPanel({ can, userId, onChanged, dealers = [], myDealerId = null
     setToVerify({ konsumen, status });
   };
 
-  // Verifikasi (terima/tolak); BE mengembalikan konsumen terbaru
+  // Verifikasi (terima/revisi/tolak); BE mengembalikan konsumen terbaru
   const handleVerify = async () => {
     const { konsumen, status } = toVerify;
     const note = catatan.trim();
-    if (status === 'ditolak' && !note) {
-      setError('Catatan penolakan wajib diisi.');
+    if (status !== 'diterima' && !note) {
+      setError(status === 'revisi' ? 'Catatan revisi wajib diisi.' : 'Catatan penolakan wajib diisi.');
       return;
     }
     setSaving(true);
     setError('');
     try {
-      // BE memverifikasi relasi penginput (konsumen_mes), bukan konsumen
+      // BE memverifikasi pengajuan di temp_konsumens (konsumen_me_id = id_temp). Diterima: data pindah ke konsumens, daftar dimuat ulang
       const res = await verifyKonsumen(konsumen.konsumen_me_id, status, note);
       const { status: st, catatan_penolakan, diverifikasi_oleh } = res.data;
       // Bila sedang memfilter status tertentu, baris yang statusnya berubah keluar dari daftar
       setRows((list) => list
         .map((k) => (sameRow(k, konsumen) ? { ...k, status: st, catatan_penolakan, diverifikasi_oleh } : k))
         .filter((k) => !filter || k.status === filter));
-      setSuccess(`Data konsumen ${konsumen.name || konsumen.nik || ''} ${status === 'diterima' ? 'diterima' : 'ditolak'}.`);
+      setSuccess(`Data konsumen ${konsumen.name || konsumen.nik || ''} ${VERIFY_DONE[status]}.`);
       setToVerify(null);
       setDetail(null);
+      reload(); // pengajuan diterima pindah ke data konsumen; muat ulang agar daftar sesuai BE
       onChanged?.();
     } catch (err) {
       setError(errorMessage(err));
@@ -214,6 +224,8 @@ function KonsumenPanel({ can, userId, onChanged, dealers = [], myDealerId = null
         <Suspense fallback={<Loading rows={6} />}>
           <KonsumenForm
             editing={formTarget.editing}
+            prefill={formTarget.prefill}
+            takeFrom={formTarget.takeFrom}
             can={can}
             onClose={() => setFormTarget(null)}
             onSaved={handleSaved}
@@ -226,11 +238,15 @@ function KonsumenPanel({ can, userId, onChanged, dealers = [], myDealerId = null
           names={detailNames}
           dealerName={dealerName(detail)}
           statusNode={statusTag(detail.status)}
-          canEdit={can.ubah}
+          canEdit={can.ubah && detail.id_me === userId}
+          canAdd={can.tambah && detail.id_me === userId}
           canVerify={can.verifikasi}
-          verify={toVerify ? { status: toVerify.status, catatan, onCatatan: setCatatan, saving, own: toVerify.konsumen.id_me === userId, onConfirm: handleVerify, onCancel: () => setToVerify(null) } : null}
+          verify={toVerify ? { text: VERIFY_TEXT[toVerify.status], status: toVerify.status, catatan, onCatatan: setCatatan, saving, own: toVerify.konsumen.id_me === userId, onConfirm: handleVerify, onCancel: () => setToVerify(null) } : null}
           onVerify={(status) => openVerify(detail, status)}
           onEdit={(k) => { closeDetail(); openForm(k); }}
+          onAdd={(k) => { closeDetail(); openForm(null, k); }}
+          onTake={(k) => { closeDetail(); openForm(null, null, k); }}
+          canTake={can.tambah}
           onBack={closeDetail}
           onPhotoError={refreshExpiredPhotos}
         />
@@ -244,7 +260,7 @@ function KonsumenPanel({ can, userId, onChanged, dealers = [], myDealerId = null
       </div>
       <p className="dash-card-desc">Kelola dokumen KTP konsumen. Unggah foto KTP lalu pindai dengan OCR untuk mengisi data otomatis.</p>
 
-      {can.lihatSemua && myDealerId != null && (
+      {can.mode === 'all' && myDealerId != null && (
         <div className="dash-tabs" role="tablist" aria-label="Cakupan konsumen">
           {[['', 'Semua Konsumen'], [String(myDealerId), 'Dealer Saya']].map(([v, l]) => (
             <button
@@ -274,7 +290,13 @@ function KonsumenPanel({ can, userId, onChanged, dealers = [], myDealerId = null
           <option value="">Semua status</option>
           {Object.entries(STATUS_LABEL).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
         </select>
-        {can.mode !== 'dealer' && (dealers.length > 0 || myDealerId != null) && (
+        {can.mode === 'dealer' && (
+          <select id="konsumen-filter-penginput" className="dash-input dash-select-filter" value={onlyMine ? 'mine' : ''} aria-label="Filter penginput" onChange={(e) => { setLoading(true); setPage(1); setLocalPage(1); setOnlyMine(e.target.value === 'mine'); }}>
+            <option value="">Semua data dealer</option>
+            <option value="mine">Hanya data saya</option>
+          </select>
+        )}
+        {can.mode === 'all' && (dealers.length > 0 || myDealerId != null) && (
           <select id="konsumen-filter-dealer" className="dash-input dash-select-filter" value={dealerFilter} aria-label="Filter dealer" onChange={(e) => { dealerPicked.current = true; setLoading(true); setPage(1); setLocalPage(1); setDealerFilter(e.target.value); }}>
             <option value="">Semua dealer</option>
             {/* Role tanpa akses daftar dealer (mis. ME) hanya mendapat pilihan dealernya sendiri */}
@@ -305,10 +327,15 @@ function KonsumenPanel({ can, userId, onChanged, dealers = [], myDealerId = null
             </thead>
             <tbody>
               {paged.map((k, idx) => (
-                <tr key={k.konsumen_me_id ?? k.id} className={k.status === 'ditolak' ? 'row-rejected' : undefined}>
+                <tr key={k.konsumen_me_id ?? k.id} className={k.status === 'ditolak' ? 'row-rejected' : k.status === 'revisi' ? 'row-revisi' : undefined}>
                   <td className="col-no">{rowOffset + idx + 1}</td>
                   <td>
-                    <strong className="dash-cell-name">{k.name || '-'}</strong>
+                    {can.tambah && k.status === 'diterima' && k.id_temp == null ? (
+                      // Konsumen terdaftar: nama bisa diklik, membuka form tambah yang sama seperti saat NIK-nya sudah terdaftar
+                      <button id={`btn-konsumen-name-${k.id}`} type="button" className="dash-link dash-cell-name" title="Ambil data konsumen ini" onClick={() => openForm(null, null, k)}><strong>{k.name || '-'}</strong></button>
+                    ) : (
+                      <strong className="dash-cell-name">{k.name || '-'}</strong>
+                    )}
                     <small className="dash-cell-sub">NIK {k.nik || '-'}{dealerName(k) && ` · ${dealerName(k)}`}</small>
                   </td>
                   <td>{k.no_telp || '-'}</td>
@@ -318,10 +345,18 @@ function KonsumenPanel({ can, userId, onChanged, dealers = [], myDealerId = null
                   {can.verifikasi && (
                     <td>
                       {k.status === 'pending' ? (
-                        <div className="dash-verify">
-                          <IconButton id={`btn-konsumen-accept-${k.id}`} icon="check" label="Terima" tone="ok" onClick={() => openVerify(k, 'diterima')} />
-                          <IconButton id={`btn-konsumen-reject-${k.id}`} icon="close" label="Tolak" tone="danger" onClick={() => openVerify(k, 'ditolak')} />
-                        </div>
+                        <select
+                          id={`konsumen-verify-${k.id}`}
+                          className="dash-input dash-select-filter dash-verify-select"
+                          aria-label={`Verifikasi ${k.name || k.nik}`}
+                          value=""
+                          onChange={(e) => e.target.value && openVerify(k, e.target.value)}
+                        >
+                          <option value="">Pilih aksi...</option>
+                          <option value="diterima">Terima</option>
+                          <option value="revisi">Minta Revisi</option>
+                          <option value="ditolak">Tolak</option>
+                        </select>
                       ) : (
                         <span className="acc-muted">-</span>
                       )}
@@ -330,6 +365,12 @@ function KonsumenPanel({ can, userId, onChanged, dealers = [], myDealerId = null
                   <td className="col-aksi">
                     <div className="dash-actions">
                       <IconButton id={`btn-konsumen-detail-${k.id}`} icon="view" label="Detail" onClick={() => setDetail(k)} />
+                      {can.ubah && k.status === 'revisi' && k.id_me === userId && (
+                        <IconButton id={`btn-konsumen-edit-${k.id}`} icon="edit" label="Perbaiki" onClick={() => openForm(k)} />
+                      )}
+                      {can.tambah && k.status === 'diterima' && k.id_temp == null && (
+                        <IconButton id={`btn-konsumen-take-${k.id}`} icon="plus" label="Ambil Data" onClick={() => openForm(null, null, k)} />
+                      )}
                     </div>
                   </td>
                 </tr>
@@ -350,27 +391,29 @@ function KonsumenPanel({ can, userId, onChanged, dealers = [], myDealerId = null
 
       {toVerify && !detail && (
         <ConfirmModal
-          title={toVerify.status === 'diterima' ? 'Terima Konsumen' : 'Tolak Konsumen'}
-          confirmLabel={toVerify.status === 'diterima' ? 'Ya, Terima' : 'Ya, Tolak'}
+          title={VERIFY_TEXT[toVerify.status].title}
+          confirmLabel={VERIFY_TEXT[toVerify.status].confirm}
           busyLabel="Memproses..."
           busy={saving}
-          confirmDisabled={toVerify.status === 'ditolak' && !catatan.trim()}
+          confirmDisabled={toVerify.status !== 'diterima' && !catatan.trim()}
           onConfirm={handleVerify}
           onCancel={() => setToVerify(null)}
         >
           <p className="dash-card-desc">
             {toVerify.status === 'diterima'
               ? <>Yakin menerima data <strong>{toVerify.konsumen.name || toVerify.konsumen.nik}</strong>? Pastikan data dan foto KTP sudah diperiksa.</>
-              : <>Data <strong>{toVerify.konsumen.name || toVerify.konsumen.nik}</strong> akan ditolak. Tulis alasan penolakan agar penginput dapat memperbaikinya.</>}
+              : toVerify.status === 'revisi'
+                ? <>Data <strong>{toVerify.konsumen.name || toVerify.konsumen.nik}</strong> dikembalikan ke penginput untuk diperbaiki. Tulis bagian yang perlu direvisi.</>
+                : <>Data <strong>{toVerify.konsumen.name || toVerify.konsumen.nik}</strong> akan ditolak. Tulis alasan penolakan.</>}
           </p>
           {toVerify.konsumen.id_me === userId && (
             <p className="dash-alert warning" role="alert">
-              <strong>!</strong> Data ini diinput oleh Anda sendiri. Apakah Anda yakin ingin {toVerify.status === 'diterima' ? 'menerima' : 'menolak'} data tersebut?
+              <strong>!</strong> Data ini diinput oleh Anda sendiri. Apakah Anda yakin ingin {VERIFY_TEXT[toVerify.status].verb} data tersebut?
             </p>
           )}
-          {toVerify.status === 'ditolak' && (
+          {toVerify.status !== 'diterima' && (
             <div className="dash-form-group">
-              <label htmlFor="konsumen-catatan">Catatan penolakan *</label>
+              <label htmlFor="konsumen-catatan">{toVerify.status === 'revisi' ? 'Catatan revisi *' : 'Catatan penolakan *'}</label>
               <textarea
                 id="konsumen-catatan"
                 className="dash-input"
@@ -378,7 +421,7 @@ function KonsumenPanel({ can, userId, onChanged, dealers = [], myDealerId = null
                 maxLength={255}
                 value={catatan}
                 onChange={(e) => setCatatan(e.target.value)}
-                placeholder="Contoh: Foto KTP buram, NIK tidak sesuai"
+                placeholder={toVerify.status === 'revisi' ? 'Contoh: Foto KTP buram, mohon unggah ulang' : 'Contoh: Data tidak sesuai KTP'}
                 autoFocus
               />
               <small className="dash-map-hint">{catatan.length}/255</small>

@@ -136,7 +136,7 @@ export const getMasterByKode = (path, kode) => {
 // BE memaginasi 10 data per halaman: { data: { data: [...], current_page, last_page, total } }
 export const getMasterPage = async (path, page = 1, search = '') => {
   const p = (await api.get(path, { params: { page, ...(search ? { search } : {}) } })).data.data;
-  return { rows: p.data ?? [], meta: { page: p.current_page ?? 1, lastPage: p.last_page ?? 1, total: p.total ?? 0 } };
+  return { rows: p.data ?? [], meta: { page: p.current_page ?? 1, lastPage: p.last_page ?? 1, total: p.total ?? 0, perPage: p.per_page ?? 10 } };
 };
 // Cari data master menurut nama (default 20 hasil pertama); dipakai memilih induk di form data master
 export const searchMaster = async (path, search, signal, perPage = 20) =>

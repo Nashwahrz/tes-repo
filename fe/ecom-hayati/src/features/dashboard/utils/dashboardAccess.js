@@ -2,6 +2,7 @@ import {
   MENU_HOME, MENU_PRODUK, MENU_PENJUALAN, MENU_DEALER, MENU_KONSUMEN, MENU_ACC, MENU_ROLE, MENU_WHITELIST, MENU_SMTP, MENU_URLIP, MENU_OCR, MENU_RATELIMIT, MENU_LOG, MENU_AGAMA, MENU_PEKERJAAN, MENU_PROVINSI, MENU_KABUPATEN, MENU_KECAMATAN, MENU_KELURAHAN,
 } from './menuPaths';
 import { MENU_URL } from './navConfig';
+import { availableLogSources } from '../../../api/activityLogs';
 
 export const EMPTY_ACCESS = { menus: [], permissions: [] };
 
@@ -27,7 +28,8 @@ export function deriveAccess(access) {
   const canSmtp = hasMenu('email-smtps') && can('email-smtps.lihat');
   const canLoginLog = hasMenu('log-users') && can('log-users.lihat');
   const canKonsumenLog = hasMenu('konsumens') && can('konsumens.logs');
-  const canLog = canLoginLog || canKonsumenLog;
+  const logSources = availableLogSources(hasMenu, can); // log perubahan data lain (dealer, master, wilayah, pengaturan, role)
+  const canLog = canLoginLog || canKonsumenLog || logSources.length > 0;
   const canRateLimit = hasMenu('configurasi-rate-limits') && can('configurasi-rate-limits.lihat');
   const canAgama = hasMenu('agamas') && can('agamas.lihat');
   const canPekerjaan = hasMenu('pekerjaans') && can('pekerjaans.lihat');
@@ -58,6 +60,6 @@ export function deriveAccess(access) {
   return {
     hasMenu, can, menus,
     canDealer, canUsers, canSales, canKonsumen, canAcc, canActivate, canRoleMenu, canRolePerm, canRole,
-    canWhitelist, canUrlIp, canOcr, canSmtp, canLoginLog, canKonsumenLog, canLog, canRateLimit, canVerifyKonsumen,
+    canWhitelist, canUrlIp, canOcr, canSmtp, canLoginLog, canKonsumenLog, canLog, logSources, canRateLimit, canVerifyKonsumen,
   };
 }

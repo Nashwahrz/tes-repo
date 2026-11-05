@@ -3,7 +3,7 @@ import { Spin } from '../../../shared/components/Loading';
 
 // Halaman detail konsumen di area konten (sidebar tetap tampil). names: nama wilayah/agama/pekerjaan hasil lookup ID.
 // verify: null atau { status, catatan, onCatatan, saving, own, onConfirm, onCancel } saat konfirmasi terima/tolak dibuka di halaman ini
-function KonsumenDetailView({ detail, names: detailNames, dealerName, statusNode, canEdit, canVerify, verify, onVerify, onEdit, onBack, onPhotoError }) {
+function KonsumenDetailView({ detail, names: detailNames, dealerName, statusNode, canEdit, canAdd, canTake, canVerify, verify, onVerify, onEdit, onAdd, onTake, onBack, onPhotoError }) {
   return (
     <div className="konsumen-page">
       <div className="dash-card-head">
@@ -11,15 +11,19 @@ function KonsumenDetailView({ detail, names: detailNames, dealerName, statusNode
         <button id="btn-konsumen-back" type="button" className="dash-btn outline" onClick={onBack}>← Kembali ke daftar</button>
       </div>
       <div>
-        {detail.status === 'ditolak' && (
-          <div className="konsumen-reject" role="note">
-            <strong>Alasan penolakan</strong>
+        {(detail.status === 'ditolak' || detail.status === 'revisi') && (
+          <div className={`konsumen-reject${detail.status === 'revisi' ? ' revisi' : ''}`} role="note">
+            <strong>{detail.status === 'revisi' ? 'Catatan revisi' : 'Alasan penolakan'}</strong>
             <p>{detail.catatan_penolakan || 'Tidak ada catatan.'}</p>
             {(detail.verified_by?.name ?? detail.verifiedBy?.name) && (
-              <small>Ditolak oleh {detail.verified_by?.name ?? detail.verifiedBy?.name}</small>
+              <small>{detail.status === 'revisi' ? 'Diminta revisi oleh' : 'Ditolak oleh'} {detail.verified_by?.name ?? detail.verifiedBy?.name}</small>
             )}
-            {canEdit && (
-              <button id="btn-konsumen-edit-rejected" type="button" className="dash-btn sm outline konsumen-reject-edit" onClick={() => { onEdit(detail); }}>Ubah Data</button>
+            {/* Revisi: pengajuan yang sama diperbaiki. Ditolak: tidak bisa diubah, penginput mengajukan data baru. */}
+            {detail.status === 'revisi' && canEdit && (
+              <button id="btn-konsumen-edit-revisi" type="button" className="dash-btn sm outline konsumen-reject-edit" onClick={() => onEdit(detail)}>Perbaiki Data</button>
+            )}
+            {detail.status === 'ditolak' && canAdd && (
+              <button id="btn-konsumen-add-rejected" type="button" className="dash-btn sm outline konsumen-reject-edit" onClick={() => onAdd(detail)}>Input Data Baru</button>
             )}
           </div>
         )}
@@ -60,21 +64,29 @@ function KonsumenDetailView({ detail, names: detailNames, dealerName, statusNode
           <div><dt>Status</dt><dd>{statusNode}</dd></div>
         </dl>
         </div>
+        {detail.status === 'diterima' && detail.id_temp == null && canTake && !verify && (
+          <div className="dash-modal-actions">
+            <small className="dash-map-hint">Data konsumen ini akan ditambahkan ke daftar Anda.</small>
+            <button id="btn-konsumen-take" type="button" className="dash-btn outline" onClick={() => onTake(detail)}>Ambil Data</button>
+          </div>
+        )}
         {verify ? (
           <div className="konsumen-verify-panel" role="group" aria-label="Konfirmasi verifikasi">
             <p className="dash-card-desc">
               {verify.status === 'diterima'
                 ? <>Yakin menerima data <strong>{detail.name || detail.nik}</strong>? Pastikan data dan foto KTP sudah diperiksa.</>
-                : <>Data <strong>{detail.name || detail.nik}</strong> akan ditolak. Tulis alasan penolakan agar penginput dapat memperbaikinya.</>}
+                : verify.status === 'revisi'
+                  ? <>Data <strong>{detail.name || detail.nik}</strong> dikembalikan ke penginput untuk diperbaiki. Tulis bagian yang perlu direvisi.</>
+                  : <>Data <strong>{detail.name || detail.nik}</strong> akan ditolak. Tulis alasan penolakan.</>}
             </p>
             {verify.own && (
               <p className="dash-alert warning" role="alert">
-                <strong>!</strong> Data ini diinput oleh Anda sendiri. Apakah Anda yakin ingin {verify.status === 'diterima' ? 'menerima' : 'menolak'} data tersebut?
+                <strong>!</strong> Data ini diinput oleh Anda sendiri. Apakah Anda yakin ingin {verify.text.verb} data tersebut?
               </p>
             )}
-            {verify.status === 'ditolak' && (
+            {verify.status !== 'diterima' && (
               <div className="dash-form-group">
-                <label htmlFor="konsumen-catatan">Catatan penolakan *</label>
+                <label htmlFor="konsumen-catatan">{verify.status === 'revisi' ? 'Catatan revisi *' : 'Catatan penolakan *'}</label>
                 <textarea
                   id="konsumen-catatan"
                   className="dash-input"
@@ -82,7 +94,7 @@ function KonsumenDetailView({ detail, names: detailNames, dealerName, statusNode
                   maxLength={255}
                   value={verify.catatan}
                   onChange={(e) => verify.onCatatan(e.target.value)}
-                  placeholder="Contoh: Foto KTP buram, NIK tidak sesuai"
+                  placeholder={verify.status === 'revisi' ? 'Contoh: Foto KTP buram, mohon unggah ulang' : 'Contoh: Data tidak sesuai KTP'}
                   autoFocus
                 />
                 <small className="dash-map-hint">{verify.catatan.length}/255</small>
@@ -94,14 +106,15 @@ function KonsumenDetailView({ detail, names: detailNames, dealerName, statusNode
                 type="button"
                 className="dash-btn solid"
                 onClick={verify.onConfirm}
-                disabled={verify.saving || (verify.status === 'ditolak' && !verify.catatan.trim())}
+                disabled={verify.saving || (verify.status !== 'diterima' && !verify.catatan.trim())}
               >
-                {verify.saving ? <><Spin />Memproses...</> : verify.status === 'diterima' ? 'Ya, Terima' : 'Ya, Tolak'}
+                {verify.saving ? <><Spin />Memproses...</> : verify.text.confirm}
               </button>
             </div>
           </div>
         ) : canVerify && detail.status === 'pending' && (
           <div className="dash-modal-actions">
+            <button id="btn-konsumen-revisi" type="button" className="dash-btn outline" onClick={() => onVerify('revisi')}>Minta Revisi</button>
             <button id="btn-konsumen-reject" type="button" className="dash-btn outline konsumen-verify-reject" onClick={() => onVerify('ditolak')}>Tolak</button>
             <button id="btn-konsumen-accept" type="button" className="dash-btn solid" onClick={() => onVerify('diterima')}>Terima</button>
           </div>

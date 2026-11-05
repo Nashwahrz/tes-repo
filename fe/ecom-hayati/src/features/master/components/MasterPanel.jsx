@@ -355,6 +355,7 @@ function MasterPanel({ tabKey, can }) {
           <table className="dash-table">
             <thead>
               <tr>
+                <th className="col-no">No</th>
                 <th>Kode</th>
                 <th>Nama</th>
                 {tab.parent && <th>{tab.parent.label}</th>}
@@ -363,8 +364,9 @@ function MasterPanel({ tabKey, can }) {
               </tr>
             </thead>
             <tbody>
-              {rows.map((r) => (
+              {rows.map((r, idx) => (
                 <tr key={r.id}>
+                  <td className="col-no">{(meta.page - 1) * (meta.perPage ?? PAGE_SIZE) + idx + 1}</td>
                   <td>{r.kode ?? '-'}</td>
                   <td><strong className="dash-cell-name">{r.name}</strong></td>
                   {tab.parent && <td>{r[tab.parent.field] ? parentNames[r[tab.parent.field]] ?? '...' : '-'}</td>}

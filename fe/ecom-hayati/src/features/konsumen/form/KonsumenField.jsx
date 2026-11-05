@@ -147,6 +147,7 @@ function KonsumenField({ name, label, ctx, ...props }) {
           placeholder={props.placeholder}
           inputMode={props.numeric ? 'numeric' : undefined}
           maxLength={props.max}
+          disabled={props.disabled}
         />
       )}
       {ocr.hints[name] && !form[name] && (

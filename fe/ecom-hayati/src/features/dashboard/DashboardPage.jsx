@@ -85,7 +85,7 @@ function DashboardPage() {
 
   // Menu sidebar & tombol aksi mengikuti menu/permission role dari BE
   const acc = deriveAccess(access);
-  const { can, menus, canDealer, canUsers, canSales, canKonsumen, canAcc, canActivate, canRoleMenu, canRolePerm, canRole, canWhitelist, canUrlIp, canOcr, canSmtp, canLoginLog, canKonsumenLog, canLog, canRateLimit, canVerifyKonsumen } = acc;
+  const { can, menus, canDealer, canUsers, canSales, canKonsumen, canAcc, canActivate, canRoleMenu, canRolePerm, canRole, canWhitelist, canUrlIp, canOcr, canSmtp, canLoginLog, canKonsumenLog, canLog, logSources, canRateLimit, canVerifyKonsumen } = acc;
   // Endpoint daftar konsumen menurut permission: semua > dealer sendiri > milik sendiri
   const konsumenMode = can('konsumens.lihat-semua') ? 'all' : can('konsumens.lihat-dealer') ? 'dealer' : 'mine';
 
@@ -255,7 +255,7 @@ function DashboardPage() {
           {menu === MENU_LOG && canLog && (
             <div className="dash-card">
               <Suspense fallback={<Loading rows={4} />}>
-                <LogPanel canLogin={canLoginLog} canKonsumen={canKonsumenLog} canBlocked={canLoginLog} />
+                <LogPanel canLogin={canLoginLog} canKonsumen={canKonsumenLog} canBlocked={canLoginLog} sources={logSources} />
               </Suspense>
             </div>
           )}

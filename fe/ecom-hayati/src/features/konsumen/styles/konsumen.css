@@ -46,6 +46,9 @@
 .dash-verify .ico-btn.danger:hover:not(:disabled) { border-color: #d92d20; }
 
 .konsumen-reject-edit { margin-top: 10px; }
+.konsumen-reject.revisi { border-color: #b2ddff; background: #eff8ff; }
+.konsumen-reject.revisi strong, .konsumen-reject.revisi small { color: #175cd3; }
+.konsumen-reject.revisi p { color: #194185; }
 
 .dash-btn.konsumen-verify-reject { color: #b42318; border-color: #fda29b; }
 
@@ -56,6 +59,8 @@
 .dash-table tbody tr.row-rejected { background: #fef3f2; }
 
 .dash-table tbody tr.row-rejected:hover { background: #fee4e2; }
+.dash-table tbody tr.row-revisi { background: #eff8ff; }
+.dash-table tbody tr.row-revisi:hover { background: #d1e9ff; }
 
 /* Detail konsumen sebagai halaman di area konten (bukan popup): foto di kiri, data di kanan */
 
@@ -94,3 +99,4 @@
 .dash-nik-item { display: block; width: 100%; padding: 8px; border: 0; border-radius: 6px; background: none; text-align: left; cursor: pointer; font: inherit; }
 
 .dash-nik-item:hover, .dash-nik-item:focus-visible { background: #f2f2f2; }
+.dash-link.dash-cell-name { font-size: inherit; text-align: left; }

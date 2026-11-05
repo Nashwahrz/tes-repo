@@ -1,4 +1,4 @@
-export const STATUS_LABEL = { pending: 'Menunggu Verifikasi', diterima: 'Diterima', ditolak: 'Ditolak' };
+export const STATUS_LABEL = { pending: 'Menunggu Verifikasi', diterima: 'Diterima', revisi: 'Perlu Revisi', ditolak: 'Ditolak' };
 export const KAWIN = ['Belum Kawin', 'Kawin', 'Cerai Hidup', 'Cerai Mati'];
 
 export const EMPTY = {

@@ -12,4 +12,5 @@ export * from './appKeyOcr';
 export * from './access';
 export * from './rateLimit';
 export * from './blockedUsers';
+export * from './activityLogs';
 export { errorMessage, retryAfterSeconds } from './shared';
