@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Enums\StatusKonsumen;
+use App\Enums\TypeTempKonsumen;
 use App\Http\Requests\ActiveKonsumenRequest;
 use App\Http\Requests\CheckNikRequest;
 use App\Http\Requests\KonsumenRequest;
@@ -242,15 +243,19 @@ class KonsumenController extends Controller
 
             if ($tempKonsumen) {
                 if ($tempKonsumen->status === StatusKonsumen::Diterima) {
+                    if (empty($data['foto_ktp']) && $tempKonsumen->foto_ktp) {
+                        $data['foto_ktp'] = $tempKonsumen->foto_ktp;
+                    }
                     $data['id_me']             = $userId;
                     $data['id_konsumen']       = $tempKonsumen->id_konsumen;
-                    $data['tipe']              = 'edit';
+                    $data['tipe']              = TypeTempKonsumen::Edit;
                     $data['status']            = StatusKonsumen::Pending;
                     $data['catatan']           = null;
                     $data['diverifikasi_oleh'] = null;
                     $data['diverifikasi_at']   = null;
                     $updated = $this->tempKonsumenRepository->create($data);
                 } else {
+                    $data['tipe']              = TypeTempKonsumen::Revisi;
                     $data['status']            = StatusKonsumen::Pending;
                     $data['catatan']           = null;
                     $data['diverifikasi_oleh'] = null;
@@ -263,10 +268,13 @@ class KonsumenController extends Controller
 
             $konsumen = $this->konsumenRepository->findById($id);
             if ($konsumen) {
+                if (empty($data['foto_ktp']) && $konsumen->foto_ktp) {
+                    $data['foto_ktp'] = $konsumen->foto_ktp;
+                }
                 $tempData = array_merge($data, [
                     'id_me'             => $userId,
                     'id_konsumen'       => $konsumen->id,
-                    'tipe'              => 'edit',
+                    'tipe'              => TypeTempKonsumen::Edit,
                     'status'            => StatusKonsumen::Pending,
                     'catatan'           => null,
                     'data_sebelumnya'   => $konsumen->toArray(),
