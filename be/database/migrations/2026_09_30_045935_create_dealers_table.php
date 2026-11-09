@@ -13,8 +13,8 @@ return new class extends Migration
     {
         Schema::create('master.dealers', function (Blueprint $table) {
             $table->id();
-            $table->string('name')->unique();
-            $table->string('alamat');
+            $table->string('dealer_name')->unique();
+            $table->string('address');
             $table->decimal('latitude', 10, 7);
             $table->decimal('longitude', 10, 7);
             $table->timestamps();

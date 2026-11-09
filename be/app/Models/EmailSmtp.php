@@ -14,7 +14,7 @@ class EmailSmtp extends Model
     {
         return LogOptions::defaults()
             ->useLogName('email smtp')
-            ->logOnly(['mail_mailer', 'mail_host', 'mail_port', 'mail_username', 'mail_password', 'mail_encryption', 'mail_from_address', 'mail_from_name', 'is_active'])
+            ->logOnly(['mail_mailer', 'mail_host', 'mail_port', 'mail_username', 'mail_password', 'mail_encryption', 'mail_from_address', 'mail_from_name', 'status'])
             ->logOnlyDirty()
             ->dontSubmitEmptyLogs();
     }
@@ -27,6 +27,6 @@ class EmailSmtp extends Model
         'mail_encryption',
         'mail_from_address',
         'mail_from_name',
-        'is_active',
+        'status',
     ];
 }

@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('hak_akses.permissions', function (Blueprint $table) {
             $table->id();
-            $table->string('nama_permission')->unique();
+            $table->string('permission_name')->unique();
             $table->timestamps();
         });
     }

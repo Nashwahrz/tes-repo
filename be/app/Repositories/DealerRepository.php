@@ -3,6 +3,7 @@
 namespace App\Repositories;
 
 use App\Models\Dealer;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Spatie\Activitylog\Models\Activity;
@@ -40,7 +41,7 @@ class DealerRepository
     public function paginate(int $perPage = 10, ?string $search = null): LengthAwarePaginator
     {
         return Dealer::query()
-            ->when($search, fn ($q) => $q->where('name', 'ILIKE', "%{$search}%"))
+            ->when($search, fn ($q) => $q->where('dealer_name', 'ILIKE', "%{$search}%"))
             ->latest('id')
             ->paginate($perPage)
             ->withQueryString();
@@ -52,7 +53,7 @@ class DealerRepository
             ->with(['causer:id,name', 'subject'])
             ->when($search, function ($q) use ($search) {
                         $q->whereHasMorph('subject', [Dealer::class], function ($q) use ($search) {
-                            $q->where('name', 'ILIKE', "%{$search}%");
+                            $q->where('dealer_name', 'ILIKE', "%{$search}%");
                         });
                     })
             ->latest()
@@ -66,8 +67,8 @@ class DealerRepository
     {
         $userIds = $logs->getCollection()
             ->flatMap(fn ($log) => [
-                data_get($log->properties, 'old.id_me'),
-                data_get($log->properties, 'attributes.id_me'),
+                data_get($log->properties, 'old.fk_me'),
+                data_get($log->properties, 'attributes.fk_me'),
                 data_get($log->properties, 'old.diverifikasi_oleh'),
                 data_get($log->properties, 'attributes.diverifikasi_oleh'),
             ])
@@ -75,7 +76,7 @@ class DealerRepository
             ->unique()
             ->values();
 
-        $users = Dealer::whereIn('id', $userIds)->pluck('name', 'id');
+        $users = User::whereIn('id', $userIds)->pluck('name', 'id');
 
         $logs->getCollection()->each(
             fn ($log) => $log->setRelation('users_map', $users)

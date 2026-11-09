@@ -15,18 +15,18 @@ class AppKeyOcr extends Model
     {
         return LogOptions::defaults()
             ->useLogName('app key ocr')
-            ->logOnly(['url','api_key','keterangan', 'is_active'])
+            ->logOnly(['url','api_key','description', 'status'])
             ->logOnlyDirty()
             ->dontSubmitEmptyLogs();
     }
     protected $fillable = [
         'url',
         'api_key',
-        'keterangan',
-        'is_active',
+        'description',
+        'status',
     ];
     protected $casts = [
-        'is_active' => 'boolean',
+        'status' => 'boolean',
     ];
 
     protected static function booted(): void

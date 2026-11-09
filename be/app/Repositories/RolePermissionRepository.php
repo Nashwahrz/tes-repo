@@ -16,7 +16,7 @@ class RolePermissionRepository
     public function getAllRolesWithPermissions(): Collection
     {
         return Role::with(['permissions' => function ($query) {
-            $query->orderBy('nama_permission', 'asc');
+            $query->orderBy('permission_name', 'asc');
         }])->get();
     }
 
@@ -24,14 +24,14 @@ class RolePermissionRepository
     public function findRoleById(int|string $id): ?Role
     {
         return Role::with(['permissions' => function ($query) {
-            $query->orderBy('nama_permission', 'asc');
+            $query->orderBy('permission_name', 'asc');
         }])->find($id);
     }
 
     
     public function getAllPermissions(): Collection
     {
-        return Permission::orderBy('nama_permission', 'asc')->get();
+        return Permission::orderBy('permission_name', 'asc')->get();
     }
 
 
@@ -44,33 +44,33 @@ class RolePermissionRepository
         }
 
         return $role->permissions()
-            ->orderBy('nama_permission', 'asc')
+            ->orderBy('permission_name', 'asc')
             ->get();
     }
 
     public function syncRolePermissions(Role $role, array $permissionIds): Role
     {
         return DB::transaction(function () use ($role, $permissionIds) {
-            $currentPermissionIds = PermissionRole::where('id_role', $role->id)->pluck('id_permission')->toArray();
+            $currentPermissionIds = PermissionRole::where('fk_role', $role->id)->pluck('fk_permission')->toArray();
 
             $detachIds = array_diff($currentPermissionIds, $permissionIds);
             $attachIds = array_diff($permissionIds, $currentPermissionIds);
 
             if (!empty($detachIds)) {
-                PermissionRole::where('id_role', $role->id)
-                    ->whereIn('id_permission', $detachIds)
+                PermissionRole::where('fk_role', $role->id)
+                    ->whereIn('fk_permission', $detachIds)
                     ->get()
                     ->each(fn ($permissionRole) => $permissionRole->delete());
             }
             foreach ($attachIds as $permissionId) {
                 PermissionRole::create([
-                    'id_role'       => $role->id,
-                    'id_permission' => $permissionId,
+                    'fk_role'       => $role->id,
+                    'fk_permission' => $permissionId,
                 ]);
             }
 
             return $role->fresh(['permissions' => function ($query) {
-                $query->orderBy('nama_permission', 'asc');
+                $query->orderBy('permission_name', 'asc');
             }]);
         });
     }
@@ -101,7 +101,7 @@ class RolePermissionRepository
             ->with(['causer:id,name', 'subject'])
             ->when($search, function ($q) use ($search) {
                         $q->whereHasMorph('subject', [Permission::class], function ($q) use ($search) {
-                            $q->where('nama_permission', 'ILIKE', "%{$search}%");
+                            $q->where('permission_name', 'ILIKE', "%{$search}%");
                         });
                     })
             ->latest()

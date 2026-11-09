@@ -24,7 +24,7 @@ class ActiveKonsumenRequest extends FormRequest
         $isDiterima = $this->input('status') === StatusKonsumen::Diterima->value;
 
         return [
-            'catatan_penolakan' => $isDiterima
+            'note' => $isDiterima
                 ? ['nullable', 'string', 'max:255']
                 : ['required', 'string', 'max:255'],
             'status'    => ['sometimes', Rule::enum(StatusKonsumen::class)],
@@ -34,8 +34,8 @@ class ActiveKonsumenRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'catatan_penolakan.required' => 'Catatan penolakan wajib diisi.',
-            'catatan_penolakan.string'   => 'Catatan penolakan harus berupa string.',
+            'note.required' => 'Catatan penolakan wajib diisi.',
+            'note.string'   => 'Catatan penolakan harus berupa string.',
             'status.enum'        => 'Status yang dipilih tidak valid.',
         ];
     }

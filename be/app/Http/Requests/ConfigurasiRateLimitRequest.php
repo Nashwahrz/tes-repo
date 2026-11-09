@@ -27,7 +27,7 @@ class ConfigurasiRateLimitRequest extends FormRequest
             'name'=> ['required','string'],
             'request_per_minutes'=> ['required','integer', 'min:1'],
             'minutes'=> ['required','integer', 'min:1'],
-            'is_active'=> ['required','boolean'],
+            'status'=> ['required','boolean'],
         ];
     }
 
@@ -42,8 +42,8 @@ class ConfigurasiRateLimitRequest extends FormRequest
             'minutes.required' => 'Minutes wajib diisi.',
             'minutes.integer' => 'Minutes harus berupa integer.',
             'minutes.min' => 'Minutes minimal 1.',
-            'is_active.required' => 'Is active wajib diisi.',
-            'is_active.boolean' => 'Is active harus berupa boolean.',
+            'status.required' => 'status wajib diisi.',
+            'status.boolean' => 'status harus berupa boolean.',
         ];
     }
 }

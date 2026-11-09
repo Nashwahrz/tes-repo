@@ -92,7 +92,7 @@ class RoleMenuSeeder extends Seeder
         ];
 
         foreach ($akses as $namaRole => $daftarUrl) {
-            $idRole = DB::table('hak_akses.roles')->where('name', $namaRole)->value('id');
+            $idRole = DB::table('hak_akses.roles')->where('role_name', $namaRole)->value('id');
 
             if (! $idRole) {
                 $this->command?->warn("Role '{$namaRole}' tidak ditemukan, dilewati.");
@@ -104,11 +104,11 @@ class RoleMenuSeeder extends Seeder
             if ($idMenus->count() !== count($daftarUrl)) {
                 $this->command?->warn("Ada url menu untuk role '{$namaRole}' yang belum ada di tabel menus.");
             }
-            DB::table('hak_akses.menu_roles')->where('id_role', $idRole)->delete();
+            DB::table('hak_akses.menu_roles')->where('fk_role', $idRole)->delete();
 
             $rows = $idMenus->map(fn ($idMenu) => [
-                'id_role' => $idRole,
-                'id_menu' => $idMenu,
+                'fk_role' => $idRole,
+                'fk_menu' => $idMenu,
                 'created_at' => now(),
                 'updated_at' => now(),
             ])->all();

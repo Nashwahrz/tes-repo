@@ -20,25 +20,25 @@ class Konsumen extends Model
             ->useLogName('konsumen')
             ->logOnly([
                 'nik',
-                'name',
-                'kode_tmp_lahir',
-                'tgl_lahir',
-                'jenis_kelamin',
-                'alamat_ktp',
-                'alamat_domisili',
+                'konsumen_name',
+                'fk_temp_lahir',
+                'birth_date',
+                'gender',
+                'ktp_address',
+                'domicile_address',
                 'latitude',
                 'longitude',
                 'rt',
                 'rw',
-                'kode_kelurahan',
-                'kode_kecamatan',
-                'kode_kabupaten_kota',
-                'kode_provinsi',
-                'kode_agama',
-                'status_perkawinan',
-                'kode_pekerjaan',
-                'kewarganegaraan',
-                'no_telp',
+                'fk_kelurahan',
+                'fk_kecamatan',
+                'fk_kabupaten_kota',
+                'fk_provinsi',
+                'fk_agama',
+                'marital_status',
+                'fk_pekerjaan',
+                'nationality',
+                'phone',
                 'email',
                 'foto_ktp',
             ])
@@ -48,25 +48,25 @@ class Konsumen extends Model
 
     protected $fillable = [
         'nik',
-        'name',
-        'kode_tmp_lahir',
-        'tgl_lahir',
-        'jenis_kelamin',
-        'alamat_ktp',
-        'alamat_domisili',
+        'konsumen_name',
+        'fk_temp_lahir',
+        'birth_date',
+        'gender',
+        'ktp_address',
+        'domicile_address',
         'latitude',
         'longitude',
         'rt',
         'rw',
-        'kode_kelurahan',
-        'kode_kecamatan',
-        'kode_kabupaten_kota',
-        'kode_provinsi',
-        'kode_agama',
-        'status_perkawinan',
-        'kode_pekerjaan',
-        'kewarganegaraan',
-        'no_telp',
+        'fk_kelurahan',
+        'fk_kecamatan',
+        'fk_kabupaten_kota',
+        'fk_provinsi',
+        'fk_agama',
+        'marital_status',
+        'fk_pekerjaan',
+        'nationality',
+        'phone',
         'email',
         'foto_ktp',
     ];
@@ -76,8 +76,8 @@ class Konsumen extends Model
     protected function casts(): array
     {
         return [
-            'tgl_lahir'     => 'date',
-            'jenis_kelamin' => JenisKelamin::class,
+            'birth_date'     => 'date',
+            'gender' => JenisKelamin::class,
             'latitude'      => 'decimal:7',
             'longitude'     => 'decimal:7',
         ];
@@ -106,51 +106,51 @@ class Konsumen extends Model
 
     public function konsumenMes()
     {
-        return $this->hasMany(KonsumenMe::class, 'id_konsumen');
+        return $this->hasMany(KonsumenMe::class, 'fk_konsumen');
     }
 
     public function mes()
     {
-        return $this->belongsToMany(User::class, 'konsumen_mes', 'id_konsumen', 'id_me');
+        return $this->belongsToMany(User::class, 'konsumen_mes', 'fk_konsumen', 'fk_me');
     }
 
     public function tempKonsumens()
     {
-        return $this->hasMany(TempKonsumen::class, 'id_konsumen');
+        return $this->hasMany(TempKonsumen::class, 'fk_konsumen');
     }
 
     public function tempatLahir()
     {
-        return $this->belongsTo(KabupatenKota::class, 'kode_tmp_lahir', 'kode');
+        return $this->belongsTo(KabupatenKota::class, 'fk_temp_lahir', 'kabupaten_kota_code');
     }
 
     public function kelurahan()
     {
-        return $this->belongsTo(Kelurahan::class, 'kode_kelurahan', 'kode');
+        return $this->belongsTo(Kelurahan::class, 'fk_kelurahan', 'kelurahan_code');
     }
 
     public function kecamatan()
     {
-        return $this->belongsTo(Kecamatan::class, 'kode_kecamatan', 'kode');
+        return $this->belongsTo(Kecamatan::class, 'fk_kecamatan', 'kecamatan_code');
     }
 
     public function kabupatenKota()
     {
-        return $this->belongsTo(KabupatenKota::class, 'kode_kabupaten_kota', 'kode');
+        return $this->belongsTo(KabupatenKota::class, 'fk_kabupaten_kota', 'kabupaten_kota_code');
     }
 
     public function provinsi()
     {
-        return $this->belongsTo(Provinsi::class, 'kode_provinsi', 'kode');
+        return $this->belongsTo(Provinsi::class, 'fk_provinsi', 'provinsi_code');
     }
 
     public function agama()
     {
-        return $this->belongsTo(Agama::class, 'kode_agama', 'kode');
+        return $this->belongsTo(Agama::class, 'fk_agama', 'agama_code');
     }
 
     public function pekerjaan()
     {
-        return $this->belongsTo(Pekerjaan::class, 'kode_pekerjaan', 'kode');
+        return $this->belongsTo(Pekerjaan::class, 'fk_pekerjaan', 'pekerjaan_code');
     }
 }

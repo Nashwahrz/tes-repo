@@ -13,7 +13,7 @@ class AllowedEmailDomain implements ValidationRule
         $domain = strtolower(trim(strrchr($value, '@')?: ''));
 
         $allowed = EmailWhitelist::where('domain', $domain)
-            ->where('is_active', true)
+            ->where('status', true)
             ->exists();
 
         if (!$allowed) {

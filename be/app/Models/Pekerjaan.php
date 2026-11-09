@@ -14,13 +14,13 @@ class Pekerjaan extends Model
     {
         return LogOptions::defaults()
             ->useLogName('pekerjaan')
-            ->logOnly(['kode', 'name', 'status'])
+            ->logOnly(['pekerjaan_code', 'pekerjaan_name', 'status'])
             ->logOnlyDirty()
             ->dontSubmitEmptyLogs();
     }
     protected $fillable = [
-        'kode',
-        'name',
+        'pekerjaan_code',
+        'pekerjaan_name',
         'status'
     ];
 }

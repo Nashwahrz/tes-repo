@@ -19,7 +19,7 @@ class ConfigurasiRateLimitSeeder extends Seeder
                 'name'                => 'login',
                 'request_per_minutes' => 5,
                 'minutes'             => 15,
-                'is_active'           => true,
+                'status'           => true,
                 'created_at'          => $now,
                 'updated_at'          => $now,
             ],
@@ -27,7 +27,7 @@ class ConfigurasiRateLimitSeeder extends Seeder
                 'name'                => 'otp-send',
                 'request_per_minutes' => 3,
                 'minutes'             => 10,
-                'is_active'           => true,
+                'status'           => true,
                 'created_at'          => $now,
                 'updated_at'          => $now,
             ],
@@ -35,7 +35,7 @@ class ConfigurasiRateLimitSeeder extends Seeder
                 'name'                => 'otp-verify',
                 'request_per_minutes' => 5,
                 'minutes'             => 1,
-                'is_active'           => true,
+                'status'           => true,
                 'created_at'          => $now,
                 'updated_at'          => $now,
             ],
@@ -43,7 +43,7 @@ class ConfigurasiRateLimitSeeder extends Seeder
                 'name'                => 'scan-ktp',
                 'request_per_minutes' => 10,
                 'minutes'             => 1,
-                'is_active'           => true,
+                'status'           => true,
                 'created_at'          => $now,
                 'updated_at'          => $now,
             ],
@@ -52,7 +52,7 @@ class ConfigurasiRateLimitSeeder extends Seeder
         DB::table('setting.configurasi_rate_limits')->upsert(
             $data,
             ['name'],
-            ['request_per_minutes', 'minutes', 'is_active', 'updated_at']
+            ['request_per_minutes', 'minutes', 'status', 'updated_at']
         );
     }
 }

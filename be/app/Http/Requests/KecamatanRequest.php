@@ -32,15 +32,15 @@ class KecamatanRequest extends FormRequest
 
          if ($this->isMethod('put') || $this->isMethod('patch')) {
             return [
-                'name' => [
+                'kecamatan_name' => [
                     'required',
                     'string',
                     'max:255',
                 ],
-                'kode_kabupaten_kota' => [
+                'fk_kabupaten_kota' => [
                     'required',
                     'string',
-                    Rule::exists(KabupatenKota::class, 'kode'),
+                    Rule::exists(KabupatenKota::class, 'kabupaten_kota_code'),
                 ],
                 'status' => [
                     'sometimes',
@@ -50,20 +50,20 @@ class KecamatanRequest extends FormRequest
         }
 
         return [
-            "kode"=> [
+            "kecamatan_code"=> [
                 'required',
                 'string',
                 'digits_between:1,10',
             ],
-            'name' => [
+            'kecamatan_name' => [
                 'required',
                 'string',
                 'max:255',
             ], 
-            'kode_kabupaten_kota' => [
+            'fk_kabupaten_kota' => [
                 'required',
                 'string',
-               Rule::exists(KabupatenKota::class, 'kode'),
+               Rule::exists(KabupatenKota::class, 'kabupaten_kota_code'),
             ],
             'status' => [
                 'sometimes',
@@ -75,15 +75,15 @@ class KecamatanRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'kode.required'      => 'kode kecamatan wajib diisi.',
-            'kode.string'        => 'kode kecamatan harus berupa string.',
-            'kode.digits_between'=> 'kode kecamatan harus berupa angka.',
-            'name.required'      => 'Kecamatan wajib diisi.',
-            'name.string'        => 'Kecamatan harus berupa string.',
-            'name.max'           => 'Kecamatan tidak boleh lebih dari 255 karakter.',
-            'kode_kabupaten_kota.required'      => 'Kabupaten/Kota wajib diisi.',
-            'kode_kabupaten_kota.string'        => 'Kabupaten/Kota harus berupa string.',
-            'kode_kabupaten_kota.exists'           => 'Kabupaten/Kota tidak ditemukan.',
+            'kecamatan_code.required'      => 'kode kecamatan wajib diisi.',
+            'kecamatan_code.string'        => 'kode kecamatan harus berupa string.',
+            'kecamatan_code.digits_between'=> 'kode kecamatan harus berupa angka.',
+            'kecamatan_name.required'      => 'Kecamatan wajib diisi.',
+            'kecamatan_name.string'        => 'Kecamatan harus berupa string.',
+            'kecamatan_name.max'           => 'Kecamatan tidak boleh lebih dari 255 karakter.',
+            'fk_kabupaten_kota.required'      => 'Kabupaten/Kota wajib diisi.',
+            'fk_kabupaten_kota.string'        => 'Kabupaten/Kota harus berupa string.',
+            'fk_kabupaten_kota.exists'           => 'Kabupaten/Kota tidak ditemukan.',
             'status.boolean'        => 'Status harus berupa boolean.',
         ];
     }

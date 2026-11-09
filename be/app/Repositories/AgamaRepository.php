@@ -41,8 +41,8 @@ class AgamaRepository
     {
         return Agama::query()
             ->when($search, fn ($q) => $q->where(function ($q) use ($search) {
-                $q->where('name', 'ILIKE', "%{$search}%")
-                ->orWhere('kode', 'ILIKE', "%{$search}%");
+                $q->where('agama_name', 'ILIKE', "%{$search}%")
+                ->orWhere('agama_code', 'ILIKE', "%{$search}%");
             }))
             ->latest('id')
             ->paginate($perPage)
@@ -52,8 +52,8 @@ class AgamaRepository
     {
         return Agama::query()
             ->when($search, fn ($q) => $q->where(function ($q) use ($search) {
-                $q->where('name', 'ILIKE', "%{$search}%")
-                ->orWhere('kode', 'ILIKE', "%{$search}%");
+                $q->where('agama_name', 'ILIKE', "%{$search}%")
+                ->orWhere('agama_code', 'ILIKE', "%{$search}%");
             }))
             ->where('status',true)
             ->latest('id')
@@ -64,8 +64,8 @@ class AgamaRepository
     {
         return Agama::query()
             ->when($search, fn ($q) => $q->where(function ($q) use ($search) {
-                $q->where('name', 'ILIKE', "%{$search}%")
-                ->orWhere('kode', 'ILIKE', "%{$search}%");
+                $q->where('agama_name', 'ILIKE', "%{$search}%")
+                ->orWhere('agama_code', 'ILIKE', "%{$search}%");
             }))
             ->where('status',false)
             ->latest('id')
@@ -79,8 +79,8 @@ class AgamaRepository
             ->with(['causer:id,name', 'subject'])
             ->when($search, function ($q) use ($search) {
                         $q->whereHasMorph('subject', [Agama::class], function ($q) use ($search) {
-                            $q->where('name', 'ILIKE', "%{$search}%")
-                            ->orWhere('kode', 'ILIKE', "%{$search}%");
+                            $q->where('agama_name', 'ILIKE', "%{$search}%")
+                            ->orWhere('agama_code', 'ILIKE', "%{$search}%");
                         });
                     })
             ->latest()

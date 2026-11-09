@@ -35,7 +35,7 @@ class KonsumenRepository
         return Konsumen::with(['konsumenMes.me'])
             ->where(function ($q) use ($keyword) {
                 $q->where('nik', 'ILIKE', "%{$keyword}%")
-                  ->orWhere('name', 'ILIKE', "%{$keyword}%");
+                  ->orWhere('konsumen_name', 'ILIKE', "%{$keyword}%");
             })
             ->limit($limit)
             ->get();
@@ -60,6 +60,7 @@ class KonsumenRepository
     public function paginate(int $perPage = 10, ?string $search = null, ?int $userId = null): LengthAwarePaginator
     {
         $userId ??= auth()->id();
+        abort_if(! $userId, 403);
 
         return $this->paginateCombined(perPage: $perPage, search: $search, userId: $userId);
     }
@@ -71,6 +72,7 @@ class KonsumenRepository
 
     public function paginateDealerAll(int $perPage = 10, ?string $search = null, ?int $userId = null, ?int $dealerId = null): LengthAwarePaginator
     {
+        abort_if(! $dealerId, 403);
         return $this->paginateCombined(perPage: $perPage, search: $search, userId: $userId, dealerId: $dealerId);
     }
 
@@ -81,102 +83,102 @@ class KonsumenRepository
         ?int $dealerId = null
     ): LengthAwarePaginator {
         $tempQuery = DB::table('temp.temp_konsumens as t')
-            ->leftJoin('users as u', 'u.id', '=', 't.id_me')
-            ->leftJoin('users as v', 'v.id', '=', 't.diverifikasi_oleh')
+            ->leftJoin('users as u', 'u.id', '=', 't.fk_me')
+            ->leftJoin('users as v', 'v.id', '=', 't.verified_by')
             ->select([
                 't.id',
                 DB::raw('t.id as id_temp'),
-                't.id_konsumen',
-                't.id_me',
-                't.tipe',
+                't.fk_konsumen',
+                't.fk_me',
+                't.type',
                 't.nik',
-                't.name',
-                't.kode_tmp_lahir',
-                't.tgl_lahir',
-                't.jenis_kelamin',
-                't.alamat_ktp',
-                't.alamat_domisili',
+                't.konsumen_name',
+                't.fk_temp_lahir',
+                't.birth_date',
+                't.gender',
+                't.ktp_address',
+                't.domicile_address',
                 't.latitude',
                 't.longitude',
                 't.rt',
                 't.rw',
-                't.kode_kelurahan',
-                't.kode_kecamatan',
-                't.kode_kabupaten_kota',
-                't.kode_provinsi',
-                't.kode_agama',
-                't.status_perkawinan',
-                't.kode_pekerjaan',
-                't.kewarganegaraan',
-                't.no_telp',
+                't.fk_kelurahan',
+                't.fk_kecamatan',
+                't.fk_kabupaten_kota',
+                't.fk_provinsi',
+                't.fk_agama',
+                't.marital_status',
+                't.fk_pekerjaan',
+                't.nationality',
+                't.phone',
                 't.email',
                 't.foto_ktp',
                 't.status',
-                't.catatan as catatan_penolakan',
-                't.diverifikasi_oleh',
-                't.diverifikasi_at',
+                't.note',
+                't.verified_by',
+                't.verified_at',
                 't.created_at',
                 't.updated_at',
                 DB::raw("'temp' as sumber"),
                 'u.name as me_name',
                 'u.email as me_email',
-                'u.id_dealer as me_id_dealer',
+                'u.fk_dealer as me_fk_dealer',
                 'v.name as verifikator_name'
             ])
-            ->when($userId, fn ($q) => $q->where('t.id_me', $userId))
-            ->when($dealerId, fn ($q) => $q->where('u.id_dealer', $dealerId))
+            ->when($userId, fn ($q) => $q->where('t.fk_me', $userId))
+            ->when($dealerId, fn ($q) => $q->where('u.fk_dealer', $dealerId))
             ->whereIn('t.status', [StatusKonsumen::Pending->value, StatusKonsumen::Revisi->value, StatusKonsumen::Ditolak->value]);
 
         $konsumenQuery = DB::table('konsumens as k')
-            ->join('konsumen_mes as km', 'km.id_konsumen', '=', 'k.id')
-            ->leftJoin('users as u', 'u.id', '=', 'km.id_me')
+            ->join('konsumen_mes as km', 'km.fk_konsumen', '=', 'k.id')
+            ->leftJoin('users as u', 'u.id', '=', 'km.fk_me')
             ->select([
                 'k.id',
                 DB::raw('NULL::bigint as id_temp'),
-                DB::raw('k.id as id_konsumen'),
-                'km.id_me',
-                DB::raw("'tetap' as tipe"),
+                DB::raw('k.id as fk_konsumen'),
+                'km.fk_me',
+                DB::raw("'tetap' as type"),
                 'k.nik',
-                'k.name',
-                'k.kode_tmp_lahir',
-                'k.tgl_lahir',
-                'k.jenis_kelamin',
-                'k.alamat_ktp',
-                'k.alamat_domisili',
+                'k.konsumen_name',
+                'k.fk_temp_lahir',
+                'k.birth_date',
+                'k.gender',
+                'k.ktp_address',
+                'k.domicile_address',
                 'k.latitude',
                 'k.longitude',
                 'k.rt',
                 'k.rw',
-                'k.kode_kelurahan',
-                'k.kode_kecamatan',
-                'k.kode_kabupaten_kota',
-                'k.kode_provinsi',
-                'k.kode_agama',
-                'k.status_perkawinan',
-                'k.kode_pekerjaan',
-                'k.kewarganegaraan',
-                'k.no_telp',
+                'k.fk_kelurahan',
+                'k.fk_kecamatan',
+                'k.fk_kabupaten_kota',
+                'k.fk_provinsi',
+                'k.fk_agama',
+                'k.marital_status',
+                'k.fk_pekerjaan',
+                'k.nationality',
+                'k.phone',
                 'k.email',
                 'k.foto_ktp',
                 DB::raw("'diterima' as status"),
-                DB::raw('NULL::text as catatan_penolakan'),
-                DB::raw('NULL::bigint as diverifikasi_oleh'),
-                DB::raw('NULL::timestamp as diverifikasi_at'),
+                DB::raw('NULL::text as note'),
+                DB::raw('NULL::bigint as verified_by'),
+                DB::raw('NULL::timestamp as verified_at'),
                 'k.created_at',
                 'k.updated_at',
                 DB::raw("'konsumen' as sumber"),
                 'u.name as me_name',
                 'u.email as me_email',
-                'u.id_dealer as me_id_dealer',
+                'u.fk_dealer as me_fk_dealer',
                 DB::raw('NULL::varchar as verifikator_name')
             ])
-            ->when($userId, fn ($q) => $q->where('km.id_me', $userId))
-            ->when($dealerId, fn ($q) => $q->where('u.id_dealer', $dealerId))
+            ->when($userId, fn ($q) => $q->where('km.fk_me', $userId))
+            ->when($dealerId, fn ($q) => $q->where('u.fk_dealer', $dealerId))
             ->whereNotIn('k.id', function ($query) use ($userId) {
-                $query->select('id_konsumen')
+                $query->select('fk_konsumen')
                     ->from('temp.temp_konsumens')
-                    ->when($userId, fn ($q) => $q->where('id_me', $userId))
-                    ->whereNotNull('id_konsumen')
+                    ->when($userId, fn ($q) => $q->where('fk_me', $userId))
+                    ->whereNotNull('fk_konsumen')
                     ->whereIn('status', [StatusKonsumen::Pending->value, StatusKonsumen::Revisi->value]);
             });
 
@@ -186,9 +188,9 @@ class KonsumenRepository
             ->fromSub($union, 'combined')
             ->when($search, function ($q) use ($search) {
                 $q->where(function ($q) use ($search) {
-                    $q->where('name', 'ILIKE', "%{$search}%")
+                    $q->where('konsumen_name', 'ILIKE', "%{$search}%")
                       ->orWhere('nik', 'ILIKE', "%{$search}%")
-                      ->orWhere('no_telp', 'ILIKE', "%{$search}%")
+                      ->orWhere('phone', 'ILIKE', "%{$search}%")
                       ->orWhere('status', 'ILIKE', "%{$search}%");
                 });
             })
@@ -197,13 +199,13 @@ class KonsumenRepository
 
         $paginator->getCollection()->transform(function ($item) {
             $item->me = (object) [
-                'id'        => $item->id_me,
+                'id'        => $item->fk_me,
                 'name'      => $item->me_name,
                 'email'     => $item->me_email,
-                'id_dealer' => $item->me_id_dealer,
+                'fk_dealer' => $item->me_fk_dealer,
             ];
             $item->verified_by = $item->verifikator_name ? (object) [
-                'id'   => $item->diverifikasi_oleh,
+                'id'   => $item->verified_by,
                 'name' => $item->verifikator_name,
             ] : null;
             $item->verifiedBy = $item->verified_by;

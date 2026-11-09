@@ -22,10 +22,10 @@ class ActivateUserRequest extends FormRequest
         $isDitolak = $this->input('status') === StatusUser::Ditolak->value;
 
         return [
-            'id_dealer' => $isDitolak
+            'fk_dealer' => $isDitolak
                 ? ['nullable', 'integer', Rule::exists(Dealer::class, 'id')]
                 : ['required', 'integer', Rule::exists(Dealer::class, 'id')],
-            'id_atasan' => ['nullable', 'integer', Rule::exists(User::class, 'id')],
+            'fk_atasan' => ['nullable', 'integer', Rule::exists(User::class, 'id')],
             'status'    => ['sometimes', Rule::enum(StatusUser::class)],
         ];
     }
@@ -33,11 +33,11 @@ class ActivateUserRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'id_dealer.required' => 'ID dealer wajib diisi.',
-            'id_dealer.integer'  => 'ID dealer harus berupa angka.',
-            'id_dealer.exists'   => 'Dealer tidak ditemukan.',
-            'id_atasan.integer'  => 'ID atasan harus berupa angka.',
-            'id_atasan.exists'   => 'Atasan tidak ditemukan.',
+            'fk_dealer.required' => 'ID dealer wajib diisi.',
+            'fk_dealer.integer'  => 'ID dealer harus berupa angka.',
+            'fk_dealer.exists'   => 'Dealer tidak ditemukan.',
+            'fk_atasan.integer'  => 'ID atasan harus berupa angka.',
+            'fk_atasan.exists'   => 'Atasan tidak ditemukan.',
             'status.enum'        => 'Status yang dipilih tidak valid.',
         ];
     }

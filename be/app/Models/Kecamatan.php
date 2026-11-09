@@ -14,20 +14,20 @@ class Kecamatan extends Model
     {
         return LogOptions::defaults()
             ->useLogName('kecamatan')
-            ->logOnly(['kode', 'name', 'kode_kabupaten_kota', 'status'])
+            ->logOnly(['kecamatan_code', 'kecamatan_name', 'fk_kabupaten_kota', 'status'])
             ->logOnlyDirty()
             ->dontSubmitEmptyLogs();
     }
 
     protected $fillable = [
-        'kode',
-        'name',
-        'kode_kabupaten_kota',
+        'kecamatan_code',
+        'kecamatan_name',
+        'fk_kabupaten_kota',
         'status'
     ];
 
     public function kabupatenKota()
     {
-        return $this->belongsTo(KabupatenKota::class, 'kode_kabupaten_kota', 'kode');
+        return $this->belongsTo(KabupatenKota::class, 'fk_kabupaten_kota', 'kabupaten_kota_code');
     }
 }

@@ -159,7 +159,7 @@ class RolePermissionSeeder extends Seeder
             ],
         ];
         foreach ($akses as $namaRole => $daftarPermission) {
-            $idRole = DB::table('hak_akses.roles')->where('name', $namaRole)->value('id');
+            $idRole = DB::table('hak_akses.roles')->where('role_name', $namaRole)->value('id');
  
             if (! $idRole) {
                 $this->command?->warn("Role '{$namaRole}' tidak ditemukan, dilewati.");
@@ -167,15 +167,15 @@ class RolePermissionSeeder extends Seeder
             }
  
             $idPermissions = DB::table('hak_akses.permissions')
-                ->whereIn('nama_permission', $daftarPermission)
+                ->whereIn('permission_name', $daftarPermission)
                 ->pluck('id');
  
             if ($idPermissions->count() !== count($daftarPermission)) {
                 $this->command?->warn("Ada permission untuk role '{$namaRole}' yang belum ada di tabel permissions.");
             }
             $rows = $idPermissions->map(fn ($idPermission) => [
-                'id_role'       => $idRole,
-                'id_permission' => $idPermission,
+                'fk_role'       => $idRole,
+                'fk_permission' => $idPermission,
                 'created_at' => $now,
                 'updated_at' => $now,
             ])->all();

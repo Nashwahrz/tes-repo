@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('master.email_whitelists', function (Blueprint $table) {
             $table->id();
             $table->string('domain')->unique();
-            $table->boolean('is_active')->default(true);
+            $table->boolean('status')->default(true);
             $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
             $table->timestamps();
         });

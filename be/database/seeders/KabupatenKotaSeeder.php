@@ -18,7 +18,7 @@ class KabupatenKotaSeeder extends Seeder
         }
 
         $validProvinsi = DB::table('master.provinsis')
-            ->pluck('kode')
+            ->pluck('provinsi_code')
             ->map(fn ($k) => (string) $k)
             ->flip();
 
@@ -53,9 +53,9 @@ class KabupatenKotaSeeder extends Seeder
 
          
             $rows[$kode] = [
-                'kode'                => $kode,
-                'name'                => $name,
-                'kode_provinsi' => $kodeProvinsi,
+                'kabupaten_kota_code'                => $kode,
+                'kabupaten_kota_name'                => $name,
+                'fk_provinsi' => $kodeProvinsi,
                 'created_at'          => now(),
                 'updated_at'          => now(),
             ];
@@ -65,13 +65,13 @@ class KabupatenKotaSeeder extends Seeder
             foreach (array_chunk(array_values($rows), 500) as $chunk) {
                 DB::table('master.kabupaten_kotas')->upsert(
                     $chunk,
-                    ['kode'],
-                    ['name', 'kode_provinsi', 'updated_at']
+                    ['kabupaten_kota_code'],
+                    ['kabupaten_kota_name', 'fk_provinsi', 'updated_at']
                 );
             }
         });
 
-        $this->command?->info(count($rows) . ' kecamatan di-seed.');
+        $this->command?->info(count($rows) . ' Kabupaten kota di-seed.');
     }
 
     private function clean(mixed $value): string

@@ -16,13 +16,13 @@ class EmailWhitelist extends Model
     {
         return LogOptions::defaults()
             ->useLogName('email whitelist')
-            ->logOnly(['domain', 'is_active', 'created_by'])
+            ->logOnly(['domain', 'status', 'created_by'])
             ->logOnlyDirty()
             ->dontSubmitEmptyLogs();
     }
     protected $fillable = [
         'domain',
-        'is_active',
+        'status',
         'created_by',
     ];
 

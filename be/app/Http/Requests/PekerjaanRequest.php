@@ -30,7 +30,7 @@ class PekerjaanRequest extends FormRequest
 
         if ($this->isMethod('put') || $this->isMethod('patch')) {
             return [
-                'name' => [
+                'pekerjaan_name' => [
                     'required',
                     'string',
                     'max:255',
@@ -39,17 +39,17 @@ class PekerjaanRequest extends FormRequest
         }
 
         return [
-            'kode' => [
+            'pekerjaan_code' => [
                 'required',
                 'string',
                 'digits_between:1,10',
-                Rule::unique(Pekerjaan::class, 'kode'),
+                Rule::unique(Pekerjaan::class, 'pekerjaan_code'),
             ],
-            'name' => [
+            'pekerjaan_name' => [
                 'required',
                 'string',
                 'max:255',
-               Rule::unique(Pekerjaan::class, 'name'),
+               Rule::unique(Pekerjaan::class, 'pekerjaan_name'),
             ],
         ];
     }
@@ -57,13 +57,13 @@ class PekerjaanRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'kode.required'      => 'Kode pekerjaan wajib diisi.',
-            'kode.string'        => 'Kode pekerjaan harus berupa string.',
-            'kode.digits_between' => 'Kode pekerjaan harus antara 1 sampai 10 digit.',
-            'kode.unique'        => 'Kode pekerjaan sudah terdaftar.',
-            'name.required'      => 'Nama pekerjaan wajib diisi.',
-            'name.string'        => 'Nama pekerjaan harus berupa string.',
-            'name.max'           => 'Nama pekerjaan tidak boleh lebih dari 255 karakter.',
+            'pekerjaan_code.required'      => 'Kode pekerjaan wajib diisi.',
+            'pekerjaan_code.string'        => 'Kode pekerjaan harus berupa string.',
+            'pekerjaan_code.digits_between' => 'Kode pekerjaan harus antara 1 sampai 10 digit.',
+            'pekerjaan_code.unique'        => 'Kode pekerjaan sudah terdaftar.',
+            'pekerjaan_name.required'      => 'Nama pekerjaan wajib diisi.',
+            'pekerjaan_name.string'        => 'Nama pekerjaan harus berupa string.',
+            'pekerjaan_name.max'           => 'Nama pekerjaan tidak boleh lebih dari 255 karakter.',
         ];
     }
 

@@ -125,7 +125,7 @@ class KecamatanController extends Controller
                 return $this->kecamatanResponse->notFound();
             }
 
-            $updatedKecamatan = $this->kecamatanRepository->update($kecamatan, $request->only('name', 'kode_kabupaten_kota'));
+            $updatedKecamatan = $this->kecamatanRepository->update($kecamatan, $request->only('kecamatan_name', 'fk_kabupaten_kota'));
 
             return $this->kecamatanResponse->success($updatedKecamatan, 'Kecamatan berhasil diperbarui.');
         } catch (UniqueConstraintViolationException $e) {

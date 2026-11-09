@@ -19,9 +19,9 @@ class RegisterResponse
                 'name'      => $user->name,
                 'email'     => $user->email,
                 'status'    => $user->status,
-                'id_dealer' => $user->id_dealer,
-                'id_atasan' => $user->id_atasan,
-                'id_role'   => $user->id_role,
+                'fk_dealer' => $user->fk_dealer,
+                'fk_atasan' => $user->fk_atasan,
+                'fk_role'   => $user->fk_role,
             ],
             // 'token'   => $token,
         ], 200);

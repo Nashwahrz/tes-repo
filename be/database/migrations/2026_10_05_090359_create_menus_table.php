@@ -13,9 +13,9 @@ return new class extends Migration
     {
         Schema::create('hak_akses.menus', function (Blueprint $table) {
             $table->id();
-            $table->string('nama_menu');
+            $table->string('menu_name');
             $table->string('url')->unique();
-            $table->integer('urutan');
+            $table->integer('sequence');
             $table->boolean('status')->default(true);
             $table->timestamps();
         });

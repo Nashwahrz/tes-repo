@@ -25,7 +25,7 @@ class CheckPermission
             ], 401);
         }
 
-        if (!$user->id_role || !$user->role) {
+        if (!$user->fk_role || !$user->role) {
             return response()->json([
                 'success' => false,
                 'message' => 'Akses ditolak. Pengguna belum memiliki role yang valid.',
@@ -33,7 +33,7 @@ class CheckPermission
         }
 
         $hasPermission = $user->role->permissions()
-            ->whereIn('permissions.nama_permission', $permissions)
+            ->whereIn('permissions.permission_name', $permissions)
             ->exists();
 
         if (!$hasPermission) {

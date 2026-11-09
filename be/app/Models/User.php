@@ -32,7 +32,7 @@ class User extends Authenticatable
     {
         return LogOptions::defaults()
             ->useLogName('user')
-            ->logOnly(['name', 'email', 'status', 'id_dealer', 'id_atasan', 'id_role'])
+            ->logOnly(['name', 'email', 'status', 'fk_dealer', 'fk_atasan', 'fk_role'])
             ->logOnlyDirty()
             ->dontSubmitEmptyLogs();
     }
@@ -40,12 +40,12 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
-        'email_verifikasi',
+        'email_verification',
         'status',
-        'foto',
-        'id_dealer',
-        'id_atasan',
-        'id_role',
+        'photo',
+        'fk_dealer',
+        'fk_atasan',
+        'fk_role',
     ];
 
     /**
@@ -68,53 +68,53 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password'          => 'hashed',
-            'email_verifikasi'  => 'boolean',
+            'email_verification'  => 'boolean',
             'status'            => StatusUser::class,
         ];
     }
 
     public function dealer()
     {
-        return $this->belongsTo(Dealer::class, 'id_dealer');
+        return $this->belongsTo(Dealer::class, 'fk_dealer');
     }
     public function atasan()
     {
-        return $this->belongsTo(User::class, 'id_atasan');
+        return $this->belongsTo(User::class, 'fk_atasan');
     }
     public function role()
     {
-        return $this->belongsTo(Role::class, 'id_role');
+        return $this->belongsTo(Role::class, 'fk_role');
     }
 
     public function otps()
     {
-        return $this->hasMany(Otp::class, 'id_user');
+        return $this->hasMany(Otp::class, 'fk_user');
     }
 
     public function logUsers()
     {
-        return $this->hasMany(LogUser::class, 'id_user');
+        return $this->hasMany(LogUser::class, 'fk_user');
     }
 
     public function hasPermission(string $permission): bool
     {
-        if (!$this->id_role || !$this->role) {
+        if (!$this->fk_role || !$this->role) {
             return false;
         }
 
         return $this->role->permissions()
-            ->where('nama_permission', $permission)
+            ->where('permission_name', $permission)
             ->exists();
     }
 
     public function hasAnyPermission(array $permissions): bool
     {
-        if (!$this->id_role || !$this->role) {
+        if (!$this->fk_role || !$this->role) {
             return false;
         }
 
         return $this->role->permissions()
-            ->whereIn('nama_permission', $permissions)
+            ->whereIn('permission_name', $permissions)
             ->exists();
     }
     protected function email(): Attribute

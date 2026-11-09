@@ -13,11 +13,11 @@ return new class extends Migration
     {
         Schema::create('master.kecamatans', function (Blueprint $table) {
             $table->id();
-            $table->string('kode')->unique();
-            $table->string('name');
-            $table->string('kode_kabupaten_kota')->nullable();
-            $table->foreign('kode_kabupaten_kota')
-                ->references('kode')
+            $table->string('kecamatan_code')->unique();
+            $table->string('kecamatan_name');
+            $table->string('fk_kabupaten_kota')->nullable();
+            $table->foreign('fk_kabupaten_kota')
+                ->references('kabupaten_kota_code')
                 ->on('master.kabupaten_kotas')
                 ->nullOnDelete();
             $table->boolean('status')->default(true);

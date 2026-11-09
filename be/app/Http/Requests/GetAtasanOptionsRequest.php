@@ -25,8 +25,8 @@ class GetAtasanOptionsRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'id_role'   => ['required', 'integer', 'exists:roles,id'],
-            'id_dealer' => ['nullable', 'integer', 'exists:dealers,id'],
+            'fk_role'   => ['required', 'integer', 'exists:roles,id'],
+            'fk_dealer' => ['nullable', 'integer', 'exists:dealers,id'],
         ];
     }
 
@@ -36,11 +36,11 @@ class GetAtasanOptionsRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'id_role.required'  => 'ID role wajib diisi.',
-            'id_role.integer'   => 'ID role harus berupa angka.',
-            'id_role.exists'    => 'Role tidak ditemukan.',
-            'id_dealer.integer' => 'ID dealer harus berupa angka.',
-            'id_dealer.exists'  => 'Dealer tidak ditemukan.',
+            'fk_role.required'  => 'ID role wajib diisi.',
+            'fk_role.integer'   => 'ID role harus berupa angka.',
+            'fk_role.exists'    => 'Role tidak ditemukan.',
+            'fk_dealer.integer' => 'ID dealer harus berupa angka.',
+            'fk_dealer.exists'  => 'Dealer tidak ditemukan.',
         ];
     }
 

@@ -25,8 +25,8 @@ class UserRepository
     public function activateUser(User $user, ?int $dealerId, ?int $atasanId, StatusUser $status = StatusUser::Aktif): User
     {
         $user->update([
-            'id_dealer' => $dealerId,
-            'id_atasan' => $atasanId,
+            'fk_dealer' => $dealerId,
+            'fk_atasan' => $atasanId,
             'status'    => $status,
         ]);
 
@@ -57,7 +57,7 @@ class UserRepository
             ->where('status', StatusUser::Aktif);
 
         if ($dealerId && !in_array('Super Admin', $targetRoles)) {
-            $query->where('id_dealer', $dealerId);
+            $query->where('fk_dealer', $dealerId);
         }
 
         return $query->get();
@@ -78,7 +78,7 @@ class UserRepository
     {
         return User::query()
             ->with(['role', 'dealer', 'atasan'])
-            ->where('email_verifikasi', true)
+            ->where('email_verification', true)
             ->when($status, fn ($q) => $q->where('status', $status))
             ->when($search, fn ($q) => $q->where('name', 'ILIKE', "%{$search}%"))
             ->latest('id')
@@ -106,8 +106,8 @@ class UserRepository
     {
         $userIds = $logs->getCollection()
             ->flatMap(fn ($log) => [
-                data_get($log->properties, 'old.id_me'),
-                data_get($log->properties, 'attributes.id_me'),
+                data_get($log->properties, 'old.fk_me'),
+                data_get($log->properties, 'attributes.fk_me'),
                 data_get($log->properties, 'old.diverifikasi_oleh'),
                 data_get($log->properties, 'attributes.diverifikasi_oleh'),
             ])

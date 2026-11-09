@@ -16,21 +16,21 @@ class RoleMenuRepository
     public function getAllRolesWithMenus(): Collection
     {
         return Role::with(['menus' => function ($query) {
-            $query->orderBy('urutan', 'asc');
+            $query->orderBy('sequence', 'asc');
         }])->get();
     }
 
     public function findRoleById(int|string $id): ?Role
     {
         return Role::with(['menus' => function ($query) {
-            $query->orderBy('urutan', 'asc');
+            $query->orderBy('sequence', 'asc');
         }])->find($id);
     }
 
     
     public function getAllMenus(bool $onlyActive = false): Collection
     {
-        $query = Menu::orderBy('urutan', 'asc');
+        $query = Menu::orderBy('sequence', 'asc');
 
         if ($onlyActive) {
             $query->where('status', true);
@@ -49,7 +49,7 @@ class RoleMenuRepository
 
         return $role->menus()
             ->where('status', true)
-            ->orderBy('urutan', 'asc')
+            ->orderBy('sequence', 'asc')
             ->get();
     }
 
@@ -57,24 +57,24 @@ class RoleMenuRepository
     public function syncRoleMenus(Role $role, array $menuIds): Role
     {
         return DB::transaction(function () use ($role, $menuIds) {
-            $currentMenuIds = MenuRole::where('id_role', $role->id)->pluck('id_menu')->toArray();
+            $currentMenuIds = MenuRole::where('fk_role', $role->id)->pluck('fk_menu')->toArray();
 
             $detachIds = array_diff($currentMenuIds, $menuIds);
             $attachIds = array_diff($menuIds, $currentMenuIds);
             if (!empty($detachIds)) {
-                MenuRole::where('id_role', $role->id)
-                    ->whereIn('id_menu', $detachIds)
+                MenuRole::where('fk_role', $role->id)
+                    ->whereIn('fk_menu', $detachIds)
                     ->get()
                     ->each(fn ($menuRole) => $menuRole->delete());
             }
             foreach ($attachIds as $menuId) {
                 MenuRole::create([
-                    'id_role' => $role->id,
-                    'id_menu' => $menuId,
+                    'fk_role' => $role->id,
+                    'fk_menu' => $menuId,
                 ]);
             }
             return $role->fresh(['menus' => function ($query) {
-                $query->orderBy('urutan', 'asc');
+                $query->orderBy('sequence', 'asc');
             }]);
         });
     }

@@ -14,12 +14,12 @@ class Provinsi extends Model
     {
         return LogOptions::defaults()
             ->useLogName('provinsi')
-            ->logOnly(['kode', 'name', 'status'])
+            ->logOnly(['provinsi_code', 'provinsi_name', 'status'])
             ->logOnlyDirty()
             ->dontSubmitEmptyLogs();
     }
     protected $fillable = [
-        'kode',
+        'provinsi_code',
         'name',
         'status'
     ];

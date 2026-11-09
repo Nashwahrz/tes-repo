@@ -28,7 +28,7 @@ class EmailWhiteListRequest extends FormRequest
     {
         return [
             'domain' => ['required','string','starts_with:@',Rule::unique(EmailWhitelist::class, 'domain')],    
-            'is_active' => 'required|boolean',
+            'status' => 'required|boolean',
             'created_by' => 'required|exists:users,id',
         ];
     }
@@ -39,8 +39,8 @@ class EmailWhiteListRequest extends FormRequest
             'domain.string'     => 'Domain harus berupa string.',
             'domain.unique'     => 'Domain sudah terdaftar.',
             'domain.starts_with' => 'Domain harus diawali dengan @, contoh: @gmail.com.',
-            'is_active.required'=> 'Status aktif wajib diisi.',
-            'is_active.boolean' => 'Status aktif harus berupa boolean.',
+            'status.required'=> 'Status aktif wajib diisi.',
+            'status.boolean' => 'Status aktif harus berupa boolean.',
             'created_by.required'=> 'Dibuat oleh wajib diisi.',
             'created_by.exists'=> 'Dibuat oleh tidak ditemukan.',
         ];

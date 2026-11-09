@@ -89,7 +89,7 @@ class AuthController extends Controller
 
             $user = Auth::user();
 
-            if (!$user->email_verifikasi) {
+            if (!$user->email_verification) {
                 Auth::logout();
 
                 return $this->throttleRequests->handle($request, function () use ($user) {

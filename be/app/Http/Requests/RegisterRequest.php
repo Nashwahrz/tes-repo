@@ -29,7 +29,7 @@ class RegisterRequest extends FormRequest
             'password'  => ['required', 'string', 'confirmed',Password::min(8)->mixedCase()->numbers()->symbols(),],
             // 'id_dealer' => ['nullable', 'exists:dealers,id'],
             // 'id_atasan' => ['nullable', 'exists:users,id'],
-            'id_role'   => ['required',Rule::exists(Role::class, 'id'),new UniqueSuperAdminRole()],
+            'fk_role'   => ['required',Rule::exists(Role::class, 'id'),new UniqueSuperAdminRole()],
         ];
     }
     
@@ -48,8 +48,8 @@ class RegisterRequest extends FormRequest
             'password.confirmed' => 'Konfirmasi password tidak cocok.',
             // 'id_dealer.exists'   => 'Dealer tidak ditemukan.',
             // 'id_atasan.exists'   => 'Atasan tidak ditemukan.',
-            'id_role.exists'     => 'Role tidak ditemukan.',
-            'id_role.required'   => 'Role wajib dipilih.',
+            'fk_role.exists'     => 'Role tidak ditemukan.',
+            'fk_role.required'   => 'Role wajib dipilih.',
         ];
     }
 

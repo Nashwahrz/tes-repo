@@ -33,7 +33,7 @@ class OtpController extends Controller
                 return $this->otpResponse->userNotFound();
             }
 
-            if ($user->email_verifikasi) {
+            if ($user->email_verification) {
                 return $this->otpResponse->alreadyVerified();
             }
 
@@ -62,7 +62,7 @@ class OtpController extends Controller
                 return $this->otpResponse->userNotFound();
             }
     
-            if ($user->email_verifikasi == false) {
+            if ($user->email_verification == false) {
                 return $this->otpResponse-> notreadyVerified();
             }
 
@@ -101,7 +101,7 @@ class OtpController extends Controller
                 return $this->otpResponse->purposeMismatch();
             }
 
-            $user->email_verifikasi = true;
+            $user->email_verification = true;
             $user->save();
 
             $this->otpRepository->deleteUserOtps($user->id);
@@ -124,7 +124,7 @@ class OtpController extends Controller
             if (!$user) {
                 return $this->otpResponse->userNotFound();
             }
-            if ($user->email_verifikasi == false) {
+            if ($user->email_verification == false) {
                 return $this->otpResponse-> notreadyVerified();
             }
 

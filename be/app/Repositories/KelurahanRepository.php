@@ -37,8 +37,8 @@ class KelurahanRepository
     {
         return Kelurahan::query()
             ->when($search, fn ($q) => $q->where(function ($q) use ($search) {
-                $q->where('name', 'ILIKE', "%{$search}%")
-                ->orWhere('kode', 'ILIKE', "%{$search}%");
+                $q->where('kelurahan_name', 'ILIKE', "%{$search}%")
+                ->orWhere('kelurahan_code', 'ILIKE', "%{$search}%");
             }))
             ->latest('id')
             ->paginate($perPage)
@@ -48,8 +48,8 @@ class KelurahanRepository
     {
         return Kelurahan::query()
             ->when($search, fn ($q) => $q->where(function ($q) use ($search) {
-                $q->where('name', 'ILIKE', "%{$search}%")
-                ->orWhere('kode', 'ILIKE', "%{$search}%");
+                $q->where('kelurahan_name', 'ILIKE', "%{$search}%")
+                ->orWhere('kelurahan_code', 'ILIKE', "%{$search}%");
             }))
             ->where('status',true)
             ->latest('id')
@@ -60,8 +60,8 @@ class KelurahanRepository
     {
         return Kelurahan::query()
             ->when($search, fn ($q) => $q->where(function ($q) use ($search) {
-                $q->where('name', 'ILIKE', "%{$search}%")
-                ->orWhere('kode', 'ILIKE', "%{$search}%");
+                $q->where('kelurahan_name', 'ILIKE', "%{$search}%")
+                ->orWhere('kelurahan_code', 'ILIKE', "%{$search}%");
             }))
             ->where('status',false)
             ->latest('id')
@@ -75,8 +75,8 @@ class KelurahanRepository
             ->with(['causer:id,name', 'subject'])
             ->when($search, function ($q) use ($search) {
                         $q->whereHasMorph('subject', [Kelurahan::class], function ($q) use ($search) {
-                            $q->where('name', 'ILIKE', "%{$search}%")
-                            ->orWhere('kode', 'ILIKE', "%{$search}%");
+                            $q->where('kelurahan_name', 'ILIKE', "%{$search}%")
+                            ->orWhere('kelurahan_code', 'ILIKE', "%{$search}%");
                         });
                     })
             ->latest()

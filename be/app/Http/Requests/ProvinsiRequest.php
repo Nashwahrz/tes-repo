@@ -29,7 +29,7 @@ class ProvinsiRequest extends FormRequest
     {
         if ($this->isMethod('put') || $this->isMethod('patch')) {
             return [
-                'name' => [
+                'provinsi_name' => [
                     'required',
                     'string',
                     'max:255',
@@ -42,13 +42,13 @@ class ProvinsiRequest extends FormRequest
         }
 
         return [
-            'kode' => [
+            'provinsi_code' => [
                 'required',
                 'string',
                 'digits_between:1,10',
-                Rule::unique(Provinsi::class, 'kode'),
+                Rule::unique(Provinsi::class, 'provinsi_code'),
             ],
-            'name' => [
+            'provinsi_name' => [
                 'required',
                 'string',
                 'max:255',
@@ -63,13 +63,13 @@ class ProvinsiRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'kode.required'      => 'kode provinsi wajib diisi.',
-            'kode.string'        => 'kode provinsi harus berupa string.',
-            'kode.digits_between'=> 'kode provinsi harus berupa angka.',
-            'kode.unique'        => 'kode provinsi sudah terdaftar.',
-            'name.required'      => 'provinsi wajib diisi.',
-            'name.string'        => 'provinsi harus berupa string.',
-            'name.max'           => 'provinsi tidak boleh lebih dari 255 karakter.',
+            'provinsi_code.required'      => 'kode provinsi wajib diisi.',
+            'provinsi_code.string'        => 'kode provinsi harus berupa string.',
+            'provinsi_code.digits_between'=> 'kode provinsi harus berupa angka.',
+            'provinsi_code.unique'        => 'kode provinsi sudah terdaftar.',
+            'provinsi_name.required'      => 'provinsi wajib diisi.',
+            'provinsi_name.string'        => 'provinsi harus berupa string.',
+            'provinsi_name.max'           => 'provinsi tidak boleh lebih dari 255 karakter.',
             'status.boolean'     => 'status harus berupa boolean.',
         ];
     }

@@ -22,17 +22,17 @@ class OtpRepository
         $this->deleteUserOtps($user->id);
 
         return Otp::create([
-            'id_user'    => $user->id,
+            'fk_user'    => $user->id,
             'purpose'    => $purpose,
             'otp'        => Hash::make($otpCode),
-            'expires_at' => Carbon::now()->addMinutes($expiryMinutes),
+            'otp_expires_at' => Carbon::now()->addMinutes($expiryMinutes),
         ]);
     }
 
     public function findValidOtp(int $userId, string $otp): ?Otp
     {
-        $record = Otp::where('id_user', $userId)
-            ->where('expires_at', '>', Carbon::now())
+        $record = Otp::where('fk_user', $userId)
+            ->where('otp_expires_at', '>', Carbon::now())
             ->latest()
             ->first();
 
@@ -46,7 +46,7 @@ class OtpRepository
   
     public function deleteUserOtps(int $userId): int
     {
-        return Otp::where('id_user', $userId)->delete();
+        return Otp::where('fk_user', $userId)->delete();
     }
 
     public function createPasswordResetToken(string $email): string

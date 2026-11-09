@@ -39,7 +39,7 @@ class OtpResponse
             'data'    => [
                 'id'               => $user->id,
                 'email'            => $user->email,
-                'email_verifikasi' => $user->email_verifikasi,
+                'email_verification' => $user->email_verification,
             ],
         ], 200);
     }

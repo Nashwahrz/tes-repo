@@ -59,8 +59,8 @@ class EmailWhitelistRepository
     {
         $userIds = $logs->getCollection()
             ->flatMap(fn ($log) => [
-                data_get($log->properties, 'old.id_me'),
-                data_get($log->properties, 'attributes.id_me'),
+                data_get($log->properties, 'old.fk_me'),
+                data_get($log->properties, 'attributes.fk_me'),
                 data_get($log->properties, 'old.diverifikasi_oleh'),
                 data_get($log->properties, 'attributes.diverifikasi_oleh'),
             ])

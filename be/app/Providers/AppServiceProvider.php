@@ -44,7 +44,7 @@ class AppServiceProvider extends ServiceProvider
         RateLimiter::for('otp-send', function (Request $request) {
             $config = ConfigurasiRateLimit::where('name', 'otp-send')->first();
 
-            if ($config && ! $config->is_active) {
+            if ($config && ! $config->status) {
                 return Limit::none();
             }
 
@@ -80,7 +80,7 @@ class AppServiceProvider extends ServiceProvider
         RateLimiter::for('otp-verify', function (Request $request) {
             $config = ConfigurasiRateLimit::where('name', 'otp-verify')->first();
 
-            if ($config && ! $config->is_active) {
+            if ($config && ! $config->status) {
                 return Limit::none();
             }
 
@@ -116,7 +116,7 @@ class AppServiceProvider extends ServiceProvider
         RateLimiter::for('scan-ktp', function (Request $request) {
             $config = ConfigurasiRateLimit::where('name', 'scan-ktp')->first();
 
-            if ($config && ! $config->is_active) {
+            if ($config && ! $config->status) {
                 return Limit::none();
             }
 
@@ -151,7 +151,7 @@ class AppServiceProvider extends ServiceProvider
         try {
             if (Schema::hasTable('setting.email_smtp')) {
                 $smtp = Cache::remember('active_email_smtp', 3600, function () {
-                    return EmailSmtp::where('is_active', true)->first();
+                    return EmailSmtp::where('status', true)->first();
                 });
 
                 if ($smtp) {

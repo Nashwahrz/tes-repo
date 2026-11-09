@@ -14,7 +14,7 @@ class ConfigurasiRateLimit extends Model
     {
         return LogOptions::defaults()
             ->useLogName('configurasi rate limit')
-            ->logOnly(['name', 'request_per_minutes', 'minutes', 'is_active'])
+            ->logOnly(['name', 'request_per_minutes', 'minutes', 'status'])
             ->logOnlyDirty()
             ->dontSubmitEmptyLogs();
     }
@@ -22,6 +22,6 @@ class ConfigurasiRateLimit extends Model
         'name',
         'request_per_minutes',
         'minutes',
-        'is_active',
+        'status',
     ];
 }

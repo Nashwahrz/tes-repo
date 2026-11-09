@@ -15,53 +15,53 @@ return new class extends Migration
         $table->id();
         // $table->foreignId('id_me')->constrained('users')->cascadeOnDelete();
         $table->string('nik', 16)->unique(); 
-        $table->string('name');
-        $table->string('kode_tmp_lahir')->nullable();
-        $table->foreign('kode_tmp_lahir')
-                ->references('kode')
+        $table->string('konsumen_name');
+        $table->string('fk_temp_lahir')->nullable();
+        $table->foreign('fk_temp_lahir')
+                ->references('kabupaten_kota_code')
                 ->on('master.kabupaten_kotas')
                 ->nullOnDelete();
-        $table->date('tgl_lahir');
-        $table->string('jenis_kelamin');
-        $table->string('alamat_ktp');
-        $table->string('alamat_domisili');
+        $table->date('birth_date');
+        $table->string('gender');
+        $table->string('ktp_address');
+        $table->string('domicile_address');
         $table->decimal('latitude', 10, 7)->nullable();
         $table->decimal('longitude', 10, 7)->nullable();
         $table->string('rt', 3);    
         $table->string('rw', 3);
-        $table->string('kode_kelurahan')->nullable();
-        $table->foreign('kode_kelurahan')
-                ->references('kode')
+        $table->string('fk_kelurahan')->nullable();
+        $table->foreign('fk_kelurahan')
+                ->references('kelurahan_code')
                 ->on('master.kelurahans')
                 ->nullOnDelete();
-        $table->string('kode_kecamatan')->nullable();
-        $table->foreign('kode_kecamatan')
-                ->references('kode')
+        $table->string('fk_kecamatan')->nullable();
+        $table->foreign('fk_kecamatan')
+                ->references('kecamatan_code')
                 ->on('master.kecamatans')
                 ->nullOnDelete();
-        $table->string('kode_kabupaten_kota')->nullable();
-        $table->foreign('kode_kabupaten_kota')
-                ->references('kode')
+        $table->string('fk_kabupaten_kota')->nullable();
+        $table->foreign('fk_kabupaten_kota')
+                ->references('kabupaten_kota_code')
                 ->on('master.kabupaten_kotas')
                 ->nullOnDelete();
-        $table->string('kode_provinsi')->nullable();
-        $table->foreign('kode_provinsi')
-                ->references('kode')
+        $table->string('fk_provinsi')->nullable();
+        $table->foreign('fk_provinsi')
+                ->references('provinsi_code')
                 ->on('master.provinsis')
                 ->nullOnDelete();
-        $table->string('kode_agama')->nullable();
-        $table->foreign('kode_agama')
-                ->references('kode')
+        $table->string('fk_agama')->nullable();
+        $table->foreign('fk_agama')
+                ->references('agama_code')
                 ->on('master.agamas')
                 ->nullOnDelete();
-        $table->string('status_perkawinan');
-        $table->string('kode_pekerjaan')->nullable();
-        $table->foreign('kode_pekerjaan')
-                ->references('kode')
+        $table->string('marital_status');
+        $table->string('fk_pekerjaan')->nullable();
+        $table->foreign('fk_pekerjaan')
+                ->references('pekerjaan_code')
                 ->on('master.pekerjaans')
                 ->nullOnDelete();
-        $table->string('kewarganegaraan');
-        $table->string('no_telp', 20);
+        $table->string('nationality');
+        $table->string('phone', 20);
         $table->string('email');
         $table->string('foto_ktp');
         // $table->enum('status', ['pending', 'diterima', 'ditolak'])

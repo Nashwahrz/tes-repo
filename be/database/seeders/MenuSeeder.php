@@ -14,28 +14,28 @@ class MenuSeeder extends Seeder
     {
         $now = now();
         $menus = [
-            ['nama_menu' => 'Dashboard',        'url' => 'dashboard',         'urutan' => 1, 'status' => true],
-            ['nama_menu' => 'Daftar Motor',     'url' => 'daftar-motor',      'urutan' => 2, 'status' => true],
-            ['nama_menu' => 'Daftar Konsumen',  'url' => 'daftar-konsumen',   'urutan' => 3, 'status' => true],
-            ['nama_menu' => 'Penjualan',        'url' => 'penjualan',         'urutan' => 4, 'status' => true],
-            ['nama_menu' => 'Laporan Penjualan','url' => 'laporan-penjualan', 'urutan' => 5, 'status' => true],
-            ['nama_menu' => 'Manajemen User',   'url' => 'users',             'urutan' => 6, 'status' => true],
-            ['nama_menu' => 'Role & Hak Akses', 'url' => 'role-menus',        'urutan' => 7, 'status' => true],
-            ['nama_menu' => 'Daftar Dealer',    'url' => 'dealers',           'urutan' => 8, 'status' => true],
-            ['nama_menu' => 'Daftar Konsumen',  'url' => 'konsumens',         'urutan' => 9, 'status' => true],
-            ['nama_menu' => 'Email WhiteList',  'url' => 'email-whitelists',  'urutan' => 10, 'status' => true],
-            ['nama_menu' => 'Log Aktivitas',    'url' => 'log-aktivitas',     'urutan' => 11, 'status' => true],
-            ['nama_menu' => 'Log Users Login',  'url' => 'log-users',         'urutan' => 12, 'status' => true],
-            ['nama_menu' => 'Daftar Agama',     'url' => 'agamas',            'urutan' => 13, 'status' => true],
-            ['nama_menu' => 'Daftar Pekerjaan', 'url' => 'pekerjaans',          'urutan' => 14, 'status' => true],
-            ['nama_menu' => 'Daftar Provinsi','url' => 'provinsis',           'urutan' => 15, 'status' => true],
-            ['nama_menu' => 'Daftar Kabupaten/Kota','url' => 'kabupaten-kotas',           'urutan' => 16, 'status' => true],
-            ['nama_menu' => 'Daftar Kecamatan','url' => 'kecamatans',           'urutan' => 17, 'status' => true],
-            ['nama_menu' => 'Daftar Kelurahan','url' => 'kelurahans',           'urutan' => 18, 'status' => true],
-            ['nama_menu' => 'Setting rate limit','url' => 'configurasi-rate-limits',           'urutan' => 19, 'status' => true],
-            ['nama_menu' => 'Email Smtp',       'url' => 'email-smtps',         'urutan' => 20, 'status' => true],
-            ['nama_menu' => 'url ip login',       'url' => 'url-ip-logins',         'urutan' => 21, 'status' => true],
-            ['nama_menu' => 'app key ocr',       'url' => 'app-key-ocrs',         'urutan' => 22, 'status' => true],
+            ['menu_name' => 'Dashboard',        'url' => 'dashboard',         'sequence' => 1, 'status' => true],
+            ['menu_name' => 'Daftar Motor',     'url' => 'daftar-motor',      'sequence' => 2, 'status' => true],
+            ['menu_name' => 'Daftar Konsumen',  'url' => 'daftar-konsumen',   'sequence' => 3, 'status' => true],
+            ['menu_name' => 'Penjualan',        'url' => 'penjualan',         'sequence' => 4, 'status' => true],
+            ['menu_name' => 'Laporan Penjualan','url' => 'laporan-penjualan', 'sequence' => 5, 'status' => true],
+            ['menu_name' => 'Manajemen User',   'url' => 'users',             'sequence' => 6, 'status' => true],
+            ['menu_name' => 'Role & Hak Akses', 'url' => 'role-menus',        'sequence' => 7, 'status' => true],
+            ['menu_name' => 'Daftar Dealer',    'url' => 'dealers',           'sequence' => 8, 'status' => true],
+            ['menu_name' => 'Daftar Konsumen',  'url' => 'konsumens',         'sequence' => 9, 'status' => true],
+            ['menu_name' => 'Email WhiteList',  'url' => 'email-whitelists',  'sequence' => 10, 'status' => true],
+            ['menu_name' => 'Log Aktivitas',    'url' => 'log-aktivitas',     'sequence' => 11, 'status' => true],
+            ['menu_name' => 'Log Users Login',  'url' => 'log-users',         'sequence' => 12, 'status' => true],
+            ['menu_name' => 'Daftar Agama',     'url' => 'agamas',            'sequence' => 13, 'status' => true],
+            ['menu_name' => 'Daftar Pekerjaan', 'url' => 'pekerjaans',          'sequence' => 14, 'status' => true],
+            ['menu_name' => 'Daftar Provinsi','url' => 'provinsis',           'sequence' => 15, 'status' => true],
+            ['menu_name' => 'Daftar Kabupaten/Kota','url' => 'kabupaten-kotas',           'sequence' => 16, 'status' => true],
+            ['menu_name' => 'Daftar Kecamatan','url' => 'kecamatans',           'sequence' => 17, 'status' => true],
+            ['menu_name' => 'Daftar Kelurahan','url' => 'kelurahans',           'sequence' => 18, 'status' => true],
+            ['menu_name' => 'Setting rate limit','url' => 'configurasi-rate-limits',           'sequence' => 19, 'status' => true],
+            ['menu_name' => 'Email Smtp',       'url' => 'email-smtps',         'sequence' => 20, 'status' => true],
+            ['menu_name' => 'url ip login',       'url' => 'url-ip-logins',         'sequence' => 21, 'status' => true],
+            ['menu_name' => 'app key ocr',       'url' => 'app-key-ocrs',         'sequence' => 22, 'status' => true],
             
         ];
          $menus = array_map(fn ($m) => $m + [
@@ -46,7 +46,7 @@ class MenuSeeder extends Seeder
             DB::table('hak_akses.menus')->upsert(
                 $menus,
                 ['url'],                                   
-                ['nama_menu', 'urutan', 'status', 'updated_at']
+                ['menu_name', 'sequence', 'status', 'updated_at']
             );
 
     }

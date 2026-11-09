@@ -44,8 +44,8 @@ class AgamaSeeder extends Seeder
 
          
             $rows[$kode] = [
-                'kode'                => $kode,
-                'name'                => $name,
+                'agama_code'                => $kode,
+                'agama_name'                => $name,
                 'created_at'          => now(),
                 'updated_at'          => now(),
             ];
@@ -55,8 +55,8 @@ class AgamaSeeder extends Seeder
             foreach (array_chunk(array_values($rows), 500) as $chunk) {
                 DB::table('master.agamas')->upsert(
                     $chunk,
-                    ['kode'],
-                    ['name', 'updated_at']
+                    ['agama_code'],
+                    ['agama_name', 'updated_at']
                 );
             }
         });

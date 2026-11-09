@@ -24,7 +24,7 @@ class EmailSmtpSeeder extends Seeder
             'mail_encryption'   => 'tls',
             'mail_from_address' => 'ickykuuhaku@gmail.com',
             'mail_from_name'    => 'PT Hayati Pratama Mandiri',
-            'is_active'         => true,
+            'status'         => true,
             'created_at'        => $now,
             'updated_at'        => $now,
         ]

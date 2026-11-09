@@ -107,11 +107,11 @@ class RolePermissionController extends Controller
         try {
             $user = $request->user();
 
-            if (!$user || !$user->id_role) {
+            if (!$user || !$user->fk_role) {
                 return $this->rolePermissionResponse->list([], 'User tidak memiliki role.');
             }
 
-            $permissions = $this->rolePermissionRepository->getPermissionsByRoleId($user->id_role);
+            $permissions = $this->rolePermissionRepository->getPermissionsByRoleId($user->fk_role);
 
             return $this->rolePermissionResponse->list($permissions, 'Daftar permission user berhasil diambil.');
         } catch (Throwable $e) {
