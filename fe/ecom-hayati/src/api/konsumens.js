@@ -115,8 +115,8 @@ export const verifyKonsumen = async (id, status, catatan_penolakan) =>
   (await api.put(`/konsumens/activate/${id}`, { status, ...(status !== 'diterima' ? { catatan_penolakan } : {}) })).data;
 
 // Riwayat aktivitas konsumen (BE: GET /konsumens/logs, butuh permission konsumens.logs); BE memaginasi: { data: [...], meta }
-export const getKonsumenLogs = async (page = 1, search = '') => {
-  const body = (await api.get('/konsumens/logs', { params: { page, ...(search ? { search } : {}) } })).data;
+export const getKonsumenLogs = async (page = 1, search = '', logName = '') => {
+  const body = (await api.get('/konsumens/logs', { params: { page, ...(search ? { search } : {}), ...(logName ? { log_name: logName } : {}) } })).data;
   const m = body.meta ?? {};
   return { rows: body.data ?? [], meta: { page: m.current_page ?? 1, lastPage: m.last_page ?? 1, total: m.total ?? 0, perPage: m.per_page ?? 10 } };
 };

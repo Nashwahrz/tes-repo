@@ -1,31 +1,38 @@
 // src/features/logs/components/KonsumenLogPanel.jsx
 // Riwayat aktivitas konsumen dari BE /konsumens/logs. Hanya baca.
 // BE menggabungkan tiga jenis log (log_name): pengajuan (temp_konsumens), data konsumen, dan relasi penginput (konsumen_mes).
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Toast from '../../../shared/components/Toast';
 import Modal from '../../../shared/components/Modal';
 import Loading from '../../../shared/components/Loading';
 import Pager from '../../../shared/components/Pager';
 import IconButton from '../../../shared/components/IconButton';
 import { getKonsumenLogs, errorMessage } from '../../../api/authServices';
+import { getMasterByKode } from '../../../api/master';
 
 const AKSI = { created: 'Ditambah', updated: 'Diubah', deleted: 'Dihapus' };
 const FIELD_LABEL = {
   nik: 'NIK', name: 'Nama', tgl_lahir: 'Tanggal lahir', jenis_kelamin: 'Jenis kelamin',
   alamat_ktp: 'Alamat sesuai KTP', alamat_domisili: 'Alamat domisili', latitude: 'Latitude', longitude: 'Longitude', rt: 'RT', rw: 'RW',
-  // BE mencatat wilayah/agama/pekerjaan sebagai kode
-  kode_tmp_lahir: 'Kode tempat lahir', kode_kelurahan: 'Kode kelurahan/desa', kode_kecamatan: 'Kode kecamatan',
-  kode_kabupaten_kota: 'Kode kabupaten/kota', kode_provinsi: 'Kode provinsi', kode_agama: 'Kode agama', kode_pekerjaan: 'Kode pekerjaan',
+  // BE mencatat wilayah/agama/pekerjaan sebagai kode; namanya diambil dari data master di FE (lihat MASTER_PATH)
+  kode_tmp_lahir: 'Tempat lahir', kode_kelurahan: 'Kelurahan/desa', kode_kecamatan: 'Kecamatan',
+  kode_kabupaten_kota: 'Kabupaten/kota', kode_provinsi: 'Provinsi', kode_agama: 'Agama', kode_pekerjaan: 'Pekerjaan',
   status_perkawinan: 'Status perkawinan', kewarganegaraan: 'Kewarganegaraan',
   no_telp: 'No. telp', email: 'Email', status: 'Status', catatan_penolakan: 'Catatan penolakan',
   foto_ktp: 'Foto KTP', me: 'Penginput', diverifikator: 'Diverifikasi oleh', diverifikasi_pada: 'Waktu verifikasi',
-  catatan: 'Catatan', tipe: 'Jenis pengajuan', id_konsumen: 'Konsumen',
+  catatan: 'Catatan', tipe: 'Jenis pengajuan', id_konsumen: 'Konsumen', konsumen: 'Konsumen',
 };
 // Nilai enum dari BE diganti label yang mudah dibaca
 const NILAI = {
   status: { pending: 'Menunggu verifikasi', diterima: 'Diterima', revisi: 'Perlu revisi', ditolak: 'Ditolak' },
-  tipe: { tambah: 'Tambah baru', edit: 'Perubahan data' },
+  tipe: { tambah: 'Tambah baru', edit: 'Perubahan data', revisi: 'Perbaikan revisi' },
 };
+// Kolom kode di log => endpoint data master (relasi lewat kolom kode, bukan id)
+const MASTER_PATH = {
+  kode_tmp_lahir: '/kabupaten-kotas', kode_kelurahan: '/kelurahans', kode_kecamatan: '/kecamatans',
+  kode_kabupaten_kota: '/kabupaten-kotas', kode_provinsi: '/provinsis', kode_agama: '/agamas', kode_pekerjaan: '/pekerjaans',
+};
+const masterKey = (k, kode) => `${k}#${kode}`;
 // Jenis log menurut log_name di BE
 const JENIS = { 'temp konsumen': 'Pengajuan', konsumen: 'Data konsumen', 'konsumen me': 'Penginput' };
 const AKSI_JENIS = {
@@ -36,8 +43,10 @@ const AKSI_JENIS = {
 const aksiOf = (l) => AKSI_JENIS[l.log_name]?.[l.aksi] ?? AKSI[l.aksi] ?? l.deskripsi ?? l.aksi;
 
 const fmtWaktu = (iso) => (iso ? new Date(iso).toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' }) : '-');
-const fmtVal = (v, k) => {
+// masters: { 'kode_provinsi#32': 'Jawa Barat' }; nama belum termuat/tidak ada = tampil kodenya saja
+const fmtVal = (v, k, masters = {}) => {
   if (v === null || v === undefined || v === '') return '-';
+  if (MASTER_PATH[k]) { const n = masters[masterKey(k, v)]; return n ? `${n} (${v})` : `Kode ${v}`; }
   if (NILAI[k]?.[v]) return NILAI[k][v];
   if (k === 'id_konsumen') return `#${v}`;
   if (k === 'foto_ktp') return `Foto: ${String(v).split('/').pop()}`; // path di BE disingkat jadi nama file
@@ -46,21 +55,39 @@ const fmtVal = (v, k) => {
 };
 
 // Daftar perubahan: [label, nilai lama, nilai baru] hanya untuk field yang berubah
-function changesOf(log) {
+function changesOf(log, masters) {
   const lama = log.data_lama ?? {};
   const baru = log.data_baru ?? {};
   return [...new Set([...Object.keys(baru), ...Object.keys(lama)])]
     .filter((k) => k !== 'updated_at' && JSON.stringify(lama[k]) !== JSON.stringify(baru[k]))
-    .map((k) => [FIELD_LABEL[k] ?? k, fmtVal(lama[k], k), fmtVal(baru[k], k)]);
+    .map((k) => [FIELD_LABEL[k] ?? k, fmtVal(lama[k], k, masters), fmtVal(baru[k], k, masters)]);
 }
 
 // Nama konsumen: dari subject, atau dari isi log (pengajuan/konsumen punya name; relasi penginput hanya id_konsumen)
-const namaOf = (l) => l.konsumen ?? l.user_subject ?? l.data_baru?.name ?? l.data_lama?.name
-  ?? ((l.data_baru?.id_konsumen ?? l.data_lama?.id_konsumen) != null ? `Konsumen #${l.data_baru?.id_konsumen ?? l.data_lama?.id_konsumen}` : '-');
+// names: { id konsumen: nama } dari log lain di halaman yang sama (log penginput tidak memuat nama konsumen)
+// BE: subject = { id, name }; id_konsumen di isi log sudah dipetakan jadi konsumen = { id, name }
+const konsumenRefOf = (l) => l.data_baru?.konsumen ?? l.data_lama?.konsumen;
+const idKonsumenOf = (l) => konsumenRefOf(l)?.id ?? l.data_baru?.id_konsumen ?? l.data_lama?.id_konsumen;
+const namaOf = (l, names = {}) => l.subject?.name ?? l.data_baru?.name ?? l.data_lama?.name ?? konsumenRefOf(l)?.name
+  ?? (idKonsumenOf(l) != null ? (names[idKonsumenOf(l)] ?? `Konsumen #${idKonsumenOf(l)}`) : '-');
+
+// Kalimat untuk log penginput (konsumen_mes): siapa yang mengambil data konsumen
+const penginputOf = (l) => {
+  const me = l.data_baru?.me ?? l.data_lama?.me;
+  return me?.name ?? (me?.id != null ? `User #${me.id}` : 'penginput');
+};
+const kalimatOf = (l, names) => {
+  if (l.log_name !== 'konsumen me') return null;
+  const nama = namaOf(l, names);
+  if (l.aksi === 'created') return `Data konsumen ${nama} diambil oleh ${penginputOf(l)}`;
+  if (l.aksi === 'deleted') return `${penginputOf(l)} dilepas dari data konsumen ${nama}`;
+  return `Penginput data konsumen ${nama} diubah menjadi ${penginputOf(l)}`;
+};
 
 // Ringkasan data yang diubah untuk tabel: nama kolom saja, mis. "Nama, No. telp"
 const ringkasan = (l) => {
   const c = changesOf(l);
+  if (l.log_name === 'konsumen me') return 'Penautan penginput';
   if (l.aksi === 'created') return 'Data baru dibuat';
   if (l.aksi === 'deleted') return 'Data dihapus';
   if (c.length === 0) return '-';
@@ -76,6 +103,7 @@ function KonsumenLogPanel() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [detail, setDetail] = useState(null);
+  const [group, setGroup] = useState(''); // '' = semua jenis log
 
   // Pencarian ditunda agar tidak memanggil BE di setiap ketukan
   useEffect(() => {
@@ -90,13 +118,39 @@ function KonsumenLogPanel() {
 
   useEffect(() => {
     let active = true;
-    getKonsumenLogs(page, search)
+    getKonsumenLogs(page, search, group)
       .then((res) => { if (active) { setRows(res.rows); setMeta(res.meta); setError(''); setLoading(false); } })
       .catch((err) => { if (active) { setError(errorMessage(err)); setLoading(false); } });
     return () => { active = false; };
-  }, [page, search]);
+  }, [page, search, group]);
 
-  const changes = detail ? changesOf(detail) : [];
+  // Nama konsumen untuk log penginput, diambil dari log konsumen/pengajuan lain di halaman ini
+  const names = useMemo(() => {
+    const m = {};
+    rows.forEach((l) => {
+      const id = l.log_name === 'konsumen' ? l.subject?.id : idKonsumenOf(l);
+      const nama = l.subject?.name ?? l.data_baru?.name ?? l.data_lama?.name ?? konsumenRefOf(l)?.name;
+      if (id != null && nama) m[id] = nama;
+    });
+    return m;
+  }, [rows]);
+
+  // Nama data master dari kode di rincian yang dibuka (hasilnya di-cache oleh getMasterByKode)
+  const [masters, setMasters] = useState({});
+  useEffect(() => {
+    if (!detail) return undefined;
+    let active = true;
+    const pairs = new Set();
+    [detail.data_lama, detail.data_baru].forEach((d) => Object.keys(MASTER_PATH).forEach((k) => d?.[k] && pairs.add(`${k}|${d[k]}`)));
+    pairs.forEach((p) => {
+      const [k, kode] = p.split('|');
+      getMasterByKode(MASTER_PATH[k], kode)
+        .then((m) => { if (active && m?.name) setMasters((prev) => ({ ...prev, [masterKey(k, kode)]: m.name })); })
+        .catch(() => {});
+    });
+    return () => { active = false; };
+  }, [detail]);
+  const changes = detail ? changesOf(detail, masters) : [];
 
   return (
     <div>
@@ -107,6 +161,11 @@ function KonsumenLogPanel() {
 
       <div className="dash-toolbar">
         <input id="konsumenlog-search" className="dash-input dash-input-search" type="search" placeholder="Cari nama konsumen..." value={query} onChange={(e) => setQuery(e.target.value)} />
+        <select id="konsumenlog-group" className="dash-input" value={group} aria-label="Kelompok log"
+          onChange={(e) => { setLoading(true); setPage(1); setGroup(e.target.value); }}>
+          <option value="">Semua kelompok</option>
+          {Object.entries(JENIS).map(([key, label]) => <option key={key} value={key}>{label}</option>)}
+        </select>
       </div>
 
       <Toast kind="error" message={error} onClose={() => setError('')} />
@@ -122,12 +181,12 @@ function KonsumenLogPanel() {
               <tr><th>Waktu</th><th>Konsumen</th><th>Jenis</th><th>Aktivitas</th><th>Data yang diubah</th><th>Oleh</th><th className="col-aksi">Rincian</th></tr>
             </thead>
             <tbody>
-              {rows.map((l) => (
+              {rows.filter((l) => !group || l.log_name === group).map((l) => (
                 <tr key={l.id}>
                   <td>{fmtWaktu(l.waktu)}</td>
-                  <td><strong className="dash-cell-name">{namaOf(l)}</strong></td>
+                  <td><strong className="dash-cell-name">{namaOf(l, names)}</strong></td>
                   <td>{JENIS[l.log_name] ?? l.log_name ?? '-'}</td>
-                  <td>{aksiOf(l)}</td>
+                  <td>{kalimatOf(l, names) ?? aksiOf(l)}</td>
                   <td>{ringkasan(l)}</td>
                   <td>{l.oleh?.name ?? 'Sistem'}</td>
                   <td className="col-aksi"><div className="dash-actions"><IconButton id={`btn-konsumenlog-detail-${l.id}`} icon="view" label="Perubahan" onClick={() => setDetail(l)} /></div></td>
@@ -145,7 +204,7 @@ function KonsumenLogPanel() {
       {detail && (
         <Modal onClose={() => setDetail(null)} dismissOnBackdrop>
           <div className="dash-modal-head">
-            <h3>{aksiOf(detail)}: {namaOf(detail)}</h3>
+            <h3>{kalimatOf(detail, names) ?? `${aksiOf(detail)}: ${namaOf(detail, names)}`}</h3>
             <button id="btn-konsumenlog-close" type="button" className="dash-modal-close" onClick={() => setDetail(null)} aria-label="Tutup" title="Tutup">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M18 6 6 18M6 6l12 12" /></svg>
             </button>

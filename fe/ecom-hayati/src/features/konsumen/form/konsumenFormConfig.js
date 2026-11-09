@@ -30,10 +30,19 @@ export const MAX_FILE = 2 * 1024 * 1024; // 2MB, sama dengan BE
 export const MAX_PICK = 25 * 1024 * 1024; // foto asli di atas ini ditolak; di bawahnya diperkecil otomatis bila melebihi MAX_FILE
 export const TARGET_FILE = 1.9 * 1024 * 1024; // sasaran hasil perkecilan, sedikit di bawah batas BE
 
-// BE mengirim tgl_lahir sebagai ISO (UTC); ambil bagian tanggalnya saja
+// tgl_lahir dari BE bisa "YYYY-MM-DD" (daftar) atau ISO UTC (model Eloquent, mis. hasil cek NIK).
+// ISO UTC dari tanggal Jakarta mundur sehari (1990-05-10 -> "1990-05-09T17:00:00Z"), jadi dikembalikan ke zona waktu BE (Asia/Jakarta)
+// agar tanggal yang tidak diubah user tidak terkirim sebagai tanggal berbeda (yang memicu verifikasi ulang)
+export const tglLahirOf = (v) => {
+  if (!v) return '';
+  const s = String(v);
+  if (/^\d{4}-\d{2}-\d{2}$/.test(s) || !/[zZ]$|[+-]\d{2}:?\d{2}$/.test(s)) return s.slice(0, 10);
+  const d = new Date(s);
+  return Number.isNaN(d.getTime()) ? s.slice(0, 10) : d.toLocaleDateString('sv-SE', { timeZone: 'Asia/Jakarta' });
+};
 export const toForm = (k) => Object.fromEntries(FIELDS.map((f) => {
   let v = k[f] ?? '';
-  if (f === 'tgl_lahir' && v) v = String(v).slice(0, 10);
+  if (f === 'tgl_lahir' && v) v = tglLahirOf(v);
   return [f, String(v)];
 }));
 

@@ -1,9 +1,12 @@
 import { ktpUrl } from '../../../api/authServices';
 import { Spin } from '../../../shared/components/Loading';
+import { tglLahirOf } from '../form/konsumenFormConfig';
 
 // Halaman detail konsumen di area konten (sidebar tetap tampil). names: nama wilayah/agama/pekerjaan hasil lookup ID.
 // verify: null atau { status, catatan, onCatatan, saving, own, onConfirm, onCancel } saat konfirmasi terima/tolak dibuka di halaman ini
 function KonsumenDetailView({ detail, names: detailNames, dealerName, statusNode, canEdit, canAdd, canTake, canVerify, verify, onVerify, onEdit, onAdd, onTake, onBack, onPhotoError }) {
+  // Penginput lain yang mengambil data konsumen ini (BE: GET /konsumens/{id} memuat konsumen_mes.me untuk konsumen terdaftar)
+  const others = detail.status === 'diterima' ? (detail.konsumen_mes ?? []).filter((m) => m.id_me !== detail.id_me) : [];
   return (
     <div className="konsumen-page">
       <div className="dash-card-head">
@@ -32,7 +35,7 @@ function KonsumenDetailView({ detail, names: detailNames, dealerName, statusNode
         <dl className="dash-detail">
           {[
             ['NIK', detail.nik], ['Nama', detail.name],
-            ['Tempat, Tgl Lahir', [detailNames.tempatLahir, detail.tgl_lahir && String(detail.tgl_lahir).slice(0, 10)].filter(Boolean).join(', ')],
+            ['Tempat, Tgl Lahir', [detailNames.tempatLahir, tglLahirOf(detail.tgl_lahir)].filter(Boolean).join(', ')],
             ['Jenis Kelamin', detail.jenis_kelamin], ['Alamat (KTP)', detail.alamat_ktp], ['Alamat Domisili', detail.alamat_domisili],
             ['Koordinat', detail.latitude && detail.longitude ? (
               <span style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
@@ -56,6 +59,7 @@ function KonsumenDetailView({ detail, names: detailNames, dealerName, statusNode
             ['Pekerjaan', detailNames.pekerjaan], ['Kewarganegaraan', detail.kewarganegaraan],
             ['No. Telp', detail.no_telp], ['Email', detail.email],
             ['Dealer', dealerName],
+            ...(others.length ? [['Juga diambil oleh', others.map((m) => `${m.me?.name ?? `User #${m.id_me}`}${m.created_at ? ` (${new Date(m.created_at).toLocaleDateString('id-ID', { dateStyle: 'medium' })})` : ''}`).join(', ')]] : []),
             ['Didaftarkan oleh', detail.me?.name ?? detail.me?.email],
             ['Diverifikasi oleh', detail.verified_by?.name ?? detail.verifiedBy?.name],
           ].map(([l, v]) => (

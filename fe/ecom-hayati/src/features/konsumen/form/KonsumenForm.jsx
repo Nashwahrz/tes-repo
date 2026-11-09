@@ -1,6 +1,5 @@
 import { lazy, Suspense, useEffect, useRef, useState } from 'react';
 import ConfirmModal from '../../../shared/components/ConfirmModal';
-import Modal from '../../../shared/components/Modal';
 import { Spin } from '../../../shared/components/Loading';
 import KonsumenField from './KonsumenField';
 import { useKonsumenMaster } from './useKonsumenMaster';
@@ -31,12 +30,12 @@ function KonsumenForm({ editing, takeFrom, can, onClose, onSaved, onError }) {
   const [compressNote, setCompressNote] = useState('');
   const [scanNote, setScanNote] = useState('');
   const [photoWarn, setPhotoWarn] = useState([]); // peringatan kualitas foto (arah, buram) sebelum dipindai
-  const [ktpCheck, setKtpCheck] = useState('unchecked'); // hasil validasi KTP lewat OCR: unchecked | valid | invalid | override
+  const [ktpCheck, setKtpCheck] = useState('unchecked'); // hasil validasi KTP lewat OCR: unchecked | valid | invalid
   const [ocrFilled, setOcrFilled] = useState({}); // { kolom: true } terisi otomatis dari scan KTP dan belum diubah user; diberi pengingat periksa ulang
   const [ocrMissing, setOcrMissing] = useState({}); // { kolom: true } tidak terbaca oleh scan KTP; tampil di bawah kolomnya
   const [ocrHints, setOcrHints] = useState({}); // { kolom: teks hasil OCR yang tidak cocok dengan daftar }; tampil di bawah kolomnya
   const [confirmSave, setConfirmSave] = useState(false);
-  const [ktpWarn, setKtpWarn] = useState(false); // peringatan: foto baru belum diperiksa sebagai KTP
+  const [verifying, setVerifying] = useState(false); // memeriksa foto sebagai KTP sebelum simpan
   const fileRef = useRef(null);
   const pageRef = useRef(null);
   useEffect(() => { pageRef.current?.scrollIntoView({ block: 'start' }); }, []); // halaman penuh: mulai dari atas
@@ -90,7 +89,7 @@ function KonsumenForm({ editing, takeFrom, can, onClose, onSaved, onError }) {
   // NIK yang sudah terdaftar: BE memakai foto KTP yang ada bila tidak ada foto baru
   const baseErrors = validate(form, file, !editing && !shownNikDup);
   // Foto yang sudah dipindai dan tidak terdeteksi sebagai KTP menahan penyimpanan, kecuali pemakai memilih tetap memakainya
-  const errors = ktpCheck === 'invalid' && file ? { ...baseErrors, foto_ktp: 'Foto tidak terdeteksi sebagai KTP. Ganti foto, atau pilih "Tetap gunakan foto ini" bila yakin itu KTP.' } : baseErrors;
+  const errors = ktpCheck === 'invalid' && file ? { ...baseErrors, foto_ktp: 'Foto tidak terdeteksi sebagai KTP. Silakan ganti dengan foto KTP yang jelas.' } : baseErrors;
   const hasError = Object.keys(errors).length > 0;
   // Data konsumen terdaftar yang diambil: BE tidak meminta verifikasi ulang bila data sama persis (tanpa foto baru, tanpa kolom berubah)
   // dan konsumen itu sudah pernah diterima. Perubahan sekecil apa pun (termasuk foto baru) dianggap data baru dan menunggu verifikasi.
@@ -143,24 +142,9 @@ function KonsumenForm({ editing, takeFrom, can, onClose, onSaved, onError }) {
     }
     setPhotoWarn(quality.warnings);
     setKtpCheck('unchecked');
-    let f = original;
-    // Melebihi 2MB: foto diperkecil otomatis di browser sebelum dipakai
-    if (original.size > MAX_FILE) {
-      setCompressing(true);
-      try {
-        const res = await compressImage(original, TARGET_FILE);
-        f = res.file;
-        setCompressNote(`Foto diperkecil otomatis dari ${(original.size / 1048576).toFixed(1)}MB menjadi ${(f.size / 1048576).toFixed(1)}MB.`);
-      } catch (err) {
-        onError(err.message || 'Foto tidak dapat diperkecil.');
-        return;
-      } finally {
-        setCompressing(false);
-      }
-    } else {
-      setCompressNote('');
-    }
-    setPicked(f);
+    // Foto dikompres nanti, saat Simpan diklik
+    setCompressNote('');
+    setPicked(original);
     setTouched((t) => ({ ...t, foto_ktp: true }));
   };
 
@@ -196,7 +180,7 @@ function KonsumenForm({ editing, takeFrom, can, onClose, onSaved, onError }) {
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setTouched(Object.fromEntries([...FIELDS, 'foto_ktp'].map((k) => [k, true])));
     if (hasError) {
@@ -205,10 +189,41 @@ function KonsumenForm({ editing, takeFrom, can, onClose, onSaved, onError }) {
       document.getElementById(`konsumen-${first}`)?.scrollIntoView({ block: 'center', behavior: 'smooth' });
       return;
     }
-    // Foto baru yang belum dipindai belum bisa dipastikan KTP: beri peringatan dulu sebelum konfirmasi simpan
-    if (file && ktpCheck === 'unchecked') {
-      setKtpWarn(true);
-      return;
+    onError('');
+    // Melebihi 2MB: foto diperkecil otomatis di browser saat Simpan diklik
+    let f = file;
+    if (f && f.size > MAX_FILE) {
+      setCompressing(true);
+      try {
+        const res = await compressImage(f, TARGET_FILE);
+        setCompressNote(`Foto diperkecil otomatis dari ${(f.size / 1048576).toFixed(1)}MB menjadi ${(res.file.size / 1048576).toFixed(1)}MB.`);
+        f = res.file;
+        setFile(f);
+      } catch (err) {
+        onError(err.message || 'Foto tidak dapat diperkecil.');
+        return;
+      } finally {
+        setCompressing(false);
+      }
+    }
+    // Foto baru yang belum dipindai wajib diperiksa dulu sebagai KTP (tanpa menimpa data yang diisi manual)
+    if (f && ktpCheck === 'unchecked' && can.scan) {
+      setVerifying(true);
+      try {
+        const r = await scanKtpToForm(f, master);
+        if (r.notKtp) {
+          setKtpCheck('invalid');
+          setScanNote(r.note);
+          document.getElementById('konsumen-foto_ktp')?.scrollIntoView({ block: 'center', behavior: 'smooth' });
+          return;
+        }
+        setKtpCheck('valid');
+      } catch (err) {
+        onError(errorMessage(err));
+        return;
+      } finally {
+        setVerifying(false);
+      }
     }
     setConfirmSave(true);
   };
@@ -271,14 +286,9 @@ function KonsumenForm({ editing, takeFrom, can, onClose, onSaved, onError }) {
               <strong>{scanNote.ok ? '✓' : '!'}</strong> {scanNote.text}
             </p>
           )}
-          {ktpCheck === 'invalid' && (
-            <div className="dash-actions">
-              <button id="btn-konsumen-ktp-override" type="button" className="dash-btn outline" onClick={() => { setKtpCheck('override'); setScanNote(''); }}>Tetap gunakan foto ini</button>
-            </div>
-          )}
           {photoWarn.map((w) => <p key={w} className="dash-alert warning" role="status"><strong>!</strong> {w}</p>)}
           {compressNote && <p id="ktp-compress-note" className="dash-map-hint" role="status">{compressNote}</p>}
-          <p className="dash-map-hint">JPG/PNG. Foto di atas 2MB diperkecil otomatis.{editing && ' Kosongkan bila foto tidak diganti.'}{can.scan && ' Pilih foto baru untuk memakai OCR.'}</p>
+          <p className="dash-map-hint">JPG/PNG. Foto di atas 2MB diperkecil otomatis saat disimpan.{editing && ' Kosongkan bila foto tidak diganti.'}{can.scan && ' Pilih foto baru untuk memakai OCR.'}</p>
           {touched.foto_ktp && errors.foto_ktp && <p className="dash-field-error">{errors.foto_ktp}</p>}
         </div>
 
@@ -331,7 +341,7 @@ function KonsumenForm({ editing, takeFrom, can, onClose, onSaved, onError }) {
           {field('alamat_domisili', 'Alamat Domisili')}
         </div>
         <div className="dash-form-group">
-          <label>Lokasi di Peta *</label>
+          <label>Cari di Peta *</label>
           <Suspense fallback={<div className="dash-map" />}>
             <MapPicker
               latitude={form.latitude}
@@ -343,7 +353,7 @@ function KonsumenForm({ editing, takeFrom, can, onClose, onSaved, onError }) {
               provinsi={nameOf(master.provinsi, form.kode_provinsi)}
             />
           </Suspense>
-          <p className="dash-map-hint">Cari alamat, klik peta, atau geser marker untuk menentukan titik lokasi konsumen.</p>
+          <p className="dash-map-hint">Cari tempat, klik peta, atau geser marker untuk menandai titik koordinat konsumen (terpisah dari alamat domisili di atas).</p>
         </div>
         <div className="dash-form-row">
           {field('latitude', 'Latitude', { numeric: true, placeholder: '-0.9471000' })}
@@ -374,26 +384,9 @@ function KonsumenForm({ editing, takeFrom, can, onClose, onSaved, onError }) {
 
         <div className="dash-modal-actions">
           <button id="btn-konsumen-cancel" type="button" className="dash-btn outline" onClick={onClose}>Batal</button>
-          <button id="btn-konsumen-save" type="submit" className="dash-btn solid" disabled={saving}>{saving ? <><Spin />Menyimpan...</> : 'Simpan'}</button>
+          <button id="btn-konsumen-save" type="submit" className="dash-btn solid" disabled={saving || verifying || compressing}>{saving ? <><Spin />Menyimpan...</> : compressing ? <><Spin />Memperkecil foto...</> : verifying ? <><Spin />Memeriksa foto KTP...</> : 'Simpan'}</button>
         </div>
       </form>
-
-      {ktpWarn && (
-        <Modal onClose={() => setKtpWarn(false)} dismissOnBackdrop>
-          <h3>Foto belum diperiksa sebagai KTP</h3>
-          <p className="dash-card-desc">
-            Foto yang Anda pilih belum dipindai, jadi belum bisa dipastikan bahwa itu KTP.
-            {can.scan ? ' Disarankan memindai dulu agar foto dan data diperiksa.' : ' Pastikan foto adalah KTP yang jelas dan seluruh kartunya terlihat.'}
-          </p>
-          <div className="dash-modal-actions">
-            <button id="btn-konsumen-ktp-warn-cancel" type="button" className="dash-btn outline" onClick={() => setKtpWarn(false)}>Batal</button>
-            {can.scan && (
-              <button id="btn-konsumen-ktp-warn-scan" type="button" className="dash-btn soft" onClick={() => { setKtpWarn(false); handleScan(); }}>Pindai KTP dulu</button>
-            )}
-            <button id="btn-konsumen-ktp-warn-continue" type="button" className="dash-btn solid" onClick={() => { setKtpWarn(false); setKtpCheck('override'); setConfirmSave(true); }}>Tetap gunakan foto ini</button>
-          </div>
-        </Modal>
-      )}
 
       {confirmSave && (
         <ConfirmModal
