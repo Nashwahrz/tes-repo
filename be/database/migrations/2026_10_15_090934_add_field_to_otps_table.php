@@ -13,10 +13,10 @@ return new class extends Migration
     {
         DB::table('otps')->truncate();
         Schema::table('otps', function (Blueprint $table) {
-            $table->string('purpose', 30)->after('id_user');
-            $table->timestamp('expires_at')->nullable(false)->change();
+            $table->string('purpose', 30)->after('fk_user');
+            $table->timestamp('otp_expires_at')->nullable(false)->change();
 
-            $table->unique(['id_user', 'purpose']);
+            $table->unique(['fk_user', 'purpose']);
         });
     }
 
@@ -26,9 +26,9 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('otps', function (Blueprint $table) {
-            $table->dropUnique(['id_user', 'purpose']);
+            $table->dropUnique(['fk_user', 'purpose']);
             $table->dropColumn(['purpose', 'attempts', 'used_at']);
-            $table->timestamp('expires_at')->nullable()->change();
+            $table->timestamp('otp_expires_at')->nullable()->change();
         });
     }
 };

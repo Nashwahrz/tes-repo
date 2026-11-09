@@ -40,7 +40,7 @@ class LoginLogService
     {
         if (! $this->urlIpLoginLoaded) {
             $this->urlIpLoginConfig = Cache::remember('active_url_ip_login', 3600, function () {
-                return UrlIpLogin::where('is_active', true)->first();
+                return UrlIpLogin::where('status', true)->first();
             });
             $this->urlIpLoginLoaded = true;
         }
@@ -60,7 +60,7 @@ class LoginLogService
 
     public function isActive(): bool
     {
-        return (bool) $this->getConfig()?->is_active;
+        return (bool) $this->getConfig()?->status;
     }
 
     private function throttleKey(string $ip, string $email): string
@@ -236,7 +236,7 @@ class LoginLogService
         try {
             $urlSetting = $this->getUrlIpLogin();
 
-            if (! $urlSetting || ! $urlSetting->is_active || empty($urlSetting->url)) {
+            if (! $urlSetting || ! $urlSetting->status || empty($urlSetting->url)) {
                 return [];
             }
 

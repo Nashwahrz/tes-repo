@@ -52,7 +52,7 @@ class TempKonsumenRepository
 
             $existingKonsumen = Konsumen::where('nik', $nik)->first();
 
-            $existingTemp = TempKonsumen::where('id_me', $userId)
+            $existingTemp = TempKonsumen::where('fk_me', $userId)
                 ->where('nik', $nik)
                 ->whereIn('status', [StatusKonsumen::Pending, StatusKonsumen::Revisi])
                 ->latest('id')
@@ -63,12 +63,33 @@ class TempKonsumenRepository
 
             if ($existingKonsumen) {
                 $fieldsToCompare = [
-                    'name', 'kode_tmp_lahir', 'tgl_lahir', 'jenis_kelamin',
-                    'alamat_ktp', 'alamat_domisili', 'latitude', 'longitude',
-                    'rt', 'rw', 'kode_kelurahan', 'kode_kecamatan',
-                    'kode_kabupaten_kota', 'kode_provinsi', 'kode_agama',
-                    'status_perkawinan', 'kode_pekerjaan', 'kewarganegaraan',
-                    'no_telp', 'email'
+                    // 'name', 'fk_temp_lahir', 'birth_date', 'gender',
+                    // 'ktp_address', 'domicile_address', 'latitude', 'longitude',
+                    // 'rt', 'rw', 'fk_kelurahan', 'fk_kecamatan',
+                    // 'fk_kabupaten_kota', 'fk_provinsi', 'fk_agama',
+                    // 'marital_status', 'fk_pekerjaan', 'nationality',
+                    // 'phone', 'email'
+                    'konsumen_name',
+                    'fk_temp_lahir',
+                    'birth_date',
+                    'gender',
+                    'ktp_address',
+                    'domicile_address',
+                    'latitude',
+                    'longitude',
+                    'rt',
+                    'rw',
+                    'fk_kelurahan',
+                    'fk_kecamatan',
+                    'fk_kabupaten_kota',
+                    'fk_provinsi',
+                    'fk_agama',
+                    'marital_status',
+                    'fk_pekerjaan',
+                    'nationality',
+                    'phone',
+                    'email',
+                   // 'foto_ktp',
                 ];
 
                 foreach ($fieldsToCompare as $field) {
@@ -86,7 +107,7 @@ class TempKonsumenRepository
                         $newVal = $newVal->value;
                     }
 
-                    if ($field === 'tgl_lahir') {
+                    if ($field === 'birth_date') {
                         $oldVal = $oldVal ? Carbon::parse($oldVal)->format('Y-m-d') : null;
                         $newVal = $newVal ? Carbon::parse($newVal)->format('Y-m-d') : null;
                     }
@@ -111,8 +132,8 @@ class TempKonsumenRepository
             }
             if ($existingKonsumen && !$isDataChanged) {
                 KonsumenMe::firstOrCreate([
-                    'id_me'       => $userId,
-                    'id_konsumen' => $existingKonsumen->id,
+                    'fk_me'       => $userId,
+                    'fk_konsumen' => $existingKonsumen->id,
                 ]);
 
                 if ($existingTemp) {
@@ -134,14 +155,14 @@ class TempKonsumenRepository
             }
 
             $payload = array_merge($data, [
-                'id_me'             => $userId,
-                'id_konsumen'       => $idKonsumen,
-                'tipe'              => $tipe,
+                'fk_me'             => $userId,
+                'fk_konsumen'       => $idKonsumen,
+                'type'              => $tipe,
                 'status'            => StatusKonsumen::Pending,
-                'catatan'           => null,
-                'data_sebelumnya'   => $dataSebelumnya,
-                'diverifikasi_oleh' => null,
-                'diverifikasi_at'   => null,
+                'note'           => null,
+                'old_data'   => $dataSebelumnya,
+                'verified_by' => null,
+                'verified_at'   => null,
             ]);
 
             if ($existingTemp) {
@@ -182,7 +203,7 @@ class TempKonsumenRepository
     ): LengthAwarePaginator {
         return TempKonsumen::with(['me.dealer', 'verifiedBy', 'konsumen'])
             ->when($status, fn ($q) => $q->where('status', $status))
-            ->when($userId, fn ($q) => $q->where('id_me', $userId))
+            ->when($userId, fn ($q) => $q->where('fk_me', $userId))
             ->when($dealerId, fn ($q) => $q->whereHas('me', fn ($q) => $q->where('id_dealer', $dealerId)))
             ->when($search, function ($q) use ($search) {
                 $q->where(function ($q) use ($search) {
@@ -196,15 +217,15 @@ class TempKonsumenRepository
 
     public function activateKonsumen(
         TempKonsumen $tempKonsumen,
-        ?int $diverifikasi_oleh,
-        ?string $catatan_penolakan,
+        ?int $verified_by,
+        ?string $note,
         StatusKonsumen $status
     ): TempKonsumen {
-        return DB::transaction(function () use ($tempKonsumen, $diverifikasi_oleh, $catatan_penolakan, $status) {
+        return DB::transaction(function () use ($tempKonsumen, $verified_by, $note, $status) {
             if ($status === StatusKonsumen::Diterima) {
                 $konsumen = null;
-                if ($tempKonsumen->id_konsumen) {
-                    $konsumen = Konsumen::find($tempKonsumen->id_konsumen);
+                if ($tempKonsumen->fk_konsumen) {
+                    $konsumen = Konsumen::find($tempKonsumen->fk_konsumen);
                 }
                 if (!$konsumen && $tempKonsumen->nik) {
                     $konsumen = Konsumen::where('nik', $tempKonsumen->nik)->first();
@@ -212,25 +233,25 @@ class TempKonsumenRepository
 
                 $konsumenData = [
                     'nik'                 => $tempKonsumen->nik,
-                    'name'                => $tempKonsumen->name,
-                    'kode_tmp_lahir'      => $tempKonsumen->kode_tmp_lahir,
-                    'tgl_lahir'           => $tempKonsumen->tgl_lahir,
-                    'jenis_kelamin'       => $tempKonsumen->jenis_kelamin,
-                    'alamat_ktp'          => $tempKonsumen->alamat_ktp,
-                    'alamat_domisili'     => $tempKonsumen->alamat_domisili,
+                    'konsumen_name'                => $tempKonsumen->konsumen_name,
+                    'fk_temp_lahir'      => $tempKonsumen->fk_temp_lahir,
+                    'birth_date'           => $tempKonsumen->birth_date,
+                    'gender'       => $tempKonsumen->gender,
+                    'ktp_address'          => $tempKonsumen->ktp_address,
+                    'domicile_address'     => $tempKonsumen->domicile_address,
                     'latitude'            => $tempKonsumen->latitude,
                     'longitude'           => $tempKonsumen->longitude,
                     'rt'                  => $tempKonsumen->rt,
                     'rw'                  => $tempKonsumen->rw,
-                    'kode_kelurahan'      => $tempKonsumen->kode_kelurahan,
-                    'kode_kecamatan'      => $tempKonsumen->kode_kecamatan,
-                    'kode_kabupaten_kota' => $tempKonsumen->kode_kabupaten_kota,
-                    'kode_provinsi'       => $tempKonsumen->kode_provinsi,
-                    'kode_agama'          => $tempKonsumen->kode_agama,
-                    'status_perkawinan'   => $tempKonsumen->status_perkawinan,
-                    'kode_pekerjaan'      => $tempKonsumen->kode_pekerjaan,
-                    'kewarganegaraan'     => $tempKonsumen->kewarganegaraan,
-                    'no_telp'             => $tempKonsumen->no_telp,
+                    'fk_kelurahan'      => $tempKonsumen->fk_kelurahan,
+                    'fk_kecamatan'      => $tempKonsumen->fk_kecamatan,
+                    'fk_kabupaten_kota' => $tempKonsumen->fk_kabupaten_kota,
+                    'fk_provinsi'       => $tempKonsumen->fk_provinsi,
+                    'fk_agama'          => $tempKonsumen->fk_agama,
+                    'marital_status'   => $tempKonsumen->marital_status,
+                    'fk_pekerjaan'      => $tempKonsumen->fk_pekerjaan,
+                    'nationality'     => $tempKonsumen->nationality,
+                    'phone'             => $tempKonsumen->phone,
                     'email'               => $tempKonsumen->email,
                     'foto_ktp'            => $tempKonsumen->foto_ktp,
                 ];
@@ -250,26 +271,26 @@ class TempKonsumenRepository
                     $konsumen = Konsumen::create($konsumenData);
                 }
 
-                if ($tempKonsumen->id_me) {
+                if ($tempKonsumen->fk_me) {
                     KonsumenMe::firstOrCreate([
-                        'id_me'       => $tempKonsumen->id_me,
-                        'id_konsumen' => $konsumen->id,
+                        'fk_me'       => $tempKonsumen->fk_me,
+                        'fk_konsumen' => $konsumen->id,
                     ]);
                 }
 
                 $tempKonsumen->update([
-                    'id_konsumen'       => $konsumen->id,
+                    'fk_konsumen'       => $konsumen->id,
                     'status'            => StatusKonsumen::Diterima,
-                    'catatan'           => null,
-                    'diverifikasi_oleh' => $diverifikasi_oleh,
-                    'diverifikasi_at'   => now(),
+                    'note'           => null,
+                    'verified_by' => $verified_by,
+                    'verified_at'   => now(),
                 ]);
             } else {
                 $tempKonsumen->update([
                     'status'            => $status,
-                    'catatan'           => $catatan_penolakan,
-                    'diverifikasi_oleh' => $diverifikasi_oleh,
-                    'diverifikasi_at'   => now(),
+                    'note'           => $note,
+                    'verified_by' => $verified_by,
+                    'verified_at'   => now(),
                 ]);
             }
 
@@ -282,7 +303,7 @@ class TempKonsumenRepository
         $userId ??= auth()->id();
 
         return TempKonsumen::with(['me.dealer', 'verifiedBy', 'konsumen'])
-            ->when($userId, fn ($q) => $q->where('id_me', $userId))
+            ->when($userId, fn ($q) => $q->where('fk_me', $userId))
             ->when($search, function ($q) use ($search) {
                 $q->where(function ($q) use ($search) {
                     $q->where('name', 'ILIKE', "%{$search}%")
@@ -309,7 +330,7 @@ class TempKonsumenRepository
     public function paginateDealerAll(int $perPage = 10, ?string $search = null, ?int $userId = null, ?int $dealerId = null): LengthAwarePaginator
     {
         return TempKonsumen::with(['me.dealer', 'verifiedBy', 'konsumen'])
-            ->when($userId, fn ($q) => $q->where('id_me', $userId))
+            ->when($userId, fn ($q) => $q->where('fk_me', $userId))
             ->when($dealerId, fn ($q) => $q->whereHas('me', fn ($q) => $q->where('id_dealer', $dealerId)))
             ->when($search, function ($q) use ($search) {
                 $q->where(function ($q) use ($search) {
@@ -346,10 +367,10 @@ class TempKonsumenRepository
     {
         $userIds = $logs->getCollection()
             ->flatMap(fn ($log) => [
-                data_get($log->properties, 'old.id_me'),
-                data_get($log->properties, 'attributes.id_me'),
-                data_get($log->properties, 'old.diverifikasi_oleh'),
-                data_get($log->properties, 'attributes.diverifikasi_oleh'),
+                data_get($log->properties, 'old.fk_me'),
+                data_get($log->properties, 'attributes.fk_me'),
+                data_get($log->properties, 'old.verified_by'),
+                data_get($log->properties, 'attributes.verified_by'),
             ])
             ->filter()
             ->unique()

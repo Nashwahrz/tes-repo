@@ -74,7 +74,7 @@ class KonsumenController extends Controller
     {
         try {
             $user = $request->user();
-            if (!$user->id_dealer) {
+            if (!$user->fk_dealer) {
                 return $this->konsumenResponse->paginated(
                     Konsumen::whereRaw('1 = 0')->paginate(10)
                 );
@@ -83,7 +83,7 @@ class KonsumenController extends Controller
                 perPage: min(max((int) $request->query('per_page', 10), 1), 100),
                 search: $request->query('search'),
                 userId: null,
-                dealerId: $user->id_dealer
+                dealerId: $user->fk_dealer
             );
 
             return $this->konsumenResponse->paginated($konsumens);
@@ -129,7 +129,7 @@ class KonsumenController extends Controller
                     return $this->konsumenResponse->scanExisting(
                         $existingKonsumen,
                         $extractedData,
-                        "Konsumen dengan NIK {$extractedData['nik']} sudah terdaftar atas nama {$existingKonsumen->name}."
+                        "Konsumen dengan NIK {$extractedData['nik']} sudah terdaftar atas nama {$existingKonsumen->konsumen_name}."
                     );
                 }
 
@@ -246,20 +246,20 @@ class KonsumenController extends Controller
                     if (empty($data['foto_ktp']) && $tempKonsumen->foto_ktp) {
                         $data['foto_ktp'] = $tempKonsumen->foto_ktp;
                     }
-                    $data['id_me']             = $userId;
-                    $data['id_konsumen']       = $tempKonsumen->id_konsumen;
-                    $data['tipe']              = TypeTempKonsumen::Edit;
+                    $data['fk_me']             = $userId;
+                    $data['fk_konsumen']       = $tempKonsumen->id_konsumen;
+                    $data['type']              = TypeTempKonsumen::Edit;
                     $data['status']            = StatusKonsumen::Pending;
-                    $data['catatan']           = null;
-                    $data['diverifikasi_oleh'] = null;
-                    $data['diverifikasi_at']   = null;
+                    $data['note']           = null;
+                    $data['verified_by'] = null;
+                    $data['verified_at']   = null;
                     $updated = $this->tempKonsumenRepository->create($data);
                 } else {
-                    $data['tipe']              = TypeTempKonsumen::Revisi;
+                    $data['type']              = TypeTempKonsumen::Revisi;
                     $data['status']            = StatusKonsumen::Pending;
-                    $data['catatan']           = null;
-                    $data['diverifikasi_oleh'] = null;
-                    $data['diverifikasi_at']   = null;
+                    $data['note']           = null;
+                    $data['verified_by'] = null;
+                    $data['verified_at']   = null;
                     $updated = $this->tempKonsumenRepository->update($tempKonsumen, $data);
                 }
 
@@ -272,14 +272,14 @@ class KonsumenController extends Controller
                     $data['foto_ktp'] = $konsumen->foto_ktp;
                 }
                 $tempData = array_merge($data, [
-                    'id_me'             => $userId,
-                    'id_konsumen'       => $konsumen->id,
-                    'tipe'              => TypeTempKonsumen::Edit,
+                    'fk_me'             => $userId,
+                    'fk_konsumen'       => $konsumen->id,
+                    'type'              => TypeTempKonsumen::Edit,
                     'status'            => StatusKonsumen::Pending,
-                    'catatan'           => null,
-                    'data_sebelumnya'   => $konsumen->toArray(),
-                    'diverifikasi_oleh' => null,
-                    'diverifikasi_at'   => null,
+                    'note'           => null,
+                    'old_data'   => $konsumen->toArray(),
+                    'verified_by' => null,
+                    'verified_at'   => null,
                 ]);
 
                 $updated = $this->tempKonsumenRepository->create($tempData);
@@ -335,7 +335,7 @@ class KonsumenController extends Controller
             $updatedKonsumen = $this->tempKonsumenRepository->activateKonsumen(
                 $tempKonsumen,
                 $diverifikasi_oleh,
-                $isDiterima ? null : ($request->input('catatan_penolakan') ?: null),
+                $isDiterima ? null : ($request->input('note') ?: null),
                 $status
             );
 

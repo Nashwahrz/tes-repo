@@ -18,7 +18,7 @@ class UrlIpLoginSeeder extends Seeder
             ['url' => 'http://ip-api.com/json/'],
             [
                 'url' => 'http://ip-api.com/json/',
-                'is_active' => true,
+                'status' => true,
                 'created_at' => $now,
                 'updated_at' => $now,
             ]

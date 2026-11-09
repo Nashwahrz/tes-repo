@@ -30,7 +30,7 @@ class EmailSmtpRequest extends FormRequest
             'mail_encryption' => 'required|in:null,tls,ssl',
             'mail_from_address' => 'required|email|max:255',
             'mail_from_name' => 'required|string|max:255',
-            'is_active' => 'required|boolean',
+            'status' => 'required|boolean',
         ];
     }
 
@@ -66,8 +66,8 @@ class EmailSmtpRequest extends FormRequest
         'mail_from_name.string' => 'Nama pengirim harus berupa teks.',
         'mail_from_name.max' => 'Nama pengirim maksimal 255 karakter.',
         
-        'is_active.required' => 'Status aktif wajib diisi.',
-        'is_active.boolean' => 'Status aktif harus true atau false.',
+        'status.required' => 'Status aktif wajib diisi.',
+        'status.boolean' => 'Status aktif harus true atau false.',
     ];
 }
 }

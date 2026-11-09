@@ -30,7 +30,7 @@ class AgamaRequest extends FormRequest
 
         if ($this->isMethod('put') || $this->isMethod('patch')) {
             return [
-                'name' => [
+                'agama_name' => [
                     'required',
                     'string',
                     'max:255',
@@ -39,13 +39,13 @@ class AgamaRequest extends FormRequest
         }
 
         return [
-            'kode' => [
+            'agama_code' => [
                 'required',
                 'string',
                 'digits_between:1,10',
-                Rule::unique(Agama::class, 'kode'),
+                Rule::unique(Agama::class, 'agama_code'),
             ],
-            'name' => [
+            'agama_name' => [
                 'required',
                 'string',
                 'max:255',
@@ -56,13 +56,13 @@ class AgamaRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'kode.required'      => 'Kode agama wajib diisi.',
-            'kode.string'        => 'Kode agama harus berupa string.',
-            'kode.digits_between' => 'Kode agama harus antara 1 sampai 10 digit.',
-            'kode.unique'        => 'Kode agama sudah terdaftar.',
-            'name.required'      => 'Nama agama wajib diisi.',
-            'name.string'        => 'Nama agama harus berupa string.',
-            'name.max'           => 'Nama agama tidak boleh lebih dari 255 karakter.',
+            'agama_code.required'      => 'Kode agama wajib diisi.',
+            'agama_code.string'        => 'Kode agama harus berupa string.',
+            'agama_code.digits_between' => 'Kode agama harus antara 1 sampai 10 digit.',
+            'agama_code.unique'        => 'Kode agama sudah terdaftar.',
+            'agama_name.required'      => 'Nama agama wajib diisi.',
+            'agama_name.string'        => 'Nama agama harus berupa string.',
+            'agama_name.max'           => 'Nama agama tidak boleh lebih dari 255 karakter.',
         ];
     }
 

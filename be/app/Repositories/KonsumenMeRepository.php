@@ -50,11 +50,11 @@ class KonsumenMeRepository
     // }
 
  
-    public function activateKonsumen(KonsumenMe $konsumen, ?int $diverifikasi_oleh, string|null $catatan_penolakan, StatusKonsumen $status): KonsumenMe
+    public function activateKonsumen(KonsumenMe $konsumen, ?int $diverifikasi_oleh, string|null $note, StatusKonsumen $status): KonsumenMe
     {
         $konsumen->update([
-            'diverifikasi_oleh' => $diverifikasi_oleh,
-            'catatan_penolakan' => $catatan_penolakan,
+            'verified_by' => $diverifikasi_oleh,
+            'note' => $note,
             'status'    => $status
         ]);
         return $konsumen;
@@ -65,7 +65,7 @@ class KonsumenMeRepository
         $userId ??= auth()->id();
 
         return KonsumenMe::with(['konsumenMes.me'])
-            ->when($userId, fn ($q) => $q->whereHas('konsumenMes', fn ($q) => $q->where('id_me', $userId)))
+            ->when($userId, fn ($q) => $q->whereHas('konsumenMes', fn ($q) => $q->where('fk_me', $userId)))
             ->latest('id')
             ->paginate($perPage);
     }

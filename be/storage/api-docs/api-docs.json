@@ -1844,19 +1844,19 @@
                                                 "status": {
                                                     "$ref": "#/components/schemas/StatusUser"
                                                 },
-                                                "id_dealer": {
+                                                "fk_dealer": {
                                                     "type": [
                                                         "integer",
                                                         "null"
                                                     ]
                                                 },
-                                                "id_atasan": {
+                                                "fk_atasan": {
                                                     "type": [
                                                         "integer",
                                                         "null"
                                                     ]
                                                 },
-                                                "id_role": {
+                                                "fk_role": {
                                                     "type": "integer"
                                                 }
                                             },
@@ -1865,9 +1865,9 @@
                                                 "name",
                                                 "email",
                                                 "status",
-                                                "id_dealer",
-                                                "id_atasan",
-                                                "id_role"
+                                                "fk_dealer",
+                                                "fk_atasan",
+                                                "fk_role"
                                             ]
                                         }
                                     },
@@ -8985,6 +8985,141 @@
                                                         "existing_konsumen": {
                                                             "anyOf": [
                                                                 {
+                                                                    "$ref": "#/components/schemas/TempKonsumen"
+                                                                },
+                                                                {
+                                                                    "type": "null"
+                                                                }
+                                                            ]
+                                                        },
+                                                        "scanned_data": {
+                                                            "type": "object",
+                                                            "properties": {
+                                                                "raw_text": {
+                                                                    "anyOf": [
+                                                                        {
+                                                                            "type": "string"
+                                                                        },
+                                                                        {
+                                                                            "type": "string",
+                                                                            "enum": [
+                                                                                ""
+                                                                            ]
+                                                                        }
+                                                                    ]
+                                                                },
+                                                                "nik": {
+                                                                    "type": "string"
+                                                                },
+                                                                "name": {
+                                                                    "type": "string"
+                                                                },
+                                                                "tmp_lahir": {
+                                                                    "type": "string"
+                                                                },
+                                                                "tgl_lahir": {
+                                                                    "type": "string"
+                                                                },
+                                                                "jenis_kelamin": {
+                                                                    "type": "string",
+                                                                    "const": "Perempuan"
+                                                                },
+                                                                "alamat": {
+                                                                    "type": "string"
+                                                                },
+                                                                "rt": {
+                                                                    "type": "string"
+                                                                },
+                                                                "rw": {
+                                                                    "type": "string"
+                                                                },
+                                                                "desa_kelurahan": {
+                                                                    "type": "string"
+                                                                },
+                                                                "kecamatan": {
+                                                                    "type": "string"
+                                                                },
+                                                                "kabupaten_kota": {
+                                                                    "type": "string"
+                                                                },
+                                                                "provinsi": {
+                                                                    "type": "string"
+                                                                },
+                                                                "agama": {
+                                                                    "type": "string",
+                                                                    "const": "Konghucu"
+                                                                },
+                                                                "status_perkawinan": {
+                                                                    "type": "string",
+                                                                    "const": "Cerai Mati"
+                                                                },
+                                                                "pekerjaan": {
+                                                                    "type": "string"
+                                                                },
+                                                                "kewarganegaraan": {
+                                                                    "type": "string",
+                                                                    "enum": [
+                                                                        "WNA",
+                                                                        "WNI"
+                                                                    ]
+                                                                }
+                                                            },
+                                                            "required": [
+                                                                "raw_text",
+                                                                "nik",
+                                                                "name",
+                                                                "tmp_lahir",
+                                                                "tgl_lahir",
+                                                                "jenis_kelamin",
+                                                                "alamat",
+                                                                "rt",
+                                                                "rw",
+                                                                "desa_kelurahan",
+                                                                "kecamatan",
+                                                                "kabupaten_kota",
+                                                                "provinsi",
+                                                                "agama",
+                                                                "status_perkawinan",
+                                                                "pekerjaan",
+                                                                "kewarganegaraan"
+                                                            ]
+                                                        }
+                                                    },
+                                                    "required": [
+                                                        "is_registered",
+                                                        "existing_konsumen",
+                                                        "scanned_data"
+                                                    ]
+                                                }
+                                            },
+                                            "required": [
+                                                "success",
+                                                "is_registered",
+                                                "message",
+                                                "data"
+                                            ]
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "success": {
+                                                    "type": "boolean"
+                                                },
+                                                "is_registered": {
+                                                    "type": "boolean"
+                                                },
+                                                "message": {
+                                                    "type": "string"
+                                                },
+                                                "data": {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "is_registered": {
+                                                            "type": "boolean"
+                                                        },
+                                                        "existing_konsumen": {
+                                                            "anyOf": [
+                                                                {
                                                                     "$ref": "#/components/schemas/Konsumen"
                                                                 },
                                                                 {
@@ -9375,8 +9510,9 @@
                                         "message": {
                                             "type": "string",
                                             "enum": [
-                                                "Data konsumen ditemukan, diproses, dan berhasil ditambahkan ke daftar Anda.",
-                                                "Data konsumen berhasil disimpan."
+                                                "Data konsumen ditemukan dengan perubahan, diajukan untuk verifikasi.",
+                                                "Data konsumen ditemukan (sesuai data terdaftar) dan langsung ditambahkan ke daftar konsumen Anda.",
+                                                "Data pengajuan konsumen berhasil disimpan dan menunggu verifikasi."
                                             ]
                                         },
                                         "data": {
@@ -9616,191 +9752,6 @@
                                         "message",
                                         "data",
                                         "meta"
-                                    ]
-                                }
-                            }
-                        }
-                    },
-                    "401": {
-                        "$ref": "#/components/responses/AuthenticationException"
-                    }
-                }
-            }
-        },
-        "/konsumens/status": {
-            "get": {
-                "operationId": "konsumen.status",
-                "tags": [
-                    "Konsumen"
-                ],
-                "parameters": [
-                    {
-                        "name": "status",
-                        "in": "query",
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                ],
-                "responses": {
-                    "500": {
-                        "description": "",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "success": {
-                                            "type": "boolean"
-                                        },
-                                        "message": {
-                                            "type": "string",
-                                            "const": "Terjadi kesalahan pada server. Silakan coba lagi."
-                                        }
-                                    },
-                                    "required": [
-                                        "success",
-                                        "message"
-                                    ]
-                                }
-                            }
-                        }
-                    },
-                    "200": {
-                        "description": "",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "success": {
-                                            "type": "boolean"
-                                        },
-                                        "message": {
-                                            "type": "string",
-                                            "const": "Daftar konsumen berhasil diambil."
-                                        },
-                                        "data": {
-                                            "type": "object",
-                                            "properties": {
-                                                "current_page": {
-                                                    "type": "integer",
-                                                    "minimum": 1
-                                                },
-                                                "data": {
-                                                    "type": "array",
-                                                    "items": {
-                                                        "$ref": "#/components/schemas/Konsumen"
-                                                    }
-                                                },
-                                                "first_page_url": {
-                                                    "type": [
-                                                        "string",
-                                                        "null"
-                                                    ]
-                                                },
-                                                "from": {
-                                                    "type": [
-                                                        "integer",
-                                                        "null"
-                                                    ],
-                                                    "minimum": 1
-                                                },
-                                                "last_page_url": {
-                                                    "type": [
-                                                        "string",
-                                                        "null"
-                                                    ]
-                                                },
-                                                "last_page": {
-                                                    "type": "integer",
-                                                    "minimum": 1
-                                                },
-                                                "links": {
-                                                    "type": "array",
-                                                    "description": "Generated paginator links.",
-                                                    "items": {
-                                                        "type": "object",
-                                                        "properties": {
-                                                            "url": {
-                                                                "type": [
-                                                                    "string",
-                                                                    "null"
-                                                                ]
-                                                            },
-                                                            "label": {
-                                                                "type": "string"
-                                                            },
-                                                            "active": {
-                                                                "type": "boolean"
-                                                            }
-                                                        },
-                                                        "required": [
-                                                            "url",
-                                                            "label",
-                                                            "active"
-                                                        ]
-                                                    }
-                                                },
-                                                "next_page_url": {
-                                                    "type": [
-                                                        "string",
-                                                        "null"
-                                                    ]
-                                                },
-                                                "path": {
-                                                    "type": [
-                                                        "string",
-                                                        "null"
-                                                    ],
-                                                    "description": "Base path for paginator generated URLs."
-                                                },
-                                                "per_page": {
-                                                    "type": "integer",
-                                                    "description": "Number of items shown per page.",
-                                                    "minimum": 0
-                                                },
-                                                "prev_page_url": {
-                                                    "type": [
-                                                        "string",
-                                                        "null"
-                                                    ]
-                                                },
-                                                "to": {
-                                                    "type": [
-                                                        "integer",
-                                                        "null"
-                                                    ],
-                                                    "description": "Number of the last item in the slice.",
-                                                    "minimum": 1
-                                                },
-                                                "total": {
-                                                    "type": "integer",
-                                                    "description": "Total number of items being paginated.",
-                                                    "minimum": 0
-                                                }
-                                            },
-                                            "required": [
-                                                "current_page",
-                                                "data",
-                                                "first_page_url",
-                                                "from",
-                                                "last_page_url",
-                                                "last_page",
-                                                "links",
-                                                "next_page_url",
-                                                "path",
-                                                "per_page",
-                                                "prev_page_url",
-                                                "to",
-                                                "total"
-                                            ]
-                                        }
-                                    },
-                                    "required": [
-                                        "success",
-                                        "message",
-                                        "data"
                                     ]
                                 }
                             }
@@ -10053,6 +10004,9 @@
                                         "data": {
                                             "anyOf": [
                                                 {
+                                                    "$ref": "#/components/schemas/TempKonsumen"
+                                                },
+                                                {
                                                     "$ref": "#/components/schemas/Konsumen"
                                                 },
                                                 {
@@ -10099,7 +10053,7 @@
                 }
             },
             "put": {
-                "operationId": "konsumen.update_114",
+                "operationId": "konsumen.update_113",
                 "tags": [
                     "Konsumen"
                 ],
@@ -10147,33 +10101,6 @@
                             }
                         }
                     },
-                    "200": {
-                        "description": "",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "success": {
-                                            "type": "boolean"
-                                        },
-                                        "message": {
-                                            "type": "string",
-                                            "const": "Data konsumen berhasil diperbarui."
-                                        },
-                                        "data": {
-                                            "$ref": "#/components/schemas/Konsumen"
-                                        }
-                                    },
-                                    "required": [
-                                        "success",
-                                        "message",
-                                        "data"
-                                    ]
-                                }
-                            }
-                        }
-                    },
                     "404": {
                         "description": "",
                         "content": {
@@ -10197,6 +10124,57 @@
                             }
                         }
                     },
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "anyOf": [
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "success": {
+                                                    "type": "boolean"
+                                                },
+                                                "message": {
+                                                    "type": "string",
+                                                    "const": "Perubahan data konsumen berhasil diajukan dan menunggu verifikasi."
+                                                },
+                                                "data": {
+                                                    "$ref": "#/components/schemas/TempKonsumen"
+                                                }
+                                            },
+                                            "required": [
+                                                "success",
+                                                "message",
+                                                "data"
+                                            ]
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "success": {
+                                                    "type": "boolean"
+                                                },
+                                                "message": {
+                                                    "type": "string",
+                                                    "const": "Data konsumen berhasil diperbarui dan diajukan kembali."
+                                                },
+                                                "data": {
+                                                    "$ref": "#/components/schemas/TempKonsumen"
+                                                }
+                                            },
+                                            "required": [
+                                                "success",
+                                                "message",
+                                                "data"
+                                            ]
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
                     "401": {
                         "$ref": "#/components/responses/AuthenticationException"
                     },
@@ -10208,7 +10186,7 @@
         },
         "/konsumens/{id}/update": {
             "post": {
-                "operationId": "konsumen.update_115",
+                "operationId": "konsumen.update_114",
                 "tags": [
                     "Konsumen"
                 ],
@@ -10256,33 +10234,6 @@
                             }
                         }
                     },
-                    "200": {
-                        "description": "",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "success": {
-                                            "type": "boolean"
-                                        },
-                                        "message": {
-                                            "type": "string",
-                                            "const": "Data konsumen berhasil diperbarui."
-                                        },
-                                        "data": {
-                                            "$ref": "#/components/schemas/Konsumen"
-                                        }
-                                    },
-                                    "required": [
-                                        "success",
-                                        "message",
-                                        "data"
-                                    ]
-                                }
-                            }
-                        }
-                    },
                     "404": {
                         "description": "",
                         "content": {
@@ -10301,6 +10252,57 @@
                                     "required": [
                                         "success",
                                         "message"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "anyOf": [
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "success": {
+                                                    "type": "boolean"
+                                                },
+                                                "message": {
+                                                    "type": "string",
+                                                    "const": "Perubahan data konsumen berhasil diajukan dan menunggu verifikasi."
+                                                },
+                                                "data": {
+                                                    "$ref": "#/components/schemas/TempKonsumen"
+                                                }
+                                            },
+                                            "required": [
+                                                "success",
+                                                "message",
+                                                "data"
+                                            ]
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "success": {
+                                                    "type": "boolean"
+                                                },
+                                                "message": {
+                                                    "type": "string",
+                                                    "const": "Data konsumen berhasil diperbarui dan diajukan kembali."
+                                                },
+                                                "data": {
+                                                    "$ref": "#/components/schemas/TempKonsumen"
+                                                }
+                                            },
+                                            "required": [
+                                                "success",
+                                                "message",
+                                                "data"
+                                            ]
+                                        }
                                     ]
                                 }
                             }
@@ -10378,19 +10380,13 @@
                                         "message": {
                                             "type": "string",
                                             "enum": [
-                                                "Akun Konsumen berhasil diterima.",
-                                                "Akun Konsumen berhasil ditolak."
+                                                "Akun Konsumen berhasil diterima dan dipindahkan ke data konsumen.",
+                                                "Pengajuan Konsumen diminta untuk direvisi.",
+                                                "Pengajuan Konsumen berhasil ditolak."
                                             ]
                                         },
                                         "data": {
-                                            "anyOf": [
-                                                {
-                                                    "$ref": "#/components/schemas/KonsumenMe"
-                                                },
-                                                {
-                                                    "type": "null"
-                                                }
-                                            ]
+                                            "$ref": "#/components/schemas/TempKonsumen"
                                         }
                                     },
                                     "required": [
@@ -10414,7 +10410,7 @@
                                         },
                                         "message": {
                                             "type": "string",
-                                            "const": "Konsumen tidak ditemukan."
+                                            "const": "Data pengajuan konsumen tidak ditemukan."
                                         }
                                     },
                                     "required": [
@@ -11211,14 +11207,14 @@
                                                 "email": {
                                                     "type": "string"
                                                 },
-                                                "email_verifikasi": {
+                                                "email_verification": {
                                                     "type": "boolean"
                                                 }
                                             },
                                             "required": [
                                                 "id",
                                                 "email",
-                                                "email_verifikasi"
+                                                "email_verification"
                                             ]
                                         }
                                     },
@@ -16066,7 +16062,7 @@
                 ],
                 "parameters": [
                     {
-                        "name": "id_role",
+                        "name": "fk_role",
                         "in": "query",
                         "required": true,
                         "schema": {
@@ -16074,7 +16070,7 @@
                         }
                     },
                     {
-                        "name": "id_dealer",
+                        "name": "fk_dealer",
                         "in": "query",
                         "schema": {
                             "type": [
@@ -16446,7 +16442,7 @@
                                                 "email_verifikasi": {
                                                     "type": "boolean"
                                                 },
-                                                "id_dealer": {
+                                                "fk_dealer": {
                                                     "type": [
                                                         "integer",
                                                         "null"
@@ -16474,7 +16470,7 @@
                                                         "alamat"
                                                     ]
                                                 },
-                                                "id_role": {
+                                                "fk_role": {
                                                     "type": "integer"
                                                 },
                                                 "role": {
@@ -16495,7 +16491,7 @@
                                                         "name"
                                                     ]
                                                 },
-                                                "id_atasan": {
+                                                "fk_atasan": {
                                                     "type": [
                                                         "integer",
                                                         "null"
@@ -16526,11 +16522,11 @@
                                                 "email",
                                                 "status",
                                                 "email_verifikasi",
-                                                "id_dealer",
+                                                "fk_dealer",
                                                 "dealer",
-                                                "id_role",
+                                                "fk_role",
                                                 "role",
-                                                "id_atasan",
+                                                "fk_atasan",
                                                 "atasan"
                                             ]
                                         }
@@ -16588,10 +16584,10 @@
             "ActivateUserRequest": {
                 "type": "object",
                 "properties": {
-                    "id_dealer": {
+                    "fk_dealer": {
                         "type": "integer"
                     },
-                    "id_atasan": {
+                    "fk_atasan": {
                         "type": [
                             "integer",
                             "null"
@@ -16602,7 +16598,7 @@
                     }
                 },
                 "required": [
-                    "id_dealer"
+                    "fk_dealer"
                 ],
                 "title": "ActivateUserRequest"
             },
@@ -16643,16 +16639,28 @@
                     "deskripsi": {
                         "type": "string"
                     },
-                    "subject_id": {
+                    "subject": {
                         "type": [
-                            "integer",
+                            "object",
                             "null"
-                        ]
-                    },
-                    "user_subject": {
-                        "type": [
-                            "string",
-                            "null"
+                        ],
+                        "properties": {
+                            "id": {
+                                "type": [
+                                    "integer",
+                                    "null"
+                                ]
+                            },
+                            "name": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ]
+                            }
+                        },
+                        "required": [
+                            "id",
+                            "name"
                         ]
                     },
                     "oleh": {
@@ -16668,7 +16676,10 @@
                                 ]
                             },
                             "name": {
-                                "type": "string"
+                                "type": [
+                                    "string",
+                                    "null"
+                                ]
                             }
                         },
                         "required": [
@@ -16702,8 +16713,7 @@
                     "log_name",
                     "aksi",
                     "deskripsi",
-                    "subject_id",
-                    "user_subject",
+                    "subject",
                     "oleh",
                     "waktu",
                     "data_lama",
@@ -16717,10 +16727,10 @@
                     "id": {
                         "type": "integer"
                     },
-                    "kode": {
+                    "agama_code": {
                         "type": "string"
                     },
-                    "name": {
+                    "agama_name": {
                         "type": "string"
                     },
                     "status": {
@@ -16743,8 +16753,8 @@
                 },
                 "required": [
                     "id",
-                    "kode",
-                    "name",
+                    "agama_code",
+                    "agama_name",
                     "status",
                     "created_at",
                     "updated_at"
@@ -16754,17 +16764,17 @@
             "AgamaRequest": {
                 "type": "object",
                 "properties": {
-                    "kode": {
+                    "agama_code": {
                         "type": "string"
                     },
-                    "name": {
+                    "agama_name": {
                         "type": "string",
                         "maxLength": 255
                     }
                 },
                 "required": [
-                    "kode",
-                    "name"
+                    "agama_code",
+                    "agama_name"
                 ],
                 "title": "AgamaRequest"
             },
@@ -16780,13 +16790,13 @@
                     "api_key": {
                         "type": "string"
                     },
-                    "keterangan": {
+                    "description": {
                         "type": [
                             "string",
                             "null"
                         ]
                     },
-                    "is_active": {
+                    "status": {
                         "type": "boolean"
                     },
                     "created_at": {
@@ -16808,8 +16818,8 @@
                     "id",
                     "url",
                     "api_key",
-                    "keterangan",
-                    "is_active",
+                    "description",
+                    "status",
                     "created_at",
                     "updated_at"
                 ],
@@ -16825,7 +16835,7 @@
                     "api_key": {
                         "type": "string"
                     },
-                    "is_active": {
+                    "status": {
                         "type": "boolean"
                     },
                     "keterangan": {
@@ -16835,7 +16845,7 @@
                 "required": [
                     "url",
                     "api_key",
-                    "is_active",
+                    "status",
                     "keterangan"
                 ],
                 "title": "AppKeyOcrRequest"
@@ -16869,7 +16879,7 @@
                     "minutes": {
                         "type": "integer"
                     },
-                    "is_active": {
+                    "status": {
                         "type": "string"
                     },
                     "created_at": {
@@ -16892,7 +16902,7 @@
                     "name",
                     "request_per_minutes",
                     "minutes",
-                    "is_active",
+                    "status",
                     "created_at",
                     "updated_at"
                 ],
@@ -16912,7 +16922,7 @@
                         "type": "integer",
                         "minimum": 1
                     },
-                    "is_active": {
+                    "status": {
                         "type": "boolean"
                     }
                 },
@@ -16920,7 +16930,7 @@
                     "name",
                     "request_per_minutes",
                     "minutes",
-                    "is_active"
+                    "status"
                 ],
                 "title": "ConfigurasiRateLimitRequest"
             },
@@ -16930,10 +16940,10 @@
                     "id": {
                         "type": "integer"
                     },
-                    "name": {
+                    "dealer_name": {
                         "type": "string"
                     },
-                    "alamat": {
+                    "address": {
                         "type": "string"
                     },
                     "latitude": {
@@ -16959,8 +16969,8 @@
                 },
                 "required": [
                     "id",
-                    "name",
-                    "alamat",
+                    "dealer_name",
+                    "address",
                     "latitude",
                     "longitude",
                     "created_at",
@@ -16971,11 +16981,11 @@
             "DealerRequest": {
                 "type": "object",
                 "properties": {
-                    "name": {
+                    "dealer_name": {
                         "type": "string",
                         "maxLength": 255
                     },
-                    "alamat": {
+                    "address": {
                         "type": "string"
                     },
                     "latitude": {
@@ -16990,8 +17000,8 @@
                     }
                 },
                 "required": [
-                    "name",
-                    "alamat",
+                    "dealer_name",
+                    "address",
                     "latitude",
                     "longitude"
                 ],
@@ -17027,7 +17037,7 @@
                     "mail_from_name": {
                         "type": "string"
                     },
-                    "is_active": {
+                    "status": {
                         "type": "string"
                     },
                     "created_at": {
@@ -17055,7 +17065,7 @@
                     "mail_encryption",
                     "mail_from_address",
                     "mail_from_name",
-                    "is_active",
+                    "status",
                     "created_at",
                     "updated_at"
                 ],
@@ -17112,7 +17122,7 @@
                         "type": "string",
                         "maxLength": 255
                     },
-                    "is_active": {
+                    "status": {
                         "type": "boolean"
                     }
                 },
@@ -17123,7 +17133,7 @@
                     "mail_encryption",
                     "mail_from_address",
                     "mail_from_name",
-                    "is_active"
+                    "status"
                 ],
                 "title": "EmailSmtpRequest"
             },
@@ -17133,7 +17143,7 @@
                     "domain": {
                         "type": "string"
                     },
-                    "is_active": {
+                    "status": {
                         "type": "boolean"
                     },
                     "created_by": {
@@ -17142,7 +17152,7 @@
                 },
                 "required": [
                     "domain",
-                    "is_active",
+                    "status",
                     "created_by"
                 ],
                 "title": "EmailWhiteListRequest"
@@ -17156,7 +17166,7 @@
                     "domain": {
                         "type": "string"
                     },
-                    "is_active": {
+                    "status": {
                         "type": "string"
                     },
                     "created_by": {
@@ -17183,7 +17193,7 @@
                 "required": [
                     "id",
                     "domain",
-                    "is_active",
+                    "status",
                     "created_by",
                     "created_at",
                     "updated_at"
@@ -17213,13 +17223,13 @@
                     "id": {
                         "type": "integer"
                     },
-                    "kode": {
+                    "kabupaten_kota_code": {
                         "type": "string"
                     },
-                    "name": {
+                    "kabupaten_kota_name": {
                         "type": "string"
                     },
-                    "kode_provinsi": {
+                    "fk_provinsi": {
                         "type": [
                             "string",
                             "null"
@@ -17245,9 +17255,9 @@
                 },
                 "required": [
                     "id",
-                    "kode",
-                    "name",
-                    "kode_provinsi",
+                    "kabupaten_kota_code",
+                    "kabupaten_kota_name",
+                    "fk_provinsi",
                     "status",
                     "created_at",
                     "updated_at"
@@ -17257,21 +17267,21 @@
             "KabupatenKotaRequest": {
                 "type": "object",
                 "properties": {
-                    "kode": {
+                    "kabupaten_kota_code": {
                         "type": "string"
                     },
-                    "name": {
+                    "kabupaten_kota_name": {
                         "type": "string",
                         "maxLength": 255
                     },
-                    "kode_provinsi": {
+                    "fk_provinsi": {
                         "type": "string"
                     }
                 },
                 "required": [
-                    "kode",
-                    "name",
-                    "kode_provinsi"
+                    "kabupaten_kota_code",
+                    "kabupaten_kota_name",
+                    "fk_provinsi"
                 ],
                 "title": "KabupatenKotaRequest"
             },
@@ -17281,13 +17291,13 @@
                     "id": {
                         "type": "integer"
                     },
-                    "kode": {
+                    "kecamatan_code": {
                         "type": "string"
                     },
-                    "name": {
+                    "kecamatan_name": {
                         "type": "string"
                     },
-                    "kode_kabupaten_kota": {
+                    "fk_kabupaten_kota": {
                         "type": [
                             "string",
                             "null"
@@ -17313,9 +17323,9 @@
                 },
                 "required": [
                     "id",
-                    "kode",
-                    "name",
-                    "kode_kabupaten_kota",
+                    "kecamatan_code",
+                    "kecamatan_name",
+                    "fk_kabupaten_kota",
                     "status",
                     "created_at",
                     "updated_at"
@@ -17325,14 +17335,14 @@
             "KecamatanRequest": {
                 "type": "object",
                 "properties": {
-                    "kode": {
+                    "kecamatan_code": {
                         "type": "string"
                     },
-                    "name": {
+                    "kecamatan_name": {
                         "type": "string",
                         "maxLength": 255
                     },
-                    "kode_kabupaten_kota": {
+                    "fk_kabupaten_kota": {
                         "type": "string"
                     },
                     "status": {
@@ -17340,9 +17350,9 @@
                     }
                 },
                 "required": [
-                    "kode",
-                    "name",
-                    "kode_kabupaten_kota"
+                    "kecamatan_code",
+                    "kecamatan_name",
+                    "fk_kabupaten_kota"
                 ],
                 "title": "KecamatanRequest"
             },
@@ -17352,13 +17362,13 @@
                     "id": {
                         "type": "integer"
                     },
-                    "kode": {
+                    "kelurahan_code": {
                         "type": "string"
                     },
-                    "name": {
+                    "kelurahan_name": {
                         "type": "string"
                     },
-                    "kode_kecamatan": {
+                    "fk_kecamatan": {
                         "type": [
                             "string",
                             "null"
@@ -17384,9 +17394,9 @@
                 },
                 "required": [
                     "id",
-                    "kode",
-                    "name",
-                    "kode_kecamatan",
+                    "kelurahan_code",
+                    "kelurahan_name",
+                    "fk_kecamatan",
                     "status",
                     "created_at",
                     "updated_at"
@@ -17396,21 +17406,21 @@
             "KelurahanRequest": {
                 "type": "object",
                 "properties": {
-                    "kode": {
+                    "kelurahan_code": {
                         "type": "string"
                     },
-                    "name": {
+                    "kelurahan_name": {
                         "type": "string",
                         "maxLength": 255
                     },
-                    "kode_kecamatan": {
+                    "fk_kecamatan": {
                         "type": "string"
                     }
                 },
                 "required": [
-                    "kode",
-                    "name",
-                    "kode_kecamatan"
+                    "kelurahan_code",
+                    "kelurahan_name",
+                    "fk_kecamatan"
                 ],
                 "title": "KelurahanRequest"
             },
@@ -17423,26 +17433,26 @@
                     "nik": {
                         "type": "string"
                     },
-                    "name": {
+                    "konsumen_name": {
                         "type": "string"
                     },
-                    "kode_tmp_lahir": {
+                    "fk_temp_lahir": {
                         "type": [
                             "string",
                             "null"
                         ]
                     },
-                    "tgl_lahir": {
+                    "birth_date": {
                         "type": "string",
                         "format": "date-time"
                     },
-                    "jenis_kelamin": {
+                    "gender": {
                         "$ref": "#/components/schemas/JenisKelamin"
                     },
-                    "alamat_ktp": {
+                    "ktp_address": {
                         "type": "string"
                     },
-                    "alamat_domisili": {
+                    "domicile_address": {
                         "type": "string"
                     },
                     "latitude": {
@@ -17463,49 +17473,49 @@
                     "rw": {
                         "type": "string"
                     },
-                    "kode_kelurahan": {
+                    "fk_kelurahan": {
                         "type": [
                             "string",
                             "null"
                         ]
                     },
-                    "kode_kecamatan": {
+                    "fk_kecamatan": {
                         "type": [
                             "string",
                             "null"
                         ]
                     },
-                    "kode_kabupaten_kota": {
+                    "fk_kabupaten_kota": {
                         "type": [
                             "string",
                             "null"
                         ]
                     },
-                    "kode_provinsi": {
+                    "fk_provinsi": {
                         "type": [
                             "string",
                             "null"
                         ]
                     },
-                    "kode_agama": {
+                    "fk_agama": {
                         "type": [
                             "string",
                             "null"
                         ]
                     },
-                    "status_perkawinan": {
+                    "marital_status": {
                         "type": "string"
                     },
-                    "kode_pekerjaan": {
+                    "fk_pekerjaan": {
                         "type": [
                             "string",
                             "null"
                         ]
                     },
-                    "kewarganegaraan": {
+                    "nationality": {
                         "type": "string"
                     },
-                    "no_telp": {
+                    "phone": {
                         "type": "string"
                     },
                     "email": {
@@ -17528,6 +17538,9 @@
                         ],
                         "format": "date-time"
                     },
+                    "status": {
+                        "$ref": "#/components/schemas/StatusKonsumen"
+                    },
                     "foto_ktp_url": {
                         "type": [
                             "string",
@@ -17538,86 +17551,33 @@
                 "required": [
                     "id",
                     "nik",
-                    "name",
-                    "kode_tmp_lahir",
-                    "tgl_lahir",
-                    "jenis_kelamin",
-                    "alamat_ktp",
-                    "alamat_domisili",
+                    "konsumen_name",
+                    "fk_temp_lahir",
+                    "birth_date",
+                    "gender",
+                    "ktp_address",
+                    "domicile_address",
                     "latitude",
                     "longitude",
                     "rt",
                     "rw",
-                    "kode_kelurahan",
-                    "kode_kecamatan",
-                    "kode_kabupaten_kota",
-                    "kode_provinsi",
-                    "kode_agama",
-                    "status_perkawinan",
-                    "kode_pekerjaan",
-                    "kewarganegaraan",
-                    "no_telp",
+                    "fk_kelurahan",
+                    "fk_kecamatan",
+                    "fk_kabupaten_kota",
+                    "fk_provinsi",
+                    "fk_agama",
+                    "marital_status",
+                    "fk_pekerjaan",
+                    "nationality",
+                    "phone",
                     "email",
                     "foto_ktp",
                     "created_at",
                     "updated_at",
+                    "status",
                     "foto_ktp_url"
                 ],
                 "title": "Konsumen"
-            },
-            "KonsumenMe": {
-                "type": "object",
-                "properties": {
-                    "id": {
-                        "type": "integer"
-                    },
-                    "id_me": {
-                        "type": "integer"
-                    },
-                    "id_konsumen": {
-                        "type": "integer"
-                    },
-                    "status": {
-                        "type": "string"
-                    },
-                    "catatan_penolakan": {
-                        "type": [
-                            "string",
-                            "null"
-                        ]
-                    },
-                    "diverifikasi_oleh": {
-                        "type": [
-                            "integer",
-                            "null"
-                        ]
-                    },
-                    "created_at": {
-                        "type": [
-                            "string",
-                            "null"
-                        ],
-                        "format": "date-time"
-                    },
-                    "updated_at": {
-                        "type": [
-                            "string",
-                            "null"
-                        ],
-                        "format": "date-time"
-                    }
-                },
-                "required": [
-                    "id",
-                    "id_me",
-                    "id_konsumen",
-                    "status",
-                    "catatan_penolakan",
-                    "diverifikasi_oleh",
-                    "created_at",
-                    "updated_at"
-                ],
-                "title": "KonsumenMe"
             },
             "KonsumenRequest": {
                 "type": "object",
@@ -17626,27 +17586,27 @@
                         "type": "string",
                         "format": "binary",
                         "contentMediaType": "application/octet-stream",
-                        "description": "Maximum file size: 2048 kilobytes."
+                        "description": "Maximum file size: 2156 kilobytes."
                     },
                     "nik": {
                         "type": "string"
                     },
-                    "name": {
+                    "konsumen_name": {
                         "type": "string",
                         "maxLength": 255
                     },
-                    "tgl_lahir": {
+                    "birth_date": {
                         "type": "string",
                         "format": "date-time"
                     },
-                    "jenis_kelamin": {
+                    "gender": {
                         "$ref": "#/components/schemas/JenisKelamin"
                     },
-                    "alamat_ktp": {
+                    "ktp_address": {
                         "type": "string",
                         "maxLength": 255
                     },
-                    "alamat_domisili": {
+                    "domicile_address": {
                         "type": "string",
                         "maxLength": 255
                     },
@@ -17668,36 +17628,36 @@
                         "type": "string",
                         "maxLength": 3
                     },
-                    "kode_tmp_lahir": {
+                    "fk_temp_lahir": {
                         "type": "string"
                     },
-                    "kode_provinsi": {
+                    "fk_provinsi": {
                         "type": "string"
                     },
-                    "kode_kabupaten_kota": {
+                    "fk_kabupaten_kota": {
                         "type": "string"
                     },
-                    "kode_kecamatan": {
+                    "fk_kecamatan": {
                         "type": "string"
                     },
-                    "kode_kelurahan": {
+                    "fk_kelurahan": {
                         "type": "string"
                     },
-                    "kode_agama": {
+                    "fk_agama": {
                         "type": "string"
                     },
-                    "kode_pekerjaan": {
+                    "fk_pekerjaan": {
                         "type": "string"
                     },
-                    "status_perkawinan": {
+                    "marital_status": {
                         "type": "string",
                         "maxLength": 50
                     },
-                    "kewarganegaraan": {
+                    "nationality": {
                         "type": "string",
                         "maxLength": 50
                     },
-                    "no_telp": {
+                    "phone": {
                         "type": "string",
                         "maxLength": 20
                     },
@@ -17710,25 +17670,25 @@
                 "required": [
                     "foto_ktp",
                     "nik",
-                    "name",
-                    "tgl_lahir",
-                    "jenis_kelamin",
-                    "alamat_ktp",
-                    "alamat_domisili",
+                    "konsumen_name",
+                    "birth_date",
+                    "gender",
+                    "ktp_address",
+                    "domicile_address",
                     "latitude",
                     "longitude",
                     "rt",
                     "rw",
-                    "kode_tmp_lahir",
-                    "kode_provinsi",
-                    "kode_kabupaten_kota",
-                    "kode_kecamatan",
-                    "kode_kelurahan",
-                    "kode_agama",
-                    "kode_pekerjaan",
-                    "status_perkawinan",
-                    "kewarganegaraan",
-                    "no_telp",
+                    "fk_temp_lahir",
+                    "fk_provinsi",
+                    "fk_kabupaten_kota",
+                    "fk_kecamatan",
+                    "fk_kelurahan",
+                    "fk_agama",
+                    "fk_pekerjaan",
+                    "marital_status",
+                    "nationality",
+                    "phone",
                     "email"
                 ],
                 "title": "KonsumenRequest"
@@ -17954,13 +17914,13 @@
                     "id": {
                         "type": "integer"
                     },
-                    "nama_menu": {
+                    "menu_name": {
                         "type": "string"
                     },
                     "url": {
                         "type": "string"
                     },
-                    "urutan": {
+                    "sequence": {
                         "type": "integer"
                     },
                     "status": {
@@ -17983,9 +17943,9 @@
                 },
                 "required": [
                     "id",
-                    "nama_menu",
+                    "menu_name",
                     "url",
-                    "urutan",
+                    "sequence",
                     "status",
                     "created_at",
                     "updated_at"
@@ -17998,10 +17958,10 @@
                     "id": {
                         "type": "integer"
                     },
-                    "kode": {
+                    "pekerjaan_code": {
                         "type": "string"
                     },
-                    "name": {
+                    "pekerjaan_name": {
                         "type": "string"
                     },
                     "status": {
@@ -18024,8 +17984,8 @@
                 },
                 "required": [
                     "id",
-                    "kode",
-                    "name",
+                    "pekerjaan_code",
+                    "pekerjaan_name",
                     "status",
                     "created_at",
                     "updated_at"
@@ -18035,17 +17995,17 @@
             "PekerjaanRequest": {
                 "type": "object",
                 "properties": {
-                    "kode": {
+                    "pekerjaan_code": {
                         "type": "string"
                     },
-                    "name": {
+                    "pekerjaan_name": {
                         "type": "string",
                         "maxLength": 255
                     }
                 },
                 "required": [
-                    "kode",
-                    "name"
+                    "pekerjaan_code",
+                    "pekerjaan_name"
                 ],
                 "title": "PekerjaanRequest"
             },
@@ -18055,7 +18015,7 @@
                     "id": {
                         "type": "integer"
                     },
-                    "nama_permission": {
+                    "permission_name": {
                         "type": "string"
                     },
                     "created_at": {
@@ -18075,7 +18035,7 @@
                 },
                 "required": [
                     "id",
-                    "nama_permission",
+                    "permission_name",
                     "created_at",
                     "updated_at"
                 ],
@@ -18087,10 +18047,10 @@
                     "id": {
                         "type": "integer"
                     },
-                    "kode": {
+                    "provinsi_code": {
                         "type": "string"
                     },
-                    "name": {
+                    "provinsi_name": {
                         "type": "string"
                     },
                     "status": {
@@ -18113,8 +18073,8 @@
                 },
                 "required": [
                     "id",
-                    "kode",
-                    "name",
+                    "provinsi_code",
+                    "provinsi_name",
                     "status",
                     "created_at",
                     "updated_at"
@@ -18124,10 +18084,10 @@
             "ProvinsiRequest": {
                 "type": "object",
                 "properties": {
-                    "kode": {
+                    "provinsi_code": {
                         "type": "string"
                     },
-                    "name": {
+                    "provinsi_name": {
                         "type": "string",
                         "maxLength": 255
                     },
@@ -18136,8 +18096,8 @@
                     }
                 },
                 "required": [
-                    "kode",
-                    "name"
+                    "provinsi_code",
+                    "provinsi_name"
                 ],
                 "title": "ProvinsiRequest"
             },
@@ -18157,7 +18117,7 @@
                     "password": {
                         "type": "string"
                     },
-                    "id_role": {
+                    "fk_role": {
                         "type": "integer",
                         "description": "'id_dealer' => ['nullable', 'exists:dealers,id'],\n'id_atasan' => ['nullable', 'exists:users,id'],"
                     },
@@ -18169,7 +18129,7 @@
                     "name",
                     "email",
                     "password",
-                    "id_role",
+                    "fk_role",
                     "password_confirmation"
                 ],
                 "title": "RegisterRequest"
@@ -18205,7 +18165,7 @@
                     "id": {
                         "type": "integer"
                     },
-                    "name": {
+                    "role_name": {
                         "type": "string"
                     },
                     "created_at": {
@@ -18225,7 +18185,7 @@
                 },
                 "required": [
                     "id",
-                    "name",
+                    "role_name",
                     "created_at",
                     "updated_at"
                 ],
@@ -18294,7 +18254,8 @@
                 "enum": [
                     "pending",
                     "diterima",
-                    "ditolak"
+                    "ditolak",
+                    "revisi"
                 ],
                 "title": "StatusKonsumen"
             },
@@ -18308,6 +18269,215 @@
                 ],
                 "title": "StatusUser"
             },
+            "TempKonsumen": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "integer"
+                    },
+                    "fk_me": {
+                        "type": "integer"
+                    },
+                    "fk_konsumen": {
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
+                    },
+                    "type": {
+                        "$ref": "#/components/schemas/TypeTempKonsumen"
+                    },
+                    "nik": {
+                        "type": "string"
+                    },
+                    "konsumen_name": {
+                        "type": "string"
+                    },
+                    "fk_temp_lahir": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "birth_date": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "gender": {
+                        "$ref": "#/components/schemas/JenisKelamin"
+                    },
+                    "ktp_address": {
+                        "type": "string"
+                    },
+                    "domicile_address": {
+                        "type": "string"
+                    },
+                    "latitude": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "longitude": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "rt": {
+                        "type": "string"
+                    },
+                    "rw": {
+                        "type": "string"
+                    },
+                    "fk_kelurahan": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "fk_kecamatan": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "fk_kabupaten_kota": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "fk_provinsi": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "fk_agama": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "marital_status": {
+                        "type": "string"
+                    },
+                    "fk_pekerjaan": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "nationality": {
+                        "type": "string"
+                    },
+                    "phone": {
+                        "type": "string"
+                    },
+                    "email": {
+                        "type": "string"
+                    },
+                    "foto_ktp": {
+                        "type": "string"
+                    },
+                    "status": {
+                        "$ref": "#/components/schemas/StatusKonsumen"
+                    },
+                    "note": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "old_data": {
+                        "type": [
+                            "array",
+                            "null"
+                        ],
+                        "items": {}
+                    },
+                    "verified_by": {
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
+                    },
+                    "verified_at": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date-time"
+                    },
+                    "created_at": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date-time"
+                    },
+                    "updated_at": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date-time"
+                    },
+                    "foto_ktp_url": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    }
+                },
+                "required": [
+                    "id",
+                    "fk_me",
+                    "fk_konsumen",
+                    "type",
+                    "nik",
+                    "konsumen_name",
+                    "fk_temp_lahir",
+                    "birth_date",
+                    "gender",
+                    "ktp_address",
+                    "domicile_address",
+                    "latitude",
+                    "longitude",
+                    "rt",
+                    "rw",
+                    "fk_kelurahan",
+                    "fk_kecamatan",
+                    "fk_kabupaten_kota",
+                    "fk_provinsi",
+                    "fk_agama",
+                    "marital_status",
+                    "fk_pekerjaan",
+                    "nationality",
+                    "phone",
+                    "email",
+                    "foto_ktp",
+                    "status",
+                    "note",
+                    "old_data",
+                    "verified_by",
+                    "verified_at",
+                    "created_at",
+                    "updated_at",
+                    "foto_ktp_url"
+                ],
+                "title": "TempKonsumen"
+            },
+            "TypeTempKonsumen": {
+                "type": "string",
+                "enum": [
+                    "tambah",
+                    "edit",
+                    "revisi"
+                ],
+                "title": "TypeTempKonsumen"
+            },
             "UrlIpLogin": {
                 "type": "object",
                 "properties": {
@@ -18317,7 +18487,7 @@
                     "url": {
                         "type": "string"
                     },
-                    "is_active": {
+                    "status": {
                         "type": "boolean"
                     },
                     "created_at": {
@@ -18338,7 +18508,7 @@
                 "required": [
                     "id",
                     "url",
-                    "is_active",
+                    "status",
                     "created_at",
                     "updated_at"
                 ],
@@ -18351,13 +18521,13 @@
                         "type": "string",
                         "format": "uri"
                     },
-                    "is_active": {
+                    "status": {
                         "type": "boolean"
                     }
                 },
                 "required": [
                     "url",
-                    "is_active"
+                    "status"
                 ],
                 "title": "UrlIpLoginRequest"
             },
@@ -18373,13 +18543,13 @@
                     "email": {
                         "type": "string"
                     },
-                    "email_verifikasi": {
+                    "email_verification": {
                         "type": "boolean"
                     },
                     "status": {
                         "$ref": "#/components/schemas/StatusUser"
                     },
-                    "foto": {
+                    "photo": {
                         "type": [
                             "string",
                             "null"
@@ -18399,19 +18569,19 @@
                         ],
                         "format": "date-time"
                     },
-                    "id_dealer": {
+                    "fk_dealer": {
                         "type": [
                             "integer",
                             "null"
                         ]
                     },
-                    "id_atasan": {
+                    "fk_atasan": {
                         "type": [
                             "integer",
                             "null"
                         ]
                     },
-                    "id_role": {
+                    "fk_role": {
                         "type": "integer"
                     }
                 },
@@ -18419,14 +18589,14 @@
                     "id",
                     "name",
                     "email",
-                    "email_verifikasi",
+                    "email_verification",
                     "status",
-                    "foto",
+                    "photo",
                     "created_at",
                     "updated_at",
-                    "id_dealer",
-                    "id_atasan",
-                    "id_role"
+                    "fk_dealer",
+                    "fk_atasan",
+                    "fk_role"
                 ],
                 "title": "User"
             },

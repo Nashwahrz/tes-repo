@@ -14,8 +14,8 @@ class EmailWhiteListSeeder extends Seeder
     {
         $now = now();
         $daftar = [
-            ['domain' => '@gmail.com', 'is_active' => true, 'created_by' => 1],
-            ['domain' => '@yahoo.com', 'is_active' => true, 'created_by' => 1],
+            ['domain' => '@gmail.com', 'status' => true, 'created_by' => 1],
+            ['domain' => '@yahoo.com', 'status' => true, 'created_by' => 1],
         ];
 
         $rows = array_map(fn($item) => $item + ['created_at' => $now, 'updated_at' => $now], $daftar);
@@ -23,7 +23,7 @@ class EmailWhiteListSeeder extends Seeder
         DB::table('master.email_whitelists')->upsert(
             $rows,
             ['domain'],
-            ['is_active', 'created_by', 'updated_at']
+            ['status', 'created_by', 'updated_at']
         );
     }
 }

@@ -14,7 +14,7 @@ class KtpOcrService
     private function getAppKeyOcr(): ?AppKeyOcr
     {
         return Cache::remember('active_app_key_ocr', 3600, function () {
-            return AppKeyOcr::where('is_active', true)->first();
+            return AppKeyOcr::where('status', true)->first();
         });
     }
 
@@ -32,7 +32,7 @@ class KtpOcrService
     {
         $appKeyOcr = $this->getAppKeyOcr();
 
-        if (! $appKeyOcr || ! $appKeyOcr->is_active || empty($appKeyOcr->api_key) || empty($appKeyOcr->url)) {
+        if (! $appKeyOcr || ! $appKeyOcr->status || empty($appKeyOcr->api_key) || empty($appKeyOcr->url)) {
             throw new Exception('Layanan OCR belum dikonfigurasi atau sedang tidak aktif.');
         }
 

@@ -18,7 +18,7 @@ class KecamatanSeeder extends Seeder
         }
 
         $validKabupaten = DB::table('master.kabupaten_kotas')
-            ->pluck('kode')
+            ->pluck('kabupaten_kota_code')
             ->map(fn ($k) => (string) $k)
             ->flip();
 
@@ -54,9 +54,9 @@ class KecamatanSeeder extends Seeder
 
          
             $rows[$kode] = [
-                'kode'                => $kode,
-                'name'                => $name,
-                'kode_kabupaten_kota' => $kodeKab,
+                'kecamatan_code'                => $kode,
+                'kecamatan_name'                => $name,
+                'fk_kabupaten_kota' => $kodeKab,
                 'status'              => $status,
                 'created_at'          => now(),
                 'updated_at'          => now(),
@@ -67,8 +67,8 @@ class KecamatanSeeder extends Seeder
             foreach (array_chunk(array_values($rows), 500) as $chunk) {
                 DB::table('master.kecamatans')->upsert(
                     $chunk,
-                    ['kode'],
-                    ['name', 'kode_kabupaten_kota', 'status', 'updated_at']
+                    ['kecamatan_code'],
+                    ['kecamatan_name', 'fk_kabupaten_kota', 'status', 'updated_at']
                 );
             }
         });

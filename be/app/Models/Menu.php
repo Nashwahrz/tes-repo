@@ -15,30 +15,30 @@ class Menu extends Model
     {
         return LogOptions::defaults()
             ->useLogName('menu')
-            ->logOnly(['nama_menu', 'url', 'urutan', 'status'])
+            ->logOnly(['menu_name', 'url', 'sequence', 'status'])
             ->logOnlyDirty()
             ->dontSubmitEmptyLogs();
     }
     protected $fillable = [
-        'nama_menu',
+        'menu_name',
         'url',
-        'urutan',
+        'sequence',
         'status',
     ];
 
     protected $casts = [
         'status' => 'boolean',
-        'urutan' => 'integer',
+        'sequence' => 'integer',
     ];
 
     public function roles()
     {
-        return $this->belongsToMany(Role::class, 'hak_akses.menu_roles', 'id_menu', 'id_role')->withTimestamps();
+        return $this->belongsToMany(Role::class, 'hak_akses.menu_roles', 'fk_menu', 'fk_role')->withTimestamps();
     }
 
     public function menuRoles()
     {
-        return $this->hasMany(MenuRole::class, 'id_menu');
+        return $this->hasMany(MenuRole::class, 'fk_menu');
     }
 }
 

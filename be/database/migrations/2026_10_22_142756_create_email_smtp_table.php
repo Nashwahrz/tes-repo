@@ -21,7 +21,7 @@ return new class extends Migration
             $table->string('mail_encryption');
             $table->string('mail_from_address');
             $table->string('mail_from_name');
-            $table->boolean('is_active')->default(false);
+            $table->boolean('status')->default(false);
             $table->timestamps();
         });
     }

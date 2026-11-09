@@ -18,7 +18,7 @@ class KelurahanSeeder extends Seeder
         }
 
         $validKecamatan = DB::table('master.kecamatans')
-            ->pluck('kode')
+            ->pluck('kecamatan_code')
             ->map(fn ($k) => (string) $k)
             ->flip();
 
@@ -54,9 +54,9 @@ class KelurahanSeeder extends Seeder
 
          
             $rows[$kode] = [
-                'kode'                => $kode,
-                'name'                => $name,
-                'kode_kecamatan' => $kodeKecamatan,
+                'kelurahan_code'                => $kode,
+                'kelurahan_name'                => $name,
+                'fk_kecamatan' => $kodeKecamatan,
                 'status'              => $status,
                 'created_at'          => now(),
                 'updated_at'          => now(),
@@ -67,8 +67,8 @@ class KelurahanSeeder extends Seeder
             foreach (array_chunk(array_values($rows), 500) as $chunk) {
                 DB::table('master.kelurahans')->upsert(
                     $chunk,
-                    ['kode'],
-                    ['name', 'kode_kecamatan','status', 'updated_at']
+                    ['kelurahan_code'],
+                    ['kelurahan_name', 'fk_kecamatan','status', 'updated_at']
                 );
             }
         });

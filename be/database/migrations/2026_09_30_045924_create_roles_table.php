@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('hak_akses.roles', function (Blueprint $table) {
             $table->id();
-            $table->string('name')->unique();
+            $table->string('role_name')->unique();
             $table->timestamps();
         });
     }

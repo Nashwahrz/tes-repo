@@ -14,13 +14,13 @@ class Agama extends Model
     {
         return LogOptions::defaults()
             ->useLogName('agama')
-            ->logOnly(['kode', 'name', 'status'])
+            ->logOnly(['agama_code', 'agama_name', 'status'])
             ->logOnlyDirty()
             ->dontSubmitEmptyLogs();
     }
     protected $fillable = [
-        'kode',
-        'name',
+        'agama_code',
+        'agama_name',
         'status',
     ];
 

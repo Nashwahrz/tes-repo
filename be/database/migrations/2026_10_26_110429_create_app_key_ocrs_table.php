@@ -15,8 +15,8 @@ return new class extends Migration
             $table->id();
             $table->string('url');
             $table->string('api_key');
-            $table->string('keterangan')->nullable();
-            $table->boolean('is_active')->default(true);
+            $table->string('description')->nullable();
+            $table->boolean('status')->default(true);
             $table->timestamps();
         });
     }

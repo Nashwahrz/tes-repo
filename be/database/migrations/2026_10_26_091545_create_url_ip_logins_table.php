@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('setting.url_ip_logins', function (Blueprint $table) {
             $table->id();
             $table->string('url');
-            $table->boolean('is_active')->default(true);
+            $table->boolean('status')->default(true);
             $table->timestamps();
         });
     }

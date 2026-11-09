@@ -12,25 +12,25 @@ class PermissionRole extends Model
     protected $table = 'hak_akses.permission_roles';
 
      protected $fillable = [
-        'id_role',
-        'id_permission',
+        'fk_role',
+        'fk_permission',
     ];
     public function getActivitylogOptions(): LogOptions
     {
         return LogOptions::defaults()
             ->useLogName('permission roles')
-            ->logOnly(['id_role', 'id_permission'])
+            ->logOnly(['fk_role', 'fk_permission'])
             ->logOnlyDirty()
             ->dontSubmitEmptyLogs();
     }
 
     public function role()
     {
-        return $this->belongsTo(Role::class, 'id_role');
+        return $this->belongsTo(Role::class, 'fk_role');
     }
 
     public function permission()
     {
-        return $this->belongsTo(Permission::class, 'id_permission');
+        return $this->belongsTo(Permission::class, 'fk_permission');
     }
 }

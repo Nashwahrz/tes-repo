@@ -15,11 +15,11 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->string('email')->unique();
-            $table->boolean('email_verifikasi')
+            $table->boolean('email_verification')
                   ->default(false);
-            $table->enum('status', ['pending', 'aktif', 'ditolak', 'nonaktif'])
+            $table->string('status')
                   ->default('pending');
-            $table->string('foto')
+            $table->string('photo')
                   ->nullable();
             $table->string('password');
             $table->rememberToken();

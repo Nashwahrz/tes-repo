@@ -102,7 +102,7 @@ class KelurahanController extends Controller
                 return $this->kelurahanResponse->notFound();
             }
 
-            $updatedKelurahan = $this->kelurahanRepository->update($kelurahan, $request->only('name', 'kode_kecamatan'));
+            $updatedKelurahan = $this->kelurahanRepository->update($kelurahan, $request->only('kelurahan_name', 'fk_kecamatan'));
 
             return $this->kelurahanResponse->success($updatedKelurahan, 'Kelurahan berhasil diperbarui.');
         } catch (UniqueConstraintViolationException $e) {

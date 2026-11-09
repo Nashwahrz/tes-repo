@@ -11,10 +11,10 @@ class UniqueSuperAdminRole implements ValidationRule
 {
     public function validate(string $attribute, mixed $value, Closure $fail): void
     {
-        $SuperAdminRole = Role::where('name', 'Super Admin')->first();
+        $SuperAdminRole = Role::where('role_name', 'Super Admin')->first();
 
         if ($SuperAdminRole && (int) $value === $SuperAdminRole->id) {
-            $SuperAdminExists = User::where('id_role', $SuperAdminRole->id)->exists();
+            $SuperAdminExists = User::where('fk_role', $SuperAdminRole->id)->exists();
 
             if ($SuperAdminExists) {
                 $fail('Data tidak bisa diisi');

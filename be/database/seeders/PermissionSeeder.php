@@ -100,11 +100,11 @@ class PermissionSeeder extends Seeder
             
         ];
         $rows = array_map(fn ($nama) => [
-            'nama_permission' => $nama,
+            'permission_name' => $nama,
             'created_at'      => $now,
             'updated_at'      => $now,
         ], $daftar);
  
-        DB::table('hak_akses.permissions')->upsert($rows, ['nama_permission'], ['updated_at']);
+        DB::table('hak_akses.permissions')->upsert($rows, ['permission_name'], ['updated_at']);
     }
 }

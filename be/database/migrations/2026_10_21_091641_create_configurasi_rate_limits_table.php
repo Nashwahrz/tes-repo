@@ -16,7 +16,7 @@ return new class extends Migration
             $table->string('name')->unique();
             $table->integer('request_per_minutes');
             $table->integer('minutes');
-            $table->boolean('is_active')->default(true);
+            $table->boolean('status')->default(true);
             $table->timestamps();
         });
     }

@@ -12,35 +12,35 @@ class Role extends Model
     protected $table = 'hak_akses.roles';
 
     protected $fillable = [
-        'name'
+        'role_name'
     ];
     public function getActivitylogOptions(): LogOptions
     {
         return LogOptions::defaults()
             ->useLogName('role')
-            ->logOnly(['name'])
+            ->logOnly(['role_name'])
             ->logOnlyDirty()
             ->dontSubmitEmptyLogs();
     }
 
     public function menus()
     {
-        return $this->belongsToMany(Menu::class, 'hak_akses.menu_roles', 'id_role', 'id_menu')->withTimestamps();
+        return $this->belongsToMany(Menu::class, 'hak_akses.menu_roles', 'fk_role', 'fk_menu')->withTimestamps();
     }
 
     public function roleMenus()
     {
-        return $this->hasMany(MenuRole::class, 'id_role');
+        return $this->hasMany(MenuRole::class, 'fk_role');
     }
 
     public function permissions()
     {
-        return $this->belongsToMany(Permission::class, 'hak_akses.permission_roles', 'id_role', 'id_permission')->withTimestamps();
+        return $this->belongsToMany(Permission::class, 'hak_akses.permission_roles', 'fk_role', 'fk_permission')->withTimestamps();
     }
 
     public function permissionRoles()
     {
-        return $this->hasMany(PermissionRole::class, 'id_role');
+        return $this->hasMany(PermissionRole::class, 'fk_role');
     }
 }
 

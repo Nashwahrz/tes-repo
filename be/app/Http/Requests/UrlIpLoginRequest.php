@@ -26,7 +26,7 @@ class UrlIpLoginRequest extends FormRequest
     {
         return [
           'url' => 'required|url',
-          'is_active' => 'required|boolean',
+          'status' => 'required|boolean',
         ];
     }
     public function messages(): array
@@ -34,8 +34,8 @@ class UrlIpLoginRequest extends FormRequest
         return [
             'url.required'   => 'URL wajib diisi.',
             'url.url'        => 'URL harus berupa URL yang valid.',
-            'is_active.required'=> 'Status aktif wajib diisi.',
-            'is_active.boolean' => 'Status aktif harus berupa boolean (true atau false).',
+            'status.required'=> 'Status aktif wajib diisi.',
+            'status.boolean' => 'Status aktif harus berupa boolean (true atau false).',
         ];
     }
 

@@ -118,11 +118,11 @@ class RoleMenuController extends Controller
         try {
             $user = $request->user();
 
-            if (!$user || !$user->id_role) {
+            if (!$user || !$user->fk_role) {
                 return $this->roleMenuResponse->list([], 'User tidak memiliki role.');
             }
 
-            $menus = $this->roleMenuRepository->getMenusByRoleId($user->id_role);
+            $menus = $this->roleMenuRepository->getMenusByRoleId($user->fk_role);
 
             return $this->roleMenuResponse->list($menus, 'Daftar menu user berhasil diambil.');
         } catch (Throwable $e) {

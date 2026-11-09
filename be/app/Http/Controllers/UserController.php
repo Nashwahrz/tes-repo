@@ -42,8 +42,8 @@ class UserController extends Controller
 
             $updatedUser = $this->userRepository->activateUser(
                 $user,
-                $isDitolak ? null : ($request->filled('id_dealer') ? (int) $request->id_dealer : null),
-                $isDitolak ? null : ($request->filled('id_atasan') ? (int) $request->id_atasan : null),
+                $isDitolak ? null : ($request->filled('fk_dealer') ? (int) $request->fk_dealer : null),
+                $isDitolak ? null : ($request->filled('fk_atasan') ? (int) $request->fk_atasan : null),
                 $status
             );
 
@@ -64,12 +64,12 @@ class UserController extends Controller
     public function getAtasanOptions(GetAtasanOptionsRequest $request)
     {
         try {
-            $role = Role::find($request->id_role);
+            $role = Role::find($request->fk_role);
             if (!$role) {
                 return $this->userResponse->notFound('Role tidak ditemukan.');
             }
 
-            $dealerId = $request->filled('id_dealer') ? (int) $request->id_dealer : null;
+            $dealerId = $request->filled('fk_dealer') ? (int) $request->fk_dealer : null;
             $atasanOptions = $this->userRepository->getAtasanOptions($role, $dealerId);
 
             return $this->userResponse->list($atasanOptions, 'Daftar pilihan atasan berhasil diambil.');

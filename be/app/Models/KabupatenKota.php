@@ -14,21 +14,21 @@ class KabupatenKota extends Model
     {
         return LogOptions::defaults()
             ->useLogName('kabupaten kota')
-            ->logOnly(['kode', 'name', 'kode_provinsi', 'status'])
+            ->logOnly(['kabupaten_kota_code', 'kabupaten_kota_name', 'fk_provinsi', 'status'])
             ->logOnlyDirty()
             ->dontSubmitEmptyLogs();
     }
 
     protected $fillable = [
-        'kode',
-        'name',
-        'kode_provinsi',
+        'kabupaten_kota_code',
+        'kabupaten_kota_name',
+        'fk_provinsi',
         'status'
     ];
     
 
     public function provinsi()
     {
-        return $this->belongsTo(Provinsi::class, 'kode_provinsi', 'kode');
+        return $this->belongsTo(Provinsi::class, 'fk_provinsi', 'provinsi_code');
     }
 }

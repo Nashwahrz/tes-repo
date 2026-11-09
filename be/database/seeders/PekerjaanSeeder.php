@@ -44,8 +44,8 @@ class PekerjaanSeeder extends Seeder
 
          
             $rows[$kode] = [
-                'kode'                => $kode,
-                'name'                => $name,
+                'pekerjaan_code'                => $kode,
+                'pekerjaan_name'                => $name,
                 'created_at'          => now(),
                 'updated_at'          => now(),
             ];
@@ -55,8 +55,8 @@ class PekerjaanSeeder extends Seeder
             foreach (array_chunk(array_values($rows), 500) as $chunk) {
                 DB::table('master.pekerjaans')->upsert(
                     $chunk,
-                    ['kode'],
-                    ['name', 'updated_at']
+                    ['pekerjaan_code'],
+                    ['pekerjaan_name', 'updated_at']
                 );
             }
         });

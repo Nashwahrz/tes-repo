@@ -14,20 +14,20 @@ class Kelurahan extends Model
     {
         return LogOptions::defaults()
             ->useLogName('kelurahan')
-            ->logOnly(['kode', 'name', 'kode_kecamatan', 'status'])
+            ->logOnly(['kelurahan_code', 'kelurahan_name', 'fk_kecamatan', 'status'])
             ->logOnlyDirty()
             ->dontSubmitEmptyLogs();
     }
 
     protected $fillable = [
-        'kode',
-        'name',
-        'kode_kecamatan',
+        'kelurahan_code',
+        'kelurahan_name',
+        'fk_kecamatan',
         'status'
     ];
 
     public function kecamatan()
     {
-        return $this->belongsTo(Kecamatan::class, 'kode_kecamatan', 'kode');
+        return $this->belongsTo(Kecamatan::class, 'fk_kecamatan', 'kecamatan_code');
     }
 }

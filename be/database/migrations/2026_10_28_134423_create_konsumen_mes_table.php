@@ -13,10 +13,10 @@ return new class extends Migration
     {
         Schema::create('konsumen_mes', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('id_me')->constrained('users')->cascadeOnDelete();
-            $table->foreignId('id_konsumen')->constrained('konsumens')->cascadeOnDelete();
+            $table->foreignId('fk_me')->constrained('users')->cascadeOnDelete();
+            $table->foreignId('fk_konsumen')->constrained('konsumens')->cascadeOnDelete();
             $table->timestamps();
-            $table->unique(['id_me', 'id_konsumen']);
+            $table->unique(['fk_me', 'fk_konsumen']);
         });
     }
 

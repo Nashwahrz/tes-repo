@@ -11,57 +11,56 @@ return new class extends Migration
     {
         Schema::create('temp.temp_konsumens', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('id_me')->constrained('users')->cascadeOnDelete();
-            $table->foreignId('id_konsumen')->nullable()->constrained('konsumens')->nullOnDelete();
-            $table->string('tipe')->default('baru'); 
+            $table->foreignId('fk_me')->constrained('users')->cascadeOnDelete();
+            $table->foreignId('fk_konsumen')->nullable()->constrained('konsumens')->nullOnDelete();
+            $table->string('type')->default('tambah'); 
             $table->string('nik', 16)->index();
-            $table->string('name');
-            $table->string('kode_tmp_lahir')->nullable();
-            $table->foreign('kode_tmp_lahir')->references('kode')->on('master.kabupaten_kotas')->nullOnDelete();
-            $table->date('tgl_lahir');
-            $table->string('jenis_kelamin');
-            $table->string('alamat_ktp');
-            $table->string('alamat_domisili');
+            $table->string('konsumen_name');
+            $table->string('fk_temp_lahir')->nullable();
+            $table->foreign('fk_temp_lahir')->references('kabupaten_kota_code')->on('master.kabupaten_kotas')->nullOnDelete();
+            $table->date('birth_date');
+            $table->string('gender');
+            $table->string('ktp_address');
+            $table->string('domicile_address');
             $table->decimal('latitude', 10, 7)->nullable();
             $table->decimal('longitude', 10, 7)->nullable();
             $table->string('rt', 3);
             $table->string('rw', 3);
-            $table->string('kode_kelurahan')->nullable();
-            $table->foreign('kode_kelurahan')->references('kode')->on('master.kelurahans')->nullOnDelete();
+            $table->string('fk_kelurahan')->nullable();
+            $table->foreign('fk_kelurahan')->references('kelurahan_code')->on('master.kelurahans')->nullOnDelete();
 
-            $table->string('kode_kecamatan')->nullable();
-            $table->foreign('kode_kecamatan')->references('kode')->on('master.kecamatans')->nullOnDelete();
+            $table->string('fk_kecamatan')->nullable();
+            $table->foreign('fk_kecamatan')->references('kecamatan_code')->on('master.kecamatans')->nullOnDelete();
 
-            $table->string('kode_kabupaten_kota')->nullable();
-            $table->foreign('kode_kabupaten_kota')->references('kode')->on('master.kabupaten_kotas')->nullOnDelete();
+            $table->string('fk_kabupaten_kota')->nullable();
+            $table->foreign('fk_kabupaten_kota')->references('kabupaten_kota_code')->on('master.kabupaten_kotas')->nullOnDelete();
 
-            $table->string('kode_provinsi')->nullable();
-            $table->foreign('kode_provinsi')->references('kode')->on('master.provinsis')->nullOnDelete();
+            $table->string('fk_provinsi')->nullable();
+            $table->foreign('fk_provinsi')->references('provinsi_code')->on('master.provinsis')->nullOnDelete();
 
-            $table->string('kode_agama')->nullable();
-            $table->foreign('kode_agama')->references('kode')->on('master.agamas')->nullOnDelete();
+            $table->string('fk_agama')->nullable();
+            $table->foreign('fk_agama')->references('agama_code')->on('master.agamas')->nullOnDelete();
 
-            $table->string('status_perkawinan');
+            $table->string('marital_status');
 
-            $table->string('kode_pekerjaan')->nullable();
-            $table->foreign('kode_pekerjaan')->references('kode')->on('master.pekerjaans')->nullOnDelete();
-
-            $table->string('kewarganegaraan');
-            $table->string('no_telp', 20);
+            $table->string('fk_pekerjaan')->nullable();
+            $table->foreign('fk_pekerjaan')->references('pekerjaan_code')->on('master.pekerjaans')->nullOnDelete();
+            $table->string('nationality');
+            $table->string('phone', 20);
             $table->string('email');
             $table->string('foto_ktp'); 
-            $table->string('status')->default('pending')->index(); 
-            $table->text('catatan')->nullable();                   
-            $table->json('data_sebelumnya')->nullable();            
-            $table->foreignId('diverifikasi_oleh')->nullable()->constrained('users')->nullOnDelete();
-            $table->timestamp('diverifikasi_at')->nullable();
+            $table->string('status')->default('pending')->index();
+            $table->text('note')->nullable();
+            $table->json('old_data')->nullable();
+            $table->foreignId('verified_by')->nullable()->constrained('users')->nullOnDelete();
+            $table->timestamp('verified_at')->nullable();
 
             $table->timestamps();
         });
 
         DB::statement("
             CREATE UNIQUE INDEX temp_konsumens_aktif_unique
-            ON temp.temp_konsumens (id_me, nik)
+            ON temp.temp_konsumens (fk_me, nik)
             WHERE status IN ('pending', 'revisi')
         ");
     }

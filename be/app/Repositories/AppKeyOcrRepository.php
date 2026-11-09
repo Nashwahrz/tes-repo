@@ -30,7 +30,7 @@ class AppKeyOcrRepository
     public function getActive(): ?AppKeyOcr
     {
         return Cache::remember('active_app_key_ocr', 3600, function () {
-            return AppKeyOcr::where('is_active', true)->first();
+            return AppKeyOcr::where('status', true)->first();
         });
     }
     public function getAllLogs(int $perPage = 10, ?string $search = null): LengthAwarePaginator

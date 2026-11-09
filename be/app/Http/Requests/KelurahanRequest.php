@@ -32,35 +32,35 @@ class KelurahanRequest extends FormRequest
 
         if ($this->isMethod('put') || $this->isMethod('patch')) {
             return [
-                'name' => [
+                'kelurahan_name' => [
                     'required',
                     'string',
                     'max:255',
                 ],
-                'kode_kecamatan' => [
+                'fk_kecamatan' => [
                     'required',
                     'string',
-                    Rule::exists(Kecamatan::class, 'kode'),
+                    Rule::exists(Kecamatan::class, 'kecamatan_code'),
                 ],
             ];
         }
 
         return [
-            'kode' => [
+            'kelurahan_code' => [
                 'required',
                 'string',
                 'digits_between:1,10',
-               Rule::unique(Kelurahan::class, 'kode'),
+               Rule::unique(Kelurahan::class, 'kelurahan_code'),
             ],  
-            'name' => [
+            'kelurahan_name' => [
                 'required',
                 'string',
                 'max:255',
             ], 
-            'kode_kecamatan' => [
+            'fk_kecamatan' => [
                 'required',
                 'string',
-               Rule::exists(Kecamatan::class, 'kode'),
+               Rule::exists(Kecamatan::class, 'kecamatan_code'),
             ],
         ];
     }
@@ -68,16 +68,16 @@ class KelurahanRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'kode.required'      => 'kode kelurahan wajib diisi.',
-            'kode.string'        => 'kode kelurahan harus berupa string.',
-            'kode.digits_between'=> 'kode kelurahan harus berupa angka.',
-            'kode.unique'        => 'kode kelurahan sudah terdaftar.',
-            'name.required'      => 'Kelurahan wajib diisi.',
-            'name.string'        => 'Kelurahan harus berupa string.',
-            'name.max'           => 'Kelurahan tidak boleh lebih dari 255 karakter.',
-            'kode_kecamatan.required'      => 'Kecamatan wajib diisi.',
-            'kode_kecamatan.integer'        => 'Kecamatan harus berupa integer.',
-            'kode_kecamatan.exists'           => 'Kecamatan tidak ditemukan.',
+            'kelurahan_code.required'      => 'kode kelurahan wajib diisi.',
+            'kelurahan_code.string'        => 'kode kelurahan harus berupa string.',
+            'kelurahan_code.digits_between'=> 'kode kelurahan harus berupa angka.',
+            'kelurahan_code.unique'        => 'kode kelurahan sudah terdaftar.',
+            'kelurahan_name.required'      => 'Kelurahan wajib diisi.',
+            'kelurahan_name.string'        => 'Kelurahan harus berupa string.',
+            'kelurahan_name.max'           => 'Kelurahan tidak boleh lebih dari 255 karakter.',
+            'fk_kecamatan.required'      => 'Kecamatan wajib diisi.',
+            'fk_kecamatan.integer'        => 'Kecamatan harus berupa integer.',
+            'fk_kecamatan.exists'           => 'Kecamatan tidak ditemukan.',
         ];
     }
 

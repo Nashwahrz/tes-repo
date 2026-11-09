@@ -13,8 +13,8 @@ return new class extends Migration
     {
         Schema::create('master.provinsis', function (Blueprint $table) {
             $table->id();
-            $table->string('kode')->unique();
-            $table->string('name');
+            $table->string('provinsi_code')->unique();
+            $table->string('provinsi_name');
             $table->boolean('status')->default(true);
             $table->timestamps();
         });

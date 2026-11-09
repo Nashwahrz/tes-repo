@@ -14,19 +14,19 @@ class UrlIpLogin extends Model
 
     protected $fillable = [
         'url',
-        'is_active',
+        'status',
     ];
     public function getActivitylogOptions(): LogOptions
     {
         return LogOptions::defaults()
             ->useLogName('email whitelist')
-            ->logOnly(['domain', 'is_active', 'created_by'])
+            ->logOnly(['domain', 'status', 'created_by'])
             ->logOnlyDirty()
             ->dontSubmitEmptyLogs();
     }
 
     protected $casts = [
-        'is_active' => 'boolean',
+        'status' => 'boolean',
     ];
 
     protected static function booted(): void

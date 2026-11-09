@@ -18,7 +18,7 @@ class ProvinsiSeeder extends Seeder
         }
 
         $validKabupaten = DB::table('master.provinsis')
-            ->pluck('kode')
+            ->pluck('provinsi_code')
             ->map(fn ($k) => (string) $k)
             ->flip();
 
@@ -48,8 +48,8 @@ class ProvinsiSeeder extends Seeder
 
          
             $rows[$kode] = [
-                'kode'                => $kode,
-                'name'                => $name,
+                'provinsi_code'                => $kode,
+                'provinsi_name'                => $name,
                 'created_at'          => now(),
                 'updated_at'          => now(),
             ];
@@ -59,8 +59,8 @@ class ProvinsiSeeder extends Seeder
             foreach (array_chunk(array_values($rows), 500) as $chunk) {
                 DB::table('master.provinsis')->upsert(
                     $chunk,
-                    ['kode'],
-                    ['name', 'updated_at']
+                    ['provinsi_code'],
+                    ['provinsi_name', 'updated_at']
                 );
             }
         });

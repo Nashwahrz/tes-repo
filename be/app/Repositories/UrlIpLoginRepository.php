@@ -29,7 +29,7 @@ class UrlIpLoginRepository
     public function getActive(): ?UrlIpLogin
     {
         return Cache::remember('active_url_ip_login', 3600, function () {
-            return UrlIpLogin::where('is_active', true)->first();
+            return UrlIpLogin::where('status', true)->first();
         });
     }
     public function getAllLogs(int $perPage = 10, ?string $search = null): LengthAwarePaginator

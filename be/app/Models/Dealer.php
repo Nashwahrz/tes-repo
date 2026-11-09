@@ -18,13 +18,13 @@ class Dealer extends Model
     {
         return LogOptions::defaults()
             ->useLogName('dealers')
-            ->logOnly(['name', 'alamat', 'latitude', 'longitude'])
+            ->logOnly(['dealer_name', 'address', 'latitude', 'longitude'])
             ->logOnlyDirty()
             ->dontSubmitEmptyLogs();
     }
     protected $fillable = [
-        'name',
-        'alamat',
+        'dealer_name',
+        'address',
         'latitude',
         'longitude',
     ];

@@ -11,25 +11,25 @@ class MenuRole extends Model
     use LogsActivity;
     protected $table = 'hak_akses.menu_roles';
     protected $fillable = [
-        'id_role',
-        'id_menu',
+        'fk_role',
+        'fk_menu',
     ];
     public function getActivitylogOptions(): LogOptions
     {
         return LogOptions::defaults()
             ->useLogName('menu roles')
-            ->logOnly(['id_role', 'id_menu'])
+            ->logOnly(['fk_role', 'fk_menu'])
             ->logOnlyDirty()
             ->dontSubmitEmptyLogs();
     }
 
     public function role()
     {
-        return $this->belongsTo(Role::class, 'id_role');
+        return $this->belongsTo(Role::class, 'fk_role');
     }
 
     public function menu()
     {
-        return $this->belongsTo(Menu::class, 'id_menu');
+        return $this->belongsTo(Menu::class, 'fk_menu');
     }
 }

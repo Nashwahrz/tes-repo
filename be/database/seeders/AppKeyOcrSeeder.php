@@ -19,8 +19,8 @@ class AppKeyOcrSeeder extends Seeder
             [
                 'url'=> 'https://api.ocr.space/parse/image',
                 'api_key' => 'jdjkshhs8787',
-                'keterangan' => 'ini adalah key ocr',
-                'is_active' => true,
+                'description' => 'ini adalah key ocr',
+                'status' => true,
                 'created_at' => $now,
                 'updated_at' => $now,
             ]

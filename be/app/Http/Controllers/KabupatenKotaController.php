@@ -102,7 +102,7 @@ class KabupatenKotaController extends Controller
                 return $this->kabupatenKotaResponse->notFound();
             }
 
-            $updatedKabupatenKota = $this->kabupatenKotaRepository->update($kabupatenKota, $request->only('name', 'kode_provinsi'));
+            $updatedKabupatenKota = $this->kabupatenKotaRepository->update($kabupatenKota, $request->only('kabupaten_kota_name', 'fk_provinsi'));
 
             return $this->kabupatenKotaResponse->success($updatedKabupatenKota, 'Kabupaten kota berhasil diperbarui.');
         } catch (UniqueConstraintViolationException $e) {

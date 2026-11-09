@@ -13,22 +13,22 @@ class KonsumenMe extends Model
     {
         return LogOptions::defaults()
             ->useLogName('konsumen me')
-            ->logOnly(['id_me', 'id_konsumen'])
+            ->logOnly(['fk_me', 'fk_konsumen'])
             ->logOnlyDirty()
             ->dontSubmitEmptyLogs();
     }
     protected $fillable = [
-        'id_me',
-        'id_konsumen',
+        'fk_me',
+        'fk_konsumen',
     ];
 
     public function me()
     {
-        return $this->belongsTo(User::class, 'id_me');
+        return $this->belongsTo(User::class, 'fk_me');
     }
 
     public function konsumen()
     {
-        return $this->belongsTo(Konsumen::class, 'id_konsumen');
+        return $this->belongsTo(Konsumen::class, 'fk_konsumen');
     }
 }

@@ -22,8 +22,8 @@ class DealerScope implements Scope
                 : $user->role()->value('name');
 
 
-            if ($roleName !== 'Super Admin' && $user->id_dealer) {
-                $builder->where($model->getTable() . '.id_dealer', $user->id_dealer);
+            if ($roleName !== 'Super Admin' && $user->fk_dealer) {
+                $builder->where($model->getTable() . '.fk_dealer', $user->fk_dealer);
             }
         }
     }

@@ -13,7 +13,7 @@ class UserHasRole implements ValidationRule
     public function validate(string $attribute, mixed $value, Closure $fail): void
     {
         $valid = User::where('id', $value)
-            ->whereHas('role', fn ($q) => $q->where('name', $this->roleName))
+            ->whereHas('role', fn ($q) => $q->where('role_name', $this->roleName))
             ->exists();
 
         if (!$valid) {

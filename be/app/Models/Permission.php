@@ -12,24 +12,24 @@ class Permission extends Model
     protected $table = 'hak_akses.permissions';
 
     protected $fillable = [
-        'nama_permission',
+        'permission_name',
     ];
     public function getActivitylogOptions(): LogOptions
     {
         return LogOptions::defaults()
             ->useLogName('permission')
-            ->logOnly(['nama_permission'])
+            ->logOnly(['permission_name'])
             ->logOnlyDirty()
             ->dontSubmitEmptyLogs();
     }
 
     public function roles()
     {
-        return $this->belongsToMany(Role::class, 'hak_akses.permission_roles', 'id_permission', 'id_role')->withTimestamps();
+        return $this->belongsToMany(Role::class, 'hak_akses.permission_roles', 'fk_permission', 'fk_role')->withTimestamps();
     }
 
     public function permissionRoles()
     {
-        return $this->hasMany(PermissionRole::class, 'id_permission');
+        return $this->hasMany(PermissionRole::class, 'fk_permission');
     }
 }

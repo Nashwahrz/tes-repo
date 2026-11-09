@@ -27,7 +27,7 @@ class AppKeyOcrRequest extends FormRequest
         return [
           'url' => 'required|url',
           'api_key' => 'required',
-          'is_active' => 'required|boolean',
+          'status' => 'required|boolean',
           'keterangan' => 'required',
         ];
     }
@@ -38,8 +38,8 @@ class AppKeyOcrRequest extends FormRequest
           'url.required' => 'url harus diisi',
           'url.url' => 'url harus berupa url',
           'api_key.required' => 'api_key harus diisi',
-          'is_active.required' => 'is_active harus diisi',
-          'is_active.boolean' => 'is_active harus berupa boolean',
+          'status.required' => 'status harus diisi',
+          'status.boolean' => 'status harus berupa boolean',
           'keterangan.required' => 'keterangan harus diisi',
         ];
     }

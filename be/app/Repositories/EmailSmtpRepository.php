@@ -23,8 +23,8 @@ class EmailSmtpRepository
    
     public function create(array $data): EmailSmtp
     {
-        if (!empty($data['is_active'])) {
-            EmailSmtp::where('is_active', true)->update(['is_active' => false]);
+        if (!empty($data['status'])) {
+            EmailSmtp::where('status', true)->update(['status' => false]);
         }
 
         $emailSmtp = EmailSmtp::create($data);
@@ -35,10 +35,10 @@ class EmailSmtpRepository
     
     public function update(EmailSmtp $emailSmtp, array $data): EmailSmtp
     {
-        if (!empty($data['is_active'])) {
+        if (!empty($data['status'])) {
             EmailSmtp::where('id', '!=', $emailSmtp->id)
-                ->where('is_active', true)
-                ->update(['is_active' => false]);
+                ->where('status', true)
+                ->update(['status' => false]);
         }
 
         $emailSmtp->update($data);

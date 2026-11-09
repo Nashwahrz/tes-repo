@@ -40,22 +40,22 @@ class ActivityLogResource extends JsonResource
             return null;
         }
 
-        if (array_key_exists('id_me', $data)) {
-            $id = $data['id_me'];
+        if (array_key_exists('fk_me', $data)) {
+            $id = $data['fk_me'];
             $data['me'] = $id ? ['id' => $id, 'name' => $users[$id] ?? null] : null;
-            unset($data['id_me']);
+            unset($data['fk_me']);
         }
 
-        if (array_key_exists('id_konsumen', $data)) {
-            $id = $data['id_konsumen'];
+        if (array_key_exists('fk_konsumen', $data)) {
+            $id = $data['fk_konsumen'];
             $data['konsumen'] = $id ? ['id' => $id, 'name' => $konsumens[$id] ?? null] : null;
-            unset($data['id_konsumen']);
+            unset($data['fk_konsumen']);
         }
 
-        if (array_key_exists('diverifikasi_oleh', $data)) {
-            $id = $data['diverifikasi_oleh'];
+        if (array_key_exists('verifief_by', $data)) {
+            $id = $data['verifief_by'];
             $data['diverifikator'] = $id ? ['id' => $id, 'name' => $users[$id] ?? null] : null;
-            unset($data['diverifikasi_oleh']);
+            unset($data['verifief_by']);
         }
 
 
