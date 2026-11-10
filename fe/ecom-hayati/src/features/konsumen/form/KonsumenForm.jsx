@@ -7,7 +7,7 @@ import { scanKtpToForm } from './ktpScan';
 import { checkPhoto } from './ktpCheck';
 import { compressImage } from '../../../utils/compressImage';
 import { createKonsumen, updateKonsumen, checkNik, ktpUrl, errorMessage } from '../../../api/authServices';
-import { CHILD_OF, EMPTY, FIELDS, GEO_KEY, KAWIN, LABELS, MAX_FILE, MAX_PICK, TARGET_FILE, nameOf, toForm, validate } from './konsumenFormConfig';
+import { CHILD_OF, EMPTY, FIELDS, GEO_KEY, fieldId, KAWIN, LABELS, MAX_FILE, MAX_PICK, TARGET_FILE, nameOf, toForm, validate } from './konsumenFormConfig';
 
 // Leaflet (JS + CSS) hanya dimuat saat form dibuka
 const MapPicker = lazy(() => import('../../../shared/map/MapPicker'));
@@ -81,7 +81,7 @@ function KonsumenForm({ editing, takeFrom, can, onClose, onSaved, onError }) {
     setOcrFilled({});
     setOcrMissing({});
     setOcrHints({});
-    setScanNote({ ok: true, text: `Data konsumen ${k.name || '-'} (NIK ${k.nik}) diambil ke form. Periksa kembali sebelum menyimpan.` });
+    setScanNote({ ok: true, text: `Data konsumen ${k.konsumen_name || '-'} (NIK ${k.nik}) diambil ke form. Periksa kembali sebelum menyimpan.` });
   };
   const showNikList = !editing && /^\d{12,16}$/.test(form.nik) && nikList.length > 0 && pickedNik !== form.nik && nikList.every((k) => String(k.nik).startsWith(form.nik));
   const shownNikDup = /^\d{16}$/.test(form.nik) ? nikDup : null;
@@ -106,7 +106,7 @@ function KonsumenForm({ editing, takeFrom, can, onClose, onSaved, onError }) {
   const setField = (key) => (e) => {
     let value = e.target.value;
     // No. telp: hanya angka, dan + hanya di awal
-    if (key === 'no_telp') value = value.replace(/[^\d+]/g, '').replace(/(?!^)\+/g, '');
+    if (key === 'phone') value = value.replace(/[^\d+]/g, '').replace(/(?!^)\+/g, '');
     const children = CHILD_OF[key] ?? [];
     setForm((f) => ({ ...f, [key]: value, ...Object.fromEntries(children.map((c) => [c, ''])) }));
     const cleared = Object.fromEntries(children.filter((c) => c in GEO_KEY).map((c) => [GEO_KEY[c], '']));
@@ -186,7 +186,7 @@ function KonsumenForm({ editing, takeFrom, can, onClose, onSaved, onError }) {
     if (hasError) {
       // Pesan kesalahan tiap kolom ada di dalam form; bawa kolom pertama yang salah ke layar
       const first = ['foto_ktp', ...FIELDS].find((k) => errors[k]);
-      document.getElementById(`konsumen-${first}`)?.scrollIntoView({ block: 'center', behavior: 'smooth' });
+      document.getElementById(first === 'foto_ktp' ? 'konsumen-foto_ktp' : fieldId(first))?.scrollIntoView({ block: 'center', behavior: 'smooth' });
       return;
     }
     onError('');
@@ -248,7 +248,7 @@ function KonsumenForm({ editing, takeFrom, can, onClose, onSaved, onError }) {
       if (editing) await updateKonsumen(editing.id, fd);
       else res = await createKonsumen(fd);
       // Konsumen yang sudah terdaftar: pakai pesan BE (menjelaskan data ditemukan dan masuk ke daftar Anda)
-      onSaved(reuse && res?.message ? res.message : `Data konsumen ${form.name || form.nik || ''} ${editing ? 'diperbarui' : 'ditambahkan'}.`);
+      onSaved(reuse && res?.message ? res.message : `Data konsumen ${form.konsumen_name || form.nik || ''} ${editing ? 'diperbarui' : 'ditambahkan'}.`);
     } catch (err) {
       onError(errorMessage(err));
     } finally {
@@ -264,19 +264,19 @@ function KonsumenForm({ editing, takeFrom, can, onClose, onSaved, onError }) {
       <form ref={pageRef} className="konsumen-page konsumen-form-page" onSubmit={handleSubmit} noValidate>
         <div className="dash-card-head">
           <h3>{editing ? 'Ubah Konsumen' : 'Tambah Konsumen'}</h3>
-          <button id="btn-konsumen-form-close" type="button" className="dash-btn outline" onClick={onClose} disabled={saving}>← Kembali ke daftar</button>
+          <button id="btn-konsumen-form-close" data-testid="btn-konsumen-form-close" type="button" className="dash-btn outline" onClick={onClose} disabled={saving}>← Kembali ke daftar</button>
         </div>
 
         <div className="dash-form-group" id="konsumen-foto_ktp">
           <label>Foto KTP{!editing && !reuse && ' *'}</label>
           {shownPreview && <img className="dash-ktp-big" src={shownPreview} alt="Pratinjau KTP" />}
-          <input id="konsumen-ktp-file" ref={fileRef} type="file" accept="image/png,image/jpeg" hidden onChange={handleFile} />
+          <input id="konsumen-ktp-file" data-testid="konsumen-ktp-file" ref={fileRef} type="file" accept="image/png,image/jpeg" hidden onChange={handleFile} />
           <div className="dash-actions">
-            <button id="btn-konsumen-upload-ktp" type="button" className="dash-btn outline" onClick={() => fileRef.current?.click()} disabled={compressing}>
+            <button id="btn-konsumen-upload-ktp" data-testid="btn-konsumen-upload-ktp" type="button" className="dash-btn outline" onClick={() => fileRef.current?.click()} disabled={compressing}>
               {compressing ? <><Spin />Memperkecil foto...</> : shownPreview ? 'Ganti Foto' : 'Pilih Foto KTP'}
             </button>
             {can.scan && (
-              <button id="btn-konsumen-scan" type="button" className="dash-btn soft" onClick={handleScan} disabled={!file || scanning || compressing}>
+              <button id="btn-konsumen-scan" data-testid="btn-konsumen-scan" type="button" className="dash-btn soft" onClick={handleScan} disabled={!file || scanning || compressing}>
                 {scanning ? <><Spin />Memindai...</> : 'Pindai KTP (OCR)'}
               </button>
             )}
@@ -294,11 +294,11 @@ function KonsumenForm({ editing, takeFrom, can, onClose, onSaved, onError }) {
 
         <div className="dash-form-row">
           {field('nik', 'NIK', { placeholder: '16 digit angka', numeric: true, max: 16 })}
-          {field('name', 'Nama Lengkap')}
+          {field('konsumen_name', 'Nama Lengkap')}
         </div>
         {shownNikDup && (
           <p className="dash-alert warning" role="status">
-            <strong>!</strong> NIK <strong>{shownNikDup.nik}</strong> sudah terdaftar atas nama <strong>{shownNikDup.name || '-'}</strong>. Periksa kembali sebelum menyimpan.
+            <strong>!</strong> NIK <strong>{shownNikDup.nik}</strong> sudah terdaftar atas nama <strong>{shownNikDup.konsumen_name || '-'}</strong>. Periksa kembali sebelum menyimpan.
           </p>
         )}
         {reuse && (
@@ -312,7 +312,7 @@ function KonsumenForm({ editing, takeFrom, can, onClose, onSaved, onError }) {
               {changedKeys.length > 0 && <>Data berbeda dari yang sudah terdaftar ({changedKeys.map((k) => LABELS[k]).join(', ')}). </>}
               {file && <>Foto baru dipilih. </>}
               Perubahan dianggap data baru dan akan menunggu verifikasi ulang.
-              {file && <> <button id="btn-konsumen-use-existing-photo" type="button" className="dash-link" onClick={() => { setPicked(null); setCompressNote(''); setPhotoWarn([]); setKtpCheck('unchecked'); }}>Pakai foto yang sudah ada</button></>}
+              {file && <> <button id="btn-konsumen-use-existing-photo" data-testid="btn-konsumen-use-existing-photo" type="button" className="dash-link" onClick={() => { setPicked(null); setCompressNote(''); setPhotoWarn([]); setKtpCheck('unchecked'); }}>Pakai foto yang sudah ada</button></>}
             </div>
           )
         )}
@@ -321,24 +321,24 @@ function KonsumenForm({ editing, takeFrom, can, onClose, onSaved, onError }) {
             <li className="dash-map-hint">NIK terdaftar — pilih untuk mengambil datanya:</li>
             {nikList.map((k) => (
               <li key={k.id}>
-                <button type="button" role="option" className="dash-nik-item" onClick={() => pickKonsumen(k)}>
-                  <strong>{k.nik}</strong> — {k.name || '-'}
+                <button type="button" role="option" className="dash-nik-item" data-testid="btn-konsumen-nik-option" onClick={() => pickKonsumen(k)}>
+                  <strong>{k.nik}</strong> — {k.konsumen_name || '-'}
                 </button>
               </li>
             ))}
           </ul>
         )}
         <div className="dash-form-row">
-          {field('kode_tmp_lahir', 'Tempat Lahir', { idOptions: master.tempatLahir })}
-          {field('tgl_lahir', 'Tanggal Lahir', { type: 'date' })}
+          {field('fk_temp_lahir', 'Tempat Lahir', { idOptions: master.tempatLahir })}
+          {field('birth_date', 'Tanggal Lahir', { type: 'date' })}
         </div>
         <div className="dash-form-row">
-          {field('jenis_kelamin', 'Jenis Kelamin', { options: ['Laki-laki', 'Perempuan'] })}
-          {field('kode_agama', 'Agama', { idOptions: master.agama })}
+          {field('gender', 'Jenis Kelamin', { options: ['Laki-laki', 'Perempuan'] })}
+          {field('fk_agama', 'Agama', { idOptions: master.agama })}
         </div>
         <div className="dash-form-row">
-          {field('alamat_ktp', 'Alamat Sesuai KTP')}
-          {field('alamat_domisili', 'Alamat Domisili')}
+          {field('ktp_address', 'Alamat Sesuai KTP')}
+          {field('domicile_address', 'Alamat Domisili')}
         </div>
         <div className="dash-form-group">
           <label>Cari di Peta *</label>
@@ -347,10 +347,10 @@ function KonsumenForm({ editing, takeFrom, can, onClose, onSaved, onError }) {
               latitude={form.latitude}
               longitude={form.longitude}
               onPick={handlePick}
-              desa={nameOf(master.kelurahan, form.kode_kelurahan)}
-              kabupaten={nameOf(master.kabupaten, form.kode_kabupaten_kota)}
-              kecamatan={nameOf(master.kecamatan, form.kode_kecamatan)}
-              provinsi={nameOf(master.provinsi, form.kode_provinsi)}
+              desa={nameOf(master.kelurahan, form.fk_kelurahan)}
+              kabupaten={nameOf(master.kabupaten, form.fk_kabupaten_kota)}
+              kecamatan={nameOf(master.kecamatan, form.fk_kecamatan)}
+              provinsi={nameOf(master.provinsi, form.fk_provinsi)}
             />
           </Suspense>
           <p className="dash-map-hint">Cari tempat, klik peta, atau geser marker untuk menandai titik koordinat konsumen (terpisah dari alamat domisili di atas).</p>
@@ -360,31 +360,31 @@ function KonsumenForm({ editing, takeFrom, can, onClose, onSaved, onError }) {
           {field('longitude', 'Longitude', { numeric: true, placeholder: '100.4172000' })}
         </div>
         <div className="dash-form-row">
-          {field('kode_provinsi', 'Provinsi', { idOptions: master.provinsi })}
-          {field('kode_kabupaten_kota', 'Kabupaten / Kota', { idOptions: master.kabupaten, disabled: !form.kode_provinsi, hint: 'Pilih provinsi dulu' })}
+          {field('fk_provinsi', 'Provinsi', { idOptions: master.provinsi })}
+          {field('fk_kabupaten_kota', 'Kabupaten / Kota', { idOptions: master.kabupaten, disabled: !form.fk_provinsi, hint: 'Pilih provinsi dulu' })}
         </div>
         <div className="dash-form-row">
-          {field('kode_kecamatan', 'Kecamatan', { idOptions: master.kecamatan, searchKey: 'kecamatan', disabled: !form.kode_kabupaten_kota, hint: 'Pilih kabupaten/kota dulu' })}
-          {field('kode_kelurahan', 'Kelurahan / Desa', { idOptions: master.kelurahan, searchKey: 'kelurahan', disabled: !form.kode_kecamatan, hint: 'Pilih kecamatan dulu' })}
+          {field('fk_kecamatan', 'Kecamatan', { idOptions: master.kecamatan, searchKey: 'kecamatan', disabled: !form.fk_kabupaten_kota, hint: 'Pilih kabupaten/kota dulu' })}
+          {field('fk_kelurahan', 'Kelurahan / Desa', { idOptions: master.kelurahan, searchKey: 'kelurahan', disabled: !form.fk_kecamatan, hint: 'Pilih kecamatan dulu' })}
         </div>
         <div className="dash-form-row three">
           {field('rt', 'RT', { max: 3, numeric: true })}
           {field('rw', 'RW', { max: 3, numeric: true })}
-          {field('kewarganegaraan', 'Kewarganegaraan', { options: ['WNI', 'WNA'] })}
+          {field('nationality', 'Kewarganegaraan', { options: ['WNI', 'WNA'] })}
         </div>
         <div className="dash-form-row">
-          {field('status_perkawinan', 'Status Perkawinan', { options: KAWIN })}
-          {field('kode_pekerjaan', 'Pekerjaan', { idOptions: master.pekerjaan })}
+          {field('marital_status', 'Status Perkawinan', { options: KAWIN })}
+          {field('fk_pekerjaan', 'Pekerjaan', { idOptions: master.pekerjaan })}
         </div>
         {masterNote && <p className="dash-map-hint">Sebagian daftar master dari server tidak dapat dimuat. {masterNote}</p>}
         <div className="dash-form-row">
-          {field('no_telp', 'No. Telp', { numeric: true, max: 20 })}
+          {field('phone', 'No. Telp', { numeric: true, max: 20 })}
           {field('email', 'Email', { type: 'email' })}
         </div>
 
         <div className="dash-modal-actions">
-          <button id="btn-konsumen-cancel" type="button" className="dash-btn outline" onClick={onClose}>Batal</button>
-          <button id="btn-konsumen-save" type="submit" className="dash-btn solid" disabled={saving || verifying || compressing}>{saving ? <><Spin />Menyimpan...</> : compressing ? <><Spin />Memperkecil foto...</> : verifying ? <><Spin />Memeriksa foto KTP...</> : 'Simpan'}</button>
+          <button id="btn-konsumen-cancel" data-testid="btn-konsumen-cancel" type="button" className="dash-btn outline" onClick={onClose}>Batal</button>
+          <button id="btn-konsumen-save" data-testid="btn-konsumen-save" type="submit" className="dash-btn solid" disabled={saving || verifying || compressing}>{saving ? <><Spin />Menyimpan...</> : compressing ? <><Spin />Memperkecil foto...</> : verifying ? <><Spin />Memeriksa foto KTP...</> : 'Simpan'}</button>
         </div>
       </form>
 
@@ -396,7 +396,7 @@ function KonsumenForm({ editing, takeFrom, can, onClose, onSaved, onError }) {
           onCancel={() => setConfirmSave(false)}
         >
           <p className="dash-card-desc">
-            Yakin ingin {editing ? 'menyimpan perubahan data' : 'menambahkan'} konsumen <strong>{form.name.trim() || form.nik || 'ini'}</strong>?
+            Yakin ingin {editing ? 'menyimpan perubahan data' : 'menambahkan'} konsumen <strong>{form.konsumen_name.trim() || form.nik || 'ini'}</strong>?
           </p>
         </ConfirmModal>
       )}

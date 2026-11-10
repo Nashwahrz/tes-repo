@@ -1,6 +1,6 @@
 // src/features/settings/components/AppKeyOcrPanel.jsx
 // URL dan API key layanan OCR yang dipakai BE untuk membaca KTP (BE: /app-key-ocrs).
-// Baris dibuat lewat seeder: di sini hanya bisa diubah. BE mewajibkan url, api_key, keterangan, dan is_active.
+// Baris dibuat lewat seeder: di sini hanya bisa diubah. BE mewajibkan url, api_key, description, dan status.
 import { useEffect, useState } from 'react';
 import { getAppKeyOcrs, updateAppKeyOcr, errorMessage } from '../../../api/authServices';
 import Toast from '../../../shared/components/Toast';
@@ -21,7 +21,7 @@ function validate(f) {
     }
   }
   if (!f.api_key.trim()) errors.api_key = 'API key wajib diisi.';
-  if (!f.keterangan.trim()) errors.keterangan = 'Keterangan wajib diisi.';
+  if (!f.description.trim()) errors.description = 'Keterangan wajib diisi.';
   return errors;
 }
 
@@ -35,7 +35,7 @@ function AppKeyOcrPanel({ canEdit }) {
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(null);
-  const [form, setForm] = useState({ url: '', api_key: '', keterangan: '', is_active: true });
+  const [form, setForm] = useState({ url: '', api_key: '', description: '', status: true });
   const [showKey, setShowKey] = useState(false);
   const [touched, setTouched] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -58,7 +58,7 @@ function AppKeyOcrPanel({ canEdit }) {
     setError('');
     setTouched(false);
     setShowKey(false);
-    setForm({ url: row.url ?? '', api_key: row.api_key ?? '', keterangan: row.keterangan ?? '', is_active: !!row.is_active });
+    setForm({ url: row.url ?? '', api_key: row.api_key ?? '', description: row.description ?? '', status: !!row.status });
     setEditing(row);
   };
 
@@ -70,7 +70,7 @@ function AppKeyOcrPanel({ canEdit }) {
     setError('');
     try {
       const res = await updateAppKeyOcr(editing.id, {
-        url: form.url.trim(), api_key: form.api_key.trim(), keterangan: form.keterangan.trim(), is_active: form.is_active,
+        url: form.url.trim(), api_key: form.api_key.trim(), description: form.description.trim(), status: form.status,
       });
       setRows((list) => list.map((r) => (r.id === editing.id ? { ...r, ...res.data } : r)));
       setSuccess('App key OCR diperbarui.');
@@ -119,8 +119,8 @@ function AppKeyOcrPanel({ canEdit }) {
                 <tr key={r.id}>
                   <td><strong className="dash-cell-name" style={{ wordBreak: 'break-all' }}>{r.url}</strong></td>
                   <td><code>{mask(r.api_key)}</code></td>
-                  <td>{r.keterangan || '-'}</td>
-                  <td><span className={`dash-status ${r.is_active ? 'aktif' : 'nonaktif'}`}>{r.is_active ? 'Aktif' : 'Nonaktif'}</span></td>
+                  <td>{r.description || '-'}</td>
+                  <td><span className={`dash-status ${r.status ? 'aktif' : 'nonaktif'}`}>{r.status ? 'Aktif' : 'Nonaktif'}</span></td>
                   {canEdit && (
                     <td className="col-aksi">
                       <div className="dash-actions">
@@ -153,14 +153,14 @@ function AppKeyOcrPanel({ canEdit }) {
           </div>
           <div className="dash-form-group">
             <label htmlFor="ocr-ket">Keterangan *</label>
-            <input id="ocr-ket" className={`dash-input${touched && errors.keterangan ? ' invalid' : ''}`} value={form.keterangan} onChange={set('keterangan')} />
-            {fieldError('keterangan')}
+            <input id="ocr-ket" className={`dash-input${touched && errors.description ? ' invalid' : ''}`} value={form.description} onChange={set('description')} />
+            {fieldError('description')}
           </div>
           <label style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14, cursor: 'pointer' }}>
-            <input id="ocr-is-active" type="checkbox" className="dash-switch" role="switch" checked={form.is_active} onChange={(e) => setForm((f) => ({ ...f, is_active: e.target.checked }))} />
+            <input id="ocr-is-active" type="checkbox" className="dash-switch" role="switch" checked={form.status} onChange={(e) => setForm((f) => ({ ...f, status: e.target.checked }))} />
             Aktif
           </label>
-          {!form.is_active && <p className="dash-alert warning">Bila dinonaktifkan, pembacaan KTP (OCR) tidak dapat dipakai.</p>}
+          {!form.status && <p className="dash-alert warning">Bila dinonaktifkan, pembacaan KTP (OCR) tidak dapat dipakai.</p>}
           <div className="dash-modal-actions">
             <button id="btn-ocr-cancel" type="button" className="dash-btn outline" onClick={() => setEditing(null)} disabled={saving}>Batal</button>
             <button id="btn-ocr-save" type="submit" className="dash-btn solid" disabled={saving}>{saving ? <><Spin />Menyimpan...</> : 'Simpan'}</button>

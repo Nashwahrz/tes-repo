@@ -1,5 +1,5 @@
 import { scanKtp, getKabupatens, getProvinsis, searchKecamatans, searchKelurahans, searchMaster } from '../../../api/authServices';
-import { CHILD_OF, FIELDS, LABELS, SCAN_FIELDS, TARGET_FILE, matchId, matchOpt, normName } from './konsumenFormConfig';
+import { CHILD_OF, LABELS, SCAN_FIELDS, TARGET_FILE, matchId, matchOpt, normName } from './konsumenFormConfig';
 import { enhanceForOcr } from '../../../utils/enhanceForOcr';
 import { looksLikeKtp } from './ktpCheck';
 
@@ -31,10 +31,10 @@ export async function scanKtpToForm(file, master) {
   };
   // Induk tidak cocok -> turunannya tidak bisa dicari; tetap dicatat agar user tahu perlu diisi manual
   const skip = (key, text) => { const t = String(text ?? '').trim(); if (t) unmatched.push({ key, label: LABELS[key], text: t }); };
-  pick('kode_agama', master.agama, data.agama);
-  pick('kode_pekerjaan', master.pekerjaan, data.pekerjaan);
-  pick('kode_tmp_lahir', master.tempatLahir, data.tmp_lahir);
-  let prov = pick('kode_provinsi', master.provinsi, data.provinsi);
+  pick('fk_agama', master.agama, data.agama);
+  pick('fk_pekerjaan', master.pekerjaan, data.pekerjaan);
+  pick('fk_temp_lahir', master.tempatLahir, data.tmp_lahir);
+  let prov = pick('fk_provinsi', master.provinsi, data.provinsi);
   // Di KTP kabupaten/kota tidak berlabel: ia hanya satu baris tepat di bawah "PROVINSI ..." ("KOTA PADANG", "KAB. SOLOK", atau tanpa awalan seperti "JAKARTA SELATAN").
   // Maka kandidatnya diambil dari teks mentah OCR: baris berawalan Kota/Kab., dua baris di bawah provinsi, lalu hasil parsing BE.
   const lines = String(data.raw_text ?? '').split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
@@ -47,13 +47,13 @@ export async function scanKtpToForm(file, master) {
   let kab;
   if (kabHit) {
     kab = kabHit.kode;
-    found.kode_kabupaten_kota = String(kab);
+    found.fk_kabupaten_kota = String(kab);
     if (!prov && kabHit.kode_provinsi) { // BE menghubungkan wilayah lewat kode; form konsumen juga menyimpan kode
       prov = (await getProvinsis().catch(() => [])).find((p) => String(p.kode) === String(kabHit.kode_provinsi))?.kode;
-      if (prov) found.kode_provinsi = String(prov);
+      if (prov) found.fk_provinsi = String(prov);
     }
   } else if (kabTexts.length) {
-    unmatched.push({ key: 'kode_kabupaten_kota', label: LABELS.kode_kabupaten_kota, text: kabTexts[0] });
+    unmatched.push({ key: 'fk_kabupaten_kota', label: LABELS.fk_kabupaten_kota, text: kabTexts[0] });
   }
   const kecText = String(data.kecamatan ?? '').trim();
   // Kabupaten/kota tidak terbaca atau tidak cocok: cari kecamatannya di seluruh wilayah; bila namanya tepat satu, kabupaten & provinsinya diambil darinya
@@ -62,21 +62,21 @@ export async function scanKtpToForm(file, master) {
     const kabRow = hits.length === 1 ? (await getKabupatens().catch(() => [])).find((k) => String(k.kode) === String(hits[0].kode_kabupaten_kota)) : null;
     if (kabRow) {
       kab = kabRow.kode;
-      found.kode_kabupaten_kota = String(kab);
+      found.fk_kabupaten_kota = String(kab);
       if (!prov && kabRow.kode_provinsi) {
         prov = (await getProvinsis().catch(() => [])).find((p) => String(p.kode) === String(kabRow.kode_provinsi))?.kode;
-        if (prov) found.kode_provinsi = String(prov);
+        if (prov) found.fk_provinsi = String(prov);
       }
     }
   }
-  const kec = kab && kecText.length >= 3 ? pick('kode_kecamatan', (await searchKecamatans(kecText, kab)).rows, kecText) : (skip('kode_kecamatan', kecText), undefined);
+  const kec = kab && kecText.length >= 3 ? pick('fk_kecamatan', (await searchKecamatans(kecText, kab)).rows, kecText) : (skip('fk_kecamatan', kecText), undefined);
   const kelText = String(data.desa_kelurahan ?? '').trim();
-  if (kec && kelText.length >= 3) pick('kode_kelurahan', (await searchKelurahans(kelText, kec)).rows, kelText);
-  else skip('kode_kelurahan', kelText);
+  if (kec && kelText.length >= 3) pick('fk_kelurahan', (await searchKelurahans(kelText, kec)).rows, kelText);
+  else skip('fk_kelurahan', kelText);
   for (let i = unmatched.length - 1; i >= 0; i -= 1) if (unmatched[i].key in found) unmatched.splice(i, 1);
-  // OCR hanya membaca satu alamat (di KTP): BE-nya `alamat`, di form menjadi alamat sesuai KTP
-  if (data.alamat && !data.alamat_ktp) data = { ...data, alamat_ktp: data.alamat };
-  FIELDS.filter((k) => !k.startsWith('kode_') && data[k]).forEach((k) => { found[k] = String(data[k]); });
+  // Hasil baca OCR (nama field BE scan-ktp) -> kolom form. OCR hanya membaca satu alamat (di KTP): menjadi alamat sesuai KTP
+  const OCR_TO_FORM = { nik: 'nik', name: 'konsumen_name', tgl_lahir: 'birth_date', jenis_kelamin: 'gender', alamat: 'ktp_address', rt: 'rt', rw: 'rw', status_perkawinan: 'marital_status', kewarganegaraan: 'nationality' };
+  Object.entries(OCR_TO_FORM).forEach(([from, to]) => { if (data[from]) found[to] = String(data[from]); });
 
   const readable = Object.keys(found);
   // Induk baru dari OCR: turunan lama yang tidak ikut terbaca dikosongkan agar tidak tertinggal dari wilayah lain
@@ -101,8 +101,8 @@ export async function scanKtpToForm(file, master) {
     formPatch: { ...cleared, ...wiped, ...found },
     // Kecamatan/kelurahan yang tidak cocok: kolom cari diisi teks OCR (bila induknya cocok) supaya user tinggal memilih atau mengubah ejaannya
     geoQuery: {
-      kecamatan: unmatched.some((u) => u.key === 'kode_kecamatan') && kab ? kecText : '',
-      kelurahan: unmatched.some((u) => u.key === 'kode_kelurahan') && kec ? kelText : '',
+      kecamatan: unmatched.some((u) => u.key === 'fk_kecamatan') && kab ? kecText : '',
+      kelurahan: unmatched.some((u) => u.key === 'fk_kelurahan') && kec ? kelText : '',
     },
     hints: Object.fromEntries(unmatched.map((u) => [u.key, u.text])),
     filled: Object.fromEntries(readable.map((k) => [k, true])),

@@ -14,7 +14,7 @@ const MAILERS = ['smtp', 'sendmail', 'mail'];
 const ENCRYPTIONS = ['null', 'tls', 'ssl'];
 const EMPTY = {
   mail_mailer: 'smtp', mail_host: '', mail_port: '587', mail_username: '', mail_password: '',
-  mail_encryption: 'tls', mail_from_address: '', mail_from_name: '', is_active: true,
+  mail_encryption: 'tls', mail_from_address: '', mail_from_name: '', status: true,
 };
 
 // Mengikuti EmailSmtpRequest di BE
@@ -68,7 +68,7 @@ function EmailSmtpPanel({ can }) {
       mail_encryption: row.mail_encryption ?? 'null',
       mail_from_address: row.mail_from_address ?? '',
       mail_from_name: row.mail_from_name ?? '',
-      is_active: !!row.is_active,
+      status: !!row.status,
     });
     setEditing(row);
   };
@@ -88,7 +88,7 @@ function EmailSmtpPanel({ can }) {
       mail_encryption: form.mail_encryption,
       mail_from_address: form.mail_from_address.trim(),
       mail_from_name: form.mail_from_name.trim(),
-      is_active: form.is_active,
+      status: form.status,
     };
     setSaving(true);
     setError('');
@@ -193,7 +193,7 @@ function EmailSmtpPanel({ can }) {
                     <small className="dash-cell-sub">{r.mail_from_address}</small>
                   </td>
                   <td>{r.mail_encryption === 'null' || !r.mail_encryption ? '-' : r.mail_encryption.toUpperCase()}</td>
-                  <td><span className={`dash-status ${r.is_active ? 'aktif' : 'nonaktif'}`}>{r.is_active ? 'Aktif' : 'Nonaktif'}</span></td>
+                  <td><span className={`dash-status ${r.status ? 'aktif' : 'nonaktif'}`}>{r.status ? 'Aktif' : 'Nonaktif'}</span></td>
                   {showActions && (
                     <td className="col-aksi">
                       <div className="dash-actions">
@@ -228,7 +228,7 @@ function EmailSmtpPanel({ can }) {
           {text('mail_from_name', 'Nama Pengirim *')}
           <div className="dash-form-group">
             <label className="dash-check">
-              <input id="smtp-is-active" type="checkbox" className="dash-switch" role="switch" checked={form.is_active} onChange={(e) => setForm((f) => ({ ...f, is_active: e.target.checked }))} />
+              <input id="smtp-is-active" type="checkbox" className="dash-switch" role="switch" checked={form.status} onChange={(e) => setForm((f) => ({ ...f, status: e.target.checked }))} />
               Aktif
             </label>
           </div>

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { MENU_ACC, MENU_KONSUMEN } from '../utils/menuPaths';
 
-export const accSig = (list) => list.filter((u) => u.email_verifikasi && u.status === 'pending').map((u) => u.id).sort().join(',');
+export const accSig = (list) => list.filter((u) => u.email_verification && u.status === 'pending').map((u) => u.id).sort().join(',');
 export const konsumenSig = (t) => `${t.pending}|${t.ditolak}`;
 
 const readSeen = (key) => {

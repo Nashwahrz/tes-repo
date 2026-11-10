@@ -71,17 +71,17 @@ export function useKonsumenMaster(form) {
   // Kabupaten/kota: dimuat penuh lalu disaring menurut provinsi di FE
   useEffect(() => {
     let active = true;
-    if (!form.kode_provinsi) return undefined;
-    getKabupatens(form.kode_provinsi)
+    if (!form.fk_provinsi) return undefined;
+    getKabupatens(form.fk_provinsi)
       .then((list) => { if (active) setMaster((m) => ({ ...m, kabupaten: list })); })
       .catch((err) => { if (active) setMasterNote((n) => n || errorMessage(err)); });
     return () => { active = false; };
-  }, [form.kode_provinsi]);
+  }, [form.fk_provinsi]);
 
   // Muat ulang daftar kecamatan/kelurahan (data baru bisa ditambahkan di tab lain lewat tautan "Tambah ...")
   const [reload, setReload] = useState({ kecamatan: 0, kelurahan: 0 });
   const reloadGeo = (key) => { refreshMasterOptions(key === 'kecamatan' ? '/kecamatans' : '/kelurahans'); setReload((r) => ({ ...r, [key]: r[key] + 1 })); };
-  const emptyKey = `${!!form.kode_kabupaten_kota && master.kecamatan.length === 0}|${!!form.kode_kecamatan && master.kelurahan.length === 0}`;
+  const emptyKey = `${!!form.fk_kabupaten_kota && master.kecamatan.length === 0}|${!!form.fk_kecamatan && master.kelurahan.length === 0}`;
   // Kembali ke tab ini dengan daftar masih kosong: otomatis dimuat ulang
   useEffect(() => {
     if (emptyKey === 'false|false') return undefined;
@@ -91,11 +91,11 @@ export function useKonsumenMaster(form) {
   }, [emptyKey]);
 
   const shared = { setMaster, setBusy: setGeoBusy, setCut: setGeoCut, setFull: setGeoFull, setNote: setMasterNote };
-  useGeoSearch({ key: 'kecamatan', parentId: form.kode_kabupaten_kota, selectedId: form.kode_kecamatan, path: '/kecamatans', search: searchKecamatans, term: geoTerm.kecamatan, reload: reload.kecamatan, ...shared });
-  useGeoSearch({ key: 'kelurahan', parentId: form.kode_kecamatan, selectedId: form.kode_kelurahan, path: '/kelurahans', search: searchKelurahans, term: geoTerm.kelurahan, reload: reload.kelurahan, ...shared });
+  useGeoSearch({ key: 'kecamatan', parentId: form.fk_kabupaten_kota, selectedId: form.fk_kecamatan, path: '/kecamatans', search: searchKecamatans, term: geoTerm.kecamatan, reload: reload.kecamatan, ...shared });
+  useGeoSearch({ key: 'kelurahan', parentId: form.fk_kecamatan, selectedId: form.fk_kelurahan, path: '/kelurahans', search: searchKelurahans, term: geoTerm.kelurahan, reload: reload.kelurahan, ...shared });
 
   return {
-    master: form.kode_provinsi ? master : { ...master, kabupaten: [] }, masterNote, geoQuery, setGeoQuery, pickText, setPickText, pickOpen, setPickOpen,
+    master: form.fk_provinsi ? master : { ...master, kabupaten: [] }, masterNote, geoQuery, setGeoQuery, pickText, setPickText, pickOpen, setPickOpen,
     geoBusy, geoFull, geoCut, reloadGeo,
   };
 }

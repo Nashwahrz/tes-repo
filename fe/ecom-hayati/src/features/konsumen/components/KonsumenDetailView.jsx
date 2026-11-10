@@ -6,7 +6,7 @@ import { tglLahirOf } from '../form/konsumenFormConfig';
 // verify: null atau { status, catatan, onCatatan, saving, own, onConfirm, onCancel } saat konfirmasi terima/tolak dibuka di halaman ini
 function KonsumenDetailView({ detail, names: detailNames, dealerName, statusNode, canEdit, canAdd, canTake, canVerify, verify, onVerify, onEdit, onAdd, onTake, onBack, onPhotoError }) {
   // Penginput lain yang mengambil data konsumen ini (BE: GET /konsumens/{id} memuat konsumen_mes.me untuk konsumen terdaftar)
-  const others = detail.status === 'diterima' ? (detail.konsumen_mes ?? []).filter((m) => m.id_me !== detail.id_me) : [];
+  const others = detail.status === 'diterima' ? (detail.konsumen_mes ?? []).filter((m) => m.fk_me !== detail.fk_me) : [];
   return (
     <div className="konsumen-page">
       <div className="dash-card-head">
@@ -17,7 +17,7 @@ function KonsumenDetailView({ detail, names: detailNames, dealerName, statusNode
         {(detail.status === 'ditolak' || detail.status === 'revisi') && (
           <div className={`konsumen-reject${detail.status === 'revisi' ? ' revisi' : ''}`} role="note">
             <strong>{detail.status === 'revisi' ? 'Catatan revisi' : 'Alasan penolakan'}</strong>
-            <p>{detail.catatan_penolakan || 'Tidak ada catatan.'}</p>
+            <p>{detail.note || 'Tidak ada catatan.'}</p>
             {(detail.verified_by?.name ?? detail.verifiedBy?.name) && (
               <small>{detail.status === 'revisi' ? 'Diminta revisi oleh' : 'Ditolak oleh'} {detail.verified_by?.name ?? detail.verifiedBy?.name}</small>
             )}
@@ -34,9 +34,9 @@ function KonsumenDetailView({ detail, names: detailNames, dealerName, statusNode
         <img className="dash-ktp-big konsumen-page-photo" src={ktpUrl(detail)} alt="Foto KTP" onError={onPhotoError} />
         <dl className="dash-detail">
           {[
-            ['NIK', detail.nik], ['Nama', detail.name],
-            ['Tempat, Tgl Lahir', [detailNames.tempatLahir, tglLahirOf(detail.tgl_lahir)].filter(Boolean).join(', ')],
-            ['Jenis Kelamin', detail.jenis_kelamin], ['Alamat (KTP)', detail.alamat_ktp], ['Alamat Domisili', detail.alamat_domisili],
+            ['NIK', detail.nik], ['Nama', detail.konsumen_name],
+            ['Tempat, Tgl Lahir', [detailNames.tempatLahir, tglLahirOf(detail.birth_date)].filter(Boolean).join(', ')],
+            ['Jenis Kelamin', detail.gender], ['Alamat (KTP)', detail.ktp_address], ['Alamat Domisili', detail.domicile_address],
             ['Koordinat', detail.latitude && detail.longitude ? (
               <span style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
                 {detail.latitude}, {detail.longitude}
@@ -55,11 +55,11 @@ function KonsumenDetailView({ detail, names: detailNames, dealerName, statusNode
             ['RT/RW', [detail.rt, detail.rw].filter(Boolean).join('/')],
             ['Kel/Desa', detailNames.kelurahan], ['Kecamatan', detailNames.kecamatan],
             ['Kab/Kota', detailNames.kabupaten], ['Provinsi', detailNames.provinsi],
-            ['Agama', detailNames.agama], ['Status Perkawinan', detail.status_perkawinan],
-            ['Pekerjaan', detailNames.pekerjaan], ['Kewarganegaraan', detail.kewarganegaraan],
-            ['No. Telp', detail.no_telp], ['Email', detail.email],
+            ['Agama', detailNames.agama], ['Status Perkawinan', detail.marital_status],
+            ['Pekerjaan', detailNames.pekerjaan], ['Kewarganegaraan', detail.nationality],
+            ['No. Telp', detail.phone], ['Email', detail.email],
             ['Dealer', dealerName],
-            ...(others.length ? [['Juga diambil oleh', others.map((m) => `${m.me?.name ?? `User #${m.id_me}`}${m.created_at ? ` (${new Date(m.created_at).toLocaleDateString('id-ID', { dateStyle: 'medium' })})` : ''}`).join(', ')]] : []),
+            ...(others.length ? [['Juga diambil oleh', others.map((m) => `${m.me?.name ?? `User #${m.fk_me}`}${m.created_at ? ` (${new Date(m.created_at).toLocaleDateString('id-ID', { dateStyle: 'medium' })})` : ''}`).join(', ')]] : []),
             ['Didaftarkan oleh', detail.me?.name ?? detail.me?.email],
             ['Diverifikasi oleh', detail.verified_by?.name ?? detail.verifiedBy?.name],
           ].map(([l, v]) => (
@@ -78,10 +78,10 @@ function KonsumenDetailView({ detail, names: detailNames, dealerName, statusNode
           <div className="konsumen-verify-panel" role="group" aria-label="Konfirmasi verifikasi">
             <p className="dash-card-desc">
               {verify.status === 'diterima'
-                ? <>Yakin menerima data <strong>{detail.name || detail.nik}</strong>? Pastikan data dan foto KTP sudah diperiksa.</>
+                ? <>Yakin menerima data <strong>{detail.konsumen_name || detail.nik}</strong>? Pastikan data dan foto KTP sudah diperiksa.</>
                 : verify.status === 'revisi'
-                  ? <>Data <strong>{detail.name || detail.nik}</strong> dikembalikan ke penginput untuk diperbaiki. Tulis bagian yang perlu direvisi.</>
-                  : <>Data <strong>{detail.name || detail.nik}</strong> akan ditolak. Tulis alasan penolakan.</>}
+                  ? <>Data <strong>{detail.konsumen_name || detail.nik}</strong> dikembalikan ke penginput untuk diperbaiki. Tulis bagian yang perlu direvisi.</>
+                  : <>Data <strong>{detail.konsumen_name || detail.nik}</strong> akan ditolak. Tulis alasan penolakan.</>}
             </p>
             {verify.own && (
               <p className="dash-alert warning" role="alert">

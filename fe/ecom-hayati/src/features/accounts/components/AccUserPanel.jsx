@@ -56,8 +56,8 @@ function AccUserPanel({ users: allUsers, dealers, scopeNote, canActivate, loadin
   // Terbaru di atas: BE tidak mengurutkan, id auto-increment mengikuti urutan akun masuk
   // allUsers sudah hanya berisi akun dengan email terverifikasi (disaring di DashboardPage)
   const verified = dealerFilter === 'none'
-    ? allUsers.filter((u) => !u.id_dealer)
-    : dealerFilter ? allUsers.filter((u) => String(u.id_dealer) === dealerFilter) : allUsers;
+    ? allUsers.filter((u) => !u.fk_dealer)
+    : dealerFilter ? allUsers.filter((u) => String(u.fk_dealer) === dealerFilter) : allUsers;
   const counts = { semua: verified.length };
   for (const u of verified) counts[u.status] = (counts[u.status] ?? 0) + 1;
   const byStatus = (tab === 'semua' ? verified : verified.filter((u) => u.status === tab)).toSorted((a, b) => b.id - a.id);
@@ -83,7 +83,7 @@ function AccUserPanel({ users: allUsers, dealers, scopeNote, canActivate, loadin
 
   // Daftar atasan dimuat ulang saat popup aktivasi dibuka atau dealer diganti
   const pickUserId = pick?.user.id;
-  const pickRoleId = pick?.user.role?.id ?? pick?.user.id_role;
+  const pickRoleId = pick?.user.role?.id ?? pick?.user.fk_role;
   const needAtasan = pick?.status === 'aktif';
   const isEdit = needAtasan && pick.user.status === 'aktif'; // akun sudah aktif, hanya ubah dealer/atasan
   const atasanKey = `${pickRoleId}-${pickDealer}`;
@@ -118,7 +118,7 @@ function AccUserPanel({ users: allUsers, dealers, scopeNote, canActivate, loadin
       if (err.response?.status >= 500) {
         const fresh = await getUsers().then((list) => list.find((u) => u.id === user.id)).catch(() => null);
         const same = (a, b) => String(a ?? '') === String(b ?? '');
-        if (fresh && fresh.status === status && (status !== 'aktif' || (same(fresh.id_dealer, dealerId) && same(fresh.id_atasan, atasanId)))) {
+        if (fresh && fresh.status === status && (status !== 'aktif' || (same(fresh.fk_dealer, dealerId) && same(fresh.fk_atasan, atasanId)))) {
           onUserUpdated({ ...user, ...fresh });
           setSuccess(`Akun ${user.name} ${doneLabel}, tetapi server melaporkan kesalahan (kemungkinan email notifikasi gagal terkirim). Periksa pengaturan Email SMTP.`);
           setPick(null);
@@ -137,8 +137,8 @@ function AccUserPanel({ users: allUsers, dealers, scopeNote, canActivate, loadin
   const handleAction = (user, label, status, doneLabel) => {
     setError('');
     setSuccess('');
-    setPickDealer(user.id_dealer ? String(user.id_dealer) : '');
-    setPickAtasan(user.id_atasan ? String(user.id_atasan) : '');
+    setPickDealer(user.fk_dealer ? String(user.fk_dealer) : '');
+    setPickAtasan(user.fk_atasan ? String(user.fk_atasan) : '');
     setAtasanOptions([]);
     setPick({ user, label, status, doneLabel });
   };
@@ -170,7 +170,7 @@ function AccUserPanel({ users: allUsers, dealers, scopeNote, canActivate, loadin
         {dealers.length > 0 && (
           <select id="acc-filter-dealer" className="dash-input dash-select-filter" value={dealerFilter} aria-label="Filter dealer" onChange={(e) => { setDealerFilter(e.target.value); setPage(1); }}>
             <option value="">Semua dealer</option>
-            {dealers.map((d) => <option key={d.id} value={d.id}>{d.name}</option>)}
+            {dealers.map((d) => <option key={d.id} value={d.id}>{d.dealer_name}</option>)}
             <option value="none">Tanpa dealer</option>
           </select>
         )}
@@ -278,7 +278,7 @@ function AccUserPanel({ users: allUsers, dealers, scopeNote, canActivate, loadin
               <select id="acc-dealer" className="dash-select full" value={pickDealer} onChange={(e) => setPickDealer(e.target.value)}>
                 <option value="" disabled>Pilih dealer</option>
                 {dealers.map((d) => (
-                  <option key={d.id} value={d.id}>{d.name}</option>
+                  <option key={d.id} value={d.id}>{d.dealer_name}</option>
                 ))}
               </select>
             </div>
@@ -309,7 +309,7 @@ function AccUserPanel({ users: allUsers, dealers, scopeNote, canActivate, loadin
             <button id="btn-acc-modal-submit"
               className="dash-btn solid"
               disabled={(pick.status === 'aktif' && !pickDealer) || busyId === pick.user.id}
-              onClick={() => submit(pick.user, pick.status === 'aktif' ? pickDealer : pick.user.id_dealer, pick.status, pick.doneLabel, pick.status === 'aktif' ? pickAtasan : pick.user.id_atasan)}
+              onClick={() => submit(pick.user, pick.status === 'aktif' ? pickDealer : pick.user.fk_dealer, pick.status, pick.doneLabel, pick.status === 'aktif' ? pickAtasan : pick.user.fk_atasan)}
             >
               {busyId === pick.user.id ? <><Spin />Menyimpan...</> : isEdit ? 'Simpan' : `Ya, ${pick.label}`}
             </button>

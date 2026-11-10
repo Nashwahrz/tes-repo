@@ -12,25 +12,25 @@ import { getMasterByKode } from '../../../api/master';
 
 const AKSI = { created: 'Ditambah', updated: 'Diubah', deleted: 'Dihapus' };
 const FIELD_LABEL = {
-  nik: 'NIK', name: 'Nama', tgl_lahir: 'Tanggal lahir', jenis_kelamin: 'Jenis kelamin',
-  alamat_ktp: 'Alamat sesuai KTP', alamat_domisili: 'Alamat domisili', latitude: 'Latitude', longitude: 'Longitude', rt: 'RT', rw: 'RW',
+  nik: 'NIK', konsumen_name: 'Nama', birth_date: 'Tanggal lahir', gender: 'Jenis kelamin',
+  ktp_address: 'Alamat sesuai KTP', domicile_address: 'Alamat domisili', latitude: 'Latitude', longitude: 'Longitude', rt: 'RT', rw: 'RW',
   // BE mencatat wilayah/agama/pekerjaan sebagai kode; namanya diambil dari data master di FE (lihat MASTER_PATH)
-  kode_tmp_lahir: 'Tempat lahir', kode_kelurahan: 'Kelurahan/desa', kode_kecamatan: 'Kecamatan',
-  kode_kabupaten_kota: 'Kabupaten/kota', kode_provinsi: 'Provinsi', kode_agama: 'Agama', kode_pekerjaan: 'Pekerjaan',
-  status_perkawinan: 'Status perkawinan', kewarganegaraan: 'Kewarganegaraan',
-  no_telp: 'No. telp', email: 'Email', status: 'Status', catatan_penolakan: 'Catatan penolakan',
-  foto_ktp: 'Foto KTP', me: 'Penginput', diverifikator: 'Diverifikasi oleh', diverifikasi_pada: 'Waktu verifikasi',
-  catatan: 'Catatan', tipe: 'Jenis pengajuan', id_konsumen: 'Konsumen', konsumen: 'Konsumen',
+  fk_temp_lahir: 'Tempat lahir', fk_kelurahan: 'Kelurahan/desa', fk_kecamatan: 'Kecamatan',
+  fk_kabupaten_kota: 'Kabupaten/kota', fk_provinsi: 'Provinsi', fk_agama: 'Agama', fk_pekerjaan: 'Pekerjaan',
+  marital_status: 'Status perkawinan', nationality: 'Kewarganegaraan',
+  phone: 'No. telp', email: 'Email', status: 'Status', note: 'Catatan penolakan',
+  foto_ktp: 'Foto KTP', me: 'Penginput', diverifikator: 'Diverifikasi oleh', verified_at: 'Waktu verifikasi', verified_by: 'Diverifikasi oleh',
+  type: 'Jenis pengajuan', fk_konsumen: 'Konsumen', konsumen: 'Konsumen',
 };
 // Nilai enum dari BE diganti label yang mudah dibaca
 const NILAI = {
   status: { pending: 'Menunggu verifikasi', diterima: 'Diterima', revisi: 'Perlu revisi', ditolak: 'Ditolak' },
-  tipe: { tambah: 'Tambah baru', edit: 'Perubahan data', revisi: 'Perbaikan revisi' },
+  type: { tambah: 'Tambah baru', edit: 'Perubahan data', revisi: 'Perbaikan revisi' },
 };
 // Kolom kode di log => endpoint data master (relasi lewat kolom kode, bukan id)
 const MASTER_PATH = {
-  kode_tmp_lahir: '/kabupaten-kotas', kode_kelurahan: '/kelurahans', kode_kecamatan: '/kecamatans',
-  kode_kabupaten_kota: '/kabupaten-kotas', kode_provinsi: '/provinsis', kode_agama: '/agamas', kode_pekerjaan: '/pekerjaans',
+  fk_temp_lahir: '/kabupaten-kotas', fk_kelurahan: '/kelurahans', fk_kecamatan: '/kecamatans',
+  fk_kabupaten_kota: '/kabupaten-kotas', fk_provinsi: '/provinsis', fk_agama: '/agamas', fk_pekerjaan: '/pekerjaans',
 };
 const masterKey = (k, kode) => `${k}#${kode}`;
 // Jenis log menurut log_name di BE
@@ -43,12 +43,12 @@ const AKSI_JENIS = {
 const aksiOf = (l) => AKSI_JENIS[l.log_name]?.[l.aksi] ?? AKSI[l.aksi] ?? l.deskripsi ?? l.aksi;
 
 const fmtWaktu = (iso) => (iso ? new Date(iso).toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' }) : '-');
-// masters: { 'kode_provinsi#32': 'Jawa Barat' }; nama belum termuat/tidak ada = tampil kodenya saja
+// masters: { 'fk_provinsi#32': 'Jawa Barat' }; nama belum termuat/tidak ada = tampil kodenya saja
 const fmtVal = (v, k, masters = {}) => {
   if (v === null || v === undefined || v === '') return '-';
   if (MASTER_PATH[k]) { const n = masters[masterKey(k, v)]; return n ? `${n} (${v})` : `Kode ${v}`; }
   if (NILAI[k]?.[v]) return NILAI[k][v];
-  if (k === 'id_konsumen') return `#${v}`;
+  if (k === 'fk_konsumen') return `#${v}`;
   if (k === 'foto_ktp') return `Foto: ${String(v).split('/').pop()}`; // path di BE disingkat jadi nama file
   if (typeof v === 'object') return v.name ?? (v.id != null ? `#${v.id}` : JSON.stringify(v));
   return String(v);
@@ -63,12 +63,12 @@ function changesOf(log, masters) {
     .map((k) => [FIELD_LABEL[k] ?? k, fmtVal(lama[k], k, masters), fmtVal(baru[k], k, masters)]);
 }
 
-// Nama konsumen: dari subject, atau dari isi log (pengajuan/konsumen punya name; relasi penginput hanya id_konsumen)
+// Nama konsumen: dari subject, atau dari isi log (pengajuan/konsumen punya name; relasi penginput hanya fk_konsumen)
 // names: { id konsumen: nama } dari log lain di halaman yang sama (log penginput tidak memuat nama konsumen)
-// BE: subject = { id, name }; id_konsumen di isi log sudah dipetakan jadi konsumen = { id, name }
+// BE: subject = { id, name }; fk_konsumen di isi log sudah dipetakan jadi konsumen = { id, name }
 const konsumenRefOf = (l) => l.data_baru?.konsumen ?? l.data_lama?.konsumen;
-const idKonsumenOf = (l) => konsumenRefOf(l)?.id ?? l.data_baru?.id_konsumen ?? l.data_lama?.id_konsumen;
-const namaOf = (l, names = {}) => l.subject?.name ?? l.data_baru?.name ?? l.data_lama?.name ?? konsumenRefOf(l)?.name
+const idKonsumenOf = (l) => konsumenRefOf(l)?.id ?? l.data_baru?.fk_konsumen ?? l.data_lama?.fk_konsumen;
+const namaOf = (l, names = {}) => l.subject?.name ?? l.data_baru?.konsumen_name ?? l.data_lama?.konsumen_name ?? konsumenRefOf(l)?.name
   ?? (idKonsumenOf(l) != null ? (names[idKonsumenOf(l)] ?? `Konsumen #${idKonsumenOf(l)}`) : '-');
 
 // Kalimat untuk log penginput (konsumen_mes): siapa yang mengambil data konsumen
@@ -129,7 +129,7 @@ function KonsumenLogPanel() {
     const m = {};
     rows.forEach((l) => {
       const id = l.log_name === 'konsumen' ? l.subject?.id : idKonsumenOf(l);
-      const nama = l.subject?.name ?? l.data_baru?.name ?? l.data_lama?.name ?? konsumenRefOf(l)?.name;
+      const nama = l.subject?.name ?? l.data_baru?.konsumen_name ?? l.data_lama?.konsumen_name ?? konsumenRefOf(l)?.name;
       if (id != null && nama) m[id] = nama;
     });
     return m;

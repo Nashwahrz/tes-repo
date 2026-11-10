@@ -22,7 +22,7 @@ function validate(form, others) {
   const name = form.name.trim();
   if (!name) errors.name = 'Nama dealer wajib diisi.';
   else if (name.length > 255) errors.name = 'Nama dealer tidak boleh lebih dari 255 karakter.';
-  else if (others.some((d) => d.name.toLowerCase() === name.toLowerCase())) errors.name = 'Nama dealer sudah terdaftar.';
+  else if (others.some((d) => d.dealer_name.toLowerCase() === name.toLowerCase())) errors.name = 'Nama dealer sudah terdaftar.';
 
   if (!form.alamat.trim()) errors.alamat = 'Alamat wajib diisi.';
 
@@ -78,15 +78,15 @@ function DealerPanel({ dealers: rows, onDealersChange, can, scopeNote }) {
   const hasError = Object.keys(errors).length > 0;
 
   const q = query.trim().toLowerCase();
-  const visible = q ? rows.filter((d) => `${d.name} ${d.alamat}`.toLowerCase().includes(q)) : rows;
+  const visible = q ? rows.filter((d) => `${d.dealer_name} ${d.address}`.toLowerCase().includes(q)) : rows;
 
   const openForm = (dealer) => {
     setSuccess('');
     setError('');
     setTouched({});
     setForm(dealer === 'new' ? EMPTY : {
-      name: dealer.name,
-      alamat: dealer.alamat,
+      name: dealer.dealer_name,
+      alamat: dealer.address,
       latitude: String(dealer.latitude),
       longitude: String(dealer.longitude),
     });
@@ -122,8 +122,8 @@ function DealerPanel({ dealers: rows, onDealersChange, can, scopeNote }) {
     setConfirmSave(false);
 
     const data = {
-      name: form.name.trim(),
-      alamat: form.alamat.trim(),
+      dealer_name: form.name.trim(),
+      address: form.alamat.trim(),
       latitude: form.latitude,
       longitude: form.longitude,
     };
@@ -134,11 +134,11 @@ function DealerPanel({ dealers: rows, onDealersChange, can, scopeNote }) {
       if (isNew) {
         const res = await createDealer(data);
         onDealersChange((list) => [...list, res.data]);
-        setSuccess(`Dealer ${data.name} ditambahkan.`);
+        setSuccess(`Dealer ${data.dealer_name} ditambahkan.`);
       } else {
         const res = await updateDealer(editing.id, data);
         onDealersChange((list) => list.map((d) => (d.id === editing.id ? res.data : d)));
-        setSuccess(`Dealer ${data.name} diperbarui.`);
+        setSuccess(`Dealer ${data.dealer_name} diperbarui.`);
       }
       closeForm();
     } catch (err) {
@@ -154,7 +154,7 @@ function DealerPanel({ dealers: rows, onDealersChange, can, scopeNote }) {
     try {
       await deleteDealer(toDelete.id);
       onDealersChange((list) => list.filter((d) => d.id !== toDelete.id));
-      setSuccess(`Dealer ${toDelete.name} dihapus.`);
+      setSuccess(`Dealer ${toDelete.dealer_name} dihapus.`);
     } catch (err) {
       setError(errorMessage(err));
     } finally {
@@ -216,8 +216,8 @@ function DealerPanel({ dealers: rows, onDealersChange, can, scopeNote }) {
             <tbody>
               {visible.map((d) => (
                 <tr key={d.id}>
-                  <td><strong className="dash-cell-name">{d.name}</strong></td>
-                  <td><span className="dash-cell-clamp" title={d.alamat}>{d.alamat}</span></td>
+                  <td><strong className="dash-cell-name">{d.dealer_name}</strong></td>
+                  <td><span className="dash-cell-clamp" title={d.address}>{d.address}</span></td>
                   <td className="acc-muted">{d.latitude}, {d.longitude}</td>
                   <td className="col-aksi">
                     <div className="dash-actions">
@@ -247,12 +247,12 @@ function DealerPanel({ dealers: rows, onDealersChange, can, scopeNote }) {
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l1-5h16l1 5" /><path d="M4 9v11h16V9" /><path d="M9 20v-6h6v6" /></svg>
             </span>
             <div>
-              <strong className="dealer-hero-name">{detail.name || '-'}</strong>
-              <p className="dealer-hero-addr">{detail.alamat || '-'}</p>
+              <strong className="dealer-hero-name">{detail.dealer_name || '-'}</strong>
+              <p className="dealer-hero-addr">{detail.address || '-'}</p>
             </div>
           </div>
 
-          <MapView latitude={detail.latitude} longitude={detail.longitude} label={detail.name} />
+          <MapView latitude={detail.latitude} longitude={detail.longitude} label={detail.dealer_name} />
 
           {hasCoord(detail) && (
             <>
@@ -307,7 +307,7 @@ function DealerPanel({ dealers: rows, onDealersChange, can, scopeNote }) {
 
       {toDelete && (
         <ConfirmModal title="Hapus Dealer" confirmLabel="Ya, Hapus" busy={saving} onConfirm={handleDelete} onCancel={() => setToDelete(null)}>
-          <p className="dash-card-desc">Yakin ingin menghapus <strong>{toDelete.name}</strong>? Tindakan ini tidak dapat dibatalkan.</p>
+          <p className="dash-card-desc">Yakin ingin menghapus <strong>{toDelete.dealer_name}</strong>? Tindakan ini tidak dapat dibatalkan.</p>
         </ConfirmModal>
       )}
     </div>

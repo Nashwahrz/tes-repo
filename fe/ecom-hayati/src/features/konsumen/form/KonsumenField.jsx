@@ -1,10 +1,11 @@
 import { Spin } from '../../../shared/components/Loading';
 import { MENU_PATHS, MENU_KECAMATAN, MENU_KELURAHAN } from '../../dashboard/utils/menuPaths';
+import { fieldId } from './konsumenFormConfig';
 
 // Jalan keluar saat induk belum punya data: buka halaman master di tab baru (form konsumen tetap utuh)
 const ADD_MASTER = {
-  kecamatan: { menu: MENU_KECAMATAN, parentField: 'kode_kabupaten_kota', label: 'Kecamatan', parent: 'kabupaten/kota' },
-  kelurahan: { menu: MENU_KELURAHAN, parentField: 'kode_kecamatan', label: 'Kelurahan / Desa', parent: 'kecamatan' },
+  kecamatan: { menu: MENU_KECAMATAN, parentField: 'fk_kabupaten_kota', label: 'Kecamatan', parent: 'kabupaten/kota' },
+  kelurahan: { menu: MENU_KELURAHAN, parentField: 'fk_kecamatan', label: 'Kelurahan / Desa', parent: 'kecamatan' },
 };
 
 function GeoSearchInput({ name, label, id, cls, ctx, idOptions, searchKey, disabled, hint }) {
@@ -23,6 +24,7 @@ function GeoSearchInput({ name, label, id, cls, ctx, idOptions, searchKey, disab
       <div style={{ display: 'flex', gap: 6 }}>
         <input
           id={id}
+          data-testid={id}
           className={cls}
           type="text"
           autoComplete="off"
@@ -59,11 +61,11 @@ function GeoSearchInput({ name, label, id, cls, ctx, idOptions, searchKey, disab
             Belum ada data {add.label.toLowerCase()} di {add.parent} ini.{' '}
             {can?.masterAdd?.[sk] ? (
               <>
-                <a id={`link-konsumen-add-${sk}`} href={`${MENU_PATHS[add.menu]}?tambah=1&induk=${encodeURIComponent(form[add.parentField])}`} target="_blank" rel="noopener noreferrer">
+                <a id={`link-konsumen-add-${sk}`} data-testid={`link-konsumen-add-${sk}`} href={`${MENU_PATHS[add.menu]}?tambah=1&induk=${encodeURIComponent(form[add.parentField])}`} target="_blank" rel="noopener noreferrer">
                   Tambah {add.label} baru ↗
                 </a>
                 {' '}(dibuka di tab baru, isian di sini tidak hilang). Setelah disimpan, kembali ke tab ini atau{' '}
-                <button id={`btn-konsumen-reload-${sk}`} type="button" className="dash-link" onClick={() => reloadGeo(sk)}>muat ulang</button>.
+                <button id={`btn-konsumen-reload-${sk}`} data-testid={`btn-konsumen-reload-${sk}`} type="button" className="dash-link" onClick={() => reloadGeo(sk)}>muat ulang</button>.
               </>
             ) : 'Hubungi admin untuk menambahkan datanya.'}
           </span>
@@ -73,7 +75,7 @@ function GeoSearchInput({ name, label, id, cls, ctx, idOptions, searchKey, disab
         <ul className="dash-geo-list" role="listbox" aria-label={label}>
           {shown.map((o) => (
             <li key={o.kode}>
-              <button id={`btn-konsumen-option-${name}-${o.kode}`} type="button" role="option" aria-selected={String(o.kode) === String(form[name])} onMouseDown={(e) => e.preventDefault()} onClick={() => { setField(name)({ target: { value: String(o.kode) } }); setPickOpen(''); }}>{o.name}</button>
+              <button id={`btn-konsumen-option-${name}-${o.kode}`} data-testid={`btn-konsumen-option-${name}-${o.kode}`} type="button" role="option" aria-selected={String(o.kode) === String(form[name])} onMouseDown={(e) => e.preventDefault()} onClick={() => { setField(name)({ target: { value: String(o.kode) } }); setPickOpen(''); }}>{o.name}</button>
             </li>
           ))}
         </ul>
@@ -91,6 +93,7 @@ function PickInput({ name, label, id, cls, ctx, idOptions, disabled, hint }) {
     <>
       <input
         id={id}
+        data-testid={id}
         className={cls}
         type="text"
         autoComplete="off"
@@ -111,7 +114,7 @@ function PickInput({ name, label, id, cls, ctx, idOptions, disabled, hint }) {
           {list.map((o) => (
             <li key={o.kode}>
               {/* mousedown dicegah agar kolom tidak blur sebelum klik terbaca */}
-              <button id={`btn-konsumen-option-${name}-${o.kode}`} type="button" role="option" aria-selected={String(o.kode) === String(form[name])} onMouseDown={(e) => e.preventDefault()} onClick={() => { setField(name)({ target: { value: String(o.kode) } }); setPickOpen(''); }}>{o.name}</button>
+              <button id={`btn-konsumen-option-${name}-${o.kode}`} data-testid={`btn-konsumen-option-${name}-${o.kode}`} type="button" role="option" aria-selected={String(o.kode) === String(form[name])} onMouseDown={(e) => e.preventDefault()} onClick={() => { setField(name)({ target: { value: String(o.kode) } }); setPickOpen(''); }}>{o.name}</button>
             </li>
           ))}
         </ul>
@@ -123,7 +126,7 @@ function PickInput({ name, label, id, cls, ctx, idOptions, disabled, hint }) {
 function KonsumenField({ name, label, ctx, ...props }) {
   const { form, errors, touched, setField, ocr } = ctx;
   const cls = `dash-input${touched[name] && errors[name] ? ' invalid' : ''}`;
-  const id = `konsumen-${name}`;
+  const id = fieldId(name);
   const selected = props.options?.find((o) => o.toLowerCase() === String(form[name]).trim().toLowerCase());
   const pickerProps = { name, label, id, cls, ctx, idOptions: props.idOptions, disabled: props.disabled, hint: props.hint };
   return (
@@ -132,7 +135,7 @@ function KonsumenField({ name, label, ctx, ...props }) {
       {props.idOptions ? (
         props.searchKey ? <GeoSearchInput {...pickerProps} searchKey={props.searchKey} /> : <PickInput {...pickerProps} />
       ) : props.options ? (
-        <select id={id} className={cls} value={selected ?? form[name]} onChange={setField(name)} disabled={props.disabled}>
+        <select id={id} data-testid={id} className={cls} value={selected ?? form[name]} onChange={setField(name)} disabled={props.disabled}>
           <option value="">- Pilih -</option>
           {/* Nilai yang belum ada di daftar (hasil OCR/data lama) tetap ditampilkan */}
           {(form[name] && !selected ? [form[name], ...props.options] : props.options).map((o) => <option key={o} value={o}>{o}</option>)}
@@ -140,6 +143,7 @@ function KonsumenField({ name, label, ctx, ...props }) {
       ) : (
         <input
           id={id}
+          data-testid={id}
           className={cls}
           type={props.type || 'text'}
           value={form[name]}

@@ -1,40 +1,34 @@
 // src/features/master/components/MasterImportModal.jsx
-// Tambah data master lewat file Excel (.xlsx): pilih file -> periksa -> impor. Template diunduh dari sini.
-import { useRef, useState } from 'react';
+// Tambah data master lewat file Excel: pilih file -> unggah ke BE (POST {path}/import). Template diunduh dari sini.
+import { useState } from 'react';
 import { importMaster, errorMessage } from '../../../api/authServices';
-import { downloadMasterTemplate, parseMasterExcel } from '../../../api/masterExcel';
+import { downloadMasterTemplate, masterImportHeaders, IMPORT_MAX_BYTES } from '../../../api/masterExcel';
 import { Spin } from '../../../shared/components/Loading';
 import Modal from '../../../shared/components/Modal';
 
 const SHOW = 10; // jumlah baris masalah yang ditampilkan
-const BIG = 2000; // di atas ini, beri peringatan karena tiap baris dikirim sebagai satu permintaan
+
+// 422 format file memberi `errors` berupa array teks per baris; selain itu pakai pesan umum
+const importError = (err) => {
+  const list = err.response?.data?.errors;
+  return Array.isArray(list) ? list : [errorMessage(err)];
+};
 
 function MasterImportModal({ tab, onClose, onImported }) {
   const [phase, setPhase] = useState('pick'); // pick | ready | running | done
-  const [fileName, setFileName] = useState('');
-  const [parsed, setParsed] = useState({ rows: [], errors: [] });
-  const [progress, setProgress] = useState({ done: 0, ok: 0 });
-  const [result, setResult] = useState(null);
-  const [busy, setBusy] = useState(false);
+  const [file, setFile] = useState(null);
+  const [result, setResult] = useState(null); // { ok, failed, errors }
   const [error, setError] = useState('');
-  const cancelled = useRef(false);
 
-  const handleFile = async (e) => {
-    const file = e.target.files?.[0];
+  const handleFile = (e) => {
+    const f = e.target.files?.[0];
     e.target.value = '';
-    if (!file) return;
+    if (!f) return;
     setError('');
-    setBusy(true);
-    try {
-      if (!/\.xlsx$/i.test(file.name)) throw new Error('Format file harus .xlsx (Excel).');
-      setParsed(await parseMasterExcel(file, tab));
-      setFileName(file.name);
-      setPhase('ready');
-    } catch (err) {
-      setError(err.response ? errorMessage(err) : err.message || 'File Excel tidak dapat dibaca.');
-    } finally {
-      setBusy(false);
-    }
+    if (!/\.xlsx?$/i.test(f.name)) return setError('Format file harus .xlsx atau .xls (Excel).');
+    if (f.size > IMPORT_MAX_BYTES) return setError('Ukuran file maksimal 2MB.');
+    setFile(f);
+    setPhase('ready');
   };
 
   const handleTemplate = async () => {
@@ -47,22 +41,20 @@ function MasterImportModal({ tab, onClose, onImported }) {
   };
 
   const handleImport = async () => {
-    cancelled.current = false;
-    const total = parsed.rows.length;
-    setProgress({ done: 0, ok: 0 });
+    setError('');
     setPhase('running');
-    const res = await importMaster(tab.path, parsed.rows, {
-      // Tampilan diperbarui tiap beberapa baris saja agar file besar tidak membuat halaman berat
-      onProgress: (done, ok) => { if (done % 10 === 0 || done === total) setProgress({ done, ok }); },
-      isCancelled: () => cancelled.current,
-    });
-    setResult(res);
-    setPhase('done');
-    if (res.ok > 0) onImported();
+    try {
+      const res = await importMaster(tab.path, file);
+      setResult(res);
+      setPhase('done');
+      if (res.ok > 0) onImported();
+    } catch (err) {
+      setResult({ ok: 0, failed: 0, errors: importError(err) });
+      setPhase('done');
+    }
   };
 
-  const total = parsed.rows.length;
-  const cols = tab.parent ? `Kode, Kode ${tab.parent.label}, Nama` : 'Kode, Nama';
+  const cols = masterImportHeaders(tab).join(', ');
 
   return (
     <Modal onClose={phase === 'running' ? undefined : onClose} dismissOnBackdrop>
@@ -75,48 +67,31 @@ function MasterImportModal({ tab, onClose, onImported }) {
             <button id="btn-import-template" type="button" className="dash-btn outline" onClick={handleTemplate}>Unduh template Excel</button>
           </div>
           <div className="dash-form-group">
-            <label htmlFor="master-file">File Excel (.xlsx)</label>
-            <input id="master-file" className="dash-input" type="file" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" onChange={handleFile} disabled={busy} />
-            {busy && <p className="dash-map-hint"><Spin /> Membaca file...</p>}
+            <label htmlFor="master-file">File Excel (.xlsx / .xls, maks. 2MB)</label>
+            <input id="master-file" className="dash-input" type="file" accept=".xlsx,.xls,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel" onChange={handleFile} />
           </div>
         </>
       )}
 
-      {phase === 'ready' && (
-        <>
-          <p className="dash-card-desc">File <strong>{fileName}</strong>: <strong>{total}</strong> baris siap diimpor{parsed.errors.length > 0 && <>, <strong>{parsed.errors.length}</strong> baris dilewati karena tidak valid</>}.</p>
-          {parsed.errors.length > 0 && (
-            <div className="dash-alert warning">
-              <ul style={{ margin: 0, paddingLeft: 18 }}>
-                {parsed.errors.slice(0, SHOW).map((x) => <li key={x.line}>Baris {x.line}: {x.message}</li>)}
-              </ul>
-              {parsed.errors.length > SHOW && <p style={{ margin: '6px 0 0' }}>...dan {parsed.errors.length - SHOW} lainnya.</p>}
-            </div>
-          )}
-          {total > BIG && <p className="dash-alert warning">Jumlah data besar: tiap baris dikirim satu per satu, jadi proses bisa memakan waktu beberapa menit. Jangan tutup halaman selama berjalan.</p>}
-          {total === 0 && <p className="dash-empty">Tidak ada baris valid untuk diimpor.</p>}
-        </>
+      {phase === 'ready' && file && (
+        <p className="dash-card-desc">File <strong>{file.name}</strong> ({Math.max(1, Math.round(file.size / 1024))} KB) siap diimpor. Baris yang tidak valid dilewati dan dilaporkan setelah proses selesai.</p>
       )}
 
       {phase === 'running' && (
-        <>
-          <p className="dash-card-desc"><Spin /> Mengimpor... <strong>{progress.done}</strong> dari <strong>{total}</strong> baris. Jangan tutup halaman ini.</p>
-          <progress value={progress.done} max={total} style={{ width: '100%' }} />
-        </>
+        <p className="dash-card-desc"><Spin /> Mengimpor {tab.label.toLowerCase()}... Jangan tutup halaman ini.</p>
       )}
 
       {phase === 'done' && result && (
         <>
           <p className="dash-card-desc">
-            {result.cancelled && 'Impor dibatalkan. '}
-            <strong>{result.ok}</strong> {tab.label.toLowerCase()} berhasil ditambahkan{result.failures.length > 0 && <>, <strong>{result.failures.length}</strong> ditolak server</>}.
+            <strong>{result.ok}</strong> {tab.label.toLowerCase()} berhasil ditambahkan{result.failed > 0 && <>, <strong>{result.failed}</strong> baris ditolak server</>}.
           </p>
-          {result.failures.length > 0 && (
+          {result.errors.length > 0 && (
             <div className="dash-alert warning">
               <ul style={{ margin: 0, paddingLeft: 18 }}>
-                {result.failures.slice(0, SHOW).map((x) => <li key={x.line}>Baris {x.line} (kode {x.kode}): {x.message}</li>)}
+                {result.errors.slice(0, SHOW).map((x, i) => <li key={i}>{x}</li>)}
               </ul>
-              {result.failures.length > SHOW && <p style={{ margin: '6px 0 0' }}>...dan {result.failures.length - SHOW} lainnya.</p>}
+              {result.errors.length > SHOW && <p style={{ margin: '6px 0 0' }}>...dan {result.errors.length - SHOW} lainnya.</p>}
             </div>
           )}
         </>
@@ -125,17 +100,15 @@ function MasterImportModal({ tab, onClose, onImported }) {
       {error && <p className="dash-alert error">{error}</p>}
 
       <div className="dash-modal-actions">
-        {phase === 'running' ? (
-          <button id="btn-import-abort" type="button" className="dash-btn outline" onClick={() => { cancelled.current = true; }}>Batalkan</button>
-        ) : phase === 'done' ? (
+        {phase === 'running' ? null : phase === 'done' ? (
           <button id="btn-import-done" type="button" className="dash-btn solid" onClick={onClose}>Selesai</button>
         ) : (
           <>
             <button id="btn-import-cancel" type="button" className="dash-btn outline" onClick={onClose}>Batal</button>
             {phase === 'ready' && (
               <>
-                <button id="btn-import-change-file" type="button" className="dash-btn outline" onClick={() => { setPhase('pick'); setParsed({ rows: [], errors: [] }); }}>Ganti file</button>
-                <button id="btn-import-submit" type="button" className="dash-btn solid" onClick={handleImport} disabled={total === 0}>Impor {total} data</button>
+                <button id="btn-import-change-file" type="button" className="dash-btn outline" onClick={() => { setPhase('pick'); setFile(null); }}>Ganti file</button>
+                <button id="btn-import-submit" type="button" className="dash-btn solid" onClick={handleImport}>Impor</button>
               </>
             )}
           </>

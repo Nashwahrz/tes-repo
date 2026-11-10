@@ -63,8 +63,8 @@ function DashboardPage() {
 
   const data = useDashboardData(user);
   const { access, loading, selfInfo, dealers, konsumenStats, recentKonsumen } = data;
-  // Akun yang emailnya belum terverifikasi (email_verifikasi false) tidak ditampilkan di mana pun: daftar, hitungan, maupun Otorisasi Akun
-  const users = useMemo(() => data.allUsers.filter((u) => u.email_verifikasi), [data.allUsers]);
+  // Akun yang emailnya belum terverifikasi (email_verification false) tidak ditampilkan di mana pun: daftar, hitungan, maupun Otorisasi Akun
+  const users = useMemo(() => data.allUsers.filter((u) => u.email_verification), [data.allUsers]);
   const pending = useMemo(() => users.filter((u) => u.status === 'pending'), [users]);
   const activeCount = useMemo(() => users.filter((u) => u.status === 'aktif').length, [users]);
 
@@ -73,15 +73,15 @@ function DashboardPage() {
   const me = users.find((u) => u.id === user?.id);
   const myRole = me?.role?.name ?? selfInfo?.role ?? null;
   const myDealer = me?.dealer?.name ?? null;
-  const scoped = !!me && myRole !== ROLE_ADMIN && !!me.id_dealer;
+  const scoped = !!me && myRole !== ROLE_ADMIN && !!me.fk_dealer;
   const isAdmin = myRole === ROLE_ADMIN;
-  const myDealerId = me?.id_dealer ?? selfInfo?.id_dealer ?? null;
+  const myDealerId = me?.fk_dealer ?? selfInfo?.fk_dealer ?? null;
   const scopeNote = scoped ? `Data dibatasi pada dealer Anda${myDealer ? `: ${myDealer}` : ''}.` : '';
 
   // Penjualan: Super Admin melihat semua dealer, role lain hanya dealer miliknya. Saat ini data contoh (lihat salesPrototype.js)
   const salesRows = isAdmin ? salesFor(null) : myDealerId != null ? salesFor(myDealerId) : [];
   const salesKnown = SALES_PROTOTYPE && (isAdmin || myDealerId != null);
-  const salesDealerName = isAdmin ? null : dealers.find((d) => d.id === myDealerId)?.name ?? salesRows[0]?.dealer ?? null;
+  const salesDealerName = isAdmin ? null : dealers.find((d) => d.id === myDealerId)?.dealer_name ?? salesRows[0]?.dealer ?? null;
 
   // Menu sidebar & tombol aksi mengikuti menu/permission role dari BE
   const acc = deriveAccess(access);

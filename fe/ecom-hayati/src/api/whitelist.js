@@ -2,7 +2,7 @@
 import api from './axios';
 
 // Whitelist domain email untuk registrasi (BE: /email-whitelists, permission email-whitelists.*)
-// payload: { domain: '@gmail.com', is_active: true, created_by: <id user> }; domain wajib berawalan @ dan unik
+// payload: { domain: '@gmail.com', status: true, created_by: <id user> }; domain wajib berawalan @ dan unik
 export const getEmailWhitelists = async () => (await api.get('/email-whitelists')).data.data;
 
 export const createEmailWhitelist = async (payload) => (await api.post('/email-whitelists', payload)).data;

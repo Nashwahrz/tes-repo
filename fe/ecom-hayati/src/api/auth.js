@@ -12,8 +12,8 @@ export const loginUser = async (email, password) => {
 // Cabut token Sanctum di server; dipanggil sebelum sesi lokal dibersihkan
 export const logoutUser = async () => (await api.post('/logout')).data;
 
-export const registerUser = async (name, email, password, password_confirmation, id_role) => {
-  const response = await api.post('/register', { name, email: normEmail(email), password, password_confirmation, id_role });
+export const registerUser = async (name, email, password, password_confirmation, fk_role) => {
+  const response = await api.post('/register', { name, email: normEmail(email), password, password_confirmation, fk_role });
   return response.data;
 };
 

@@ -10,7 +10,7 @@ import Loading, { Spin } from '../../../shared/components/Loading';
 import IconButton from '../../../shared/components/IconButton';
 import ConfirmModal from '../../../shared/components/ConfirmModal';
 
-const EMPTY = { domain: '@', is_active: true };
+const EMPTY = { domain: '@', status: true };
 const DOMAIN_FORMAT = /^@[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+$/;
 
 const tanggal = (d) => (d ? new Date(d).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }) : '-');
@@ -64,7 +64,7 @@ function EmailWhitelistPanel({ can, userId, users = [] }) {
     setSuccess('');
     setError('');
     setTouched(false);
-    setForm(row === 'new' ? EMPTY : { domain: row.domain, is_active: !!row.is_active });
+    setForm(row === 'new' ? EMPTY : { domain: row.domain, status: !!row.status });
     setEditing(row);
   };
   const closeForm = () => setEditing(null);
@@ -86,11 +86,11 @@ function EmailWhitelistPanel({ can, userId, users = [] }) {
     setError('');
     try {
       if (isNew) {
-        const res = await createEmailWhitelist({ domain, is_active: form.is_active, created_by: userId });
+        const res = await createEmailWhitelist({ domain, status: form.status, created_by: userId });
         setRows((list) => [...list, res.data]);
         setSuccess(`Domain ${domain} ditambahkan.`);
       } else {
-        const res = await updateEmailWhitelist(editing.id, { domain, is_active: form.is_active, created_by: editing.created_by ?? userId });
+        const res = await updateEmailWhitelist(editing.id, { domain, status: form.status, created_by: editing.created_by ?? userId });
         setRows((list) => list.map((r) => (r.id === editing.id ? res.data : r)));
         setSuccess(`Domain ${domain} diperbarui.`);
       }
@@ -163,7 +163,7 @@ function EmailWhitelistPanel({ can, userId, users = [] }) {
               {visible.map((r) => (
                 <tr key={r.id}>
                   <td><strong className="dash-cell-name">{r.domain}</strong></td>
-                  <td><span className={`dash-status ${r.is_active ? 'aktif' : 'nonaktif'}`}>{r.is_active ? 'Aktif' : 'Nonaktif'}</span></td>
+                  <td><span className={`dash-status ${r.status ? 'aktif' : 'nonaktif'}`}>{r.status ? 'Aktif' : 'Nonaktif'}</span></td>
                   <td>
                     {tanggal(r.created_at)}
                     <small className="dash-cell-sub">{creator(r.created_by)}</small>
@@ -201,7 +201,7 @@ function EmailWhitelistPanel({ can, userId, users = [] }) {
           </div>
           <div className="dash-form-group">
             <label className="dash-check">
-              <input id="whitelist-is-active" type="checkbox" className="dash-switch" role="switch" checked={form.is_active} onChange={(e) => setForm((f) => ({ ...f, is_active: e.target.checked }))} />
+              <input id="whitelist-is-active" type="checkbox" className="dash-switch" role="switch" checked={form.status} onChange={(e) => setForm((f) => ({ ...f, status: e.target.checked }))} />
               Aktif (domain ini boleh dipakai mendaftar)
             </label>
           </div>

@@ -41,16 +41,16 @@ export function useDashboardData(user) {
 
   // Nama & role dikenali dari konsumen yang diinput sendiri bila daftar user tidak boleh dilihat (ME, Kasir); disimpan di localStorage
   const rows = totalQ.data?.rows;
-  const base = user?.name ? { name: user.name, role: user.role ?? null, id_dealer: user.id_dealer ?? null } : null;
+  const base = user?.name ? { name: user.name, role: user.role ?? null, fk_dealer: user.fk_dealer ?? null } : null;
   // id_me = penginput (role apa pun yang punya konsumens.tambah); nama & dealer diambil dari relasi `me`
-  const mine = rows?.find((k) => k.id_me === user?.id && k.me?.name);
-  const selfInfo = mine ? { name: mine.me.name, role: base?.role ?? null, id_dealer: mine.me.id_dealer ?? null } : base;
+  const mine = rows?.find((k) => k.fk_me === user?.id && k.me?.name);
+  const selfInfo = mine ? { name: mine.me.name, role: base?.role ?? null, fk_dealer: mine.me.fk_dealer ?? null } : base;
   const selfName = selfInfo?.name;
-  const selfDealer = selfInfo?.id_dealer;
+  const selfDealer = selfInfo?.fk_dealer;
   useEffect(() => {
     if (!mine) return;
     try {
-      localStorage.setItem('user', JSON.stringify({ ...JSON.parse(localStorage.getItem('user')), name: selfName, id_dealer: selfDealer }));
+      localStorage.setItem('user', JSON.stringify({ ...JSON.parse(localStorage.getItem('user')), name: selfName, fk_dealer: selfDealer }));
     } catch { /* abaikan */ }
   }, [mine, selfName, selfDealer]);
 

@@ -1,7 +1,36 @@
 // src/api/master.js
 // Data master: agama, pekerjaan, dan wilayah
 import api from './axios';
-import { errorMessage } from './shared';
+
+// BE memakai nama kolom per tabel (agama_code, provinsi_name, fk_provinsi, dst.). Di FE data master tetap dipakai dengan bentuk seragam:
+// { kode, name, kode_provinsi | kode_kabupaten_kota | kode_kecamatan }. Penerjemahan dilakukan di sini, saat membaca dan saat mengirim.
+const SHAPES = {
+  '/agamas': { code: 'agama_code', name: 'agama_name' },
+  '/pekerjaans': { code: 'pekerjaan_code', name: 'pekerjaan_name' },
+  '/provinsis': { code: 'provinsi_code', name: 'provinsi_name' },
+  '/kabupaten-kotas': { code: 'kabupaten_kota_code', name: 'kabupaten_kota_name', parents: { kode_provinsi: 'fk_provinsi' } },
+  '/kecamatans': { code: 'kecamatan_code', name: 'kecamatan_name', parents: { kode_kabupaten_kota: 'fk_kabupaten_kota' } },
+  '/kelurahans': { code: 'kelurahan_code', name: 'kelurahan_name', parents: { kode_kecamatan: 'fk_kecamatan' } },
+};
+const shapeOf = (path) => SHAPES[path.replace(/\/(aktif|\d+)(\/status)?$/, '')];
+const fromBe = (path, row) => {
+  const s = shapeOf(path);
+  if (!s || !row) return row;
+  const out = { ...row, kode: row[s.code], name: row[s.name] };
+  Object.entries(s.parents ?? {}).forEach(([legacy, be]) => { out[legacy] = row[be]; });
+  return out;
+};
+const toBe = (path, payload) => {
+  const s = shapeOf(path);
+  if (!s) return payload;
+  const out = {};
+  Object.entries(payload).forEach(([k, v]) => {
+    if (k === 'kode') out[s.code] = v;
+    else if (k === 'name') out[s.name] = v;
+    else out[s.parents?.[k] ?? k] = v;
+  });
+  return out;
+};
 
 // Opsi master untuk dropdown: semua halaman (100 data per halaman) digabung jadi [{ id, name }]. params: filter query BE.
 // Hasil disimpan di memori per path+params agar dropdown berjenjang tidak memanggil BE berulang.
@@ -14,7 +43,7 @@ export const getMasterOptions = (path, params = {}) => {
       const first = await page(1);
       const rest = await Promise.all(Array.from({ length: Math.max((first.last_page ?? 1) - 1, 0) }, (_, i) => page(i + 2)));
       // Baris utuh dipertahankan: kolom induk (kode_provinsi, kode_kabupaten_kota, kode_kecamatan) dipakai untuk menyaring di FE
-      return [first, ...rest].flatMap((p) => p.data).sort((a, b) => a.name.localeCompare(b.name, 'id'));
+      return [first, ...rest].flatMap((p) => p.data).map((r) => fromBe(path, r)).sort((a, b) => a.name.localeCompare(b.name, 'id'));
     };
     optionCache.set(key, load().catch((err) => { optionCache.delete(key); throw err; }));
   }
@@ -52,10 +81,10 @@ const searchByParent = async (path, search, parentKey, parentId, signal) => { //
   const page = async (n) => (await api.get(path, { params: { search, per_page: 100, page: n }, signal })).data.data;
   const first = await page(1);
   const last = Math.min(first.last_page ?? 1, SEARCH_MAX_PAGES);
-  let rows = first.data ?? [];
+  let rows = (first.data ?? []).map((r) => fromBe(path, r));
   for (let n = 2; n <= last; n += SEARCH_BATCH) {
     const batch = await Promise.all(Array.from({ length: Math.min(SEARCH_BATCH, last - n + 1) }, (_, i) => page(n + i)));
-    rows = rows.concat(batch.flatMap((p) => p.data ?? []));
+    rows = rows.concat(batch.flatMap((p) => (p.data ?? []).map((r) => fromBe(path, r))));
   }
   const result = {
     rows: rows.filter((r) => String(r[parentKey]) === String(parentId)).sort((x, y) => x.name.localeCompare(y.name, 'id')),
@@ -79,7 +108,7 @@ const listByParent = (path, parentKey, parentKode) => {
       const first = await page(1);
       const last = Math.min(first.last_page ?? 1, PARENT_MAX_PAGES);
       const rest = await Promise.all(Array.from({ length: Math.max(last - 1, 0) }, (_, i) => page(i + 2)));
-      return [first, ...rest].flatMap((p) => p.data ?? [])
+      return [first, ...rest].flatMap((p) => p.data ?? []).map((r) => fromBe(path, r))
         .filter((r) => String(r[parentKey]) === String(parentKode))
         .sort((x, y) => x.name.localeCompare(y.name, 'id'));
     };
@@ -109,7 +138,7 @@ export const getMasterById = (path, id) => {
   if (!id) return Promise.resolve(null);
   const key = `${path}/${id}`;
   if (!byIdCache.has(key)) {
-    byIdCache.set(key, api.get(key).then((r) => r.data.data).catch((err) => { byIdCache.delete(key); throw err; }));
+    byIdCache.set(key, api.get(key).then((r) => fromBe(path, r.data.data)).catch((err) => { byIdCache.delete(key); throw err; }));
   }
   return byIdCache.get(key);
 };
@@ -118,7 +147,7 @@ export const getMasterById = (path, id) => {
 // Endpoint /aktif dicoba lebih dulu (izin lihat-aktif); data yang sudah dinonaktifkan hanya ada di endpoint penuh (izin lihat, bila role punya).
 const byKodeCache = new Map();
 const findKode = async (path, kode) =>
-  (await api.get(path, { params: { search: kode, per_page: 100 } })).data.data.data?.find((d) => String(d.kode) === String(kode)) ?? null;
+  (await api.get(path, { params: { search: kode, per_page: 100 } })).data.data.data?.map((r) => fromBe(path, r)).find((d) => String(d.kode) === String(kode)) ?? null;
 export const getMasterByKode = (path, kode) => {
   if (!kode) return Promise.resolve(null);
   const base = path.replace(/\/aktif$/, '');
@@ -136,11 +165,11 @@ export const getMasterByKode = (path, kode) => {
 // BE memaginasi 10 data per halaman: { data: { data: [...], current_page, last_page, total } }
 export const getMasterPage = async (path, page = 1, search = '') => {
   const p = (await api.get(path, { params: { page, ...(search ? { search } : {}) } })).data.data;
-  return { rows: p.data ?? [], meta: { page: p.current_page ?? 1, lastPage: p.last_page ?? 1, total: p.total ?? 0, perPage: p.per_page ?? 10 } };
+  return { rows: (p.data ?? []).map((r) => fromBe(path, r)), meta: { page: p.current_page ?? 1, lastPage: p.last_page ?? 1, total: p.total ?? 0, perPage: p.per_page ?? 10 } };
 };
 // Cari data master menurut nama (default 20 hasil pertama); dipakai memilih induk di form data master
 export const searchMaster = async (path, search, signal, perPage = 20) =>
-  (await api.get(path, { params: { search, per_page: perPage }, signal })).data.data.data ?? [];
+  (await api.get(path, { params: { search, per_page: perPage }, signal })).data.data.data?.map((r) => fromBe(path, r)) ?? [];
 // Data yang dimuat penuh untuk dropdown/filter harus dibuang setelah ada perubahan, supaya tidak basi
 const dropOptionCache = (path) => {
   [[optionCache, '?'], [parentCache, '|']].forEach(([map, sep]) => {
@@ -150,13 +179,13 @@ const dropOptionCache = (path) => {
 // Dipakai saat data master mungkin berubah di tempat lain (mis. tab lain): daftar induk/pencarian dimuat ulang pada pemakaian berikutnya
 export const refreshMasterOptions = (path) => { dropOptionCache(path); searchCache.clear(); };
 export const createMaster = async (path, payload) => {
-  const res = (await api.post(path, payload)).data;
+  const res = (await api.post(path, toBe(path, payload))).data;
   dropOptionCache(path);
   byKodeCache.clear();
   return res;
 };
 export const updateMaster = async (path, id, payload) => {
-  const res = (await api.put(`${path}/${id}`, payload)).data;
+  const res = (await api.put(`${path}/${id}`, toBe(path, payload))).data;
   dropOptionCache(path);
   byIdCache.delete(`${path}/${id}`);
   byKodeCache.clear();
@@ -171,30 +200,15 @@ export const setMasterStatus = async (path, id, status) => {
   return res;
 };
 
-// Impor massal: tiap baris dikirim lewat POST biasa (BE belum punya endpoint impor), beberapa sekaligus.
-// Baris yang ditolak BE (kode sudah ada, induk tidak ada, dll.) dicatat di failures dan tidak menghentikan baris lain.
-// rows: [{ line, kode, name, [kode_induk] }]. onProgress(selesai, berhasil); isCancelled() dicek sebelum tiap baris.
-export const importMaster = async (path, rows, { concurrency = 4, onProgress, isCancelled } = {}) => {
-  const failures = [];
-  let ok = 0;
-  let done = 0;
-  let next = 0;
-  const worker = async () => {
-    while (!isCancelled?.() && next < rows.length) {
-      const { line, ...payload } = rows[next];
-      next += 1;
-      try {
-        await api.post(path, payload);
-        ok += 1;
-      } catch (err) {
-        failures.push({ line, kode: payload.kode, message: errorMessage(err) });
-      }
-      done += 1;
-      onProgress?.(done, ok);
-    }
-  };
-  await Promise.all(Array.from({ length: Math.min(concurrency, rows.length) }, worker));
+
+// Impor massal lewat Excel: file diunggah apa adanya ke POST {path}/import (BE: permission <menu>.tambah, .xlsx/.xls maks. 2MB).
+// Header Excel harus persis seperti yang diminta BE (lihat masterExcel.js). Baris yang ditolak tidak membatalkan baris lain.
+// Hasil: { ok, failed, errors: ['Baris 3: ...'] }. Bila format file salah (tidak ada baris berhasil), BE membalas 422 dan fungsi ini melempar error.
+export const importMaster = async (path, file) => {
+  const body = new FormData();
+  body.append('file', file);
+  const d = (await api.post(`${path}/import`, body)).data.data ?? {};
   dropOptionCache(path);
   byKodeCache.clear();
-  return { ok, failures: failures.sort((a, b) => a.line - b.line), cancelled: !!isCancelled?.() };
+  return { ok: d.success_count ?? 0, failed: d.failed_count ?? 0, errors: d.errors ?? [] };
 };

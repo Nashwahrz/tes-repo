@@ -25,7 +25,7 @@ function UrlIpLoginPanel({ canEdit }) {
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(null);
-  const [form, setForm] = useState({ url: '', is_active: true });
+  const [form, setForm] = useState({ url: '', status: true });
   const [touched, setTouched] = useState(false);
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState('');
@@ -46,7 +46,7 @@ function UrlIpLoginPanel({ canEdit }) {
     setSuccess('');
     setError('');
     setTouched(false);
-    setForm({ url: row.url, is_active: !!row.is_active });
+    setForm({ url: row.url, status: !!row.status });
     setEditing(row);
   };
 
@@ -57,7 +57,7 @@ function UrlIpLoginPanel({ canEdit }) {
     setSaving(true);
     setError('');
     try {
-      const res = await updateUrlIpLogin(editing.id, { url: form.url.trim(), is_active: form.is_active });
+      const res = await updateUrlIpLogin(editing.id, { url: form.url.trim(), status: form.status });
       setRows((list) => list.map((r) => (r.id === editing.id ? { ...r, ...res.data } : r)));
       setSuccess('URL IP login diperbarui.');
       setEditing(null);
@@ -99,7 +99,7 @@ function UrlIpLoginPanel({ canEdit }) {
               {rows.map((r) => (
                 <tr key={r.id}>
                   <td><strong className="dash-cell-name" style={{ wordBreak: 'break-all' }}>{r.url}</strong></td>
-                  <td><span className={`dash-status ${r.is_active ? 'aktif' : 'nonaktif'}`}>{r.is_active ? 'Aktif' : 'Nonaktif'}</span></td>
+                  <td><span className={`dash-status ${r.status ? 'aktif' : 'nonaktif'}`}>{r.status ? 'Aktif' : 'Nonaktif'}</span></td>
                   {canEdit && (
                     <td className="col-aksi">
                       <div className="dash-actions">
@@ -131,10 +131,10 @@ function UrlIpLoginPanel({ canEdit }) {
             <p className="dash-map-hint">Alamat IP ditambahkan di ujung URL, atau tulis <code>{'{ip}'}</code> untuk menentukan posisinya. Layanan harus membalas format ip-api.com.</p>
           </div>
           <label style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14, cursor: 'pointer' }}>
-            <input id="urlip-is-active" type="checkbox" className="dash-switch" role="switch" checked={form.is_active} onChange={(e) => setForm((f) => ({ ...f, is_active: e.target.checked }))} />
+            <input id="urlip-is-active" type="checkbox" className="dash-switch" role="switch" checked={form.status} onChange={(e) => setForm((f) => ({ ...f, status: e.target.checked }))} />
             Aktif
           </label>
-          {!form.is_active && <p className="dash-alert warning">Bila dinonaktifkan, lokasi pada log login tidak akan terisi.</p>}
+          {!form.status && <p className="dash-alert warning">Bila dinonaktifkan, lokasi pada log login tidak akan terisi.</p>}
           <div className="dash-modal-actions">
             <button id="btn-urlip-cancel" type="button" className="dash-btn outline" onClick={() => setEditing(null)} disabled={saving}>Batal</button>
             <button id="btn-urlip-save" type="submit" className="dash-btn solid" disabled={saving}>{saving ? <><Spin />Menyimpan...</> : 'Simpan'}</button>

@@ -40,7 +40,7 @@ const TABS = {
     loadRole: getRoleMenu,
     save: updateRoleMenus,
     itemsKey: 'menus',
-    nameOf: (i) => i.nama_menu,
+    nameOf: (i) => i.menu_name,
   },
   permission: {
     label: 'Permission',
@@ -48,8 +48,8 @@ const TABS = {
     loadRole: getRolePermission,
     save: updateRolePermissions,
     itemsKey: 'permissions',
-    nameOf: (i) => i.nama_permission,
-    groupOf: (i) => groupKey(i.nama_permission),
+    nameOf: (i) => i.permission_name,
+    groupOf: (i) => groupKey(i.permission_name),
   },
 };
 
@@ -206,7 +206,7 @@ function RoleAccessPanel({ canMenu, canPermission, onSaved }) {
             )}
             <select id="role-select" className="dash-input dash-select-filter" value={roleId ?? ''} aria-label="Pilih role" onChange={(e) => { pickRole(Number(e.target.value)); setPage(1); }}>
               {data.roles.map((r) => (
-                <option key={r.id} value={r.id}>{r.name}</option>
+                <option key={r.id} value={r.id}>{r.role_name ?? r.name}</option>
               ))}
             </select>
           </div>
@@ -254,7 +254,7 @@ function RoleAccessPanel({ canMenu, canPermission, onSaved }) {
       {confirming && role && (
         <ConfirmModal title="Simpan Perubahan" confirmLabel="Ya, Simpan" onConfirm={handleSave} onCancel={() => setConfirming(false)}>
           <p className="dash-card-desc">
-            Yakin ingin mengubah hak akses {cfg.label.toLowerCase()} untuk role <strong>{role.name}</strong>?
+            Yakin ingin mengubah hak akses {cfg.label.toLowerCase()} untuk role <strong>{role.role_name ?? role.name}</strong>?
           </p>
         </ConfirmModal>
       )}

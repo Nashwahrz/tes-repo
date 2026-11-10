@@ -36,7 +36,7 @@ function RegisterPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [password_confirmation, setPasswordConfirmation] = useState('');
-  const [id_role, setIdRole] = useState('');
+  const [fk_role, setIdRole] = useState('');
   const [error, setError] = useState('');
   const [submitted, setSubmitted] = useState(false); // setelah klik Daftar: kolom kosong ikut diberi pesan
   const [success, setSuccess] = useState('');
@@ -48,7 +48,7 @@ function RegisterPage() {
   const errorsFor = (sub) => ({
     name: req(sub, name, 'Nama wajib diisi.') || validateName(name),
     email: req(sub, email, 'Email wajib diisi.') || validateEmail(email),
-    role: sub && !id_role ? 'Role wajib dipilih.' : '',
+    role: sub && !fk_role ? 'Role wajib dipilih.' : '',
     password: req(sub, password, 'Kata sandi wajib diisi.') || validatePassword(password),
     confirm: req(sub, password_confirmation, 'Konfirmasi kata sandi wajib diisi.') || (password_confirmation && password !== password_confirmation ? 'Konfirmasi password tidak cocok.' : ''),
   });
@@ -70,7 +70,7 @@ function RegisterPage() {
     setLoading(true);
 
     try {
-      const data = await registerUser(name, email, password, password_confirmation, Number(id_role));
+      const data = await registerUser(name, email, password, password_confirmation, Number(fk_role));
 
       setSuccess(data?.message || 'Registrasi berhasil! Mengarahkan ke verifikasi OTP...');
       setTimeout(() => {
@@ -132,7 +132,7 @@ function RegisterPage() {
             <select
               className="login-input"
               id="role"
-              value={id_role}
+              value={fk_role}
               onChange={(e) => setIdRole(e.target.value)}
               aria-invalid={!!roleError}
             >

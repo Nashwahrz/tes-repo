@@ -24,5 +24,5 @@ export const clearCache = () => sessionStorage.removeItem(CACHE_KEY);
 // Hak akses dari BE: url menu (role-menus) & nama permission (role-permissions)
 export const toAccess = (menus, permissions) => ({
   menus: menus.map((m) => m.url),
-  permissions: permissions.map((p) => p.nama_permission),
+  permissions: permissions.map((p) => p.permission_name),
 });

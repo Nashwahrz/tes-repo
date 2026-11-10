@@ -21,7 +21,7 @@ function RateLimitPanel({ canEdit }) {
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(null);
-  const [form, setForm] = useState({ request_per_minutes: '', minutes: '', is_active: true });
+  const [form, setForm] = useState({ request_per_minutes: '', minutes: '', status: true });
   const [touched, setTouched] = useState(false);
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState('');
@@ -47,7 +47,7 @@ function RateLimitPanel({ canEdit }) {
     setSuccess('');
     setError('');
     setTouched(false);
-    setForm({ request_per_minutes: String(row.request_per_minutes), minutes: String(row.minutes), is_active: !!row.is_active });
+    setForm({ request_per_minutes: String(row.request_per_minutes), minutes: String(row.minutes), status: !!row.status });
     setEditing(row);
   };
 
@@ -63,7 +63,7 @@ function RateLimitPanel({ canEdit }) {
         name: editing.name,
         request_per_minutes: toInt(form.request_per_minutes),
         minutes: toInt(form.minutes),
-        is_active: form.is_active,
+        status: form.status,
       });
       setRows((list) => list.map((r) => (r.id === editing.id ? { ...r, ...res.data } : r)));
       setSuccess(`Rate limit ${title(editing)} diperbarui.`);
@@ -111,7 +111,7 @@ function RateLimitPanel({ canEdit }) {
                     {LABELS[r.name] && <div style={{ fontSize: 11, color: 'var(--muted)' }}>{LABELS[r.name].desc}</div>}
                   </td>
                   <td>{r.request_per_minutes} permintaan / {r.minutes} menit</td>
-                  <td><span className={`dash-status ${r.is_active ? 'aktif' : 'nonaktif'}`}>{r.is_active ? 'Aktif' : 'Nonaktif'}</span></td>
+                  <td><span className={`dash-status ${r.status ? 'aktif' : 'nonaktif'}`}>{r.status ? 'Aktif' : 'Nonaktif'}</span></td>
                   {canEdit && (
                     <td className="col-aksi">
                       <div className="dash-actions">
@@ -158,10 +158,10 @@ function RateLimitPanel({ canEdit }) {
             {touched && errors.minutes && <p className="dash-field-error">{errors.minutes}</p>}
           </div>
           <label style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14, cursor: 'pointer' }}>
-            <input id="rl-is-active" type="checkbox" className="dash-switch" role="switch" checked={form.is_active} onChange={(e) => setForm((f) => ({ ...f, is_active: e.target.checked }))} />
+            <input id="rl-is-active" type="checkbox" className="dash-switch" role="switch" checked={form.status} onChange={(e) => setForm((f) => ({ ...f, status: e.target.checked }))} />
             Aktifkan pembatasan
           </label>
-          {!form.is_active && <p className="dash-alert warning">Bila dinonaktifkan, fitur ini tidak lagi dibatasi sehingga rentan disalahgunakan.</p>}
+          {!form.status && <p className="dash-alert warning">Bila dinonaktifkan, fitur ini tidak lagi dibatasi sehingga rentan disalahgunakan.</p>}
           <div className="dash-modal-actions">
             <button id="btn-ratelimit-cancel" type="button" className="dash-btn outline" onClick={() => setEditing(null)} disabled={saving}>Batal</button>
             <button id="btn-ratelimit-save" type="submit" className="dash-btn solid" disabled={saving}>{saving ? <><Spin />Menyimpan...</> : 'Simpan'}</button>

@@ -101,8 +101,8 @@ function HomeView({ name, today, scopeNote, can, sales, stats, pending, dealers,
             <div className="dash-row dash-row-compact" key={d.id}>
               <span className="dash-row-icon"><Icon name="store" size={14} /></span>
               <div className="dash-row-body">
-                <span title={d.name}>{d.name}</span>
-                <small title={d.alamat}>{d.alamat}</small>
+                <span title={d.dealer_name}>{d.dealer_name}</span>
+                <small title={d.address}>{d.address}</small>
               </div>
             </div>
           ))

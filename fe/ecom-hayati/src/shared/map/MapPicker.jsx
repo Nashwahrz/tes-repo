@@ -298,7 +298,7 @@ function MapPicker({ latitude, longitude, onPick, desa = '', kecamatan = '', kab
   return (
     <div>
       <div className="dash-map-search">
-        <input id="map-search"
+        <input id="map-search" data-testid="map-search"
           type="text"
           value={query}
           onChange={(e) => {
@@ -314,7 +314,7 @@ function MapPicker({ latitude, longitude, onPick, desa = '', kecamatan = '', kab
           }}
           placeholder="Ketik alamat / nama tempat..."
         />
-        <button id="btn-map-my-location" type="button" onClick={useMyLocation}>📍 Lokasi saya</button>
+        <button id="btn-map-my-location" data-testid="btn-map-my-location" type="button" onClick={useMyLocation}>📍 Lokasi saya</button>
       </div>
       {hasRegion && areaStatus && <p className="dash-map-hint">{areaStatus}</p>}
       {area && <p className="dash-map-hint">Pencarian diprioritaskan di sekitar: {area.label}</p>}
@@ -323,7 +323,7 @@ function MapPicker({ latitude, longitude, onPick, desa = '', kecamatan = '', kab
         <ul className="dash-map-results">
           {results.map((r) => (
             <li key={r.place_id}>
-              <button id={`btn-map-result-${r.place_id}`} type="button" onClick={() => pickResult(r)}>{r.display_name}</button>
+              <button id={`btn-map-result-${r.place_id}`} data-testid={`btn-map-result-${r.place_id}`} type="button" onClick={() => pickResult(r)}>{r.display_name}</button>
             </li>
           ))}
         </ul>

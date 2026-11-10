@@ -2,7 +2,7 @@
 import api from './axios';
 
 // Pengaturan SMTP pengirim email (BE: /email-smtps, permission email-smtps.*)
-// Baris: { id, mail_mailer, mail_host, mail_port, mail_username, mail_password, mail_encryption, mail_from_address, mail_from_name, is_active }
+// Baris: { id, mail_mailer, mail_host, mail_port, mail_username, mail_password, mail_encryption, mail_from_address, mail_from_name, status }
 export const getEmailSmtps = async () => (await api.get('/email-smtps')).data.data;
 
 export const getEmailSmtp = async (id) => (await api.get(`/email-smtps/${id}`)).data.data;

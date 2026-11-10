@@ -2,14 +2,14 @@ export const STATUS_LABEL = { pending: 'Menunggu Verifikasi', diterima: 'Diterim
 export const KAWIN = ['Belum Kawin', 'Kawin', 'Cerai Hidup', 'Cerai Mati'];
 
 export const EMPTY = {
-  nik: '', name: '', kode_tmp_lahir: '', tgl_lahir: '', jenis_kelamin: '', alamat_ktp: '', alamat_domisili: '', latitude: '', longitude: '', rt: '', rw: '',
-  kode_kelurahan: '', kode_kecamatan: '', kode_kabupaten_kota: '', kode_provinsi: '', kode_agama: '', status_perkawinan: '',
-  kode_pekerjaan: '', kewarganegaraan: 'WNI', no_telp: '', email: '',
+  nik: '', konsumen_name: '', fk_temp_lahir: '', birth_date: '', gender: '', ktp_address: '', domicile_address: '', latitude: '', longitude: '', rt: '', rw: '',
+  fk_kelurahan: '', fk_kecamatan: '', fk_kabupaten_kota: '', fk_provinsi: '', fk_agama: '', marital_status: '',
+  fk_pekerjaan: '', nationality: 'WNI', phone: '', email: '',
 };
 // Wilayah berjenjang: mengganti induk mengosongkan turunannya
-export const CHILD_OF = { kode_provinsi: ['kode_kabupaten_kota', 'kode_kecamatan', 'kode_kelurahan'], kode_kabupaten_kota: ['kode_kecamatan', 'kode_kelurahan'], kode_kecamatan: ['kode_kelurahan'] };
+export const CHILD_OF = { fk_provinsi: ['fk_kabupaten_kota', 'fk_kecamatan', 'fk_kelurahan'], fk_kabupaten_kota: ['fk_kecamatan', 'fk_kelurahan'], fk_kecamatan: ['fk_kelurahan'] };
 
-export const GEO_KEY = { kode_kecamatan: 'kecamatan', kode_kelurahan: 'kelurahan' }; // kolom form yang dicari lewat nama
+export const GEO_KEY = { fk_kecamatan: 'kecamatan', fk_kelurahan: 'kelurahan' }; // kolom form yang dicari lewat nama
 // Nama dari OCR (teks) dicocokkan ke opsi master tanpa awalan "Kota/Kabupaten" dan tanpa beda huruf
 export const normName = (t) => String(t ?? '').toLowerCase().replace(/^(kota|kabupaten|kab\.?|kecamatan|kec\.?|kelurahan|kel\.?|desa|provinsi|prov\.?)\s+/, '').replace(/[^a-z0-9]+/g, ' ').trim();
 // Nilai pilihan di form = kode master (BE menyimpan dan memvalidasi konsumen lewat kode_*)
@@ -30,7 +30,7 @@ export const MAX_FILE = 2 * 1024 * 1024; // 2MB, sama dengan BE
 export const MAX_PICK = 25 * 1024 * 1024; // foto asli di atas ini ditolak; di bawahnya diperkecil otomatis bila melebihi MAX_FILE
 export const TARGET_FILE = 1.9 * 1024 * 1024; // sasaran hasil perkecilan, sedikit di bawah batas BE
 
-// tgl_lahir dari BE bisa "YYYY-MM-DD" (daftar) atau ISO UTC (model Eloquent, mis. hasil cek NIK).
+// birth_date dari BE bisa "YYYY-MM-DD" (daftar) atau ISO UTC (model Eloquent, mis. hasil cek NIK).
 // ISO UTC dari tanggal Jakarta mundur sehari (1990-05-10 -> "1990-05-09T17:00:00Z"), jadi dikembalikan ke zona waktu BE (Asia/Jakarta)
 // agar tanggal yang tidak diubah user tidak terkirim sebagai tanggal berbeda (yang memicu verifikasi ulang)
 export const tglLahirOf = (v) => {
@@ -42,23 +42,23 @@ export const tglLahirOf = (v) => {
 };
 export const toForm = (k) => Object.fromEntries(FIELDS.map((f) => {
   let v = k[f] ?? '';
-  if (f === 'tgl_lahir' && v) v = tglLahirOf(v);
+  if (f === 'birth_date' && v) v = tglLahirOf(v);
   return [f, String(v)];
 }));
 
 // Field yang tercetak di KTP; yang tidak terbaca oleh scan diberi peringatan di kolomnya
 export const SCAN_FIELDS = [
-  'nik', 'name', 'kode_tmp_lahir', 'tgl_lahir', 'jenis_kelamin', 'alamat_ktp', 'rt', 'rw', 'kode_kelurahan', 'kode_kecamatan',
-  'kode_kabupaten_kota', 'kode_provinsi', 'kode_agama', 'status_perkawinan', 'kode_pekerjaan', 'kewarganegaraan',
+  'nik', 'konsumen_name', 'fk_temp_lahir', 'birth_date', 'gender', 'ktp_address', 'rt', 'rw', 'fk_kelurahan', 'fk_kecamatan',
+  'fk_kabupaten_kota', 'fk_provinsi', 'fk_agama', 'marital_status', 'fk_pekerjaan', 'nationality',
 ];
 
 // Label field untuk pesan wajib diisi
 export const LABELS = {
-  nik: 'NIK', name: 'Nama', kode_tmp_lahir: 'Tempat lahir', tgl_lahir: 'Tanggal lahir', jenis_kelamin: 'Jenis kelamin',
-  alamat_ktp: 'Alamat sesuai KTP', alamat_domisili: 'Alamat domisili', latitude: 'Latitude', longitude: 'Longitude', rt: 'RT', rw: 'RW', kode_kelurahan: 'Kelurahan/Desa',
-  kode_kecamatan: 'Kecamatan', kode_kabupaten_kota: 'Kabupaten/Kota', kode_provinsi: 'Provinsi', kode_agama: 'Agama',
-  status_perkawinan: 'Status perkawinan', kode_pekerjaan: 'Pekerjaan', kewarganegaraan: 'Kewarganegaraan',
-  no_telp: 'No. telp', email: 'Email',
+  nik: 'NIK', konsumen_name: 'Nama', fk_temp_lahir: 'Tempat lahir', birth_date: 'Tanggal lahir', gender: 'Jenis kelamin',
+  ktp_address: 'Alamat sesuai KTP', domicile_address: 'Alamat domisili', latitude: 'Latitude', longitude: 'Longitude', rt: 'RT', rw: 'RW', fk_kelurahan: 'Kelurahan/Desa',
+  fk_kecamatan: 'Kecamatan', fk_kabupaten_kota: 'Kabupaten/Kota', fk_provinsi: 'Provinsi', fk_agama: 'Agama',
+  marital_status: 'Status perkawinan', fk_pekerjaan: 'Pekerjaan', nationality: 'Kewarganegaraan',
+  phone: 'No. telp', email: 'Email',
 };
 
 // Validasi mengikuti be/app/Http/Requests/KonsumenRequest.php (semua field wajib)
@@ -70,11 +70,11 @@ export function validate(form, file, needFoto) {
   });
   if (!e.nik && !/^\d{16}$/.test(form.nik)) e.nik = 'NIK harus terdiri dari 16 digit angka.';
   // No. telp: angka saja, boleh diawali + (kode negara), harus diawali 0 atau 62, 10-15 digit (BE: maks. 20 karakter)
-  if (!e.no_telp) {
-    const tel = form.no_telp.trim();
-    if (!/^\+?\d+$/.test(tel)) e.no_telp = 'No. telp hanya boleh berisi angka (boleh diawali +).';
-    else if (!/^(\+?62|0)/.test(tel)) e.no_telp = 'No. telp harus diawali 0 atau 62 (contoh: 08123456789).';
-    else if (tel.replace('+', '').length < 10 || tel.replace('+', '').length > 15) e.no_telp = 'No. telp harus 10-15 digit.';
+  if (!e.phone) {
+    const tel = form.phone.trim();
+    if (!/^\+?\d+$/.test(tel)) e.phone = 'No. telp hanya boleh berisi angka (boleh diawali +).';
+    else if (!/^(\+?62|0)/.test(tel)) e.phone = 'No. telp harus diawali 0 atau 62 (contoh: 08123456789).';
+    else if (tel.replace('+', '').length < 10 || tel.replace('+', '').length > 15) e.phone = 'No. telp harus 10-15 digit.';
   }
   // Email: satu @, nama dan domain tanpa spasi, domain punya titik dan akhiran min. 2 huruf, tanpa titik berurutan
   if (!e.email) {
@@ -87,8 +87,17 @@ export function validate(form, file, needFoto) {
     const n = Number(form[k]);
     if (Number.isNaN(n) || Math.abs(n) > max) e[k] = `${LABELS[k]} harus berupa angka antara -${max} dan ${max}.`;
   });
-  [['name', 255], ['alamat_ktp', 255], ['alamat_domisili', 255], ['rt', 3], ['rw', 3], ['no_telp', 20]].forEach(([k, max]) => {
+  [['konsumen_name', 255], ['ktp_address', 255], ['domicile_address', 255], ['rt', 3], ['rw', 3], ['phone', 20]].forEach(([k, max]) => {
     if (!e[k] && form[k].length > max) e[k] = `Maksimal ${max} karakter.`;
   });
   return e;
 }
+
+// id elemen form tetap memakai nama field lama (konsumen-name, konsumen-kode_provinsi, dst.) supaya selector QA tidak berubah
+const LEGACY_ID = {
+  konsumen_name: 'name', fk_temp_lahir: 'kode_tmp_lahir', birth_date: 'tgl_lahir', gender: 'jenis_kelamin', ktp_address: 'alamat_ktp',
+  domicile_address: 'alamat_domisili', fk_kelurahan: 'kode_kelurahan', fk_kecamatan: 'kode_kecamatan', fk_kabupaten_kota: 'kode_kabupaten_kota',
+  fk_provinsi: 'kode_provinsi', fk_agama: 'kode_agama', fk_pekerjaan: 'kode_pekerjaan', marital_status: 'status_perkawinan',
+  nationality: 'kewarganegaraan', phone: 'no_telp',
+};
+export const fieldId = (name) => `konsumen-${LEGACY_ID[name] ?? name}`;

@@ -8,7 +8,7 @@ import api from './axios';
 //   GET /konsumens/dealer-all -> konsumen yang diinput ME satu dealer dengan user (permission konsumens.lihat-dealer)
 // Ketiganya berpaginasi { data: [konsumen + konsumen_mes[]], meta } dan belum bisa difilter status di BE.
 // FE meratakan tiap konsumen_mes menjadi satu baris: id = id konsumen, konsumen_me_id = id yang dipakai untuk verifikasi,
-// lalu status, catatan_penolakan, diverifikasi_oleh, id_me, dan me diambil dari relasi tersebut.
+// lalu status, note, verified_by, fk_me, dan me diambil dari relasi tersebut.
 // status: 'pending' | 'diterima' | 'revisi' | 'ditolak' (kosong = semua)
 const PER_PAGE = 100;
 export const PAGE_SIZE = 10; // baris per halaman di daftar konsumen
@@ -18,7 +18,7 @@ const currentUserId = () => {
 };
 
 const currentDealerId = () => {
-  try { return JSON.parse(localStorage.getItem('user'))?.id_dealer ?? null; } catch { return null; }
+  try { return JSON.parse(localStorage.getItem('user'))?.fk_dealer ?? null; } catch { return null; }
 };
 
 // mode: 'all' (semua konsumen) | 'dealer' (konsumen dealer user) | 'mine' (milik sendiri). Boolean lama tetap diterima: true = 'all', false = 'mine'.
@@ -42,16 +42,15 @@ export const flattenKonsumen = (k, modeArg) => {
   const dealer = currentDealerId();
   // BE dealer-all mengembalikan semua penginput sebuah konsumen; yang ditampilkan hanya penginput di dealer user
   const mine = mode === 'all' ? mes
-    : mode === 'dealer' ? (dealer == null ? mes : mes.filter((m) => String(m.me?.id_dealer) === String(dealer)))
-      : mes.filter((m) => m.id_me === uid);
+    : mode === 'dealer' ? (dealer == null ? mes : mes.filter((m) => String(m.me?.fk_dealer) === String(dealer)))
+      : mes.filter((m) => m.fk_me === uid);
   return mine.map((m) => ({
     ...base,
     konsumen_me_id: m.id,
-    id_me: m.id_me,
+    fk_me: m.fk_me,
     me: m.me ?? null,
     status: m.status,
-    catatan_penolakan: m.catatan_penolakan,
-    diverifikasi_oleh: m.diverifikasi_oleh,
+    note: m.note,
     verified_by: m.verified_by ?? null,
   }));
 };
@@ -110,9 +109,9 @@ export const updateKonsumen = async (id, payload) => {
 };
 
 // Verifikasi konsumen oleh atasan (BE: PUT /konsumens/activate/{id}); id = konsumen_me_id (bukan id konsumen)
-// status: 'diterima' | 'revisi' | 'ditolak'; catatan_penolakan wajib (maks 255 karakter) bila revisi/ditolak
-export const verifyKonsumen = async (id, status, catatan_penolakan) =>
-  (await api.put(`/konsumens/activate/${id}`, { status, ...(status !== 'diterima' ? { catatan_penolakan } : {}) })).data;
+// status: 'diterima' | 'revisi' | 'ditolak'; note wajib (maks 255 karakter) bila revisi/ditolak
+export const verifyKonsumen = async (id, status, note) =>
+  (await api.put(`/konsumens/activate/${id}`, { status, ...(status !== 'diterima' ? { note } : {}) })).data;
 
 // Riwayat aktivitas konsumen (BE: GET /konsumens/logs, butuh permission konsumens.logs); BE memaginasi: { data: [...], meta }
 export const getKonsumenLogs = async (page = 1, search = '', logName = '') => {
