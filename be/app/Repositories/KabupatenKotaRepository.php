@@ -100,14 +100,14 @@ class KabupatenKotaRepository
         $header = array_shift($rows);
         $normalizedHeader = array_map(fn ($h) => strtolower(trim((string) $h)), $header);
 
-        $expectedHeader = ['kabupaten_kota_code', 'kabupaten_kota_name','kabupaten_kota_code'];
+        $expectedHeader = ['kabupaten_kota_code', 'kabupaten_kota_name','provinsi_code'];
         $actualHeader   = array_values(array_filter($normalizedHeader));
 
         if (array_slice($actualHeader, 0, 3) !== $expectedHeader) {
             return [
                 'success'  => 0,
                 'failed'   => 0,
-                'errors'   => ['Header Excel tidak sesuai format. Harus : kabupaten_kota_code, kabupaten_kota_name,kabupaten_kota_code'],
+                'errors'   => ['Header Excel tidak sesuai format. Harus : kabupaten_kota_code, kabupaten_kota_name,provinsi_code'],
                 'imported' => [],
             ];
         }
@@ -129,7 +129,7 @@ class KabupatenKotaRepository
 
                 $KabupatenKotaCode = isset($columnMap['kabupaten_kota_code']) ? trim((string) ($row[$columnMap['kabupaten_kota_code']] ?? '')) : '';
                 $KabupatenKotaName = isset($columnMap['kabupaten_kota_name']) ? trim((string) ($row[$columnMap['kabupaten_kota_name']] ?? '')) : '';
-                $kabupaten_kotaCode = isset($columnMap['kabupaten_kota_code']) ? trim((string) ($row[$columnMap['kabupaten_kota_code']] ?? '')) : '';
+                $provinsiCode = isset($columnMap['provinsi_code']) ? trim((string) ($row[$columnMap['provinsi_code']] ?? '')) : '';
 
                 if ($KabupatenKotaCode === '' && $KabupatenKotaName === '') {
                     continue;
@@ -138,7 +138,7 @@ class KabupatenKotaRepository
                 $rowData = [
                     'kabupaten_kota_code' => $KabupatenKotaCode,
                     'kabupaten_kota_name' => $KabupatenKotaName,
-                    'fk_kabupaten_kota'         => $kabupaten_kotaCode,
+                    'fk_provinsi'         => $provinsiCode,
                 ];
 
                 $validator = Validator::make($rowData, $rules, $messages);
@@ -152,7 +152,7 @@ class KabupatenKotaRepository
                 $kabupatenKota = KabupatenKota::create([
                     'kabupaten_kota_code' => $KabupatenKotaCode,
                     'kabupaten_kota_name' => $KabupatenKotaName,
-                    'fk_kabupaten_kota'   => $kabupaten_kotaCode,
+                    'fk_provinsi'   => $provinsiCode,
                     'status'     => true,
                 ]);
 

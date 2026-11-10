@@ -100,14 +100,14 @@ class KecamatanRepository
         $header = array_shift($rows);
         $normalizedHeader = array_map(fn ($h) => strtolower(trim((string) $h)), $header);
 
-        $expectedHeader = ['kecamatan_code', 'kecamatan_name','kecamatan_code'];
+        $expectedHeader = ['kecamatan_code', 'kecamatan_name','kabupaten_kota_code'];
         $actualHeader   = array_values(array_filter($normalizedHeader));
 
         if (array_slice($actualHeader, 0, 3) !== $expectedHeader) {
             return [
                 'success'  => 0,
                 'failed'   => 0,
-                'errors'   => ['Header Excel tidak sesuai format. Harus : kecamatan_code, kecamatan_name,kecamatan_code'],
+                'errors'   => ['Header Excel tidak sesuai format. Harus : kecamatan_code, kecamatan_name,kabupaten_kota_code'],
                 'imported' => [],
             ];
         }
@@ -129,7 +129,7 @@ class KecamatanRepository
 
                 $KecamatanCode = isset($columnMap['kecamatan_code']) ? trim((string) ($row[$columnMap['kecamatan_code']] ?? '')) : '';
                 $KecamatanName = isset($columnMap['kecamatan_name']) ? trim((string) ($row[$columnMap['kecamatan_name']] ?? '')) : '';
-                $kecamatanCode = isset($columnMap['kecamatan_code']) ? trim((string) ($row[$columnMap['kecamatan_code']] ?? '')) : '';
+                $kabupatenKotaCode = isset($columnMap['kabupaten_kota_code']) ? trim((string) ($row[$columnMap['kabupaten_kota_code']] ?? '')) : '';
 
                 if ($KecamatanCode === '' && $KecamatanName === '') {
                     continue;
@@ -138,7 +138,7 @@ class KecamatanRepository
                 $rowData = [
                     'kecamatan_code' => $KecamatanCode,
                     'kecamatan_name' => $KecamatanName,
-                    'fk_kecamatan'         => $kecamatanCode,
+                    'fk_kabupaten_kota'         => $kabupatenKotaCode,
                 ];
 
                 $validator = Validator::make($rowData, $rules, $messages);
@@ -152,7 +152,7 @@ class KecamatanRepository
                 $kecamatan = Kecamatan::create([
                     'kecamatan_code' => $KecamatanCode,
                     'kecamatan_name' => $KecamatanName,
-                    'fk_kecamatan'   => $kecamatanCode,
+                    'fk_kabupaten_kota'   => $kabupatenKotaCode,
                     'status'     => true,
                 ]);
 

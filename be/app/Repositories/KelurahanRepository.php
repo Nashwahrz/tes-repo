@@ -99,14 +99,14 @@ class KelurahanRepository
         $header = array_shift($rows);
         $normalizedHeader = array_map(fn ($h) => strtolower(trim((string) $h)), $header);
 
-        $expectedHeader = ['kelurahan_code', 'kelurahan_name','kelurahan_code'];
+        $expectedHeader = ['kelurahan_code', 'kelurahan_name','kecamatan_code'];
         $actualHeader   = array_values(array_filter($normalizedHeader));
 
         if (array_slice($actualHeader, 0, 3) !== $expectedHeader) {
             return [
                 'success'  => 0,
                 'failed'   => 0,
-                'errors'   => ['Header Excel tidak sesuai format. Harus : kelurahan_code, kelurahan_name,kelurahan_code'],
+                'errors'   => ['Header Excel tidak sesuai format. Harus : kelurahan_code, kelurahan_name,kecamatan_code'],
                 'imported' => [],
             ];
         }
@@ -128,7 +128,7 @@ class KelurahanRepository
 
                 $KelurahanCode = isset($columnMap['kelurahan_code']) ? trim((string) ($row[$columnMap['kelurahan_code']] ?? '')) : '';
                 $KelurahanName = isset($columnMap['kelurahan_name']) ? trim((string) ($row[$columnMap['kelurahan_name']] ?? '')) : '';
-                $kelurahanCode = isset($columnMap['kelurahan_code']) ? trim((string) ($row[$columnMap['kelurahan_code']] ?? '')) : '';
+                $kecamatanCode = isset($columnMap['kecamatan_code']) ? trim((string) ($row[$columnMap['kecamatan_code']] ?? '')) : '';
 
                 if ($KelurahanCode === '' && $KelurahanName === '') {
                     continue;
@@ -137,7 +137,7 @@ class KelurahanRepository
                 $rowData = [
                     'kelurahan_code' => $KelurahanCode,
                     'kelurahan_name' => $KelurahanName,
-                    'fk_kelurahan'         => $kelurahanCode,
+                    'fk_kecamatan'         => $kecamatanCode,
                 ];
 
                 $validator = Validator::make($rowData, $rules, $messages);
@@ -151,7 +151,7 @@ class KelurahanRepository
                 $kelurahan = Kelurahan::create([
                     'kelurahan_code' => $KelurahanCode,
                     'kelurahan_name' => $KelurahanName,
-                    'fk_kelurahan'   => $kelurahanCode,
+                    'fk_kecamatan'   => $kecamatanCode,
                     'status'     => true,
                 ]);
 
