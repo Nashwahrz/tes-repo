@@ -190,4 +190,26 @@ class AgamaController extends Controller
             return $this->importResponse->serverError('Gagal import data agama. Silakan coba lagi.');
         }
     }
+  
+    public function export(Request $request)
+    {
+        try {
+            $search = $request->query('search');
+            $status = $request->has('status') ? filter_var($request->query('status'), FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) : null;
+
+            $fileContent = $this->agamaRepository->exportToExcel($search, $status);
+            $fileName    = 'data_agama_' . date('Ymd_His') . '.xlsx';
+
+            return response($fileContent, 200, [
+                'Content-Type'        => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                'Content-Disposition' => "attachment; filename=\"{$fileName}\"",
+                'Cache-Control'       => 'max-age=0',
+            ]);
+        } catch (Throwable $e) {
+            Log::error('Gagal export agama ke Excel: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString(),
+            ]);
+            return $this->agamaResponse->serverError('Gagal export data agama.');
+        }
+    }
 }

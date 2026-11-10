@@ -9,6 +9,8 @@ use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use PhpOffice\PhpSpreadsheet\IOFactory;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use Spatie\Activitylog\Models\Activity;
 
 class PekerjaanRepository
@@ -161,5 +163,48 @@ class PekerjaanRepository
                 'imported' => $imported,
             ];
         });
+    }
+    public function exportToExcel(?string $search = null, ?bool $status = null): string
+    {
+        $pekerjaans = Pekerjaan::query()
+            ->when($search, fn ($q) => $q->where(function ($query) use ($search) {
+                $query->where('pekerjaan_name', 'ILIKE', "%{$search}%")
+                      ->orWhere('pekerjaan_code', 'ILIKE', "%{$search}%");
+            }))
+            ->when(!is_null($status), fn ($q) => $q->where('status', $status))
+            ->orderBy('pekerjaan_code', 'asc')
+            ->get();
+
+        $spreadsheet = new Spreadsheet();
+        $sheet       = $spreadsheet->getActiveSheet();
+        $sheet->setTitle('Data Pekerjaan');
+
+        $headers = ['No', 'pekerjaan_code', 'pekerjaan_name', 'status'];
+        $columns = ['A', 'B', 'C', 'D'];
+
+        foreach ($headers as $index => $headerTitle) {
+            $col = $columns[$index];
+            $sheet->setCellValue("{$col}1", $headerTitle);
+            $sheet->getStyle("{$col}1")->getFont()->setBold(true);
+        }
+
+        $rowNumber = 2;
+        foreach ($pekerjaans as $i => $pekerjaan) {
+            $sheet->setCellValue("A{$rowNumber}", $i + 1);
+            $sheet->setCellValueExplicit("B{$rowNumber}", (string) $pekerjaan->pekerjaan_code, \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING);
+            $sheet->setCellValue("C{$rowNumber}", $pekerjaan->pekerjaan_name);
+            $sheet->setCellValue("D{$rowNumber}", $pekerjaan->status ? 'Aktif' : 'Non-Aktif');
+            $rowNumber++;
+        }
+
+        foreach ($columns as $col) {
+            $sheet->getColumnDimension($col)->setAutoSize(true);
+        }
+
+        $writer = new Xlsx($spreadsheet);
+
+        ob_start();
+        $writer->save('php://output');
+        return ob_get_clean();
     }
 }

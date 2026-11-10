@@ -6,6 +6,8 @@ use App\Http\Requests\KecamatanRequest;
 use App\Models\Kecamatan;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use Spatie\Activitylog\Models\Activity;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
@@ -98,14 +100,14 @@ class KecamatanRepository
         $header = array_shift($rows);
         $normalizedHeader = array_map(fn ($h) => strtolower(trim((string) $h)), $header);
 
-        $expectedHeader = ['kecamatan_code', 'kecamatan_name','kabupaten_kota_code'];
+        $expectedHeader = ['kecamatan_code', 'kecamatan_name','kecamatan_code'];
         $actualHeader   = array_values(array_filter($normalizedHeader));
 
         if (array_slice($actualHeader, 0, 3) !== $expectedHeader) {
             return [
                 'success'  => 0,
                 'failed'   => 0,
-                'errors'   => ['Header Excel tidak sesuai format. Harus : kecamatan_code, kecamatan_name,kabupaten_kota_code'],
+                'errors'   => ['Header Excel tidak sesuai format. Harus : kecamatan_code, kecamatan_name,kecamatan_code'],
                 'imported' => [],
             ];
         }
@@ -127,7 +129,7 @@ class KecamatanRepository
 
                 $KecamatanCode = isset($columnMap['kecamatan_code']) ? trim((string) ($row[$columnMap['kecamatan_code']] ?? '')) : '';
                 $KecamatanName = isset($columnMap['kecamatan_name']) ? trim((string) ($row[$columnMap['kecamatan_name']] ?? '')) : '';
-                $kecamatanCode = isset($columnMap['kabupaten_kota_code']) ? trim((string) ($row[$columnMap['kabupaten_kota_code']] ?? '')) : '';
+                $kecamatanCode = isset($columnMap['kecamatan_code']) ? trim((string) ($row[$columnMap['kecamatan_code']] ?? '')) : '';
 
                 if ($KecamatanCode === '' && $KecamatanName === '') {
                     continue;
@@ -136,7 +138,7 @@ class KecamatanRepository
                 $rowData = [
                     'kecamatan_code' => $KecamatanCode,
                     'kecamatan_name' => $KecamatanName,
-                    'fk_kabupaten_kota'         => $kecamatanCode,
+                    'fk_kecamatan'         => $kecamatanCode,
                 ];
 
                 $validator = Validator::make($rowData, $rules, $messages);
@@ -150,7 +152,7 @@ class KecamatanRepository
                 $kecamatan = Kecamatan::create([
                     'kecamatan_code' => $KecamatanCode,
                     'kecamatan_name' => $KecamatanName,
-                    'fk_kabupaten_kota'   => $kecamatanCode,
+                    'fk_kecamatan'   => $kecamatanCode,
                     'status'     => true,
                 ]);
 
@@ -165,5 +167,51 @@ class KecamatanRepository
                 'imported' => $imported,
             ];
         });
+    }
+    public function exportToExcel(?string $search = null, ?bool $status = null): string
+    {
+        $kecamatans = Kecamatan::query()
+            ->when($search, fn ($q) => $q->where(function ($query) use ($search) {
+                $query->where('kecamatan_name', 'ILIKE', "%{$search}%")
+                      ->orWhere('kecamatan_code', 'ILIKE', "%{$search}%")
+                      ->orWhere('fk_kabupaten_kota', 'ILIKE', "%{$search}%");
+            }))
+            ->when(!is_null($status), fn ($q) => $q->where('status', $status))
+            ->orderBy('kecamatan_code', 'asc')
+            ->get();
+
+        $spreadsheet = new Spreadsheet();
+        $sheet       = $spreadsheet->getActiveSheet();
+        $sheet->setTitle('Data kecamatan');
+
+        $headers = ['No', 'kecamatan_code', 'kecamatan_name','kabupaten_kota_code', 'kabupaten_kota_name', 'status'];
+        $columns = ['A', 'B', 'C', 'D' , 'E','F'];
+
+        foreach ($headers as $index => $headerTitle) {
+            $col = $columns[$index];
+            $sheet->setCellValue("{$col}1", $headerTitle);
+            $sheet->getStyle("{$col}1")->getFont()->setBold(true);
+        }
+
+        $rowNumber = 2;
+        foreach ($kecamatans as $i => $kecamatan) {
+            $sheet->setCellValue("A{$rowNumber}", $i + 1);
+            $sheet->setCellValueExplicit("B{$rowNumber}", (string) $kecamatan->kecamatan_code, \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING);
+            $sheet->setCellValue("C{$rowNumber}", $kecamatan->kecamatan_name);
+            $sheet->setCellValue("D{$rowNumber}", $kecamatan->fk_kabupaten_kota);
+            $sheet->setCellValue("E{$rowNumber}", $kecamatan->kabupatenKota->kabupaten_kota_name);
+            $sheet->setCellValue("F{$rowNumber}", $kecamatan->status ? 'Aktif' : 'Non-Aktif');
+            $rowNumber++;
+        }
+
+        foreach ($columns as $col) {
+            $sheet->getColumnDimension($col)->setAutoSize(true);
+        }
+
+        $writer = new Xlsx($spreadsheet);
+
+        ob_start();
+        $writer->save('php://output');
+        return ob_get_clean();
     }
 }

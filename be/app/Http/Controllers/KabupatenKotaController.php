@@ -105,7 +105,7 @@ class KabupatenKotaController extends Controller
                 return $this->kabupatenKotaResponse->notFound();
             }
 
-            $updatedKabupatenKota = $this->kabupatenKotaRepository->update($kabupatenKota, $request->only('kabupaten_kota_name', 'fk_provinsi'));
+            $updatedKabupatenKota = $this->kabupatenKotaRepository->update($kabupatenKota, $request->only('kabupaten_kota_name', 'fk_kabupaten_kota'));
 
             return $this->kabupatenKotaResponse->success($updatedKabupatenKota, 'Kabupaten kota berhasil diperbarui.');
         } catch (UniqueConstraintViolationException $e) {
@@ -187,6 +187,27 @@ class KabupatenKotaController extends Controller
                 'trace' => $e->getTraceAsString(),
             ]);
             return $this->importResponse->serverError('Gagal import data Kabupaten Kota. Silakan coba lagi.');
+        }
+    }
+    public function export(Request $request)
+    {
+        try {
+            $search = $request->query('search');
+            $status = $request->has('status') ? filter_var($request->query('status'), FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) : null;
+
+            $fileContent = $this->kabupatenKotaRepository->exportToExcel($search, $status);
+            $fileName    = 'data_kabupaten_kota_' . date('Ymd_His') . '.xlsx';
+
+            return response($fileContent, 200, [
+                'Content-Type'        => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                'Content-Disposition' => "attachment; filename=\"{$fileName}\"",
+                'Cache-Control'       => 'max-age=0',
+            ]);
+        } catch (Throwable $e) {
+            Log::error('Gagal export kabupaten kota ke Excel: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString(),
+            ]);
+            return $this->kabupatenKotaResponse->serverError('Gagal export data kabupaten kota.');
         }
     }
 }
