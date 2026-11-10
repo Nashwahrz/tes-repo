@@ -9,6 +9,8 @@ use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use PhpOffice\PhpSpreadsheet\IOFactory;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use Spatie\Activitylog\Models\Activity;
 
 class AgamaRepository
@@ -166,6 +168,50 @@ class AgamaRepository
                 'imported' => $imported,
             ];
         });
+    }
+
+    public function exportToExcel(?string $search = null, ?bool $status = null): string
+    {
+        $agamas = Agama::query()
+            ->when($search, fn ($q) => $q->where(function ($query) use ($search) {
+                $query->where('agama_name', 'ILIKE', "%{$search}%")
+                      ->orWhere('agama_code', 'ILIKE', "%{$search}%");
+            }))
+            ->when(!is_null($status), fn ($q) => $q->where('status', $status))
+            ->orderBy('agama_code', 'asc')
+            ->get();
+
+        $spreadsheet = new Spreadsheet();
+        $sheet       = $spreadsheet->getActiveSheet();
+        $sheet->setTitle('Data Agama');
+
+        $headers = ['No', 'agama_code', 'agama_name', 'status'];
+        $columns = ['A', 'B', 'C', 'D'];
+
+        foreach ($headers as $index => $headerTitle) {
+            $col = $columns[$index];
+            $sheet->setCellValue("{$col}1", $headerTitle);
+            $sheet->getStyle("{$col}1")->getFont()->setBold(true);
+        }
+
+        $rowNumber = 2;
+        foreach ($agamas as $i => $agama) {
+            $sheet->setCellValue("A{$rowNumber}", $i + 1);
+            $sheet->setCellValueExplicit("B{$rowNumber}", (string) $agama->agama_code, \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING);
+            $sheet->setCellValue("C{$rowNumber}", $agama->agama_name);
+            $sheet->setCellValue("D{$rowNumber}", $agama->status ? 'Aktif' : 'Non-Aktif');
+            $rowNumber++;
+        }
+
+        foreach ($columns as $col) {
+            $sheet->getColumnDimension($col)->setAutoSize(true);
+        }
+
+        $writer = new Xlsx($spreadsheet);
+
+        ob_start();
+        $writer->save('php://output');
+        return ob_get_clean();
     }
 
 }

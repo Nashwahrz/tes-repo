@@ -9,6 +9,8 @@ use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use PhpOffice\PhpSpreadsheet\IOFactory;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use Spatie\Activitylog\Models\Activity;
 
 class ProvinsiRepository
@@ -161,5 +163,48 @@ class ProvinsiRepository
                 'imported' => $imported,
             ];
         });
+    }
+    public function exportToExcel(?string $search = null, ?bool $status = null): string
+    {
+        $provinsis = Provinsi::query()
+            ->when($search, fn ($q) => $q->where(function ($query) use ($search) {
+                $query->where('provinsi_name', 'ILIKE', "%{$search}%")
+                      ->orWhere('provinsi_code', 'ILIKE', "%{$search}%");
+            }))
+            ->when(!is_null($status), fn ($q) => $q->where('status', $status))
+            ->orderBy('provinsi_code', 'asc')
+            ->get();
+
+        $spreadsheet = new Spreadsheet();
+        $sheet       = $spreadsheet->getActiveSheet();
+        $sheet->setTitle('Data provinsi');
+
+        $headers = ['No', 'provinsi_code', 'provinsi_name', 'status'];
+        $columns = ['A', 'B', 'C', 'D'];
+
+        foreach ($headers as $index => $headerTitle) {
+            $col = $columns[$index];
+            $sheet->setCellValue("{$col}1", $headerTitle);
+            $sheet->getStyle("{$col}1")->getFont()->setBold(true);
+        }
+
+        $rowNumber = 2;
+        foreach ($provinsis as $i => $provinsi) {
+            $sheet->setCellValue("A{$rowNumber}", $i + 1);
+            $sheet->setCellValueExplicit("B{$rowNumber}", (string) $provinsi->provinsi_code, \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING);
+            $sheet->setCellValue("C{$rowNumber}", $provinsi->provinsi_name);
+            $sheet->setCellValue("D{$rowNumber}", $provinsi->status ? 'Aktif' : 'Non-Aktif');
+            $rowNumber++;
+        }
+
+        foreach ($columns as $col) {
+            $sheet->getColumnDimension($col)->setAutoSize(true);
+        }
+
+        $writer = new Xlsx($spreadsheet);
+
+        ob_start();
+        $writer->save('php://output');
+        return ob_get_clean();
     }
 }
