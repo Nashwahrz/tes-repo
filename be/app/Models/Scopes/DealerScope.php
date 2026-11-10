@@ -18,8 +18,8 @@ class DealerScope implements Scope
             $user = Auth::user();
 
             $roleName = $user->relationLoaded('role')
-                ? $user->role?->name
-                : $user->role()->value('name');
+                ? $user->role?->role_name
+                : $user->role()->value('role_name');
 
 
             if ($roleName !== 'Super Admin' && $user->fk_dealer) {

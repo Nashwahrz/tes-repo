@@ -53,7 +53,7 @@ class KecamatanRequest extends FormRequest
             "kecamatan_code"=> [
                 'required',
                 'string',
-                'digits_between:1,10',
+                'size:6',
             ],
             'kecamatan_name' => [
                 'required',
@@ -77,7 +77,7 @@ class KecamatanRequest extends FormRequest
         return [
             'kecamatan_code.required'      => 'kode kecamatan wajib diisi.',
             'kecamatan_code.string'        => 'kode kecamatan harus berupa string.',
-            'kecamatan_code.digits_between'=> 'kode kecamatan harus berupa angka.',
+            'kecamatan_code.size'          => 'kode kecamatan harus terdiri dari 6 digit.',
             'kecamatan_name.required'      => 'Kecamatan wajib diisi.',
             'kecamatan_name.string'        => 'Kecamatan harus berupa string.',
             'kecamatan_name.max'           => 'Kecamatan tidak boleh lebih dari 255 karakter.',

@@ -42,7 +42,7 @@ class PekerjaanRequest extends FormRequest
             'pekerjaan_code' => [
                 'required',
                 'string',
-                'digits_between:1,10',
+                'size:3',
                 Rule::unique(Pekerjaan::class, 'pekerjaan_code'),
             ],
             'pekerjaan_name' => [
@@ -59,7 +59,7 @@ class PekerjaanRequest extends FormRequest
         return [
             'pekerjaan_code.required'      => 'Kode pekerjaan wajib diisi.',
             'pekerjaan_code.string'        => 'Kode pekerjaan harus berupa string.',
-            'pekerjaan_code.digits_between' => 'Kode pekerjaan harus antara 1 sampai 10 digit.',
+            'pekerjaan_code.size'        => 'Kode pekerjaan harus terdiri dari 3 digit.',
             'pekerjaan_code.unique'        => 'Kode pekerjaan sudah terdaftar.',
             'pekerjaan_name.required'      => 'Nama pekerjaan wajib diisi.',
             'pekerjaan_name.string'        => 'Nama pekerjaan harus berupa string.',

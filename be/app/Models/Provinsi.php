@@ -20,7 +20,7 @@ class Provinsi extends Model
     }
     protected $fillable = [
         'provinsi_code',
-        'name',
+        'provinsi_name',
         'status'
     ];
 }

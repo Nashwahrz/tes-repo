@@ -4,8 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\AgamaRequest;
 use App\Http\Requests\GeografisStatusRequest;
+use App\Http\Requests\ImportRequest;
 use App\Http\Resources\ActivityLogResource;
 use App\Http\Responses\AgamaResponse;
+use App\Http\Responses\ImportResponse;
 use App\Repositories\AgamaRepository;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\Request;
@@ -16,7 +18,8 @@ class AgamaController extends Controller
 {
     public function __construct(
         private AgamaRepository $agamaRepository,
-        private AgamaResponse $agamaResponse
+        private AgamaResponse $agamaResponse,
+        private ImportResponse $importResponse
     ) {}
 
     public function index(Request $request)
@@ -166,6 +169,25 @@ class AgamaController extends Controller
         } catch (Throwable $e) {
             Log::error('Gagal mengambil log agama: ' . $e->getMessage());
             return $this->agamaResponse->serverError();
+        }
+    }
+
+    public function import(ImportRequest $request)
+    {
+        try {
+            $filePath = $request->file('file')->getRealPath();
+            $result   = $this->agamaRepository->importFromExcel($filePath);
+
+            if ($result['success'] === 0 && !empty($result['errors'])) {
+                return $this->importResponse->formatError($result['errors']);
+            }
+
+            return $this->importResponse->success($result, 'Agama');
+        } catch (Throwable $e) {
+            Log::error('Gagal import agama dari Excel: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString(),
+            ]);
+            return $this->importResponse->serverError('Gagal import data agama. Silakan coba lagi.');
         }
     }
 }

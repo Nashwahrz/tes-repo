@@ -49,7 +49,7 @@ class KelurahanRequest extends FormRequest
             'kelurahan_code' => [
                 'required',
                 'string',
-                'digits_between:1,10',
+                'size:10',
                Rule::unique(Kelurahan::class, 'kelurahan_code'),
             ],  
             'kelurahan_name' => [
@@ -70,7 +70,7 @@ class KelurahanRequest extends FormRequest
         return [
             'kelurahan_code.required'      => 'kode kelurahan wajib diisi.',
             'kelurahan_code.string'        => 'kode kelurahan harus berupa string.',
-            'kelurahan_code.digits_between'=> 'kode kelurahan harus berupa angka.',
+            'kelurahan_code.size'          => 'kode kelurahan harus terdiri dari 10 digit.',
             'kelurahan_code.unique'        => 'kode kelurahan sudah terdaftar.',
             'kelurahan_name.required'      => 'Kelurahan wajib diisi.',
             'kelurahan_name.string'        => 'Kelurahan harus berupa string.',

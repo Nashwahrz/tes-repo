@@ -3,8 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\GeografisStatusRequest;
+use App\Http\Requests\ImportRequest;
 use App\Http\Requests\KelurahanRequest;
 use App\Http\Resources\ActivityLogResource;
+use App\Http\Responses\ImportResponse;
 use App\Http\Responses\KelurahanResponse;
 use App\Repositories\KelurahanRepository;
 use Illuminate\Database\UniqueConstraintViolationException;
@@ -16,7 +18,8 @@ class KelurahanController extends Controller
 {
     public function __construct(
         private KelurahanRepository $kelurahanRepository,
-        private KelurahanResponse $kelurahanResponse
+        private KelurahanResponse $kelurahanResponse,
+        private ImportResponse $importResponse
     ) {}
 
     public function index(Request $request)
@@ -167,6 +170,24 @@ class KelurahanController extends Controller
         } catch (Throwable $e) {
             Log::error('Gagal mengambil log kelurahan: ' . $e->getMessage());
             return $this->kelurahanResponse->serverError();
+        }
+    }
+    public function import(ImportRequest $request)
+    {
+        try {
+            $filePath = $request->file('file')->getRealPath();
+            $result   = $this->kelurahanRepository->importFromExcel($filePath);
+
+            if ($result['success'] === 0 && !empty($result['errors'])) {
+                return $this->importResponse->formatError($result['errors']);
+            }
+
+            return $this->importResponse->success($result, 'Kelurahan');
+        } catch (Throwable $e) {
+            Log::error('Gagal import Kelurahan dari Excel: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString(),
+            ]);
+            return $this->importResponse->serverError('Gagal import data Kelurahan. Silakan coba lagi.');
         }
     }
 }

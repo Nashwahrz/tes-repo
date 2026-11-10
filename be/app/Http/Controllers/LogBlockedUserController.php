@@ -25,7 +25,7 @@ class LogBlockedUserController extends Controller
             $perPage = min(max((int) $request->query('per_page', 10), 1), 100);
             $search  = $request->query('search');
             $type    = $request->query('type');
-            $status  = $request->query('status'); // aktif, dibuka, kedaluwarsa
+            $status  = $request->query('status'); 
 
             $logs = $this->logBlockedUserRepository->paginate($perPage, $search, $type, $status);
 

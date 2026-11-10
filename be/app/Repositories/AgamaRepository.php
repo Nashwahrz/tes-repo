@@ -2,9 +2,13 @@
 
 namespace App\Repositories;
 
+use App\Http\Requests\AgamaRequest;
 use App\Models\Agama;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator;
+use PhpOffice\PhpSpreadsheet\IOFactory;
 use Spatie\Activitylog\Models\Activity;
 
 class AgamaRepository
@@ -87,6 +91,81 @@ class AgamaRepository
             ->paginate($perPage);
 
         return $logs;
+    }
+
+    public function importFromExcel(string $filePath): array
+    {
+        $spreadsheet = IOFactory::load($filePath);
+        $worksheet   = $spreadsheet->getActiveSheet();
+        $rows        = $worksheet->toArray(null, true, true, true);
+
+        $header = array_shift($rows);
+        $normalizedHeader = array_map(fn ($h) => strtolower(trim((string) $h)), $header);
+
+        $expectedHeader = ['agama_code', 'agama_name'];
+        $actualHeader   = array_values(array_filter($normalizedHeader));
+
+        if (array_slice($actualHeader, 0, 2) !== $expectedHeader) {
+            return [
+                'success'  => 0,
+                'failed'   => 0,
+                'errors'   => ['Header Excel tidak sesuai format. Harus: agama_code, agama_name'],
+                'imported' => [],
+            ];
+        }
+
+        $columnMap = array_flip($normalizedHeader); 
+
+        $formRequest = new AgamaRequest();
+        $rules       = $formRequest->rules();
+        $messages    = $formRequest->messages();
+
+        $success  = 0;
+        $failed   = 0;
+        $errors   = [];
+        $imported = [];
+
+        return DB::transaction(function () use ($rows, $columnMap, $rules, $messages, &$success, &$failed, &$errors, &$imported) {
+            foreach ($rows as $rowIndex => $row) {
+                $rowNumber = $rowIndex + 1; 
+
+                $agamaCode = isset($columnMap['agama_code']) ? trim((string) ($row[$columnMap['agama_code']] ?? '')) : '';
+                $agamaName = isset($columnMap['agama_name']) ? trim((string) ($row[$columnMap['agama_name']] ?? '')) : '';
+
+                if ($agamaCode === '' && $agamaName === '') {
+                    continue;
+                }
+
+                $rowData = [
+                    'agama_code' => $agamaCode,
+                    'agama_name' => $agamaName,
+                ];
+
+                $validator = Validator::make($rowData, $rules, $messages);
+
+                if ($validator->fails()) {
+                    $failed++;
+                    $errors[] = "Baris {$rowNumber}: " . implode(', ', $validator->errors()->all());
+                    continue;
+                }
+
+                $agama = Agama::create([
+                    'agama_code' => $agamaCode,
+                    'agama_name' => $agamaName,
+                    'status'     => true,
+                ]);
+
+                $imported[] = $agama;
+                $success++;
+            }
+
+            return [
+                'success'  => $success,
+                'failed'   => $failed,
+                'errors'   => $errors,
+                'imported' => $imported,
+            ];
+        });
     }
 
 }

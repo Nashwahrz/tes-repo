@@ -35,11 +35,11 @@ class KonsumenRequest extends FormRequest
         }
 
         if ($this->hasFile('foto_ktp')) {
-            $fotoKtpRules = ['nullable', 'image', 'mimes:jpg,jpeg,png', 'max:2156'];
+            $fotoKtpRules = ['nullable', 'image', 'mimes:jpg,jpeg,png', 'max:512'];
         } elseif ($isUpdate || $nikExists) {
             $fotoKtpRules = ['nullable', 'string'];
         } else {
-            $fotoKtpRules = ['required', 'image', 'mimes:jpg,jpeg,png', 'max:2156'];
+            $fotoKtpRules = ['required', 'image', 'mimes:jpg,jpeg,png', 'max:512'];
         }
 
         return [
