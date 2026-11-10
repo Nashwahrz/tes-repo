@@ -2,10 +2,14 @@
 
 namespace App\Repositories;
 
+use App\Http\Requests\KabupatenKotaRequest;
 use App\Models\KabupatenKota;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Spatie\Activitylog\Models\Activity;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator;
+use PhpOffice\PhpSpreadsheet\IOFactory;
 
 class KabupatenKotaRepository
 {
@@ -84,5 +88,82 @@ class KabupatenKotaRepository
 
       
         return $logs;
+    }
+    public function importFromExcel(string $filePath): array
+    {
+        $spreadsheet = IOFactory::load($filePath);
+        $worksheet   = $spreadsheet->getActiveSheet();
+        $rows        = $worksheet->toArray(null, true, true, true);
+
+        $header = array_shift($rows);
+        $normalizedHeader = array_map(fn ($h) => strtolower(trim((string) $h)), $header);
+
+        $expectedHeader = ['kabupaten_kota_code', 'kabupaten_kota_name','provinsi_code'];
+        $actualHeader   = array_values(array_filter($normalizedHeader));
+
+        if (array_slice($actualHeader, 0, 3) !== $expectedHeader) {
+            return [
+                'success'  => 0,
+                'failed'   => 0,
+                'errors'   => ['Header Excel tidak sesuai format. Harus : kabupaten_kota_code, kabupaten_kota_name,provinsi_code'],
+                'imported' => [],
+            ];
+        }
+
+        $columnMap = array_flip($normalizedHeader); 
+
+        $formRequest = new KabupatenKotaRequest();
+        $rules       = $formRequest->rules();
+        $messages    = $formRequest->messages();
+
+        $success  = 0;
+        $failed   = 0;
+        $errors   = [];
+        $imported = [];
+
+        return DB::transaction(function () use ($rows, $columnMap, $rules, $messages, &$success, &$failed, &$errors, &$imported) {
+            foreach ($rows as $rowIndex => $row) {
+                $rowNumber = $rowIndex + 1; 
+
+                $KabupatenKotaCode = isset($columnMap['kabupaten_kota_code']) ? trim((string) ($row[$columnMap['kabupaten_kota_code']] ?? '')) : '';
+                $KabupatenKotaName = isset($columnMap['kabupaten_kota_name']) ? trim((string) ($row[$columnMap['kabupaten_kota_name']] ?? '')) : '';
+                $ProvinsiCode = isset($columnMap['provinsi_code']) ? trim((string) ($row[$columnMap['provinsi_code']] ?? '')) : '';
+
+                if ($KabupatenKotaCode === '' && $KabupatenKotaName === '') {
+                    continue;
+                }
+
+                $rowData = [
+                    'kabupaten_kota_code' => $KabupatenKotaCode,
+                    'kabupaten_kota_name' => $KabupatenKotaName,
+                    'fk_provinsi'         => $ProvinsiCode,
+                ];
+
+                $validator = Validator::make($rowData, $rules, $messages);
+
+                if ($validator->fails()) {
+                    $failed++;
+                    $errors[] = "Baris {$rowNumber}: " . implode(', ', $validator->errors()->all());
+                    continue;
+                }
+
+                $kabupatenKota = KabupatenKota::create([
+                    'kabupaten_kota_code' => $KabupatenKotaCode,
+                    'kabupaten_kota_name' => $KabupatenKotaName,
+                    'fk_provinsi'   => $ProvinsiCode,
+                    'status'     => true,
+                ]);
+
+                $imported[] = $kabupatenKota;
+                $success++;
+            }
+
+            return [
+                'success'  => $success,
+                'failed'   => $failed,
+                'errors'   => $errors,
+                'imported' => $imported,
+            ];
+        });
     }
 }

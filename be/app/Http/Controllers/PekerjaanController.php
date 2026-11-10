@@ -3,8 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\GeografisStatusRequest;
+use App\Http\Requests\ImportRequest;
 use App\Http\Requests\PekerjaanRequest;
 use App\Http\Resources\ActivityLogResource;
+use App\Http\Responses\ImportResponse;
 use App\Http\Responses\PekerjaanResponse;
 use App\Repositories\PekerjaanRepository;
 use Illuminate\Database\UniqueConstraintViolationException;
@@ -16,7 +18,8 @@ class PekerjaanController extends Controller
 {
     public function __construct(
         private PekerjaanRepository $pekerjaanRepository,
-        private PekerjaanResponse $pekerjaanResponse
+        private PekerjaanResponse $pekerjaanResponse,
+        private ImportResponse $importResponse
     ) {}
 
     public function index(Request $request)
@@ -166,6 +169,24 @@ class PekerjaanController extends Controller
         } catch (Throwable $e) {
             Log::error('Gagal mengambil log pekerjaan: ' . $e->getMessage());
             return $this->pekerjaanResponse->serverError();
+        }
+    }
+    public function import(ImportRequest $request)
+    {
+        try {
+            $filePath = $request->file('file')->getRealPath();
+            $result   = $this->pekerjaanRepository->importFromExcel($filePath);
+
+            if ($result['success'] === 0 && !empty($result['errors'])) {
+                return $this->importResponse->formatError($result['errors']);
+            }
+
+            return $this->importResponse->success($result, 'Pekerjaan');
+        } catch (Throwable $e) {
+            Log::error('Gagal import pekerjaan dari Excel: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString(),
+            ]);
+            return $this->importResponse->serverError('Gagal import data pekerjaan. Silakan coba lagi.');
         }
     }
 }

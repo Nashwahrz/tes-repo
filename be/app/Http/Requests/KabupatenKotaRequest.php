@@ -47,7 +47,7 @@ class KabupatenKotaRequest extends FormRequest
             'kabupaten_kota_code' => [
                 'required',
                 'string',
-                'digits_between:1,10',
+                'size:4',
                 Rule::unique(KabupatenKota::class, 'kabupaten_kota_code'),
             ],
             'kabupaten_kota_name' => [
@@ -68,7 +68,7 @@ class KabupatenKotaRequest extends FormRequest
         return [
             'kabupaten_kota_code.required'      => 'kode kabupaten/kota wajib diisi.',
             'kabupaten_kota_code.string'        => 'kode kabupaten/kota harus berupa string.',
-            'kabupaten_kota_code.digits_between'=> 'kode kabupaten/kota harus berupa angka.',
+            'kabupaten_kota_code.size'          => 'kode kabupaten/kota harus terdiri dari 4 digit.',
             'kabupaten_kota_code.unique'        => 'kode kabupaten/kota sudah terdaftar.',
             'kabupaten_kota_name.required'      => 'Kabupaten/Kota wajib diisi.',
             'kabupaten_kota_name.string'        => 'Kabupaten/Kota harus berupa string.',

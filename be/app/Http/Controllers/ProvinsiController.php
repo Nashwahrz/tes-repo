@@ -6,6 +6,8 @@ use App\Http\Requests\GeografisStatusRequest;
 use App\Http\Requests\ProvinsiRequest;
 use App\Http\Requests\ProvinsiStatusRequest;
 use App\Http\Resources\ActivityLogResource;
+use App\Http\Requests\ImportRequest;
+use App\Http\Responses\ImportResponse;
 use App\Http\Responses\ProvinsiResponse;
 use App\Repositories\ProvinsiRepository;
 use Illuminate\Database\UniqueConstraintViolationException;
@@ -17,7 +19,8 @@ class ProvinsiController extends Controller
 {
     public function __construct(
         private ProvinsiRepository $provinsiRepository,
-        private ProvinsiResponse $provinsiResponse
+        private ProvinsiResponse $provinsiResponse,
+        private ImportResponse $importResponse
     ) {}
 
     public function index(Request $request)
@@ -159,17 +162,22 @@ class ProvinsiController extends Controller
             return $this->provinsiResponse->serverError();
         }
     }
-    public function logs(Request $request)
+    public function import(ImportRequest $request)
     {
         try {
-            $perPage = min(max((int) $request->query('per_page', 10), 1), 100);
+            $filePath = $request->file('file')->getRealPath();
+            $result   = $this->provinsiRepository->importFromExcel($filePath);
 
-            return ActivityLogResource::collection(
-                $this->provinsiRepository->getAllLogs($perPage, $request->query('search'))
-            );
+            if ($result['success'] === 0 && !empty($result['errors'])) {
+                return $this->importResponse->formatError($result['errors']);
+            }
+
+            return $this->importResponse->success($result, 'Provinsi');
         } catch (Throwable $e) {
-            Log::error('Gagal mengambil log provinsi: ' . $e->getMessage());
-            return $this->provinsiResponse->serverError();
+            Log::error('Gagal import provinsi dari Excel: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString(),
+            ]);
+            return $this->importResponse->serverError('Gagal import data provinsi. Silakan coba lagi.');
         }
     }
 }

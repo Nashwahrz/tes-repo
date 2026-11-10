@@ -45,7 +45,7 @@ class ProvinsiRequest extends FormRequest
             'provinsi_code' => [
                 'required',
                 'string',
-                'digits_between:1,10',
+                'size:4',
                 Rule::unique(Provinsi::class, 'provinsi_code'),
             ],
             'provinsi_name' => [
@@ -65,7 +65,7 @@ class ProvinsiRequest extends FormRequest
         return [
             'provinsi_code.required'      => 'kode provinsi wajib diisi.',
             'provinsi_code.string'        => 'kode provinsi harus berupa string.',
-            'provinsi_code.digits_between'=> 'kode provinsi harus berupa angka.',
+            'provinsi_code.size'          => 'kode provinsi harus terdiri dari 4 digit.',
             'provinsi_code.unique'        => 'kode provinsi sudah terdaftar.',
             'provinsi_name.required'      => 'provinsi wajib diisi.',
             'provinsi_name.string'        => 'provinsi harus berupa string.',

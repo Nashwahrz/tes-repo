@@ -4,8 +4,10 @@ namespace App\Http\Controllers;
 
 
 use App\Http\Requests\GeografisStatusRequest;
+use App\Http\Requests\ImportRequest;
 use App\Http\Requests\KecamatanRequest;
 use App\Http\Resources\ActivityLogResource;
+use App\Http\Responses\ImportResponse;
 use App\Http\Responses\KecamatanResponse;
 use App\Repositories\KecamatanRepository;
 use Illuminate\Database\UniqueConstraintViolationException;
@@ -17,7 +19,8 @@ class KecamatanController extends Controller
 {
     public function __construct(
         private KecamatanRepository $kecamatanRepository,
-        private KecamatanResponse $kecamatanResponse
+        private KecamatanResponse $kecamatanResponse,
+        private ImportResponse $importResponse
     ) {}
 
     public function index(Request $request)
@@ -168,6 +171,24 @@ class KecamatanController extends Controller
         } catch (Throwable $e) {
             Log::error('Gagal mengambil log kecamatan: ' . $e->getMessage());
             return $this->kecamatanResponse->serverError();
+        }
+    }
+    public function import(ImportRequest $request)
+    {
+        try {
+            $filePath = $request->file('file')->getRealPath();
+            $result   = $this->kecamatanRepository->importFromExcel($filePath);
+
+            if ($result['success'] === 0 && !empty($result['errors'])) {
+                return $this->importResponse->formatError($result['errors']);
+            }
+
+            return $this->importResponse->success($result, 'Kecamatan');
+        } catch (Throwable $e) {
+            Log::error('Gagal import Kecamatan dari Excel: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString(),
+            ]);
+            return $this->importResponse->serverError('Gagal import data Kecamatan. Silakan coba lagi.');
         }
     }
 }

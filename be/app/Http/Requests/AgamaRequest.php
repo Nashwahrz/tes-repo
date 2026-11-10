@@ -42,7 +42,7 @@ class AgamaRequest extends FormRequest
             'agama_code' => [
                 'required',
                 'string',
-                'digits_between:1,10',
+                'size:3',
                 Rule::unique(Agama::class, 'agama_code'),
             ],
             'agama_name' => [
@@ -58,7 +58,7 @@ class AgamaRequest extends FormRequest
         return [
             'agama_code.required'      => 'Kode agama wajib diisi.',
             'agama_code.string'        => 'Kode agama harus berupa string.',
-            'agama_code.digits_between' => 'Kode agama harus antara 1 sampai 10 digit.',
+            'agama_code.size'         => 'Kode agama harus terdiri dari 3 digit.',
             'agama_code.unique'        => 'Kode agama sudah terdaftar.',
             'agama_name.required'      => 'Nama agama wajib diisi.',
             'agama_name.string'        => 'Nama agama harus berupa string.',

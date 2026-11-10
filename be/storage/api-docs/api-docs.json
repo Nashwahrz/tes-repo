@@ -871,6 +871,101 @@
                 }
             }
         },
+        "/agamas/import": {
+            "post": {
+                "operationId": "agama.import",
+                "tags": [
+                    "Agama"
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ImportRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "500": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "const": "Gagal import data agama. Silakan coba lagi."
+                                        }
+                                    },
+                                    "required": [
+                                        "success",
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string"
+                                        },
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "success_count": {
+                                                    "type": "string"
+                                                },
+                                                "failed_count": {
+                                                    "type": "string"
+                                                },
+                                                "errors": {
+                                                    "type": "string"
+                                                },
+                                                "imported": {
+                                                    "type": "string"
+                                                }
+                                            },
+                                            "required": [
+                                                "success_count",
+                                                "failed_count",
+                                                "errors",
+                                                "imported"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "success",
+                                        "message",
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
         "/agamas/{id}": {
             "get": {
                 "operationId": "agama.show",
@@ -5382,6 +5477,101 @@
                 }
             }
         },
+        "/kabupaten-kotas/import": {
+            "post": {
+                "operationId": "kabupatenKota.import",
+                "tags": [
+                    "KabupatenKota"
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ImportRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "500": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "const": "Gagal import data Kabupaten Kota. Silakan coba lagi."
+                                        }
+                                    },
+                                    "required": [
+                                        "success",
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string"
+                                        },
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "success_count": {
+                                                    "type": "string"
+                                                },
+                                                "failed_count": {
+                                                    "type": "string"
+                                                },
+                                                "errors": {
+                                                    "type": "string"
+                                                },
+                                                "imported": {
+                                                    "type": "string"
+                                                }
+                                            },
+                                            "required": [
+                                                "success_count",
+                                                "failed_count",
+                                                "errors",
+                                                "imported"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "success",
+                                        "message",
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
         "/kabupaten-kotas/aktif": {
             "get": {
                 "operationId": "kabupatenKota.indexAktif",
@@ -6638,6 +6828,101 @@
                     },
                     "422": {
                         "$ref": "#/components/responses/ValidationException"
+                    }
+                }
+            }
+        },
+        "/kecamatans/import": {
+            "post": {
+                "operationId": "kecamatan.import",
+                "tags": [
+                    "Kecamatan"
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ImportRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "500": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "const": "Gagal import data Kecamatan. Silakan coba lagi."
+                                        }
+                                    },
+                                    "required": [
+                                        "success",
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string"
+                                        },
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "success_count": {
+                                                    "type": "string"
+                                                },
+                                                "failed_count": {
+                                                    "type": "string"
+                                                },
+                                                "errors": {
+                                                    "type": "string"
+                                                },
+                                                "imported": {
+                                                    "type": "string"
+                                                }
+                                            },
+                                            "required": [
+                                                "success_count",
+                                                "failed_count",
+                                                "errors",
+                                                "imported"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "success",
+                                        "message",
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
                     }
                 }
             }
@@ -8265,6 +8550,101 @@
                                 }
                             }
                         }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/kelurahans/import": {
+            "post": {
+                "operationId": "kelurahan.import",
+                "tags": [
+                    "Kelurahan"
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ImportRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "500": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "const": "Gagal import data Kelurahan. Silakan coba lagi."
+                                        }
+                                    },
+                                    "required": [
+                                        "success",
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string"
+                                        },
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "success_count": {
+                                                    "type": "string"
+                                                },
+                                                "failed_count": {
+                                                    "type": "string"
+                                                },
+                                                "errors": {
+                                                    "type": "string"
+                                                },
+                                                "imported": {
+                                                    "type": "string"
+                                                }
+                                            },
+                                            "required": [
+                                                "success_count",
+                                                "failed_count",
+                                                "errors",
+                                                "imported"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "success",
+                                        "message",
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
                     },
                     "401": {
                         "$ref": "#/components/responses/AuthenticationException"
@@ -10053,7 +10433,7 @@
                 }
             },
             "put": {
-                "operationId": "konsumen.update_113",
+                "operationId": "konsumen.update_118",
                 "tags": [
                     "Konsumen"
                 ],
@@ -10186,7 +10566,7 @@
         },
         "/konsumens/{id}/update": {
             "post": {
-                "operationId": "konsumen.update_114",
+                "operationId": "konsumen.update_119",
                 "tags": [
                     "Konsumen"
                 ],
@@ -12064,6 +12444,101 @@
                 }
             }
         },
+        "/pekerjaans/import": {
+            "post": {
+                "operationId": "pekerjaan.import",
+                "tags": [
+                    "Pekerjaan"
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ImportRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "500": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "const": "Gagal import data pekerjaan. Silakan coba lagi."
+                                        }
+                                    },
+                                    "required": [
+                                        "success",
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string"
+                                        },
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "success_count": {
+                                                    "type": "string"
+                                                },
+                                                "failed_count": {
+                                                    "type": "string"
+                                                },
+                                                "errors": {
+                                                    "type": "string"
+                                                },
+                                                "imported": {
+                                                    "type": "string"
+                                                }
+                                            },
+                                            "required": [
+                                                "success_count",
+                                                "failed_count",
+                                                "errors",
+                                                "imported"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "success",
+                                        "message",
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
         "/pekerjaans/logs": {
             "get": {
                 "operationId": "pekerjaan.logs",
@@ -13324,21 +13799,22 @@
                 }
             }
         },
-        "/provinsis/logs": {
-            "get": {
-                "operationId": "provinsi.logs",
+        "/provinsis/import": {
+            "post": {
+                "operationId": "provinsi.import",
                 "tags": [
                     "Provinsi"
                 ],
-                "parameters": [
-                    {
-                        "name": "search",
-                        "in": "query",
-                        "schema": {
-                            "type": "string"
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ImportRequest"
+                            }
                         }
                     }
-                ],
+                },
                 "responses": {
                     "500": {
                         "description": "",
@@ -13352,7 +13828,7 @@
                                         },
                                         "message": {
                                             "type": "string",
-                                            "const": "Terjadi kesalahan pada server. Silakan coba lagi."
+                                            "const": "Gagal import data provinsi. Silakan coba lagi."
                                         }
                                     },
                                     "required": [
@@ -13364,143 +13840,53 @@
                         }
                     },
                     "200": {
-                        "description": "Paginated set of `ActivityLogResource`",
+                        "description": "",
                         "content": {
                             "application/json": {
                                 "schema": {
                                     "type": "object",
                                     "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string"
+                                        },
                                         "data": {
-                                            "type": "array",
-                                            "items": {
-                                                "$ref": "#/components/schemas/ActivityLogResource"
-                                            }
-                                        },
-                                        "links": {
                                             "type": "object",
                                             "properties": {
-                                                "first": {
-                                                    "type": [
-                                                        "string",
-                                                        "null"
-                                                    ]
+                                                "success_count": {
+                                                    "type": "string"
                                                 },
-                                                "last": {
-                                                    "type": [
-                                                        "string",
-                                                        "null"
-                                                    ]
+                                                "failed_count": {
+                                                    "type": "string"
                                                 },
-                                                "prev": {
-                                                    "type": [
-                                                        "string",
-                                                        "null"
-                                                    ]
+                                                "errors": {
+                                                    "type": "string"
                                                 },
-                                                "next": {
-                                                    "type": [
-                                                        "string",
-                                                        "null"
-                                                    ]
+                                                "imported": {
+                                                    "type": "string"
                                                 }
                                             },
                                             "required": [
-                                                "first",
-                                                "last",
-                                                "prev",
-                                                "next"
-                                            ]
-                                        },
-                                        "meta": {
-                                            "type": "object",
-                                            "properties": {
-                                                "current_page": {
-                                                    "type": "integer",
-                                                    "minimum": 1
-                                                },
-                                                "from": {
-                                                    "type": [
-                                                        "integer",
-                                                        "null"
-                                                    ],
-                                                    "minimum": 1
-                                                },
-                                                "last_page": {
-                                                    "type": "integer",
-                                                    "minimum": 1
-                                                },
-                                                "links": {
-                                                    "type": "array",
-                                                    "description": "Generated paginator links.",
-                                                    "items": {
-                                                        "type": "object",
-                                                        "properties": {
-                                                            "url": {
-                                                                "type": [
-                                                                    "string",
-                                                                    "null"
-                                                                ]
-                                                            },
-                                                            "label": {
-                                                                "type": "string"
-                                                            },
-                                                            "active": {
-                                                                "type": "boolean"
-                                                            }
-                                                        },
-                                                        "required": [
-                                                            "url",
-                                                            "label",
-                                                            "active"
-                                                        ]
-                                                    }
-                                                },
-                                                "path": {
-                                                    "type": [
-                                                        "string",
-                                                        "null"
-                                                    ],
-                                                    "description": "Base path for paginator generated URLs."
-                                                },
-                                                "per_page": {
-                                                    "type": "integer",
-                                                    "description": "Number of items shown per page.",
-                                                    "minimum": 0
-                                                },
-                                                "to": {
-                                                    "type": [
-                                                        "integer",
-                                                        "null"
-                                                    ],
-                                                    "description": "Number of the last item in the slice.",
-                                                    "minimum": 1
-                                                },
-                                                "total": {
-                                                    "type": "integer",
-                                                    "description": "Total number of items being paginated.",
-                                                    "minimum": 0
-                                                }
-                                            },
-                                            "required": [
-                                                "current_page",
-                                                "from",
-                                                "last_page",
-                                                "links",
-                                                "path",
-                                                "per_page",
-                                                "to",
-                                                "total"
+                                                "success_count",
+                                                "failed_count",
+                                                "errors",
+                                                "imported"
                                             ]
                                         }
                                     },
                                     "required": [
-                                        "data",
-                                        "links",
-                                        "meta"
+                                        "success",
+                                        "message",
+                                        "data"
                                     ]
                                 }
                             }
                         }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
                     },
                     "401": {
                         "$ref": "#/components/responses/AuthenticationException"
@@ -16605,7 +16991,7 @@
             "ActiveKonsumenRequest": {
                 "type": "object",
                 "properties": {
-                    "catatan_penolakan": {
+                    "note": {
                         "type": "string",
                         "maxLength": 255
                     },
@@ -16614,7 +17000,7 @@
                     }
                 },
                 "required": [
-                    "catatan_penolakan"
+                    "note"
                 ],
                 "title": "ActiveKonsumenRequest"
             },
@@ -16765,7 +17151,9 @@
                 "type": "object",
                 "properties": {
                     "agama_code": {
-                        "type": "string"
+                        "type": "string",
+                        "minLength": 3,
+                        "maxLength": 3
                     },
                     "agama_name": {
                         "type": "string",
@@ -17209,6 +17597,21 @@
                 },
                 "title": "GeografisStatusRequest"
             },
+            "ImportRequest": {
+                "type": "object",
+                "properties": {
+                    "file": {
+                        "type": "string",
+                        "format": "binary",
+                        "contentMediaType": "application/octet-stream",
+                        "description": "Maximum file size: 2048 kilobytes."
+                    }
+                },
+                "required": [
+                    "file"
+                ],
+                "title": "ImportRequest"
+            },
             "JenisKelamin": {
                 "type": "string",
                 "enum": [
@@ -17268,7 +17671,9 @@
                 "type": "object",
                 "properties": {
                     "kabupaten_kota_code": {
-                        "type": "string"
+                        "type": "string",
+                        "minLength": 4,
+                        "maxLength": 4
                     },
                     "kabupaten_kota_name": {
                         "type": "string",
@@ -17336,7 +17741,9 @@
                 "type": "object",
                 "properties": {
                     "kecamatan_code": {
-                        "type": "string"
+                        "type": "string",
+                        "minLength": 6,
+                        "maxLength": 6
                     },
                     "kecamatan_name": {
                         "type": "string",
@@ -17407,7 +17814,9 @@
                 "type": "object",
                 "properties": {
                     "kelurahan_code": {
-                        "type": "string"
+                        "type": "string",
+                        "minLength": 10,
+                        "maxLength": 10
                     },
                     "kelurahan_name": {
                         "type": "string",
@@ -17586,7 +17995,7 @@
                         "type": "string",
                         "format": "binary",
                         "contentMediaType": "application/octet-stream",
-                        "description": "Maximum file size: 2156 kilobytes."
+                        "description": "Maximum file size: 512 kilobytes."
                     },
                     "nik": {
                         "type": "string"
@@ -17996,7 +18405,9 @@
                 "type": "object",
                 "properties": {
                     "pekerjaan_code": {
-                        "type": "string"
+                        "type": "string",
+                        "minLength": 3,
+                        "maxLength": 3
                     },
                     "pekerjaan_name": {
                         "type": "string",
@@ -18085,7 +18496,9 @@
                 "type": "object",
                 "properties": {
                     "provinsi_code": {
-                        "type": "string"
+                        "type": "string",
+                        "minLength": 4,
+                        "maxLength": 4
                     },
                     "provinsi_name": {
                         "type": "string",
