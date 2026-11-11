@@ -3,8 +3,9 @@
 // Data baru bisa ditambahkan lewat formulir (satu per satu) atau impor Excel (MasterImportModal).
 // Tiap data punya kode (unik, tidak bisa diubah) dan status. Data tidak dihapus, hanya dinonaktifkan (PUT {path}/{id}/status).
 // Induk wilayah dihubungkan lewat kode (kode_provinsi, kode_kabupaten_kota, kode_kecamatan).
+// Pekerjaan: hierarki 2 tingkat (Header = H, Detail = D); form tambah/ubah khusus pekerjaan memakai PekerjaanForm.
 import { useEffect, useState } from 'react';
-import { getMasterPage, getMasterOptions, getChildrenByParent, getMasterByKode, searchMaster, createMaster, updateMaster, setMasterStatus, exportMaster, errorMessage } from '../../../api/authServices';
+import { getMasterPage, getMasterOptions, getChildrenByParent, getMasterByKode, searchMaster, createMaster, updateMaster, setMasterStatus, exportMaster, getPekerjaanHeaders, errorMessage } from '../../../api/authServices';
 import { MASTER_CODE_LENGTH } from '../../../api/masterExcel';
 import Toast from '../../../shared/components/Toast';
 import Modal from '../../../shared/components/Modal';
@@ -20,7 +21,11 @@ import MasterImportModal from './MasterImportModal';
 const PAGE_SIZE = 10;
 const TABS = [
   { key: 'agama', label: 'Agama', path: '/agamas', perm: 'agamas', menu: 'agamas' },
-  { key: 'pekerjaan', label: 'Pekerjaan', path: '/pekerjaans', perm: 'pekerjaans', menu: 'pekerjaans' },
+  {
+    key: 'pekerjaan', label: 'Pekerjaan', path: '/pekerjaans', perm: 'pekerjaans', menu: 'pekerjaans',
+    // hierarki pekerjaan: ditampilkan sebagai tabel biasa /all, form tambah/ubah menggunakan kolom tambahan
+    isPekerjaan: true,
+  },
   { key: 'provinsi', label: 'Provinsi', path: '/provinsis', perm: 'provinsis', wilayah: true },
   { key: 'kabupaten', label: 'Kabupaten / Kota', path: '/kabupaten-kotas', perm: 'kabupaten-kotas', wilayah: true, parent: { field: 'kode_provinsi', label: 'Provinsi', path: '/provinsis' }, filters: ['provinsi'] },
   { key: 'kecamatan', label: 'Kecamatan', path: '/kecamatans', perm: 'kecamatans', wilayah: true, parent: { field: 'kode_kabupaten_kota', label: 'Kabupaten / Kota', path: '/kabupaten-kotas' }, filters: ['provinsi', 'kabupaten'] },
@@ -29,6 +34,75 @@ const TABS = [
 const isActive = (r) => r.status !== false;
 // Kabupaten/kota milik satu provinsi (kode); semua status ikut, karena ini layar kelola
 const kabupatenOf = async (kodeProv) => (await getMasterOptions('/kabupaten-kotas')).filter((k) => !kodeProv || String(k.kode_provinsi) === String(kodeProv));
+
+// Form tambah/ubah khusus pekerjaan (hierarki 2 tingkat H/D)
+const SECTOR_JOB_OPTIONS = ['Formal', 'Informal', 'Tidak Bekerja'];
+const TYPE_HEADER_OPTIONS = [{ value: 'H', label: 'Header (induk)' }, { value: 'D', label: 'Detail (anak)' }];
+
+function PekerjaanForm({ form: pf, setForm: spf, touched, isNew, pekerjaanHeaders, loadingHeaders, kodeError, nameError, typeError, sectorError, parentError: parentErr, seqError }) {
+  const isDetail = pf.type_header === 'D';
+  return (
+    <>
+      {isNew && (
+        <div className="dash-form-group">
+          <label htmlFor="pekerjaan-kode">Kode *</label>
+          <input
+            id="pekerjaan-kode"
+            className={`dash-input${touched && kodeError ? ' invalid' : ''}`}
+            value={pf.kode}
+            onChange={(e) => spf((f) => ({ ...f, kode: e.target.value }))}
+            placeholder="1–3 karakter (mis. 01)"
+            maxLength={3}
+            inputMode="numeric"
+            autoFocus
+          />
+          {touched && kodeError && <p className="dash-field-error">{kodeError}</p>}
+          <p className="dash-map-hint">Kode unik 1–3 digit angka, tidak dapat diubah setelah disimpan.</p>
+        </div>
+      )}
+      <div className="dash-form-group">
+        <label htmlFor="pekerjaan-name">Nama *</label>
+        <input id="pekerjaan-name" className={`dash-input${touched && nameError ? ' invalid' : ''}`} value={pf.name} onChange={(e) => spf((f) => ({ ...f, name: e.target.value }))} autoFocus={!isNew} />
+        {touched && nameError && <p className="dash-field-error">{nameError}</p>}
+      </div>
+      <div className="dash-form-group">
+        <label htmlFor="pekerjaan-sequence">Urutan tampilan *</label>
+        <input id="pekerjaan-sequence" className={`dash-input${touched && seqError ? ' invalid' : ''}`} type="number" min="1" value={pf.sequence} onChange={(e) => spf((f) => ({ ...f, sequence: e.target.value }))} />
+        {touched && seqError && <p className="dash-field-error">{seqError}</p>}
+      </div>
+      <div className="dash-form-group">
+        <label htmlFor="pekerjaan-type-header">Tipe *</label>
+        <select id="pekerjaan-type-header" className={`dash-input${touched && typeError ? ' invalid' : ''}`} value={pf.type_header} onChange={(e) => spf((f) => ({ ...f, type_header: e.target.value, id_parent: e.target.value === 'H' ? '' : f.id_parent }))}>
+          <option value="">- Pilih tipe -</option>
+          {TYPE_HEADER_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+        </select>
+        {touched && typeError && <p className="dash-field-error">{typeError}</p>}
+      </div>
+      <div className="dash-form-group">
+        <label htmlFor="pekerjaan-sector-job">Sektor pekerjaan *</label>
+        <select id="pekerjaan-sector-job" className={`dash-input${touched && sectorError ? ' invalid' : ''}`} value={pf.sector_job} onChange={(e) => spf((f) => ({ ...f, sector_job: e.target.value }))}>
+          <option value="">- Pilih sektor -</option>
+          {SECTOR_JOB_OPTIONS.map((o) => <option key={o} value={o}>{o}</option>)}
+        </select>
+        {touched && sectorError && <p className="dash-field-error">{sectorError}</p>}
+      </div>
+      {isDetail && (
+        <div className="dash-form-group">
+          <label htmlFor="pekerjaan-id-parent">Pekerjaan induk (Header) *</label>
+          {loadingHeaders ? (
+            <p className="dash-card-desc"><Spin /> Memuat daftar Header...</p>
+          ) : (
+            <select id="pekerjaan-id-parent" className={`dash-input${touched && parentErr ? ' invalid' : ''}`} value={pf.id_parent} onChange={(e) => spf((f) => ({ ...f, id_parent: e.target.value }))}>
+              <option value="">- Pilih induk -</option>
+              {pekerjaanHeaders.map((h) => <option key={h.kode} value={h.kode}>{h.name} ({h.kode})</option>)}
+            </select>
+          )}
+          {touched && parentErr && <p className="dash-field-error">{parentErr}</p>}
+        </div>
+      )}
+    </>
+  );
+}
 
 // Tab dipilih lewat submenu Data Master di sidebar; hak akses menunya sudah diperiksa di DashboardPage
 // Pilih induk lewat nama (bukan ID): ketik untuk mencari, klik hasilnya
@@ -89,6 +163,7 @@ function ParentPicker({ parent, value, name, onPick }) {
 function MasterPanel({ tabKey, can }) {
   const tab = TABS.find((t) => t.key === tabKey) ?? TABS[0];
   const perm = (action) => can(`${tab.perm}.${action}`);
+  const isPekerjaan = tab.key === 'pekerjaan';
 
   const [rows, setRows] = useState([]);
   const [meta, setMeta] = useState({ page: 1, lastPage: 1, total: 0 });
@@ -117,6 +192,10 @@ function MasterPanel({ tabKey, can }) {
   const [importing, setImporting] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [form, setForm] = useState({ kode: '', name: '', parent: auto?.induk ?? '', parentName: '' });
+  // Form tambahan untuk pekerjaan hierarki
+  const [pkForm, setPkForm] = useState({ kode: '', name: '', sequence: '', type_header: '', sector_job: '', id_parent: '' });
+  const [pekerjaanHeaders, setPekerjaanHeaders] = useState([]); // Header pekerjaan untuk dropdown induk
+  const [loadingHeaders, setLoadingHeaders] = useState(false);
   const [parentNames, setParentNames] = useState({}); // kode induk -> nama, untuk kolom induk di tabel
   const [touched, setTouched] = useState(false);
   const [toToggle, setToToggle] = useState(null); // baris yang statusnya akan diganti
@@ -227,6 +306,15 @@ function MasterPanel({ tabKey, can }) {
     });
   }, [rows]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Validasi untuk pekerjaan: kode 1–3 digit angka; untuk master lain: persis N digit
+  const pkKodeError = !isNew ? '' : !pkForm.kode.trim() ? 'Kode wajib diisi.' : !/^\d{1,3}$/.test(pkForm.kode.trim()) ? 'Kode harus 1–3 digit angka.' : '';
+  const pkNameError = !pkForm.name.trim() ? 'Nama wajib diisi.' : pkForm.name.trim().length > 255 ? 'Maksimal 255 karakter.' : '';
+  const pkTypeError = !pkForm.type_header ? 'Tipe wajib dipilih.' : '';
+  const pkSectorError = !pkForm.sector_job ? 'Sektor pekerjaan wajib dipilih.' : '';
+  const pkParentError = pkForm.type_header === 'D' && !pkForm.id_parent ? 'Induk wajib dipilih untuk pekerjaan tipe Detail.' : '';
+  const pkSeqError = !pkForm.sequence ? 'Urutan wajib diisi.' : '';
+  const hasPkError = !!(pkKodeError || pkNameError || pkTypeError || pkSectorError || pkParentError || pkSeqError);
+
   const nameError = !form.name.trim() ? 'Nama wajib diisi.' : form.name.trim().length > 255 ? 'Maksimal 255 karakter.' : '';
   const isNew = editing === 'new';
   // Mengikuti request BE: kode wajib & persis N digit angka (N beda per master) saat tambah; induk wajib pada wilayah
@@ -249,8 +337,25 @@ function MasterPanel({ tabKey, can }) {
     setSuccess('');
     setError('');
     setTouched(false);
-    const pid = row === 'new' ? '' : String(row[tab.parent?.field] ?? '');
-    setForm({ kode: row === 'new' ? '' : row.kode ?? '', name: row === 'new' ? '' : row.name, parent: pid, parentName: pid ? parentNames[pid] ?? '' : '' });
+    if (isPekerjaan) {
+      const rowType = row === 'new' ? '' : (row.type_header?.value ?? row.type_header ?? '');
+      setPkForm({
+        kode: row === 'new' ? '' : row.pekerjaan_code ?? row.kode ?? '',
+        name: row === 'new' ? '' : row.pekerjaan_name ?? row.name ?? '',
+        sequence: row === 'new' ? '' : String(row.sequence ?? ''),
+        type_header: rowType,
+        sector_job: row === 'new' ? '' : (row.sector_job ?? ''),
+        id_parent: row === 'new' || rowType === 'H' ? '' : String(row.id_parent ?? ''),
+      });
+      // Muat daftar Header pekerjaan untuk dropdown induk (sekali saja)
+      if (!pekerjaanHeaders.length) {
+        setLoadingHeaders(true);
+        getPekerjaanHeaders().then(setPekerjaanHeaders).catch(() => {}).finally(() => setLoadingHeaders(false));
+      }
+    } else {
+      const pid = row === 'new' ? '' : String(row[tab.parent?.field] ?? '');
+      setForm({ kode: row === 'new' ? '' : row.kode ?? '', name: row === 'new' ? '' : row.name, parent: pid, parentName: pid ? parentNames[pid] ?? '' : '' });
+    }
     setEditing(row);
   };
   const closeForm = () => setEditing(null);
@@ -258,6 +363,36 @@ function MasterPanel({ tabKey, can }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setTouched(true);
+    if (isPekerjaan) {
+      if (hasPkError) return;
+      const payload = {
+        ...(isNew ? { pekerjaan_code: pkForm.kode.trim() } : {}),
+        pekerjaan_name: pkForm.name.trim(),
+        sequence: parseInt(pkForm.sequence, 10),
+        type_header: pkForm.type_header,
+        sector_job: pkForm.sector_job,
+        ...(pkForm.type_header === 'D' && pkForm.id_parent ? { id_parent: pkForm.id_parent } : {}),
+      };
+      setSaving(true);
+      setError('');
+      try {
+        const api = (await import('../../../api/axios')).default;
+        if (isNew) await api.post('/pekerjaans', payload);
+        else await api.put(`/pekerjaans/${editing.id}`, payload);
+        setSuccess(`Pekerjaan "${pkForm.name.trim()}" ${isNew ? 'ditambahkan' : 'diperbarui'}.`);
+        // Buang cache pekerjaan supaya halaman list refresh
+        const { refreshMasterOptions } = await import('../../../api/authServices');
+        refreshMasterOptions('/pekerjaans');
+        setPekerjaanHeaders([]); // muat ulang headers berikutnya
+        closeForm();
+        setReloadKey((k) => k + 1);
+      } catch (err) {
+        setError(errorMessage(err));
+      } finally {
+        setSaving(false);
+      }
+      return;
+    }
     if (nameError || kodeError || parentError) return;
     const payload = { ...(isNew ? { kode: form.kode.trim() } : {}), name: form.name.trim(), ...(tab.parent ? { [tab.parent.field]: form.parent } : {}) };
     setSaving(true);
@@ -381,6 +516,9 @@ function MasterPanel({ tabKey, can }) {
                 <th className="col-no">No</th>
                 <th>Kode</th>
                 <th>Nama</th>
+                {isPekerjaan && <th>Tipe</th>}
+                {isPekerjaan && <th>Sektor</th>}
+                {isPekerjaan && <th>Urutan</th>}
                 {tab.parent && <th>{tab.parent.label}</th>}
                 <th>Status</th>
                 {showAksi && <th className="col-aksi">Aksi</th>}
@@ -392,6 +530,9 @@ function MasterPanel({ tabKey, can }) {
                   <td className="col-no">{(meta.page - 1) * (meta.perPage ?? PAGE_SIZE) + idx + 1}</td>
                   <td>{r.kode ?? '-'}</td>
                   <td><strong className="dash-cell-name">{r.name}</strong></td>
+                  {isPekerjaan && <td>{(r.type_header?.value ?? r.type_header) === 'H' ? 'Header' : (r.type_header?.value ?? r.type_header) === 'D' ? 'Detail' : '-'}</td>}
+                  {isPekerjaan && <td>{r.sector_job ?? '-'}</td>}
+                  {isPekerjaan && <td>{r.sequence ?? '-'}</td>}
                   {tab.parent && <td>{r[tab.parent.field] ? parentNames[r[tab.parent.field]] ?? '...' : '-'}</td>}
                   <td>
                     {showAksi
@@ -425,39 +566,58 @@ function MasterPanel({ tabKey, can }) {
       {editing && (
         <Modal as="form" onClose={saving ? undefined : closeForm} onSubmit={handleSubmit} noValidate>
           <h3>{isNew ? 'Tambah' : 'Ubah'} {tab.label}</h3>
-          <div className="dash-form-group">
-            <label htmlFor="master-kode">Kode{isNew ? ' *' : ''}</label>
-            <input
-              id="master-kode"
-              className={`dash-input${touched && kodeError ? ' invalid' : ''}`}
-              value={form.kode}
-              onChange={(e) => setForm((f) => ({ ...f, kode: e.target.value }))}
-              inputMode="numeric"
-              maxLength={codeLen}
-              placeholder={isNew ? `${codeLen} digit angka` : undefined}
-              disabled={!isNew}
-              autoFocus={isNew}
+          {isPekerjaan ? (
+            <PekerjaanForm
+              form={pkForm}
+              setForm={setPkForm}
+              touched={touched}
+              isNew={isNew}
+              pekerjaanHeaders={pekerjaanHeaders}
+              loadingHeaders={loadingHeaders}
+              kodeError={pkKodeError}
+              nameError={pkNameError}
+              typeError={pkTypeError}
+              sectorError={pkSectorError}
+              parentError={pkParentError}
+              seqError={pkSeqError}
             />
-            {touched && kodeError && <p className="dash-field-error">{kodeError}</p>}
-            {isNew ? <p className="dash-map-hint">Kode wajib {codeLen} digit angka, harus unik, dan tidak dapat diubah setelah disimpan.</p> : <p className="dash-map-hint">Kode tidak dapat diubah.</p>}
-          </div>
-          <div className="dash-form-group">
-            <label htmlFor="master-name">Nama *</label>
-            <input
-              id="master-name"
-              className={`dash-input${touched && nameError ? ' invalid' : ''}`}
-              value={form.name}
-              onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-              autoFocus={!isNew}
-            />
-            {touched && nameError && <p className="dash-field-error">{nameError}</p>}
-          </div>
-          {tab.parent && (
-            <div className="dash-form-group">
-              <label htmlFor="master-parent">{tab.parent.label} *</label>
-              <ParentPicker parent={tab.parent} value={form.parent} name={form.parentName} onPick={(kode, name) => setForm((f) => ({ ...f, parent: kode, parentName: name }))} />
-              {touched && parentError && <p className="dash-field-error">{parentError}</p>}
-            </div>
+          ) : (
+            <>
+              <div className="dash-form-group">
+                <label htmlFor="master-kode">Kode{isNew ? ' *' : ''}</label>
+                <input
+                  id="master-kode"
+                  className={`dash-input${touched && kodeError ? ' invalid' : ''}`}
+                  value={form.kode}
+                  onChange={(e) => setForm((f) => ({ ...f, kode: e.target.value }))}
+                  inputMode="numeric"
+                  maxLength={codeLen}
+                  placeholder={isNew ? `${codeLen} digit angka` : undefined}
+                  disabled={!isNew}
+                  autoFocus={isNew}
+                />
+                {touched && kodeError && <p className="dash-field-error">{kodeError}</p>}
+                {isNew ? <p className="dash-map-hint">Kode wajib {codeLen} digit angka, harus unik, dan tidak dapat diubah setelah disimpan.</p> : <p className="dash-map-hint">Kode tidak dapat diubah.</p>}
+              </div>
+              <div className="dash-form-group">
+                <label htmlFor="master-name">Nama *</label>
+                <input
+                  id="master-name"
+                  className={`dash-input${touched && nameError ? ' invalid' : ''}`}
+                  value={form.name}
+                  onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
+                  autoFocus={!isNew}
+                />
+                {touched && nameError && <p className="dash-field-error">{nameError}</p>}
+              </div>
+              {tab.parent && (
+                <div className="dash-form-group">
+                  <label htmlFor="master-parent">{tab.parent.label} *</label>
+                  <ParentPicker parent={tab.parent} value={form.parent} name={form.parentName} onPick={(kode, name) => setForm((f) => ({ ...f, parent: kode, parentName: name }))} />
+                  {touched && parentError && <p className="dash-field-error">{parentError}</p>}
+                </div>
+              )}
+            </>
           )}
           <div className="dash-modal-actions">
             <button id={`btn-master-${tab.key}-cancel`} type="button" className="dash-btn outline" onClick={closeForm} disabled={saving}>Batal</button>

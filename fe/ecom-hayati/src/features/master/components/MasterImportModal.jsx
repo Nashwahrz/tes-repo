@@ -55,6 +55,7 @@ function MasterImportModal({ tab, onClose, onImported }) {
   };
 
   const cols = masterImportHeaders(tab).join(', ');
+  const isPekerjaan = tab.key === 'pekerjaan';
 
   return (
     <Modal onClose={phase === 'running' ? undefined : onClose} dismissOnBackdrop>
@@ -62,7 +63,16 @@ function MasterImportModal({ tab, onClose, onImported }) {
 
       {phase === 'pick' && (
         <>
-          <p className="dash-card-desc">Unduh template, isi datanya, lalu unggah kembali. Kolom: <strong>{cols}</strong>. Kode <strong>{MASTER_CODE_LENGTH[tab.key]} digit</strong> angka. Semua data baru berstatus aktif.</p>
+          {isPekerjaan ? (
+            <p className="dash-card-desc">
+              Unduh template, isi datanya, lalu unggah kembali. Kolom: <strong>{cols}</strong>.{' '}
+              Pekerjaan memakai hierarki 2 tingkat (<strong>H</strong>=Header, <strong>D</strong>=Detail).{' '}
+              Kode bebas 1–3 karakter. <strong>sector_job</strong>: Formal / Informal / Tidak Bekerja.{' '}
+              <strong>id_parent</strong> Detail = kode Header induk. Impor Header sebelum Detail.
+            </p>
+          ) : (
+            <p className="dash-card-desc">Unduh template, isi datanya, lalu unggah kembali. Kolom: <strong>{cols}</strong>. Kode <strong>{MASTER_CODE_LENGTH[tab.key]} digit</strong> angka. Semua data baru berstatus aktif.</p>
+          )}
           <div className="dash-form-group">
             <button id="btn-import-template" type="button" className="dash-btn outline" onClick={handleTemplate}>Unduh template Excel</button>
           </div>

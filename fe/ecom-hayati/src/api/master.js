@@ -13,7 +13,7 @@ const SHAPES = {
   '/kecamatans': { code: 'kecamatan_code', name: 'kecamatan_name', parents: { kode_kabupaten_kota: 'fk_kabupaten_kota' } },
   '/kelurahans': { code: 'kelurahan_code', name: 'kelurahan_name', parents: { kode_kecamatan: 'fk_kecamatan' } },
 };
-const shapeOf = (path) => SHAPES[path.replace(/\/(aktif|\d+)(\/status)?$/, '')];
+const shapeOf = (path) => SHAPES[path.replace(/\/(aktif|all|\d+)(\/status)?$/, '')];
 const fromBe = (path, row) => {
   const s = shapeOf(path);
   if (!s || !row) return row;
@@ -57,7 +57,68 @@ const activeOnly = (rows) => rows.filter((r) => r.status !== false);
 // Pilihan di form konsumen memakai endpoint /aktif (BE: permission <menu>.lihat-aktif, yang dimiliki semua role penambah konsumen;
 // permission <menu>.lihat hanya untuk admin master). Hasil: [{ id, kode, name, status }]
 export const getAgamas = async () => activeOnly(await getMasterOptions('/agamas/aktif'));
-export const getPekerjaans = async () => activeOnly(await getMasterOptions('/pekerjaans/aktif'));
+// Tree hierarki pekerjaan (BE: GET /pekerjaans, permission pekerjaans.lihat).
+// Hasil: [{ pekerjaan_code, pekerjaan_name, sequence, type_header, sector_job, is_selectable, children: [...] }]
+let pekerjaanTreeCache = null;
+export const getPekerjaanTree = async () => {
+  if (!pekerjaanTreeCache) {
+    pekerjaanTreeCache = api.get('/pekerjaans')
+      .then((res) => res.data?.data ?? [])
+      .catch((err) => { pekerjaanTreeCache = null; throw err; });
+  }
+  return pekerjaanTreeCache;
+};
+
+// Opsi pekerjaan untuk dropdown (diratakan dari hierarki pekerjaan aktif)
+export const getPekerjaans = async () => {
+  const tree = await getPekerjaanTree();
+  const list = [];
+  (Array.isArray(tree) ? tree : []).forEach((h) => {
+    if (h.is_selectable) {
+      list.push({
+        id: h.id,
+        kode: h.pekerjaan_code,
+        name: h.pekerjaan_name,
+        sequence: h.sequence,
+        type_header: h.type_header?.value ?? h.type_header,
+        sector_job: h.sector_job,
+        is_header: true,
+        status: true,
+      });
+    }
+    (h.children ?? []).forEach((c) => {
+      list.push({
+        id: c.id,
+        kode: c.pekerjaan_code,
+        name: c.pekerjaan_name,
+        sequence: c.sequence,
+        type_header: c.type_header?.value ?? c.type_header,
+        sector_job: c.sector_job,
+        parent_code: h.pekerjaan_code,
+        parent_name: h.pekerjaan_name,
+        is_header: false,
+        status: true,
+      });
+    });
+  });
+  return list.sort((a, b) => a.name.localeCompare(b.name, 'id'));
+};
+
+// Daftar khusus header pekerjaan (untuk pilihan induk pekerjaan tipe Detail)
+export const getPekerjaanHeaders = async () => {
+  const tree = await getPekerjaanTree();
+  return (Array.isArray(tree) ? tree : [])
+    .filter((h) => (h.type_header?.value ?? h.type_header) === 'H' || !h.type_header)
+    .map((h) => ({
+      id: h.id,
+      kode: h.pekerjaan_code,
+      name: h.pekerjaan_name,
+      sequence: h.sequence,
+      sector_job: h.sector_job,
+      type_header: h.type_header?.value ?? h.type_header ?? 'H',
+    }))
+    .sort((a, b) => (a.sequence ?? 0) - (b.sequence ?? 0) || a.name.localeCompare(b.name, 'id'));
+};
 
 // Wilayah untuk form konsumen (BE: /provinsis, /kabupaten-kotas, /kecamatans, /kelurahans).
 // BE hanya mendukung ?search= (tanpa filter induk), jadi: provinsi & kabupaten/kota dimuat penuh lalu disaring di FE;
@@ -147,16 +208,24 @@ export const getMasterById = (path, id) => {
 // Satu data master menurut kode (BE belum punya endpoint per kode): dicari lewat ?search= lalu dicocokkan persis. Hasil disimpan di memori.
 // Endpoint /aktif dicoba lebih dulu (izin lihat-aktif); data yang sudah dinonaktifkan hanya ada di endpoint penuh (izin lihat, bila role punya).
 const byKodeCache = new Map();
-const findKode = async (path, kode) =>
-  (await api.get(path, { params: { search: kode, per_page: MAX_PER_PAGE } })).data.data.data?.map((r) => fromBe(path, r)).find((d) => String(d.kode) === String(kode)) ?? null;
+const findKode = async (path, kode) => {
+  const targetPath = path === '/pekerjaans' || path === '/pekerjaans/all' ? '/pekerjaans/all' : path;
+  const res = (await api.get(targetPath, { params: { search: kode, per_page: MAX_PER_PAGE } })).data;
+  const list = res.data?.data ?? res.data ?? [];
+  return (Array.isArray(list) ? list : []).map((r) => fromBe(path, r)).find((d) => String(d.kode) === String(kode)) ?? null;
+};
 export const getMasterByKode = (path, kode) => {
   if (!kode) return Promise.resolve(null);
-  const base = path.replace(/\/aktif$/, '');
+  const base = path.replace(/\/(aktif|all)$/, '');
   const key = `${base}#${kode}`;
   if (!byKodeCache.has(key)) {
-    byKodeCache.set(key, findKode(`${base}/aktif`, kode).catch(() => null)
-      .then((hit) => hit ?? findKode(base, kode))
-      .catch((err) => { byKodeCache.delete(key); throw err; }));
+    if (base === '/pekerjaans') {
+      byKodeCache.set(key, findKode('/pekerjaans/all', kode).catch((err) => { byKodeCache.delete(key); throw err; }));
+    } else {
+      byKodeCache.set(key, findKode(`${base}/aktif`, kode).catch(() => null)
+        .then((hit) => hit ?? findKode(base, kode))
+        .catch((err) => { byKodeCache.delete(key); throw err; }));
+    }
   }
   return byKodeCache.get(key);
 };
@@ -165,7 +234,8 @@ export const getMasterByKode = (path, kode) => {
 // Tambah: { kode, name, kode_<induk> }; ubah: { name, kode_<induk> } (kode tidak bisa diubah). Tidak ada hapus: data dinonaktifkan lewat status.
 // BE memaginasi 10 data per halaman: { data: { data: [...], current_page, last_page, total } }
 export const getMasterPage = async (path, page = 1, search = '') => {
-  const p = (await api.get(path, { params: { page, ...(search ? { search } : {}) } })).data.data;
+  const targetPath = path === '/pekerjaans' ? '/pekerjaans/all' : path;
+  const p = (await api.get(targetPath, { params: { page, ...(search ? { search } : {}) } })).data.data;
   return { rows: (p.data ?? []).map((r) => fromBe(path, r)), meta: toMeta(p) };
 };
 // Cari data master menurut nama (default 20 hasil pertama); dipakai memilih induk di form data master
@@ -173,6 +243,7 @@ export const searchMaster = async (path, search, signal, perPage = 20) =>
   (await api.get(path, { params: { search, per_page: perPage }, signal })).data.data.data?.map((r) => fromBe(path, r)) ?? [];
 // Data yang dimuat penuh untuk dropdown/filter harus dibuang setelah ada perubahan, supaya tidak basi
 const dropOptionCache = (path) => {
+  if (path.startsWith('/pekerjaans')) pekerjaanTreeCache = null;
   [[optionCache, '?'], [parentCache, '|']].forEach(([map, sep]) => {
     for (const k of map.keys()) if (k.startsWith(`${path}${sep}`) || k.startsWith(`${path}/aktif${sep}`)) map.delete(k);
   });
