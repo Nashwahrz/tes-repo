@@ -1,6 +1,7 @@
 // src/api/activityLogs.js
 // Riwayat perubahan data (BE: GET {path}/logs, format ActivityLogResource + paginasi). Hanya baca.
 import api from './axios';
+import { toMeta } from './pagination';
 
 // menu = nama menu BE (middleware menu.access); perm = permission yang dibutuhkan BE.
 // role-menus & role-permissions tidak punya permission *.logs di BE, jadi mengikuti hak kelola role.
@@ -29,5 +30,5 @@ export const availableLogSources = (hasMenu, can) => LOG_SOURCES.filter((s) => h
 export const getActivityLogs = async (path, page = 1, search = '') => {
   const body = (await api.get(path, { params: { page, ...(search ? { search } : {}) } })).data;
   const m = body.meta ?? {};
-  return { rows: body.data ?? [], meta: { page: m.current_page ?? 1, lastPage: m.last_page ?? 1, total: m.total ?? 0, perPage: m.per_page ?? 10 } };
+  return { rows: body.data ?? [], meta: toMeta(m) };
 };

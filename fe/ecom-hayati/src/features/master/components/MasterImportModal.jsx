@@ -2,16 +2,16 @@
 // Tambah data master lewat file Excel: pilih file -> unggah ke BE (POST {path}/import). Template diunduh dari sini.
 import { useState } from 'react';
 import { importMaster, errorMessage } from '../../../api/authServices';
-import { downloadMasterTemplate, masterImportHeaders, IMPORT_MAX_BYTES } from '../../../api/masterExcel';
+import { downloadMasterTemplate, masterImportHeaders, MASTER_CODE_LENGTH, IMPORT_MAX_BYTES } from '../../../api/masterExcel';
 import { Spin } from '../../../shared/components/Loading';
 import Modal from '../../../shared/components/Modal';
 
-const SHOW = 10; // jumlah baris masalah yang ditampilkan
-
 // 422 format file memberi `errors` berupa array teks per baris; selain itu pakai pesan umum
 const importError = (err) => {
-  const list = err.response?.data?.errors;
-  return Array.isArray(list) ? list : [errorMessage(err)];
+  const data = err.response?.data;
+  const list = data?.errors;
+  if (Array.isArray(list)) return { title: data.message || 'Impor gagal.', errors: list };
+  return { title: 'Impor gagal.', errors: [errorMessage(err)] };
 };
 
 function MasterImportModal({ tab, onClose, onImported }) {
@@ -49,7 +49,7 @@ function MasterImportModal({ tab, onClose, onImported }) {
       setPhase('done');
       if (res.ok > 0) onImported();
     } catch (err) {
-      setResult({ ok: 0, failed: 0, errors: importError(err) });
+      setResult({ ok: 0, failed: 0, ...importError(err) });
       setPhase('done');
     }
   };
@@ -62,7 +62,7 @@ function MasterImportModal({ tab, onClose, onImported }) {
 
       {phase === 'pick' && (
         <>
-          <p className="dash-card-desc">Unduh template, isi datanya, lalu unggah kembali. Kolom: <strong>{cols}</strong>. Semua data baru berstatus aktif.</p>
+          <p className="dash-card-desc">Unduh template, isi datanya, lalu unggah kembali. Kolom: <strong>{cols}</strong>. Kode <strong>{MASTER_CODE_LENGTH[tab.key]} digit</strong> angka. Semua data baru berstatus aktif.</p>
           <div className="dash-form-group">
             <button id="btn-import-template" type="button" className="dash-btn outline" onClick={handleTemplate}>Unduh template Excel</button>
           </div>
@@ -83,15 +83,19 @@ function MasterImportModal({ tab, onClose, onImported }) {
 
       {phase === 'done' && result && (
         <>
-          <p className="dash-card-desc">
-            <strong>{result.ok}</strong> {tab.label.toLowerCase()} berhasil ditambahkan{result.failed > 0 && <>, <strong>{result.failed}</strong> baris ditolak server</>}.
-          </p>
+          {result.title ? (
+            <p className="dash-alert error">{result.title}</p>
+          ) : (
+            <p className="dash-card-desc">
+              <strong>{result.ok}</strong> {tab.label.toLowerCase()} berhasil ditambahkan{result.failed > 0 && <>, <strong>{result.failed}</strong> baris ditolak server</>}.
+            </p>
+          )}
           {result.errors.length > 0 && (
-            <div className="dash-alert warning">
-              <ul style={{ margin: 0, paddingLeft: 18 }}>
-                {result.errors.slice(0, SHOW).map((x, i) => <li key={i}>{x}</li>)}
+            <div className={`dash-alert ${result.title ? 'error' : 'warning'}`}>
+              <strong>{result.errors.length} kesalahan:</strong>
+              <ul style={{ margin: '6px 0 0', paddingLeft: 18, maxHeight: 240, overflowY: 'auto' }}>
+                {result.errors.map((x, i) => <li key={i}>{x}</li>)}
               </ul>
-              {result.errors.length > SHOW && <p style={{ margin: '6px 0 0' }}>...dan {result.errors.length - SHOW} lainnya.</p>}
             </div>
           )}
         </>

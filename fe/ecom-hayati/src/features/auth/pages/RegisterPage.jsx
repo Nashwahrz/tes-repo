@@ -49,8 +49,8 @@ function RegisterPage() {
     name: req(sub, name, 'Nama wajib diisi.') || validateName(name),
     email: req(sub, email, 'Email wajib diisi.') || validateEmail(email),
     role: sub && !fk_role ? 'Role wajib dipilih.' : '',
-    password: req(sub, password, 'Kata sandi wajib diisi.') || validatePassword(password),
-    confirm: req(sub, password_confirmation, 'Konfirmasi kata sandi wajib diisi.') || (password_confirmation && password !== password_confirmation ? 'Konfirmasi password tidak cocok.' : ''),
+    password: req(sub, password, 'Password wajib diisi.') || validatePassword(password),
+    confirm: req(sub, password_confirmation, 'Konfirmasi password wajib diisi.') || (password_confirmation && password !== password_confirmation ? 'Konfirmasi password tidak cocok.' : ''),
   });
   const { name: nameError, email: emailError, role: roleError, password: passwordError, confirm: confirmError } = errorsFor(submitted);
 
@@ -148,14 +148,14 @@ function RegisterPage() {
           </div>
           {roleError && <p className="field-error" role="alert">{roleError}</p>}
 
-          <label className="login-label" htmlFor="password">Kata Sandi</label>
+          <label className="login-label" htmlFor="password">Password</label>
           <div className={`login-field${passwordError ? ' invalid' : ''}`}>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="4" y="11" width="16" height="10" rx="2" /><path d="M8 11V7a4 4 0 0 1 8 0v4" /></svg>
             <input
               className="login-input"
               id="password"
               type={showPassword ? 'text' : 'password'}
-              placeholder="Masukkan kata sandi"
+              placeholder="Masukkan password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               aria-invalid={!!passwordError}
@@ -164,21 +164,21 @@ function RegisterPage() {
               type="button"
               className="login-toggle"
               onClick={() => setShowPassword((v) => !v)}
-              aria-label={showPassword ? 'Sembunyikan kata sandi' : 'Tampilkan kata sandi'}
+              aria-label={showPassword ? 'Sembunyikan password' : 'Tampilkan password'}
             >
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z" /><circle cx="12" cy="12" r="3" />{showPassword && <path d="M3 3l18 18" />}</svg>
             </button>
           </div>
           {passwordError && <p className="field-error" role="alert">{passwordError}</p>}
 
-          <label className="login-label" htmlFor="password_confirmation">Konfirmasi Kata Sandi</label>
+          <label className="login-label" htmlFor="password_confirmation">Konfirmasi Password</label>
           <div className={`login-field${confirmError ? ' invalid' : ''}`}>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="4" y="11" width="16" height="10" rx="2" /><path d="M8 11V7a4 4 0 0 1 8 0v4" /></svg>
             <input
               className="login-input"
               id="password_confirmation"
               type={showPassword ? 'text' : 'password'}
-              placeholder="Ulangi kata sandi"
+              placeholder="Ulangi password"
               value={password_confirmation}
               onChange={(e) => setPasswordConfirmation(e.target.value)}
               aria-invalid={!!confirmError}
@@ -187,7 +187,7 @@ function RegisterPage() {
               type="button"
               className="login-toggle"
               onClick={() => setShowPassword((v) => !v)}
-              aria-label={showPassword ? 'Sembunyikan kata sandi' : 'Tampilkan kata sandi'}
+              aria-label={showPassword ? 'Sembunyikan password' : 'Tampilkan password'}
             >
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z" /><circle cx="12" cy="12" r="3" />{showPassword && <path d="M3 3l18 18" />}</svg>
             </button>

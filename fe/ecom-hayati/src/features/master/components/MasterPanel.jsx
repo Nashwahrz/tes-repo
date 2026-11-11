@@ -4,7 +4,8 @@
 // Tiap data punya kode (unik, tidak bisa diubah) dan status. Data tidak dihapus, hanya dinonaktifkan (PUT {path}/{id}/status).
 // Induk wilayah dihubungkan lewat kode (kode_provinsi, kode_kabupaten_kota, kode_kecamatan).
 import { useEffect, useState } from 'react';
-import { getMasterPage, getMasterOptions, getChildrenByParent, getMasterByKode, searchMaster, createMaster, updateMaster, setMasterStatus, errorMessage } from '../../../api/authServices';
+import { getMasterPage, getMasterOptions, getChildrenByParent, getMasterByKode, searchMaster, createMaster, updateMaster, setMasterStatus, exportMaster, errorMessage } from '../../../api/authServices';
+import { MASTER_CODE_LENGTH } from '../../../api/masterExcel';
 import Toast from '../../../shared/components/Toast';
 import Modal from '../../../shared/components/Modal';
 import Loading, { Spin } from '../../../shared/components/Loading';
@@ -114,6 +115,7 @@ function MasterPanel({ tabKey, can }) {
   });
   const [editing, setEditing] = useState(auto ? 'new' : null); // null | 'new' | row
   const [importing, setImporting] = useState(false);
+  const [exporting, setExporting] = useState(false);
   const [form, setForm] = useState({ kode: '', name: '', parent: auto?.induk ?? '', parentName: '' });
   const [parentNames, setParentNames] = useState({}); // kode induk -> nama, untuk kolom induk di tabel
   const [touched, setTouched] = useState(false);
@@ -227,8 +229,9 @@ function MasterPanel({ tabKey, can }) {
 
   const nameError = !form.name.trim() ? 'Nama wajib diisi.' : form.name.trim().length > 255 ? 'Maksimal 255 karakter.' : '';
   const isNew = editing === 'new';
-  // Mengikuti request BE: kode wajib & hanya angka (1-10 digit) saat tambah; induk wajib pada wilayah
-  const kodeError = !isNew ? '' : !form.kode.trim() ? 'Kode wajib diisi.' : !/^\d{1,10}$/.test(form.kode.trim()) ? 'Kode harus berupa angka 1-10 digit.' : '';
+  // Mengikuti request BE: kode wajib & persis N digit angka (N beda per master) saat tambah; induk wajib pada wilayah
+  const codeLen = MASTER_CODE_LENGTH[tab.key];
+  const kodeError = !isNew ? '' : !form.kode.trim() ? 'Kode wajib diisi.' : !(/^\d+$/.test(form.kode.trim()) && form.kode.trim().length === codeLen) ? `Kode harus berupa angka tepat ${codeLen} digit.` : '';
   // Parameter tautan dipakai sekali; nama induk yang terisi otomatis dicari dari kodenya
   useEffect(() => {
     if (!auto) return undefined;
@@ -291,6 +294,19 @@ function MasterPanel({ tabKey, can }) {
 
   const showAksi = perm('ubah');
 
+  const handleExport = async () => {
+    setSuccess('');
+    setError('');
+    setExporting(true);
+    try {
+      await exportMaster(tab.path, { search, fallbackName: `data_${tab.key}` });
+    } catch (err) {
+      setError(err.response?.status === 403 ? 'Anda tidak memiliki izin untuk mengekspor data ini.' : 'Gagal mengekspor data ke Excel.');
+    } finally {
+      setExporting(false);
+    }
+  };
+
   return (
     <div>
       <div className="dash-card-head">
@@ -298,10 +314,17 @@ function MasterPanel({ tabKey, can }) {
           <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 8l-9-5-9 5 9 5 9-5z" /><path d="M3 8v8l9 5 9-5V8" /></svg>
           Data Master · {tab.label}
         </h3>
-        {perm('tambah') && !unavailable && (
+        {!unavailable && (
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-            <button id={`btn-master-${tab.key}-import`} className="dash-btn outline" onClick={() => { setSuccess(''); setError(''); setImporting(true); }}>Impor Excel</button>
-            <button id={`btn-master-${tab.key}-add`} className="dash-btn solid" onClick={() => openForm('new')}>+ Tambah {tab.label}</button>
+            {perm('lihat') && (
+              <button id={`btn-master-${tab.key}-export`} className="dash-btn outline" onClick={handleExport} disabled={exporting}>{exporting ? 'Mengekspor...' : 'Ekspor Excel'}</button>
+            )}
+            {perm('tambah') && (
+              <>
+                <button id={`btn-master-${tab.key}-import`} className="dash-btn outline" onClick={() => { setSuccess(''); setError(''); setImporting(true); }}>Impor Excel</button>
+                <button id={`btn-master-${tab.key}-add`} className="dash-btn solid" onClick={() => openForm('new')}>+ Tambah {tab.label}</button>
+              </>
+            )}
           </div>
         )}
       </div>
@@ -410,12 +433,13 @@ function MasterPanel({ tabKey, can }) {
               value={form.kode}
               onChange={(e) => setForm((f) => ({ ...f, kode: e.target.value }))}
               inputMode="numeric"
-              maxLength={10}
+              maxLength={codeLen}
+              placeholder={isNew ? `${codeLen} digit angka` : undefined}
               disabled={!isNew}
               autoFocus={isNew}
             />
             {touched && kodeError && <p className="dash-field-error">{kodeError}</p>}
-            {!isNew && <p className="dash-map-hint">Kode tidak dapat diubah.</p>}
+            {isNew ? <p className="dash-map-hint">Kode wajib {codeLen} digit angka, harus unik, dan tidak dapat diubah setelah disimpan.</p> : <p className="dash-map-hint">Kode tidak dapat diubah.</p>}
           </div>
           <div className="dash-form-group">
             <label htmlFor="master-name">Nama *</label>

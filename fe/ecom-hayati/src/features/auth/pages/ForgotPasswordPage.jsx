@@ -17,9 +17,9 @@ const errorMessage = (err) => {
 };
 
 const TITLES = {
-  email: ['Lupa Kata Sandi', 'Masukkan email akun Anda, kami kirim kode OTP untuk mengatur ulang kata sandi.'],
+  email: ['Lupa Password', 'Masukkan email akun Anda, kami kirim kode OTP untuk mengatur ulang password.'],
   otp: ['Verifikasi OTP', 'Masukkan 6 digit kode OTP yang dikirim ke'],
-  password: ['Kata Sandi Baru', 'Buat kata sandi baru untuk akun Anda.'],
+  password: ['Password Baru', 'Buat password baru untuk akun Anda.'],
 };
 
 function ForgotPasswordPage() {
@@ -123,15 +123,15 @@ function ForgotPasswordPage() {
     e.preventDefault();
     clearMessages();
     const errs = {};
-    if (!password) errs.password = 'Kata sandi baru wajib diisi.';
-    if (!confirm) errs.confirm = 'Konfirmasi kata sandi wajib diisi.';
-    else if (password !== confirm) errs.confirm = 'Konfirmasi kata sandi tidak cocok.';
+    if (!password) errs.password = 'Password baru wajib diisi.';
+    if (!confirm) errs.confirm = 'Konfirmasi password wajib diisi.';
+    else if (password !== confirm) errs.confirm = 'Konfirmasi password tidak cocok.';
     setFieldErr(errs);
     if (Object.keys(errs).length) { document.getElementById(errs.password ? 'password' : 'confirm')?.focus(); return; }
     setLoading(true);
     try {
       const data = await resetPassword(email, resetToken, password, confirm);
-      setSuccess(data?.message || 'Kata sandi berhasil diubah.');
+      setSuccess(data?.message || 'Password berhasil diubah.');
       setTimeout(() => { navigate('/', { replace: true }); }, 3000);
     } catch (err) {
       // Token kedaluwarsa/tidak valid: kembali ke awal untuk meminta OTP baru
@@ -233,10 +233,10 @@ function ForgotPasswordPage() {
 
         {step === 'password' && (
           <form className="login-card" onSubmit={submitPassword} aria-busy={loading} noValidate>
-            <label className="login-label" htmlFor="password">Kata Sandi Baru</label>
+            <label className="login-label" htmlFor="password">Password Baru</label>
             <div className={`login-field${fieldErr.password ? ' invalid' : ''}`}>
               <input className="login-input" id="password" type={showPassword ? 'text' : 'password'} placeholder="Min. 8 karakter, huruf besar/kecil, angka, simbol" value={password} onChange={(e) => { setPassword(e.target.value); clearField('password'); }} aria-invalid={!!fieldErr.password} autoFocus />
-              <button id="forgot-toggle-password" type="button" className="login-toggle" onClick={() => setShowPassword((v) => !v)} aria-label={showPassword ? 'Sembunyikan kata sandi' : 'Tampilkan kata sandi'}>
+              <button id="forgot-toggle-password" type="button" className="login-toggle" onClick={() => setShowPassword((v) => !v)} aria-label={showPassword ? 'Sembunyikan password' : 'Tampilkan password'}>
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z" />
                   <circle cx="12" cy="12" r="3" />
@@ -245,15 +245,15 @@ function ForgotPasswordPage() {
               </button>
             </div>
             {fieldErr.password && <p className="field-error" role="alert">{fieldErr.password}</p>}
-            <label className="login-label" htmlFor="confirm">Konfirmasi Kata Sandi</label>
+            <label className="login-label" htmlFor="confirm">Konfirmasi Password</label>
             <div className={`login-field${fieldErr.confirm ? ' invalid' : ''}`}>
-              <input className="login-input" id="confirm" type={showPassword ? 'text' : 'password'} placeholder="Ulangi kata sandi baru" value={confirm} onChange={(e) => { setConfirm(e.target.value); clearField('confirm'); }} aria-invalid={!!fieldErr.confirm} />
+              <input className="login-input" id="confirm" type={showPassword ? 'text' : 'password'} placeholder="Ulangi password baru" value={confirm} onChange={(e) => { setConfirm(e.target.value); clearField('confirm'); }} aria-invalid={!!fieldErr.confirm} />
             </div>
             {fieldErr.confirm && <p className="field-error" role="alert">{fieldErr.confirm}</p>}
             {error && <p className="login-error">{error}</p>}
             {success && <p className="login-success">{success}</p>}
             <button id="forgot-submit-password" type="submit" className={`login-submit${loading ? ' is-loading' : ''}`} disabled={loading || !!success}>
-              {loading ? <><span className="auth-spin" aria-hidden="true" /> Menyimpan...</> : 'Simpan Kata Sandi →'}
+              {loading ? <><span className="auth-spin" aria-hidden="true" /> Menyimpan...</> : 'Simpan Password →'}
             </button>
           </form>
         )}

@@ -42,7 +42,7 @@ function LoginPage() {
     const errs = {};
     if (!email.trim()) errs.email = 'Email wajib diisi.';
     else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) errs.email = 'Format email tidak valid (contoh: nama@email.com).';
-    if (!password) errs.password = 'Kata sandi wajib diisi.';
+    if (!password) errs.password = 'Password wajib diisi.';
     setFieldErr(errs);
     if (Object.keys(errs).length) {
       document.getElementById(errs.email ? 'email' : 'password')?.focus();
@@ -118,7 +118,7 @@ function LoginPage() {
           </div>
           {fieldErr.email && <p className="field-error" role="alert">{fieldErr.email}</p>}
 
-          <label className="login-label" htmlFor="password">Kata Sandi</label>
+          <label className="login-label" htmlFor="password">Password</label>
           <div className={`login-field${fieldErr.password ? ' invalid' : ''}`}>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <rect x="4" y="11" width="16" height="10" rx="2" />
@@ -128,7 +128,7 @@ function LoginPage() {
               className="login-input"
               id="password"
               type={showPassword ? 'text' : 'password'}
-              placeholder="Masukkan kata sandi"
+              placeholder="Masukkan password"
               value={password}
               onChange={(e) => { setPassword(e.target.value); if (fieldErr.password) setFieldErr((f) => ({ ...f, password: '' })); }}
               aria-invalid={!!fieldErr.password}
@@ -137,7 +137,7 @@ function LoginPage() {
               type="button"
               className="login-toggle"
               onClick={() => setShowPassword((v) => !v)}
-              aria-label={showPassword ? 'Sembunyikan kata sandi' : 'Tampilkan kata sandi'}
+              aria-label={showPassword ? 'Sembunyikan password' : 'Tampilkan password'}
             >
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z" />
@@ -149,7 +149,7 @@ function LoginPage() {
 
           {fieldErr.password && <p className="field-error" role="alert">{fieldErr.password}</p>}
 
-          <p className="login-forgot"><Link to="/lupa-password">Lupa kata sandi?</Link></p>
+          <p className="login-forgot"><Link to="/lupa-password">Lupa password?</Link></p>
 
           {error && <p className="login-error">{error}</p>}
 

@@ -1,5 +1,6 @@
 // src/api/konsumens.js
 import api from './axios';
+import { toMeta, MAX_PER_PAGE } from './pagination';
 
 // Konsumen / dokumen KTP (BE: /konsumens, butuh permission konsumens.*)
 // BE menyimpan status verifikasi per relasi penginput (tabel konsumen_mes), bukan di konsumen:
@@ -10,7 +11,7 @@ import api from './axios';
 // FE meratakan tiap konsumen_mes menjadi satu baris: id = id konsumen, konsumen_me_id = id yang dipakai untuk verifikasi,
 // lalu status, note, verified_by, fk_me, dan me diambil dari relasi tersebut.
 // status: 'pending' | 'diterima' | 'revisi' | 'ditolak' (kosong = semua)
-const PER_PAGE = 100;
+const PER_PAGE = MAX_PER_PAGE;
 export const PAGE_SIZE = 10; // baris per halaman di daftar konsumen
 
 const currentUserId = () => {
@@ -62,7 +63,7 @@ const fetchPage = async (all, page, search, perPage = PER_PAGE) => {
   const m = body.meta ?? {};
   return {
     rows: (body.data ?? []).flatMap((k) => flattenKonsumen(k, mode)),
-    meta: { page: m.current_page ?? 1, lastPage: m.last_page ?? 1, total: m.total ?? 0, perPage: m.per_page ?? perPage },
+    meta: toMeta(m, perPage),
   };
 };
 
@@ -117,7 +118,7 @@ export const verifyKonsumen = async (id, status, note) =>
 export const getKonsumenLogs = async (page = 1, search = '', logName = '') => {
   const body = (await api.get('/konsumens/logs', { params: { page, ...(search ? { search } : {}), ...(logName ? { log_name: logName } : {}) } })).data;
   const m = body.meta ?? {};
-  return { rows: body.data ?? [], meta: { page: m.current_page ?? 1, lastPage: m.last_page ?? 1, total: m.total ?? 0, perPage: m.per_page ?? 10 } };
+  return { rows: body.data ?? [], meta: toMeta(m) };
 };
 
 // Cari konsumen menurut NIK/nama (BE: POST /konsumens/check-nik, 12-16 karakter). Hasil: { isRegistered, list }

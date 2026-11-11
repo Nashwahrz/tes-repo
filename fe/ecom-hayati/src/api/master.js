@@ -1,6 +1,7 @@
 // src/api/master.js
 // Data master: agama, pekerjaan, dan wilayah
 import api from './axios';
+import { toMeta, MAX_PER_PAGE } from './pagination';
 
 // BE memakai nama kolom per tabel (agama_code, provinsi_name, fk_provinsi, dst.). Di FE data master tetap dipakai dengan bentuk seragam:
 // { kode, name, kode_provinsi | kode_kabupaten_kota | kode_kecamatan }. Penerjemahan dilakukan di sini, saat membaca dan saat mengirim.
@@ -39,7 +40,7 @@ export const getMasterOptions = (path, params = {}) => {
   const key = `${path}?${new URLSearchParams(params)}`;
   if (!optionCache.has(key)) {
     const load = async () => {
-      const page = async (n) => (await api.get(path, { params: { ...params, per_page: 100, page: n } })).data.data;
+      const page = async (n) => (await api.get(path, { params: { ...params, per_page: MAX_PER_PAGE, page: n } })).data.data;
       const first = await page(1);
       const rest = await Promise.all(Array.from({ length: Math.max((first.last_page ?? 1) - 1, 0) }, (_, i) => page(i + 2)));
       // Baris utuh dipertahankan: kolom induk (kode_provinsi, kode_kabupaten_kota, kode_kecamatan) dipakai untuk menyaring di FE
@@ -78,7 +79,7 @@ const searchCache = new Map();
 const searchByParent = async (path, search, parentKey, parentId, signal) => { // parentId: kode induk
   const key = `${path}|${search.toLowerCase()}|${parentId}`;
   if (searchCache.has(key)) return searchCache.get(key);
-  const page = async (n) => (await api.get(path, { params: { search, per_page: 100, page: n }, signal })).data.data;
+  const page = async (n) => (await api.get(path, { params: { search, per_page: MAX_PER_PAGE, page: n }, signal })).data.data;
   const first = await page(1);
   const last = Math.min(first.last_page ?? 1, SEARCH_MAX_PAGES);
   let rows = (first.data ?? []).map((r) => fromBe(path, r));
@@ -104,7 +105,7 @@ const listByParent = (path, parentKey, parentKode) => {
   const key = `${path}|${parentKey}|${parentKode}`;
   if (!parentCache.has(key)) {
     const load = async () => {
-      const page = async (n) => (await api.get(path, { params: { search: parentKode, per_page: 100, page: n } })).data.data;
+      const page = async (n) => (await api.get(path, { params: { search: parentKode, per_page: MAX_PER_PAGE, page: n } })).data.data;
       const first = await page(1);
       const last = Math.min(first.last_page ?? 1, PARENT_MAX_PAGES);
       const rest = await Promise.all(Array.from({ length: Math.max(last - 1, 0) }, (_, i) => page(i + 2)));
@@ -147,7 +148,7 @@ export const getMasterById = (path, id) => {
 // Endpoint /aktif dicoba lebih dulu (izin lihat-aktif); data yang sudah dinonaktifkan hanya ada di endpoint penuh (izin lihat, bila role punya).
 const byKodeCache = new Map();
 const findKode = async (path, kode) =>
-  (await api.get(path, { params: { search: kode, per_page: 100 } })).data.data.data?.map((r) => fromBe(path, r)).find((d) => String(d.kode) === String(kode)) ?? null;
+  (await api.get(path, { params: { search: kode, per_page: MAX_PER_PAGE } })).data.data.data?.map((r) => fromBe(path, r)).find((d) => String(d.kode) === String(kode)) ?? null;
 export const getMasterByKode = (path, kode) => {
   if (!kode) return Promise.resolve(null);
   const base = path.replace(/\/aktif$/, '');
@@ -165,7 +166,7 @@ export const getMasterByKode = (path, kode) => {
 // BE memaginasi 10 data per halaman: { data: { data: [...], current_page, last_page, total } }
 export const getMasterPage = async (path, page = 1, search = '') => {
   const p = (await api.get(path, { params: { page, ...(search ? { search } : {}) } })).data.data;
-  return { rows: (p.data ?? []).map((r) => fromBe(path, r)), meta: { page: p.current_page ?? 1, lastPage: p.last_page ?? 1, total: p.total ?? 0, perPage: p.per_page ?? 10 } };
+  return { rows: (p.data ?? []).map((r) => fromBe(path, r)), meta: toMeta(p) };
 };
 // Cari data master menurut nama (default 20 hasil pertama); dipakai memilih induk di form data master
 export const searchMaster = async (path, search, signal, perPage = 20) =>
@@ -207,8 +208,23 @@ export const setMasterStatus = async (path, id, status) => {
 export const importMaster = async (path, file) => {
   const body = new FormData();
   body.append('file', file);
-  const d = (await api.post(`${path}/import`, body)).data.data ?? {};
+  const d = (await api.post(`${path}/import`, body, { headers: { 'Content-Type': 'multipart/form-data' } })).data.data ?? {};
   dropOptionCache(path);
   byKodeCache.clear();
   return { ok: d.success_count ?? 0, failed: d.failed_count ?? 0, errors: d.errors ?? [] };
+};
+
+// Export Excel (BE: GET {path}/export, permission <menu>.lihat). Ikut ?search= bila ada; respons berupa file .xlsx yang langsung diunduh.
+export const exportMaster = async (path, { search = '', fallbackName = 'data_master' } = {}) => {
+  const res = await api.get(`${path}/export`, { params: search ? { search } : {}, responseType: 'blob' });
+  const name = /filename="?([^";]+)"?/i.exec(res.headers?.['content-disposition'] ?? '')?.[1] ?? `${fallbackName}.xlsx`;
+  const url = URL.createObjectURL(res.data);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = name;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  // Ditunda: mencabut URL langsung setelah click bisa membatalkan unduhan di Firefox/Safari
+  setTimeout(() => URL.revokeObjectURL(url), 10000);
 };
