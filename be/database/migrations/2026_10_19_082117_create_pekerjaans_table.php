@@ -13,8 +13,13 @@ return new class extends Migration
     {
         Schema::create('master.pekerjaans', function (Blueprint $table) {
             $table->id();
+           // $table->string('id_md');
             $table->string('pekerjaan_code')->unique();
             $table->string('pekerjaan_name');
+            $table->integer('sequence');
+            $table->string('type_header');
+            $table->string('sector_job');
+            $table->integer('id_parent');
             $table->boolean('status')->default(true);
             $table->timestamps();
         });

@@ -26,12 +26,17 @@ class PekerjaanSeeder extends Seeder
         foreach ($sheetRows as $i => $cols) {
             $kode    = $this->clean($cols[0] ?? '');
             $name    = rtrim($this->clean($cols[1] ?? ''), '.');
+            $status    = $this->clean($cols[2] ?? '');
+            $sequence    = $this->clean($cols[3] ?? '');
+            $type_header    = $this->clean($cols[4] ?? '');
+            $sector_job    = $this->clean($cols[5] ?? '');
+            $id_parent    = $this->clean($cols[6] ?? '');
 
             if ($kode === '' && $name === '') {
                 continue; 
             }
 
-            if ($i === 0 && in_array(strtolower($kode), ['id', 'kode'], true)) {
+            if (strtolower($kode) === 'id_md') {
                 continue;
             }
 
@@ -40,12 +45,22 @@ class PekerjaanSeeder extends Seeder
                 continue;
             }
 
+            foreach (['status' => $status, 'sequence' => $sequence, 'id_parent' => $id_parent] as $field => $val) {
+                if (! is_numeric($val)) {
+                    $this->command?->warn('Baris ' . ($i + 1) . " dilewati ({$field} tidak valid: '{$val}').");
+                    continue 2;
+                }
+            }
 
 
-         
             $rows[$kode] = [
                 'pekerjaan_code'                => $kode,
                 'pekerjaan_name'                => $name,
+                'sequence'                => $sequence,
+                'type_header'                => $type_header,
+                'sector_job'                => $sector_job,
+                'id_parent'                => $id_parent,
+                'status'                => $status,
                 'created_at'          => now(),
                 'updated_at'          => now(),
             ];
@@ -56,7 +71,7 @@ class PekerjaanSeeder extends Seeder
                 DB::table('master.pekerjaans')->upsert(
                     $chunk,
                     ['pekerjaan_code'],
-                    ['pekerjaan_name', 'updated_at']
+                    ['pekerjaan_name', 'sequence', 'type_header', 'sector_job', 'id_parent', 'status', 'updated_at']
                 );
             }
         });
