@@ -23,11 +23,11 @@ class PekerjaanController extends Controller
         private PaginateController $paginateController
     ) {}
 
-    public function index(Request $request)
+    public function indexAll(Request $request)
     {
         try {
             $perPage = $this->paginateController->getPerPage($request);
-            $pekerjaans = $this->pekerjaanRepository->paginate($perPage, $request->query('search'));
+            $pekerjaans = $this->pekerjaanRepository->paginateAll($perPage, $request->query('search'));
             return $this->pekerjaanResponse->list($pekerjaans);
         } catch (Throwable $e) {
             Log::error('Gagal mengambil data pekerjaan: ' . $e->getMessage(), [
@@ -36,27 +36,40 @@ class PekerjaanController extends Controller
             return $this->pekerjaanResponse->serverError();
         }
     }
-    public function indexAktif(Request $request)
+    // public function indexAktif(Request $request)
+    // {
+    //     try {
+    //         $perPage = $this->paginateController->getPerPage($request);
+    //         $pekerjaans = $this->pekerjaanRepository->paginateAktif($perPage, $request->query('search'));
+    //         return $this->pekerjaanResponse->list($pekerjaans);
+    //     } catch (Throwable $e) {
+    //         Log::error('Gagal mengambil data pekerjaan: ' . $e->getMessage(), [
+    //             'trace' => $e->getTraceAsString(),
+    //         ]);
+    //         return $this->pekerjaanResponse->serverError();
+    //     }
+    // }
+    // public function indexNonAktif(Request $request)
+    // {
+    //     try {
+    //         $perPage = $this->paginateController->getPerPage($request);
+    //         $pekerjaans = $this->pekerjaanRepository->paginateNonAktif($perPage, $request->query('search'));
+    //         return $this->pekerjaanResponse->list($pekerjaans);
+    //     } catch (Throwable $e) {
+    //         Log::error('Gagal mengambil data pekerjaan: ' . $e->getMessage(), [
+    //             'trace' => $e->getTraceAsString(),
+    //         ]);
+    //         return $this->pekerjaanResponse->serverError();
+    //     }
+    // }
+
+    public function index()
     {
         try {
-            $perPage = $this->paginateController->getPerPage($request);
-            $pekerjaans = $this->pekerjaanRepository->paginateAktif($perPage, $request->query('search'));
-            return $this->pekerjaanResponse->list($pekerjaans);
+            $data = $this->pekerjaanRepository->paginate();
+            return $this->pekerjaanResponse->list($data, 'Data opsi hierarki pekerjaan berhasil diambil.');
         } catch (Throwable $e) {
-            Log::error('Gagal mengambil data pekerjaan: ' . $e->getMessage(), [
-                'trace' => $e->getTraceAsString(),
-            ]);
-            return $this->pekerjaanResponse->serverError();
-        }
-    }
-    public function indexNonAktif(Request $request)
-    {
-        try {
-            $perPage = $this->paginateController->getPerPage($request);
-            $pekerjaans = $this->pekerjaanRepository->paginateNonAktif($perPage, $request->query('search'));
-            return $this->pekerjaanResponse->list($pekerjaans);
-        } catch (Throwable $e) {
-            Log::error('Gagal mengambil data pekerjaan: ' . $e->getMessage(), [
+            Log::error('Gagal mengambil tree opsi pekerjaan: ' . $e->getMessage(), [
                 'trace' => $e->getTraceAsString(),
             ]);
             return $this->pekerjaanResponse->serverError();
@@ -127,7 +140,7 @@ class PekerjaanController extends Controller
                 return $this->pekerjaanResponse->notFound();
             }
 
-            $updatedPekerjaan = $this->pekerjaanRepository->update($pekerjaan, $request->only('name'));
+            $updatedPekerjaan = $this->pekerjaanRepository->update($pekerjaan, $request->validated());
 
             return $this->pekerjaanResponse->success($updatedPekerjaan, 'Pekerjaan berhasil diperbarui.');
         } catch (UniqueConstraintViolationException $e) {
