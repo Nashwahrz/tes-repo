@@ -16,13 +16,14 @@ class ConfigurasiRateLimitController extends Controller
 {
     public function __construct(
         private ConfigurasiRateLimitRepository $configurasiRateLimitRepository,
-        private ConfigurasiRateLimitResponse $configurasiRateLimitResponse
+        private ConfigurasiRateLimitResponse $configurasiRateLimitResponse,
+        private PaginateController $paginateController
     ) {}
 
     public function index(Request $request)
     {
         try {
-            $perPage = min(max((int) $request->query('per_page', 10), 1), 100);
+            $perPage = $this->paginateController->getPerPage($request);
             $configurasiRateLimits = $this->configurasiRateLimitRepository->paginate($perPage, $request->query('search'));
             return $this->configurasiRateLimitResponse->list($configurasiRateLimits);
         } catch (Throwable $e) {
@@ -91,7 +92,7 @@ class ConfigurasiRateLimitController extends Controller
     public function logs(Request $request)
     {
         try {
-            $perPage = min(max((int) $request->query('per_page', 10), 1), 100);
+            $perPage = $this->paginateController->getPerPage($request);
 
             return ActivityLogResource::collection(
                 $this->configurasiRateLimitRepository->getAllLogs($perPage, $request->query('search'))

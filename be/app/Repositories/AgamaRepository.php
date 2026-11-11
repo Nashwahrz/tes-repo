@@ -2,6 +2,7 @@
 
 namespace App\Repositories;
 
+use App\Enums\StatusMasterData;
 use App\Http\Requests\AgamaRequest;
 use App\Models\Agama;
 use Illuminate\Database\Eloquent\Collection;
@@ -199,7 +200,7 @@ class AgamaRepository
             $sheet->setCellValue("A{$rowNumber}", $i + 1);
             $sheet->setCellValueExplicit("B{$rowNumber}", (string) $agama->agama_code, \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING);
             $sheet->setCellValue("C{$rowNumber}", $agama->agama_name);
-            $sheet->setCellValue("D{$rowNumber}", $agama->status ? 'Aktif' : 'Non-Aktif');
+            $sheet->setCellValue("D{$rowNumber}", StatusMasterData::labelFromBoolean($agama->status));
             $rowNumber++;
         }
 

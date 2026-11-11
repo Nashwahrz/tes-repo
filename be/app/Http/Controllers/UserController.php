@@ -19,7 +19,8 @@ class UserController extends Controller
 {
     public function __construct(
         private UserRepository $userRepository,
-        private UserResponse $userResponse
+        private UserResponse $userResponse,
+        private PaginateController $paginateController
     ) {}
 
 
@@ -164,7 +165,7 @@ class UserController extends Controller
     public function logs(Request $request)
     {
         try {
-            $perPage = min(max((int) $request->query('per_page', 10), 1), 100);
+            $perPage = $this->paginateController->getPerPage($request);
 
             return ActivityLogResource::collection(
                 $this->userRepository->getAllLogs($perPage, $request->query('search'))

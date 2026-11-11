@@ -14,7 +14,8 @@ class RolePermissionController extends Controller
 {
     public function __construct(
         private RolePermissionRepository $rolePermissionRepository,
-        private RolePermissionResponse $rolePermissionResponse
+        private RolePermissionResponse $rolePermissionResponse,
+        private PaginateController $paginateController
     ) {}
 
    
@@ -125,7 +126,7 @@ class RolePermissionController extends Controller
     public function logPermissions(Request $request)
     {
         try {
-            $perPage = min(max((int) $request->query('per_page', 10), 1), 100);
+            $perPage = $this->paginateController->getPerPage($request);
 
             return ActivityLogResource::collection(
                 $this->rolePermissionRepository->getAllPermissionLogs($perPage, $request->query('search'))
@@ -138,7 +139,7 @@ class RolePermissionController extends Controller
     public function logPermissionRoles(Request $request)
     {
         try {
-            $perPage = min(max((int) $request->query('per_page', 10), 1), 100);
+            $perPage = $this->paginateController->getPerPage($request);
 
             return ActivityLogResource::collection(
                 $this->rolePermissionRepository->getAllPermissionRoleLogs($perPage, $request->query('search'))

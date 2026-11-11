@@ -19,13 +19,14 @@ class KelurahanController extends Controller
     public function __construct(
         private KelurahanRepository $kelurahanRepository,
         private KelurahanResponse $kelurahanResponse,
-        private ImportResponse $importResponse
+        private ImportResponse $importResponse,
+        private PaginateController $paginateController
     ) {}
 
     public function index(Request $request)
     {
         try {
-            $perPage = min(max((int) $request->query('per_page', 10), 1), 100);
+            $perPage = $this->paginateController->getPerPage($request);
             $kelurahans = $this->kelurahanRepository->paginate($perPage, $request->query('search'));
             return $this->kelurahanResponse->list($kelurahans);
         } catch (Throwable $e) {
@@ -38,7 +39,7 @@ class KelurahanController extends Controller
     public function indexAktif(Request $request)
     {
         try {
-            $perPage = min(max((int) $request->query('per_page', 10), 1), 100);
+            $perPage = $this->paginateController->getPerPage($request);
             $kelurahans = $this->kelurahanRepository->paginateAktif($perPage, $request->query('search'));
             return $this->kelurahanResponse->list($kelurahans);
         } catch (Throwable $e) {
@@ -51,7 +52,7 @@ class KelurahanController extends Controller
     public function indexNonAktif(Request $request)
     {
         try {
-            $perPage = min(max((int) $request->query('per_page', 10), 1), 100);
+            $perPage = $this->paginateController->getPerPage($request);
             $kelurahans = $this->kelurahanRepository->paginateNonAktif($perPage, $request->query('search'));
             return $this->kelurahanResponse->list($kelurahans);
         } catch (Throwable $e) {
@@ -162,7 +163,7 @@ class KelurahanController extends Controller
     public function logs(Request $request)
     {
         try {
-            $perPage = min(max((int) $request->query('per_page', 10), 1), 100);
+            $perPage = $this->paginateController->getPerPage($request);
 
             return ActivityLogResource::collection(
                 $this->kelurahanRepository->getAllLogs($perPage, $request->query('search'))

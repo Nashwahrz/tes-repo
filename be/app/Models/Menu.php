@@ -33,7 +33,7 @@ class Menu extends Model
 
     public function roles()
     {
-        return $this->belongsToMany(Role::class, 'hak_akses.menu_roles', 'fk_menu', 'fk_role')->withTimestamps();
+        return $this->belongsToMany(Role::class, (new MenuRole())->getTable(), 'fk_menu', 'fk_role')->withTimestamps();
     }
 
     public function menuRoles()

@@ -2,6 +2,7 @@
 
 namespace App\Repositories;
 
+use App\Enums\StatusMasterData;
 use App\Http\Requests\KelurahanRequest;
 use App\Models\Kelurahan;
 use Illuminate\Database\Eloquent\Collection;
@@ -199,7 +200,7 @@ class KelurahanRepository
             $sheet->setCellValue("C{$rowNumber}", $kelurahan->kelurahan_name);
             $sheet->setCellValue("D{$rowNumber}", $kelurahan->fk_kecamatan);
             $sheet->setCellValue("E{$rowNumber}", $kelurahan->kecamatan->kecamatan_name);
-            $sheet->setCellValue("F{$rowNumber}", $kelurahan->status ? 'Aktif' : 'Non-Aktif');
+            $sheet->setCellValue("F{$rowNumber}", StatusMasterData::labelFromBoolean($kelurahan->status));
             $rowNumber++;
         }
 

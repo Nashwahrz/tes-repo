@@ -19,13 +19,14 @@ class PekerjaanController extends Controller
     public function __construct(
         private PekerjaanRepository $pekerjaanRepository,
         private PekerjaanResponse $pekerjaanResponse,
-        private ImportResponse $importResponse
+        private ImportResponse $importResponse,
+        private PaginateController $paginateController
     ) {}
 
     public function index(Request $request)
     {
         try {
-            $perPage = min(max((int) $request->query('per_page', 10), 1), 100);
+            $perPage = $this->paginateController->getPerPage($request);
             $pekerjaans = $this->pekerjaanRepository->paginate($perPage, $request->query('search'));
             return $this->pekerjaanResponse->list($pekerjaans);
         } catch (Throwable $e) {
@@ -38,7 +39,7 @@ class PekerjaanController extends Controller
     public function indexAktif(Request $request)
     {
         try {
-            $perPage = min(max((int) $request->query('per_page', 10), 1), 100);
+            $perPage = $this->paginateController->getPerPage($request);
             $pekerjaans = $this->pekerjaanRepository->paginateAktif($perPage, $request->query('search'));
             return $this->pekerjaanResponse->list($pekerjaans);
         } catch (Throwable $e) {
@@ -51,7 +52,7 @@ class PekerjaanController extends Controller
     public function indexNonAktif(Request $request)
     {
         try {
-            $perPage = min(max((int) $request->query('per_page', 10), 1), 100);
+            $perPage = $this->paginateController->getPerPage($request);
             $pekerjaans = $this->pekerjaanRepository->paginateNonAktif($perPage, $request->query('search'));
             return $this->pekerjaanResponse->list($pekerjaans);
         } catch (Throwable $e) {
@@ -161,7 +162,7 @@ class PekerjaanController extends Controller
     public function logs(Request $request)
     {
         try {
-            $perPage = min(max((int) $request->query('per_page', 10), 1), 100);
+            $perPage = $this->paginateController->getPerPage($request);
 
             return ActivityLogResource::collection(
                 $this->pekerjaanRepository->getAllLogs($perPage, $request->query('search'))

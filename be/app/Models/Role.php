@@ -25,7 +25,7 @@ class Role extends Model
 
     public function menus()
     {
-        return $this->belongsToMany(Menu::class, 'hak_akses.menu_roles', 'fk_role', 'fk_menu')->withTimestamps();
+        return $this->belongsToMany(Menu::class, (new MenuRole())->getTable(), 'fk_role', 'fk_menu')->withTimestamps();
     }
 
     public function roleMenus()
@@ -35,7 +35,7 @@ class Role extends Model
 
     public function permissions()
     {
-        return $this->belongsToMany(Permission::class, 'hak_akses.permission_roles', 'fk_role', 'fk_permission')->withTimestamps();
+        return $this->belongsToMany(Permission::class, (new PermissionRole())->getTable(), 'fk_role', 'fk_permission')->withTimestamps();
     }
 
     public function permissionRoles()

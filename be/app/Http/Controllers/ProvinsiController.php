@@ -20,13 +20,14 @@ class ProvinsiController extends Controller
     public function __construct(
         private ProvinsiRepository $provinsiRepository,
         private ProvinsiResponse $provinsiResponse,
-        private ImportResponse $importResponse
+        private ImportResponse $importResponse,
+        private PaginateController $paginateController
     ) {}
 
     public function index(Request $request)
     {
         try {
-            $perPage = min(max((int) $request->query('per_page', 10), 1), 100);
+            $perPage = $this->paginateController->getPerPage($request);
             $provinsis = $this->provinsiRepository->paginate($perPage, $request->query('search'));
             return $this->provinsiResponse->list($provinsis);
         } catch (Throwable $e) {
@@ -39,7 +40,7 @@ class ProvinsiController extends Controller
     public function indexAktif(Request $request)
     {
         try {
-            $perPage = min(max((int) $request->query('per_page', 10), 1), 100);
+            $perPage = $this->paginateController->getPerPage($request);
             $provinsis = $this->provinsiRepository->paginateAktif($perPage, $request->query('search'));
             return $this->provinsiResponse->list($provinsis);
         } catch (Throwable $e) {
@@ -52,7 +53,7 @@ class ProvinsiController extends Controller
     public function indexNonAktif(Request $request)
     {
         try {
-            $perPage = min(max((int) $request->query('per_page', 10), 1), 100);
+            $perPage = $this->paginateController->getPerPage($request);
             $provinsis = $this->provinsiRepository->paginateNonAktif($perPage, $request->query('search'));
             return $this->provinsiResponse->list($provinsis);
         } catch (Throwable $e) {

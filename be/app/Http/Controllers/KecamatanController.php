@@ -20,13 +20,14 @@ class KecamatanController extends Controller
     public function __construct(
         private KecamatanRepository $kecamatanRepository,
         private KecamatanResponse $kecamatanResponse,
-        private ImportResponse $importResponse
+        private ImportResponse $importResponse,
+        private PaginateController $paginateController
     ) {}
 
     public function index(Request $request)
     {
         try {
-            $perPage = min(max((int) $request->query('per_page', 10), 1), 100);
+            $perPage = $this->paginateController->getPerPage($request);
             $kecamatans = $this->kecamatanRepository->paginate($perPage, $request->query('search'));
             return $this->kecamatanResponse->list($kecamatans);
         } catch (Throwable $e) {
@@ -39,7 +40,7 @@ class KecamatanController extends Controller
     public function indexAktif(Request $request)
     {
         try {
-            $perPage = min(max((int) $request->query('per_page', 10), 1), 100);
+            $perPage = $this->paginateController->getPerPage($request);
             $kecamatans = $this->kecamatanRepository->paginateAktif($perPage, $request->query('search'));
             return $this->kecamatanResponse->list($kecamatans);
         } catch (Throwable $e) {
@@ -52,7 +53,7 @@ class KecamatanController extends Controller
     public function indexNonAktif(Request $request)
     {
         try {
-            $perPage = min(max((int) $request->query('per_page', 10), 1), 100);
+            $perPage = $this->paginateController->getPerPage($request);
             $kecamatans = $this->kecamatanRepository->paginateNonAktif($perPage, $request->query('search'));
             return $this->kecamatanResponse->list($kecamatans);
         } catch (Throwable $e) {
@@ -163,7 +164,7 @@ class KecamatanController extends Controller
     public function logs(Request $request)
     {
         try {
-            $perPage = min(max((int) $request->query('per_page', 10), 1), 100);
+            $perPage = $this->paginateController->getPerPage($request);
 
             return ActivityLogResource::collection(
                 $this->kecamatanRepository->getAllLogs($perPage, $request->query('search'))

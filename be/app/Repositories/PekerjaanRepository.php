@@ -2,6 +2,7 @@
 
 namespace App\Repositories;
 
+use App\Enums\StatusMasterData;
 use App\Http\Requests\PekerjaanRequest;
 use App\Models\Pekerjaan;
 use Illuminate\Database\Eloquent\Collection;
@@ -193,7 +194,7 @@ class PekerjaanRepository
             $sheet->setCellValue("A{$rowNumber}", $i + 1);
             $sheet->setCellValueExplicit("B{$rowNumber}", (string) $pekerjaan->pekerjaan_code, \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING);
             $sheet->setCellValue("C{$rowNumber}", $pekerjaan->pekerjaan_name);
-            $sheet->setCellValue("D{$rowNumber}", $pekerjaan->status ? 'Aktif' : 'Non-Aktif');
+            $sheet->setCellValue("D{$rowNumber}", StatusMasterData::labelFromBoolean($pekerjaan->status));
             $rowNumber++;
         }
 

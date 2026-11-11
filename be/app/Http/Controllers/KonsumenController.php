@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Enums\StatusKonsumen;
+use App\Enums\StoragePath;
 use App\Enums\TypeTempKonsumen;
 use App\Http\Requests\ActiveKonsumenRequest;
 use App\Http\Requests\CheckNikRequest;
@@ -32,13 +33,14 @@ class KonsumenController extends Controller
         private KonsumenResponse $konsumenResponse,
         private TempKonsumenResponse $tempKonsumenResponse,
         private KonsumenMeResponse $konsumenMeResponse,
-        private KtpOcrService $ktpOcrService
+        private KtpOcrService $ktpOcrService,
+        private PaginateController $paginateController
     ) {}
 
     public function index(Request $request)
     {
         try {
-            $perPage = min(max((int) $request->query('per_page', 10), 1), 100);
+            $perPage = $this->paginateController->getPerPage($request);
             $konsumens = $this->konsumenRepository->paginate(
                 $perPage,
                 $request->query('search'),
@@ -56,7 +58,7 @@ class KonsumenController extends Controller
     public function indexAll(Request $request)
     {
         try {
-            $perPage = min(max((int) $request->query('per_page', 10), 1), 100);
+            $perPage = $this->paginateController->getPerPage($request);
             $konsumens = $this->konsumenRepository->paginateAll(
                 $perPage,
                 $request->query('search')
@@ -74,13 +76,15 @@ class KonsumenController extends Controller
     {
         try {
             $user = $request->user();
+            $perPage = $this->paginateController->getPerPage($request);
+
             if (!$user->fk_dealer) {
                 return $this->konsumenResponse->paginated(
-                    Konsumen::whereRaw('1 = 0')->paginate(10)
+                    Konsumen::empty()->paginate($perPage)
                 );
             }
             $konsumens = $this->konsumenRepository->paginateDealerAll(
-                perPage: min(max((int) $request->query('per_page', 10), 1), 100),
+                perPage: $perPage,
                 search: $request->query('search'),
                 userId: null,
                 dealerId: $user->fk_dealer
@@ -100,7 +104,7 @@ class KonsumenController extends Controller
                 ? StatusKonsumen::tryFrom($request->query('status'))
                 : null;
 
-            $perPage = min(max((int) $request->query('per_page', 10), 1), 100);
+            $perPage = $this->paginateController->getPerPage($request);
 
             $konsumens = $this->tempKonsumenRepository->getStatus(
                 status: $status,
@@ -181,7 +185,11 @@ class KonsumenController extends Controller
             if ($hasNewPhoto) {
                 $file     = $request->file('foto_ktp');
                 $filename = 'ktp_' . date('Ymd_His') . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
-                $path     = $file->storeAs('ktp', $filename, 'local');
+                $path     = $file->storeAs(
+                    StoragePath::Ktp->value,
+                    $filename,
+                    StoragePath::Ktp->disk()->value
+                );
                 $data['foto_ktp'] = $path;
             } elseif (empty($data['foto_ktp'])) {
                 unset($data['foto_ktp']);
@@ -231,7 +239,11 @@ class KonsumenController extends Controller
             if ($request->hasFile('foto_ktp')) {
                 $file = $request->file('foto_ktp');
                 $filename = 'ktp_' . date('Ymd_His') . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
-                $path = $file->storeAs('ktp', $filename, 'local');
+                $path = $file->storeAs(
+                    StoragePath::Ktp->value,
+                    $filename,
+                    StoragePath::Ktp->disk()->value
+                );
                 $data['foto_ktp'] = $path;
             } elseif (empty($data['foto_ktp'])) {
                 unset($data['foto_ktp']);
@@ -369,8 +381,10 @@ class KonsumenController extends Controller
             abort(404, 'Foto KTP tidak ditemukan.');
         }
 
-        if (Storage::disk('local')->exists($konsumen->foto_ktp)) {
-            $filePath = Storage::disk('local')->path($konsumen->foto_ktp);
+        $storage = StoragePath::Ktp->filesystem();
+
+        if ($storage->exists($konsumen->foto_ktp)) {
+            $filePath = $storage->path($konsumen->foto_ktp);
             return response()->file($filePath);
         }
 
@@ -380,7 +394,7 @@ class KonsumenController extends Controller
     public function logs(Request $request)
     {
         try {
-            $perPage = min(max((int) $request->query('per_page', 10), 1), 100);
+            $perPage = $this->paginateController->getPerPage($request);
 
             return ActivityLogResource::collection(
                 $this->tempKonsumenRepository->getAllLogs($perPage, $request->query('search'))

@@ -14,7 +14,8 @@ class RoleMenuController extends Controller
 {
     public function __construct(
         private RoleMenuRepository $roleMenuRepository,
-        private RoleMenuResponse $roleMenuResponse
+        private RoleMenuResponse $roleMenuResponse,
+        private PaginateController $paginateController
     ) {}
 
     /**
@@ -136,7 +137,7 @@ class RoleMenuController extends Controller
     public function logMenus(Request $request)
     {
         try {
-            $perPage = min(max((int) $request->query('per_page', 10), 1), 100);
+            $perPage = $this->paginateController->getPerPage($request);
 
             return ActivityLogResource::collection(
                 $this->roleMenuRepository->getAllMenuLogs($perPage, $request->query('search'))
@@ -149,7 +150,7 @@ class RoleMenuController extends Controller
     public function logMenuRoles(Request $request)
     {
         try {
-            $perPage = min(max((int) $request->query('per_page', 10), 1), 100);
+            $perPage = $this->paginateController->getPerPage($request);
 
             return ActivityLogResource::collection(
                 $this->roleMenuRepository->getAllMenuRoleLogs($perPage, $request->query('search'))

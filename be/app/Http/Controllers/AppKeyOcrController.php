@@ -14,7 +14,8 @@ class AppKeyOcrController extends Controller
 {
     public function __construct(
         private AppKeyOcrRepository $appKeyOcrRepository,
-        private AppKeyOcrResponse $appKeyOcrResponse
+        private AppKeyOcrResponse $appKeyOcrResponse,
+        private PaginateController $paginateController
     ) {}
 
     public function index()
@@ -68,7 +69,7 @@ class AppKeyOcrController extends Controller
     public function logs(Request $request)
     {
         try {
-            $perPage = min(max((int) $request->query('per_page', 10), 1), 100);
+            $perPage = $this->paginateController->getPerPage($request);
 
             return ActivityLogResource::collection(
                 $this->appKeyOcrRepository->getAllLogs($perPage, $request->query('search'))

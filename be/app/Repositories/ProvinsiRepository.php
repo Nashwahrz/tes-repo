@@ -2,6 +2,7 @@
 
 namespace App\Repositories;
 
+use App\Enums\StatusMasterData;
 use App\Http\Requests\ProvinsiRequest;
 use App\Models\Provinsi;
 use Illuminate\Database\Eloquent\Collection;
@@ -193,7 +194,7 @@ class ProvinsiRepository
             $sheet->setCellValue("A{$rowNumber}", $i + 1);
             $sheet->setCellValueExplicit("B{$rowNumber}", (string) $provinsi->provinsi_code, \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING);
             $sheet->setCellValue("C{$rowNumber}", $provinsi->provinsi_name);
-            $sheet->setCellValue("D{$rowNumber}", $provinsi->status ? 'Aktif' : 'Non-Aktif');
+            $sheet->setCellValue("D{$rowNumber}", StatusMasterData::labelFromBoolean($provinsi->status));
             $rowNumber++;
         }
 

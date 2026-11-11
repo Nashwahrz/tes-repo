@@ -2,6 +2,7 @@
 
 namespace App\Repositories;
 
+use App\Enums\StatusLogBlockedUser;
 use App\Models\LogBlockedUser;
 use Illuminate\Pagination\LengthAwarePaginator;
 
@@ -11,8 +12,12 @@ class LogBlockedUserRepository
         int $perPage = 10,
         ?string $search = null,
         ?string $type = null,
-        ?string $status = null
+        StatusLogBlockedUser|string|null $status = null
     ): LengthAwarePaginator {
+        $statusEnum = $status instanceof StatusLogBlockedUser
+            ? $status
+            : StatusLogBlockedUser::tryFromQuery($status);
+
         return LogBlockedUser::query()
             ->with('unblocker')
             ->when($search, function ($q) use ($search) {
@@ -22,14 +27,12 @@ class LogBlockedUserRepository
                 });
             })
             ->when($type, fn ($q) => $q->where('type', $type))
-            ->when($status, function ($q) use ($status) {
-                if ($status === 'aktif' || $status === 'active') {
-                    $q->where('is_unblocked', false)->where('blocked_until', '>', now());
-                } elseif ($status === 'dibuka' || $status === 'unlocked') {
-                    $q->where('is_unblocked', true);
-                } elseif ($status === 'kedaluwarsa' || $status === 'expired') {
-                    $q->where('is_unblocked', false)->where('blocked_until', '<=', now());
-                }
+            ->when($statusEnum, function ($q) use ($statusEnum) {
+                match ($statusEnum) {
+                    StatusLogBlockedUser::Aktif       => $q->where('is_unblocked', false)->where('blocked_until', '>', now()),
+                    StatusLogBlockedUser::Dibuka      => $q->where('is_unblocked', true),
+                    StatusLogBlockedUser::Kedaluwarsa => $q->where('is_unblocked', false)->where('blocked_until', '<=', now()),
+                };
             })
             ->orderByDesc('id')
             ->paginate($perPage)
