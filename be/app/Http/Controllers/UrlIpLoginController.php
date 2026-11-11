@@ -14,7 +14,8 @@ class UrlIpLoginController extends Controller
 {
     public function __construct(
         private UrlIpLoginRepository $urlIpLoginRepository,
-        private UrlIpResponse $urlIpResponse
+        private UrlIpResponse $urlIpResponse,
+        private PaginateController $paginateController
     ) {}
 
     public function index()
@@ -68,7 +69,7 @@ class UrlIpLoginController extends Controller
     public function logPermissions(Request $request)
     {
         try {
-            $perPage = min(max((int) $request->query('per_page', 10), 1), 100);
+            $perPage = $this->paginateController->getPerPage($request);
 
             return ActivityLogResource::collection(
                 $this->urlIpLoginRepository->getAllLogs($perPage, $request->query('search'))

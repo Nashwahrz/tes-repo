@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\RateLimiterKey;
 use App\Http\Responses\LogBlockedUserResponse;
 use App\Repositories\LogBlockedUserRepository;
 use App\Services\LoginLogService;
@@ -16,13 +17,14 @@ class LogBlockedUserController extends Controller
     public function __construct(
         private LogBlockedUserRepository $logBlockedUserRepository,
         private LogBlockedUserResponse $response,
-        private LoginLogService $loginLogService
+        private LoginLogService $loginLogService,
+        private PaginateController $paginateController
     ) {}
 
     public function index(Request $request)
     {
         try {
-            $perPage = min(max((int) $request->query('per_page', 10), 1), 100);
+            $perPage = $this->paginateController->getPerPage($request);
             $search  = $request->query('search');
             $type    = $request->query('type');
             $status  = $request->query('status'); 
@@ -118,9 +120,8 @@ class LogBlockedUserController extends Controller
             $this->loginLogService->clearAttempts($ip, $normalizedEmail);
         }
 
-        $limiters = ['otp-send', 'otp-verify', 'login', 'scan-ktp'];
-
-        foreach ($limiters as $limiterName) {
+        foreach (RateLimiterKey::cases() as $limiter) {
+            $limiterName = $limiter->value;
             if ($ip) {
                 RateLimiter::clear(md5($limiterName . 'ip:' . $ip));
             }

@@ -14,7 +14,8 @@ class EmailSmtpController extends Controller
 {
     public function __construct(
         private EmailSmtpRepository $emailSmtpRepository,
-        private EmailSmtpResponse $emailSmtpResponse
+        private EmailSmtpResponse $emailSmtpResponse,
+        private PaginateController $paginateController
     ) {}
 
     public function index()
@@ -97,7 +98,7 @@ class EmailSmtpController extends Controller
     public function logs(Request $request)
     {
         try {
-            $perPage = min(max((int) $request->query('per_page', 10), 1), 100);
+            $perPage = $this->paginateController->getPerPage($request);
 
             return ActivityLogResource::collection(
                 $this->emailSmtpRepository->getAllLogs($perPage, $request->query('search'))

@@ -2,6 +2,7 @@
 
 namespace App\Repositories;
 
+use App\Enums\RoleEnum;
 use App\Enums\StatusUser;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Collection;
@@ -36,13 +37,13 @@ class UserRepository
     public function getAtasanOptions(Role $role, ?int $dealerId = null): Collection
     {
     
-        $roleName = $role->getAttribute('name');
+        $roleName = $role->role_name ?? $role->getAttribute('role_name') ?? $role->getAttribute('name');
 
         $targetRoles = match ($roleName) {
-            'Kasir' => ['ADH'],
-            'ME'    => ['Kacab'],
-            'ADH'   => ['Super Admin'],
-            'Kacab' => ['Super Admin'],
+            RoleEnum::Kasir->value => [RoleEnum::Adh->value],
+            RoleEnum::Me->value    => [RoleEnum::Kacab->value],
+            RoleEnum::Adh->value   => [RoleEnum::SuperAdmin->value],
+            RoleEnum::Kacab->value => [RoleEnum::SuperAdmin->value],
             default => [],
         };
 
@@ -50,13 +51,13 @@ class UserRepository
             return new Collection();
         }
 
-        $query = User::with(['role:id,name', 'dealer:id,name'])
+        $query = User::with(['role', 'dealer'])
             ->whereHas('role', function ($q) use ($targetRoles) {
-                $q->whereIn('name', $targetRoles);
+                $q->whereIn('role_name', $targetRoles);
             })
             ->where('status', StatusUser::Aktif);
 
-        if ($dealerId && !in_array('Super Admin', $targetRoles)) {
+        if ($dealerId && !in_array(RoleEnum::SuperAdmin->value, $targetRoles)) {
             $query->where('fk_dealer', $dealerId);
         }
 

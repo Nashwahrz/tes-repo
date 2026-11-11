@@ -15,12 +15,14 @@ class DealerController extends Controller
 {
     public function __construct(
         private DealerRepository $dealerRepository,
-        private DealerResponse $dealerResponse
+        private DealerResponse $dealerResponse,
+        private PaginateController $paginateController
     ) {}
 
     public function index(Request $request)
     {
-        try {$perPage = min(max((int) $request->query('per_page', 10), 1), 100);
+        try {
+            $perPage = $this->paginateController->getPerPage($request);
             $dealers = $this->dealerRepository->paginate($perPage, $request->query('search'));
             return $this->dealerResponse->list($dealers);
         } catch (Throwable $e) {
@@ -109,7 +111,7 @@ class DealerController extends Controller
     public function logs(Request $request)
     {
         try {
-            $perPage = min(max((int) $request->query('per_page', 10), 1), 100);
+            $perPage = $this->paginateController->getPerPage($request);
 
             return ActivityLogResource::collection(
                 $this->dealerRepository->getAllLogs($perPage, $request->query('search'))

@@ -19,13 +19,14 @@ class KabupatenKotaController extends Controller
     public function __construct(
         private KabupatenKotaRepository $kabupatenKotaRepository,
         private KabupatenKotaResponse $kabupatenKotaResponse,
-        private ImportResponse $importResponse
+        private ImportResponse $importResponse,
+        private PaginateController $paginateController
     ) {}
 
     public function index(Request $request)
     {
         try {
-            $perPage = min(max((int) $request->query('per_page', 10), 1), 100);
+            $perPage = $this->paginateController->getPerPage($request);
             $kabupatenKotas = $this->kabupatenKotaRepository->paginate($perPage, $request->query('search'));
             return $this->kabupatenKotaResponse->list($kabupatenKotas);
         } catch (Throwable $e) {
@@ -38,7 +39,7 @@ class KabupatenKotaController extends Controller
     public function indexAktif(Request $request)
     {
         try {
-            $perPage = min(max((int) $request->query('per_page', 10), 1), 100);
+            $perPage = $this->paginateController->getPerPage($request);
             $kabupatenKotas = $this->kabupatenKotaRepository->paginateAktif($perPage, $request->query('search'));
             return $this->kabupatenKotaResponse->list($kabupatenKotas);
         } catch (Throwable $e) {
@@ -51,7 +52,7 @@ class KabupatenKotaController extends Controller
     public function indexNonAktif(Request $request)
     {
         try {
-            $perPage = min(max((int) $request->query('per_page', 10), 1), 100);
+            $perPage = $this->paginateController->getPerPage($request);
             $kabupatenKotas = $this->kabupatenKotaRepository->paginateNonAktif($perPage, $request->query('search'));
             return $this->kabupatenKotaResponse->list($kabupatenKotas);
         } catch (Throwable $e) {
@@ -161,7 +162,7 @@ class KabupatenKotaController extends Controller
     public function logs(Request $request)
     {
         try {
-            $perPage = min(max((int) $request->query('per_page', 10), 1), 100);
+            $perPage = $this->paginateController->getPerPage($request);
 
             return ActivityLogResource::collection(
                 $this->kabupatenKotaRepository->getAllLogs($perPage, $request->query('search'))

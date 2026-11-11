@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\JenisKelamin;
+use App\Enums\SignedUrlLifetime;
 use App\Enums\StatusKonsumen;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
@@ -97,7 +98,7 @@ class Konsumen extends Model
 
             return URL::temporarySignedRoute(
                 'konsumens.foto-ktp',
-                now()->addMinutes(10),
+                now()->addMinutes(SignedUrlLifetime::FotoKtp->value),
                 ['id' => $this->getKey()],
                 false
             );
@@ -109,9 +110,14 @@ class Konsumen extends Model
         return $this->hasMany(KonsumenMe::class, 'fk_konsumen');
     }
 
+    public function scopeEmpty($query)
+    {
+        return $query->whereNull('id');
+    }
+
     public function mes()
     {
-        return $this->belongsToMany(User::class, 'konsumen_mes', 'fk_konsumen', 'fk_me');
+        return $this->belongsToMany(User::class, (new KonsumenMe())->getTable(), 'fk_konsumen', 'fk_me');
     }
 
     public function tempKonsumens()

@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\JenisKelamin;
+use App\Enums\SignedUrlLifetime;
 use App\Enums\StatusKonsumen;
 use App\Enums\TypeTempKonsumen;
 use Illuminate\Database\Eloquent\Casts\Attribute;
@@ -84,7 +85,7 @@ class TempKonsumen extends Model
 
             return URL::temporarySignedRoute(
                 'konsumens.foto-ktp',
-                now()->addMinutes(10),
+                now()->addMinutes(SignedUrlLifetime::FotoKtp->value),
                 ['id' => $this->getKey(), 'type' => 'temp'],
                 false
             );

@@ -17,7 +17,8 @@ class EmailWhiteListController extends Controller
 {
     public function __construct(
         private EmailWhitelistRepository $emailWhiteListRepository,
-        private EmailWhiteListResponse $emailWhiteListResponse
+        private EmailWhiteListResponse $emailWhiteListResponse,
+        private PaginateController $paginateController
     ) {}
 
     public function index()
@@ -109,7 +110,7 @@ class EmailWhiteListController extends Controller
     public function logs(Request $request)
     {
         try {
-            $perPage = min(max((int) $request->query('per_page', 10), 1), 100);
+            $perPage = $this->paginateController->getPerPage($request);
 
             return ActivityLogResource::collection(
                 $this->emailWhiteListRepository->getAllLogs($perPage, $request->query('search'))

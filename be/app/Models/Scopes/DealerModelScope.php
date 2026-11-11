@@ -2,6 +2,7 @@
 
 namespace App\Models\Scopes;
 
+use App\Enums\RoleEnum;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Scope;
@@ -18,10 +19,10 @@ class DealerModelScope implements Scope
             $user = Auth::user();
 
             $roleName = $user->relationLoaded('role')
-                ? $user->role?->name
-                : $user->role()->value('name');
+                ? $user->role?->role_name
+                : $user->role()->value('role_name');
 
-            if ($roleName !== 'Super Admin' && $user->fk_dealer) {
+            if ($roleName !== RoleEnum::SuperAdmin->value && $user->fk_dealer) {
                 $builder->where($model->getTable() . '.id', $user->fk_dealer);
             }
         }

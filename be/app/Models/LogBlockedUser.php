@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\StatusLogBlockedUser;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -55,16 +56,16 @@ class LogBlockedUser extends Model
         return max(0, (int) now()->diffInSeconds($this->blocked_until, false));
     }
 
-    public function getStatusAttribute(): string
+    public function getStatusAttribute(): StatusLogBlockedUser
     {
         if ($this->is_unblocked) {
-            return 'dibuka';
+            return StatusLogBlockedUser::Dibuka;
         }
 
         if ($this->is_active_blocked) {
-            return 'aktif';
+            return StatusLogBlockedUser::Aktif;
         }
 
-        return 'kedaluwarsa';
+        return StatusLogBlockedUser::Kedaluwarsa;
     }
 }

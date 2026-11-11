@@ -25,7 +25,7 @@ class Permission extends Model
 
     public function roles()
     {
-        return $this->belongsToMany(Role::class, 'hak_akses.permission_roles', 'fk_permission', 'fk_role')->withTimestamps();
+        return $this->belongsToMany(Role::class, (new PermissionRole())->getTable(), 'fk_permission', 'fk_role')->withTimestamps();
     }
 
     public function permissionRoles()

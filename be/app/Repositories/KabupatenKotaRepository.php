@@ -2,6 +2,7 @@
 
 namespace App\Repositories;
 
+use App\Enums\StatusMasterData;
 use App\Http\Requests\KabupatenKotaRequest;
 use App\Models\KabupatenKota;
 use Illuminate\Database\Eloquent\Collection;
@@ -200,7 +201,7 @@ class KabupatenKotaRepository
             $sheet->setCellValue("C{$rowNumber}", $kabupaten_kota->kabupaten_kota_name);
             $sheet->setCellValue("D{$rowNumber}", $kabupaten_kota->fk_provinsi);
             $sheet->setCellValue("E{$rowNumber}", $kabupaten_kota->provinsi->provinsi_name);
-            $sheet->setCellValue("F{$rowNumber}", $kabupaten_kota->status ? 'Aktif' : 'Non-Aktif');
+            $sheet->setCellValue("F{$rowNumber}", StatusMasterData::labelFromBoolean($kabupaten_kota->status));
             $rowNumber++;
         }
 

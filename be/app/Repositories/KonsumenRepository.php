@@ -2,6 +2,7 @@
 
 namespace App\Repositories;
 
+use App\Enums\SignedUrlLifetime;
 use App\Enums\StatusKonsumen;
 use App\Models\Konsumen;
 use App\Models\KonsumenMe;
@@ -15,6 +16,10 @@ use Spatie\Activitylog\Models\Activity;
 
 class KonsumenRepository
 {
+    public const SUMBER_TEMP = 'temp';
+    public const SUMBER_KONSUMEN = 'konsumen';
+    public const TYPE_TETAP = 'tetap';
+
     public function all(): Collection
     {
         return Konsumen::with(['konsumenMes.me'])->get();
@@ -82,9 +87,19 @@ class KonsumenRepository
         ?int $userId = null,
         ?int $dealerId = null
     ): LengthAwarePaginator {
-        $tempQuery = DB::table('temp.temp_konsumens as t')
-            ->leftJoin('users as u', 'u.id', '=', 't.fk_me')
-            ->leftJoin('users as v', 'v.id', '=', 't.verified_by')
+        $tempTable = (new TempKonsumen())->getTable();
+        $konsumenTable = (new Konsumen())->getTable();
+        $konsumenMeTable = (new KonsumenMe())->getTable();
+        $userTable = (new User())->getTable();
+
+        $statusDiterima = StatusKonsumen::Diterima->value;
+        $sumberTemp = self::SUMBER_TEMP;
+        $sumberKonsumen = self::SUMBER_KONSUMEN;
+        $typeTetap = self::TYPE_TETAP;
+
+        $tempQuery = DB::table("{$tempTable} as t")
+            ->leftJoin("{$userTable} as u", 'u.id', '=', 't.fk_me')
+            ->leftJoin("{$userTable} as v", 'v.id', '=', 't.verified_by')
             ->select([
                 't.id',
                 DB::raw('t.id as id_temp'),
@@ -119,7 +134,7 @@ class KonsumenRepository
                 't.verified_at',
                 't.created_at',
                 't.updated_at',
-                DB::raw("'temp' as sumber"),
+                DB::raw("'{$sumberTemp}' as sumber"),
                 'u.name as me_name',
                 'u.email as me_email',
                 'u.fk_dealer as me_fk_dealer',
@@ -129,15 +144,15 @@ class KonsumenRepository
             ->when($dealerId, fn ($q) => $q->where('u.fk_dealer', $dealerId))
             ->whereIn('t.status', [StatusKonsumen::Pending->value, StatusKonsumen::Revisi->value, StatusKonsumen::Ditolak->value]);
 
-        $konsumenQuery = DB::table('konsumens as k')
-            ->join('konsumen_mes as km', 'km.fk_konsumen', '=', 'k.id')
-            ->leftJoin('users as u', 'u.id', '=', 'km.fk_me')
+        $konsumenQuery = DB::table("{$konsumenTable} as k")
+            ->join("{$konsumenMeTable} as km", 'km.fk_konsumen', '=', 'k.id')
+            ->leftJoin("{$userTable} as u", 'u.id', '=', 'km.fk_me')
             ->select([
                 'k.id',
                 DB::raw('NULL::bigint as id_temp'),
                 DB::raw('k.id as fk_konsumen'),
                 'km.fk_me',
-                DB::raw("'tetap' as type"),
+                DB::raw("'{$typeTetap}' as type"),
                 'k.nik',
                 'k.konsumen_name',
                 'k.fk_temp_lahir',
@@ -160,13 +175,13 @@ class KonsumenRepository
                 'k.phone',
                 'k.email',
                 'k.foto_ktp',
-                DB::raw("'diterima' as status"),
+                DB::raw("'{$statusDiterima}' as status"),
                 DB::raw('NULL::text as note'),
                 DB::raw('NULL::bigint as verified_by'),
                 DB::raw('NULL::timestamp as verified_at'),
                 'k.created_at',
                 'k.updated_at',
-                DB::raw("'konsumen' as sumber"),
+                DB::raw("'{$sumberKonsumen}' as sumber"),
                 'u.name as me_name',
                 'u.email as me_email',
                 'u.fk_dealer as me_fk_dealer',
@@ -174,9 +189,9 @@ class KonsumenRepository
             ])
             ->when($userId, fn ($q) => $q->where('km.fk_me', $userId))
             ->when($dealerId, fn ($q) => $q->where('u.fk_dealer', $dealerId))
-            ->whereNotIn('k.id', function ($query) use ($userId) {
+            ->whereNotIn('k.id', function ($query) use ($userId, $tempTable) {
                 $query->select('fk_konsumen')
-                    ->from('temp.temp_konsumens')
+                    ->from($tempTable)
                     ->when($userId, fn ($q) => $q->where('fk_me', $userId))
                     ->whereNotNull('fk_konsumen')
                     ->whereIn('status', [StatusKonsumen::Pending->value, StatusKonsumen::Revisi->value]);
@@ -209,15 +224,15 @@ class KonsumenRepository
                 'name' => $item->verifikator_name,
             ] : null;
             $item->verifiedBy = $item->verified_by;
-            $isTemp = ($item->sumber ?? null) === 'temp' || !empty($item->id_temp);
+            $isTemp = ($item->sumber ?? null) === self::SUMBER_TEMP || !empty($item->id_temp);
             $routeParams = ['id' => $item->id];
             if ($isTemp) {
-                $routeParams['type'] = 'temp';
+                $routeParams['type'] = self::SUMBER_TEMP;
             }
 
             $item->foto_ktp_url = $item->foto_ktp ? URL::temporarySignedRoute(
                 'konsumens.foto-ktp',
-                now()->addMinutes(10),
+                now()->addMinutes(SignedUrlLifetime::FotoKtp->value),
                 $routeParams,
                 false
             ) : null;

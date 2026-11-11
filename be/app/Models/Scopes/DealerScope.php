@@ -2,6 +2,7 @@
 
 namespace App\Models\Scopes;
 
+use App\Enums\RoleEnum;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Scope;
@@ -22,7 +23,7 @@ class DealerScope implements Scope
                 : $user->role()->value('role_name');
 
 
-            if ($roleName !== 'Super Admin' && $user->fk_dealer) {
+            if ($roleName !== RoleEnum::SuperAdmin->value && $user->fk_dealer) {
                 $builder->where($model->getTable() . '.fk_dealer', $user->fk_dealer);
             }
         }
