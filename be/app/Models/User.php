@@ -5,16 +5,17 @@ namespace App\Models;
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use App\Enums\StatusUser;
 use App\Models\Scopes\DealerScope;
+use App\Observers\UserObserver;
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Attributes\ScopedBy;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
-use Spatie\Activitylog\LogOptions;
-use Spatie\Activitylog\Traits\LogsActivity;
 
 #[ScopedBy([DealerScope::class])]
+#[ObservedBy([UserObserver::class])]
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
@@ -25,17 +26,6 @@ class User extends Authenticatable
      *
      * @var list<string>
      */
-
-    use LogsActivity;
-
-    public function getActivitylogOptions(): LogOptions
-    {
-        return LogOptions::defaults()
-            ->useLogName('user')
-            ->logOnly(['name', 'email', 'status', 'fk_dealer', 'fk_atasan', 'fk_role'])
-            ->logOnlyDirty()
-            ->dontSubmitEmptyLogs();
-    }
     protected $fillable = [
         'name',
         'email',
@@ -94,6 +84,16 @@ class User extends Authenticatable
     public function logUsers()
     {
         return $this->hasMany(LogUser::class, 'fk_user');
+    }
+
+    public function activityLogs()
+    {
+        return $this->hasMany(LogActivityUser::class, 'fk_user')->latest('id');
+    }
+
+    public function actionsPerformed()
+    {
+        return $this->hasMany(LogActivityUser::class, 'fk_causer')->latest('id');
     }
 
     public function hasPermission(string $permission): bool

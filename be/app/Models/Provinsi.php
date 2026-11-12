@@ -8,16 +8,16 @@ use Spatie\Activitylog\Traits\LogsActivity;
 
 class Provinsi extends Model
 {
-    use LogsActivity;
+    // use LogsActivity;
     protected $table = 'master.provinsis';
-    public function getActivitylogOptions(): LogOptions
-    {
-        return LogOptions::defaults()
-            ->useLogName('provinsi')
-            ->logOnly(['provinsi_code', 'provinsi_name', 'status'])
-            ->logOnlyDirty()
-            ->dontSubmitEmptyLogs();
-    }
+    // public function getActivitylogOptions(): LogOptions
+    // {
+    //     return LogOptions::defaults()
+    //         ->useLogName('provinsi')
+    //         ->logOnly(['provinsi_code', 'provinsi_name', 'status'])
+    //         ->logOnlyDirty()
+    //         ->dontSubmitEmptyLogs();
+    // }
     protected $fillable = [
         'provinsi_code',
         'provinsi_name',

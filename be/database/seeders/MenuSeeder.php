@@ -36,6 +36,7 @@ class MenuSeeder extends Seeder
             ['menu_name' => 'Email Smtp',       'url' => 'email-smtps',         'sequence' => 20, 'status' => true],
             ['menu_name' => 'url ip login',       'url' => 'url-ip-logins',         'sequence' => 21, 'status' => true],
             ['menu_name' => 'app key ocr',       'url' => 'app-key-ocrs',         'sequence' => 22, 'status' => true],
+            ['menu_name' => 'Log OTP',       'url' => 'log-otps',         'sequence' => 23, 'status' => true],
             
         ];
          $menus = array_map(fn ($m) => $m + [

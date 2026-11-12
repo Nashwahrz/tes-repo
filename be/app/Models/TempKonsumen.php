@@ -14,42 +14,42 @@ use Spatie\Activitylog\Traits\LogsActivity;
 
 class TempKonsumen extends Model
 {
-    use LogsActivity;
+    // use LogsActivity;
 
     protected $table = 'temp.temp_konsumens';
 
-    protected $fillable = [
-        'fk_me',
-        'fk_konsumen',
-        'type',
-        'nik',
-        'konsumen_name',
-        'fk_temp_lahir',
-        'birth_date',
-        'gender',
-        'ktp_address',
-        'domicile_address',
-        'latitude',
-        'longitude',
-        'rt',
-        'rw',
-        'fk_kelurahan',
-        'fk_kecamatan',
-        'fk_kabupaten_kota',
-        'fk_provinsi',
-        'fk_agama',
-        'marital_status',
-        'fk_pekerjaan',
-        'nationality',
-        'phone',
-        'email',
-        'foto_ktp',
-        'status',
-        'note',
-        'old_data',
-        'verified_by',
-        'verified_at',
-    ];
+    // protected $fillable = [
+    //     'fk_me',
+    //     'fk_konsumen',
+    //     'type',
+    //     'nik',
+    //     'konsumen_name',
+    //     'fk_temp_lahir',
+    //     'birth_date',
+    //     'gender',
+    //     'ktp_address',
+    //     'domicile_address',
+    //     'latitude',
+    //     'longitude',
+    //     'rt',
+    //     'rw',
+    //     'fk_kelurahan',
+    //     'fk_kecamatan',
+    //     'fk_kabupaten_kota',
+    //     'fk_provinsi',
+    //     'fk_agama',
+    //     'marital_status',
+    //     'fk_pekerjaan',
+    //     'nationality',
+    //     'phone',
+    //     'email',
+    //     'foto_ktp',
+    //     'status',
+    //     'note',
+    //     'old_data',
+    //     'verified_by',
+    //     'verified_at',
+    // ];
 
     protected $appends = ['foto_ktp_url'];
 

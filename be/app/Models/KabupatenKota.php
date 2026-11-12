@@ -8,16 +8,16 @@ use Spatie\Activitylog\Traits\LogsActivity;
 
 class KabupatenKota extends Model
 {
-    use LogsActivity;
+    // use LogsActivity;
     protected $table = 'master.kabupaten_kotas';
-    public function getActivitylogOptions(): LogOptions
-    {
-        return LogOptions::defaults()
-            ->useLogName('kabupaten kota')
-            ->logOnly(['kabupaten_kota_code', 'kabupaten_kota_name', 'fk_provinsi', 'status'])
-            ->logOnlyDirty()
-            ->dontSubmitEmptyLogs();
-    }
+    // public function getActivitylogOptions(): LogOptions
+    // {
+    //     return LogOptions::defaults()
+    //         ->useLogName('kabupaten kota')
+    //         ->logOnly(['kabupaten_kota_code', 'kabupaten_kota_name', 'fk_provinsi', 'status'])
+    //         ->logOnlyDirty()
+    //         ->dontSubmitEmptyLogs();
+    // }
 
     protected $fillable = [
         'kabupaten_kota_code',

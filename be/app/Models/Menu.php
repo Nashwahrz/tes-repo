@@ -8,17 +8,17 @@ use Spatie\Activitylog\Traits\LogsActivity;
 
 class Menu extends Model
 {
-    use LogsActivity;
+    // use LogsActivity;
     
     protected $table = 'hak_akses.menus';
-    public function getActivitylogOptions(): LogOptions
-    {
-        return LogOptions::defaults()
-            ->useLogName('menu')
-            ->logOnly(['menu_name', 'url', 'sequence', 'status'])
-            ->logOnlyDirty()
-            ->dontSubmitEmptyLogs();
-    }
+    // public function getActivitylogOptions(): LogOptions
+    // {
+    //     return LogOptions::defaults()
+    //         ->useLogName('menu')
+    //         ->logOnly(['menu_name', 'url', 'sequence', 'status'])
+    //         ->logOnlyDirty()
+    //         ->dontSubmitEmptyLogs();
+    // }
     protected $fillable = [
         'menu_name',
         'url',

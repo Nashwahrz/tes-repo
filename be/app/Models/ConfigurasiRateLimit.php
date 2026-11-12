@@ -8,16 +8,16 @@ use Spatie\Activitylog\Traits\LogsActivity;
 
 class ConfigurasiRateLimit extends Model
 {
-    use LogsActivity;
+    // use LogsActivity;
     protected $table = 'setting.configurasi_rate_limits';
-    public function getActivitylogOptions(): LogOptions
-    {
-        return LogOptions::defaults()
-            ->useLogName('configurasi rate limit')
-            ->logOnly(['name', 'request_per_minutes', 'minutes', 'status'])
-            ->logOnlyDirty()
-            ->dontSubmitEmptyLogs();
-    }
+    // public function getActivitylogOptions(): LogOptions
+    // {
+    //     return LogOptions::defaults()
+    //         ->useLogName('configurasi rate limit')
+    //         ->logOnly(['name', 'request_per_minutes', 'minutes', 'status'])
+    //         ->logOnlyDirty()
+    //         ->dontSubmitEmptyLogs();
+    // }
     protected $fillable = [
         'name',
         'request_per_minutes',

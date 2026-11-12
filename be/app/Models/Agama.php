@@ -8,16 +8,16 @@ use Spatie\Activitylog\Traits\LogsActivity;
 
 class Agama extends Model
 {
-    use LogsActivity;
+    // use LogsActivity;
     protected $table = 'master.agamas';
-    public function getActivitylogOptions(): LogOptions
-    {
-        return LogOptions::defaults()
-            ->useLogName('agama')
-            ->logOnly(['agama_code', 'agama_name', 'status'])
-            ->logOnlyDirty()
-            ->dontSubmitEmptyLogs();
-    }
+    // public function getActivitylogOptions(): LogOptions
+    // {
+    //     return LogOptions::defaults()
+    //         ->useLogName('agama')
+    //         ->logOnly(['agama_code', 'agama_name', 'status'])
+    //         ->logOnlyDirty()
+    //         ->dontSubmitEmptyLogs();
+    // }
     protected $fillable = [
         'agama_code',
         'agama_name',

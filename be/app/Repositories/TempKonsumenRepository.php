@@ -131,7 +131,17 @@ class TempKonsumenRepository
                 }
             }
             if ($existingKonsumen && !$isDataChanged) {
-                KonsumenMe::firstOrCreate([
+                $alreadyInMe = KonsumenMe::where('fk_me', $userId)
+                    ->where('fk_konsumen', $existingKonsumen->id)
+                    ->exists();
+
+                if ($alreadyInMe) {
+                    throw \Illuminate\Validation\ValidationException::withMessages([
+                        'nik' => ['Konsumen dengan NIK ini sudah ada di daftar konsumen Anda.'],
+                    ]);
+                }
+
+                KonsumenMe::create([
                     'fk_me'       => $userId,
                     'fk_konsumen' => $existingKonsumen->id,
                 ]);

@@ -20,10 +20,10 @@ class KonsumenRepository
     public const SUMBER_KONSUMEN = 'konsumen';
     public const TYPE_TETAP = 'tetap';
 
-    public function all(): Collection
-    {
-        return Konsumen::with(['konsumenMes.me'])->get();
-    }
+    // public function all(): Collection
+    // {
+    //     return Konsumen::with(['konsumenMes.me'])->get();
+    // }
 
     public function findById(int $id): ?Konsumen
     {
@@ -46,16 +46,16 @@ class KonsumenRepository
             ->get();
     }
 
-    public function create(array $data): Konsumen
-    {
-        return Konsumen::create($data);
-    }
+    // public function create(array $data): Konsumen
+    // {
+    //     return Konsumen::create($data);
+    // }
 
-    public function update(Konsumen $konsumen, array $data): Konsumen
-    {
-        $konsumen->update($data);
-        return $konsumen->fresh(['konsumenMes.me']);
-    }
+    // public function update(Konsumen $konsumen, array $data): Konsumen
+    // {
+    //     $konsumen->update($data);
+    //     return $konsumen->fresh(['konsumenMes.me']);
+    // }
 
     public function delete(Konsumen $konsumen): bool
     {
@@ -243,21 +243,21 @@ class KonsumenRepository
         return $paginator;
     }
 
-    public function getAllLogs(int $perPage = 10, ?string $search = null): LengthAwarePaginator
-    {
-        $logs = Activity::query()
-            ->where('subject_type', Konsumen::class)
-            ->with(['causer:id,name', 'subject'])
-            ->when($search, function ($q) use ($search) {
-                $q->whereHasMorph('subject', [Konsumen::class], function ($q) use ($search) {
-                    $q->where('name', 'ILIKE', "%{$search}%")
-                      ->orWhere('nik', 'ILIKE', "%{$search}%");
-                });
-            })
-            ->latest()
-            ->paginate($perPage);
+    // public function getAllLogs(int $perPage = 10, ?string $search = null): LengthAwarePaginator
+    // {
+    //     $logs = Activity::query()
+    //         ->where('subject_type', Konsumen::class)
+    //         ->with(['causer:id,name', 'subject'])
+    //         ->when($search, function ($q) use ($search) {
+    //             $q->whereHasMorph('subject', [Konsumen::class], function ($q) use ($search) {
+    //                 $q->where('name', 'ILIKE', "%{$search}%")
+    //                   ->orWhere('nik', 'ILIKE', "%{$search}%");
+    //             });
+    //         })
+    //         ->latest()
+    //         ->paginate($perPage);
 
-        return $logs;
-    }
+    //     return $logs;
+    // }
     
 }

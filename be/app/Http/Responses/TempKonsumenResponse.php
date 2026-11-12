@@ -42,11 +42,13 @@ class TempKonsumenResponse
         ], 200);
     }
 
-    public function validationError(array $errors): JsonResponse
+    public function validationError(array $errors, ?string $message = null): JsonResponse
     {
+        $firstError = collect($errors)->flatten()->first();
+
         return response()->json([
             'success' => false,
-            'message' => 'Data yang dikirim tidak valid.',
+            'message' => $message ?? $firstError ?? 'Data yang dikirim tidak valid.',
             'errors'  => $errors,
         ], 422);
     }
