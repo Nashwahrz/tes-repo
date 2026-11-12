@@ -8,15 +8,15 @@ use Spatie\Activitylog\Traits\LogsActivity;
 
 class KonsumenMe extends Model
 {
-    use LogsActivity;
-    public function getActivitylogOptions(): LogOptions
-    {
-        return LogOptions::defaults()
-            ->useLogName('konsumen me')
-            ->logOnly(['fk_me', 'fk_konsumen'])
-            ->logOnlyDirty()
-            ->dontSubmitEmptyLogs();
-    }
+    // use LogsActivity;
+    // public function getActivitylogOptions(): LogOptions
+    // {
+    //     return LogOptions::defaults()
+    //         ->useLogName('konsumen me')
+    //         ->logOnly(['fk_me', 'fk_konsumen'])
+    //         ->logOnlyDirty()
+    //         ->dontSubmitEmptyLogs();
+    // }
     protected $fillable = [
         'fk_me',
         'fk_konsumen',

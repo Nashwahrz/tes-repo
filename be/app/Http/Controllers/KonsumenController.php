@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\LogKonsumenAction;
 use App\Enums\StatusKonsumen;
 use App\Enums\StoragePath;
 use App\Enums\TypeTempKonsumen;
@@ -10,15 +11,20 @@ use App\Http\Requests\CheckNikRequest;
 use App\Http\Requests\KonsumenRequest;
 use App\Http\Requests\ScanKtpRequest;
 use App\Http\Resources\ActivityLogResource;
+use App\Http\Resources\LogActivityKonsumenResource;
 use App\Http\Responses\KonsumenMeResponse;
 use App\Http\Responses\KonsumenResponse;
+use App\Http\Responses\LogActivityKonsumenResponse;
 use App\Http\Responses\TempKonsumenResponse;
 use App\Models\Konsumen;
+use App\Models\LogActivityKonsumen;
 use App\Models\TempKonsumen;
 use App\Repositories\KonsumenMeRepository;
 use App\Repositories\KonsumenRepository;
+use App\Repositories\LogActivityKonsumenRepository;
 use App\Repositories\TempKonsumenRepository;
 use App\Services\KtpOcrService;
+use App\Services\LogActivityKonsumenService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
@@ -34,8 +40,15 @@ class KonsumenController extends Controller
         private TempKonsumenResponse $tempKonsumenResponse,
         private KonsumenMeResponse $konsumenMeResponse,
         private KtpOcrService $ktpOcrService,
-        private PaginateController $paginateController
-    ) {}
+        private PaginateController $paginateController,
+        private ?LogActivityKonsumenService $logActivityKonsumenService = null,
+        private ?LogActivityKonsumenRepository $logActivityKonsumenRepository = null,
+        private ?LogActivityKonsumenResponse $logActivityKonsumenResponse = null
+    ) {
+        $this->logActivityKonsumenService    = $logActivityKonsumenService ?? app(LogActivityKonsumenService::class);
+        $this->logActivityKonsumenRepository = $logActivityKonsumenRepository ?? app(LogActivityKonsumenRepository::class);
+        $this->logActivityKonsumenResponse   = $logActivityKonsumenResponse ?? app(LogActivityKonsumenResponse::class);
+    }
 
     public function index(Request $request)
     {
@@ -199,6 +212,12 @@ class KonsumenController extends Controller
 
             [$konsumen, $isExisting, $isDataChanged] = $this->tempKonsumenRepository->storeWithMe($data, $userId, $hasNewPhoto);
 
+            if ($konsumen instanceof TempKonsumen) {
+                $this->logActivityKonsumenService->logSubmitted($konsumen, $request->user());
+            } elseif ($konsumen instanceof Konsumen) {
+                $this->logActivityKonsumenService->logLinked($konsumen, $request->user());
+            }
+
             $message = $isExisting
                 ? ($isDataChanged
                     ? 'Data konsumen ditemukan dengan perubahan, diajukan untuk verifikasi.'
@@ -206,6 +225,8 @@ class KonsumenController extends Controller
                 : 'Data pengajuan konsumen berhasil disimpan dan menunggu verifikasi.';
 
             return $this->tempKonsumenResponse->success($konsumen, $message);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return $this->tempKonsumenResponse->validationError($e->errors());
         } catch (Throwable $e) {
             Log::error('Gagal menyimpan konsumen: ' . $e->getMessage(), [
                 'trace' => $e->getTraceAsString(),
@@ -275,6 +296,8 @@ class KonsumenController extends Controller
                     $updated = $this->tempKonsumenRepository->update($tempKonsumen, $data);
                 }
 
+                $this->logActivityKonsumenService->logUpdated($updated, $request->user());
+
                 return $this->tempKonsumenResponse->success($updated, 'Data konsumen berhasil diperbarui dan diajukan kembali.');
             }
 
@@ -295,6 +318,7 @@ class KonsumenController extends Controller
                 ]);
 
                 $updated = $this->tempKonsumenRepository->create($tempData);
+                $this->logActivityKonsumenService->logUpdated($updated, $request->user());
                 return $this->tempKonsumenResponse->success($updated, 'Perubahan data konsumen berhasil diajukan dan menunggu verifikasi.');
             }
 
@@ -351,6 +375,14 @@ class KonsumenController extends Controller
                 $status
             );
 
+            if ($isDiterima && $updatedKonsumen->konsumen) {
+                $this->logActivityKonsumenService->logVerified($updatedKonsumen, $updatedKonsumen->konsumen, $request->user());
+            } elseif ($isRevisi) {
+                $this->logActivityKonsumenService->logRevised($updatedKonsumen, $request->user(), $request->input('note'));
+            } else {
+                $this->logActivityKonsumenService->logRejected($updatedKonsumen, $request->user(), $request->input('note'));
+            }
+
             $message = $isDiterima
                 ? 'Akun Konsumen berhasil diterima dan dipindahkan ke data konsumen.'
                 : ($isRevisi
@@ -369,23 +401,32 @@ class KonsumenController extends Controller
 
     public function fotoKtp(Request $request, int $id)
     {
-        if ($request->query('type') === 'temp') {
+        $storage  = StoragePath::Ktp->filesystem();
+        $filePath = null;
+
+        if ($request->query('type') === 'log') {
+            $log = LogActivityKonsumen::find($id);
+            $photo = $request->query('target') === 'old'
+                ? ($log?->old_data['foto_ktp'] ?? null)
+                : ($log?->new_data['foto_ktp'] ?? $log?->old_data['foto_ktp'] ?? null);
+
+            $filePath = $photo;
+        } elseif ($request->query('type') === 'temp') {
             $konsumen = TempKonsumen::withoutGlobalScopes()->find($id)
                 ?? Konsumen::withoutGlobalScopes()->find($id);
+            $filePath = $konsumen?->foto_ktp;
         } else {
             $konsumen = Konsumen::withoutGlobalScopes()->find($id)
                 ?? TempKonsumen::withoutGlobalScopes()->find($id);
+            $filePath = $konsumen?->foto_ktp;
         }
 
-        if (!$konsumen || !$konsumen->foto_ktp) {
+        if (!$filePath) {
             abort(404, 'Foto KTP tidak ditemukan.');
         }
 
-        $storage = StoragePath::Ktp->filesystem();
-
-        if ($storage->exists($konsumen->foto_ktp)) {
-            $filePath = $storage->path($konsumen->foto_ktp);
-            return response()->file($filePath);
+        if ($storage->exists($filePath)) {
+            return response()->file($storage->path($filePath));
         }
 
         abort(404, 'Berkas fisik foto KTP tidak ditemukan di server.');
@@ -395,13 +436,23 @@ class KonsumenController extends Controller
     {
         try {
             $perPage = $this->paginateController->getPerPage($request);
+            $search  = $request->query('search');
+            $status  = $request->query('status') ? StatusKonsumen::tryFrom($request->query('status')) : null;
+            $action  = $request->query('action') ? LogKonsumenAction::tryFrom($request->query('action')) : null;
 
-            return ActivityLogResource::collection(
-                $this->tempKonsumenRepository->getAllLogs($perPage, $request->query('search'))
+            $logs = $this->logActivityKonsumenRepository->paginate($perPage, $search, $status, $action);
+
+            $transformed = $logs->through(
+                fn ($log) => (new LogActivityKonsumenResource($log))->resolve()
+            );
+
+            return $this->logActivityKonsumenResponse->list(
+                $transformed,
+                'Daftar log aktivitas konsumen berhasil diambil.'
             );
         } catch (Throwable $e) {
             Log::error('Gagal mengambil log konsumen: ' . $e->getMessage());
-            return $this->tempKonsumenResponse->serverError();
+            return $this->logActivityKonsumenResponse->serverError();
         }
     }
 }

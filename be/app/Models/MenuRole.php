@@ -8,20 +8,20 @@ use Spatie\Activitylog\Traits\LogsActivity;
 
 class MenuRole extends Model
 {
-    use LogsActivity;
+    // use LogsActivity;
     protected $table = 'hak_akses.menu_roles';
     protected $fillable = [
         'fk_role',
         'fk_menu',
     ];
-    public function getActivitylogOptions(): LogOptions
-    {
-        return LogOptions::defaults()
-            ->useLogName('menu roles')
-            ->logOnly(['fk_role', 'fk_menu'])
-            ->logOnlyDirty()
-            ->dontSubmitEmptyLogs();
-    }
+    // public function getActivitylogOptions(): LogOptions
+    // {
+    //     return LogOptions::defaults()
+    //         ->useLogName('menu roles')
+    //         ->logOnly(['fk_role', 'fk_menu'])
+    //         ->logOnlyDirty()
+    //         ->dontSubmitEmptyLogs();
+    // }
 
     public function role()
     {

@@ -8,20 +8,20 @@ use Spatie\Activitylog\Traits\LogsActivity;
 
 class Permission extends Model
 {
-    use LogsActivity;
+    // use LogsActivity;
     protected $table = 'hak_akses.permissions';
 
     protected $fillable = [
         'permission_name',
     ];
-    public function getActivitylogOptions(): LogOptions
-    {
-        return LogOptions::defaults()
-            ->useLogName('permission')
-            ->logOnly(['permission_name'])
-            ->logOnlyDirty()
-            ->dontSubmitEmptyLogs();
-    }
+    // public function getActivitylogOptions(): LogOptions
+    // {
+    //     return LogOptions::defaults()
+    //         ->useLogName('permission')
+    //         ->logOnly(['permission_name'])
+    //         ->logOnlyDirty()
+    //         ->dontSubmitEmptyLogs();
+    // }
 
     public function roles()
     {

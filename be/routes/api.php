@@ -182,6 +182,9 @@ use Illuminate\Support\Facades\Route;
         Route::prefix('log-users')->middleware('menu.access:log-users')->group(function () {
             Route::get('/', [LogUserController::class, 'index'])->middleware('permission:log-users.lihat');
         });
+        Route::prefix('log-otps')->middleware('menu.access:log-otps')->group(function () {
+            Route::get('/', [OtpController::class, 'logs'])->middleware('permission:log-otps.lihat');
+        });
         Route::prefix('role-menus')->group(function () {
             Route::get('/user-menus', [RoleMenuController::class, 'userMenus']);
 

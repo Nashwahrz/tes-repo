@@ -9,16 +9,16 @@ use Spatie\Activitylog\Traits\LogsActivity;
 
 class AppKeyOcr extends Model
 {
-    use LogsActivity;
+    // use LogsActivity;
     protected $table = 'setting.app_key_ocrs';
-    public function getActivitylogOptions(): LogOptions
-    {
-        return LogOptions::defaults()
-            ->useLogName('app key ocr')
-            ->logOnly(['url','api_key','description', 'status'])
-            ->logOnlyDirty()
-            ->dontSubmitEmptyLogs();
-    }
+    // public function getActivitylogOptions(): LogOptions
+    // {
+    //     return LogOptions::defaults()
+    //         ->useLogName('app key ocr')
+    //         ->logOnly(['url','api_key','description', 'status'])
+    //         ->logOnlyDirty()
+    //         ->dontSubmitEmptyLogs();
+    // }
     protected $fillable = [
         'url',
         'api_key',

@@ -11,18 +11,18 @@ use Spatie\Activitylog\Traits\LogsActivity;
 
 class Pekerjaan extends Model
 {
-    use LogsActivity;
+    // use LogsActivity;
 
     protected $table = 'master.pekerjaans';
 
-    public function getActivitylogOptions(): LogOptions
-    {
-        return LogOptions::defaults()
-            ->useLogName('pekerjaan')
-            ->logOnly(['pekerjaan_code', 'pekerjaan_name', 'sequence', 'type_header', 'sector_job', 'id_parent', 'status'])
-            ->logOnlyDirty()
-            ->dontSubmitEmptyLogs();
-    }
+    // public function getActivitylogOptions(): LogOptions
+    // {
+    //     return LogOptions::defaults()
+    //         ->useLogName('pekerjaan')
+    //         ->logOnly(['pekerjaan_code', 'pekerjaan_name', 'sequence', 'type_header', 'sector_job', 'id_parent', 'status'])
+    //         ->logOnlyDirty()
+    //         ->dontSubmitEmptyLogs();
+    // }
 
     protected $fillable = [
         'pekerjaan_code',

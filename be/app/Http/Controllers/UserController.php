@@ -5,7 +5,8 @@ namespace App\Http\Controllers;
 use App\Enums\StatusUser;
 use App\Http\Requests\ActivateUserRequest;
 use App\Http\Requests\GetAtasanOptionsRequest;
-use App\Http\Resources\ActivityLogResource;
+use App\Http\Resources\LogActivityUserResource;
+use App\Http\Responses\LogActivityUserResponse;
 use App\Http\Responses\UserResponse;
 use App\Mail\SendActivateUser;
 use App\Models\Role;
@@ -20,8 +21,11 @@ class UserController extends Controller
     public function __construct(
         private UserRepository $userRepository,
         private UserResponse $userResponse,
-        private PaginateController $paginateController
-    ) {}
+        private PaginateController $paginateController,
+        private ?LogActivityUserResponse $logActivityUserResponse = null
+    ) {
+        $this->logActivityUserResponse = $logActivityUserResponse ?? app(LogActivityUserResponse::class);
+    }
 
 
     
@@ -166,13 +170,19 @@ class UserController extends Controller
     {
         try {
             $perPage = $this->paginateController->getPerPage($request);
+            $logs    = $this->userRepository->getAllLogs($perPage, $request->query('search'));
 
-            return ActivityLogResource::collection(
-                $this->userRepository->getAllLogs($perPage, $request->query('search'))
+            $transformed = $logs->through(
+                fn ($log) => (new LogActivityUserResource($log))->resolve()
+            );
+
+            return $this->logActivityUserResponse->list(
+                $transformed,
+                'Daftar log aktivitas user berhasil diambil.'
             );
         } catch (Throwable $e) {
             Log::error('Gagal mengambil log user: ' . $e->getMessage());
-            return $this->userResponse->serverError();
+            return $this->logActivityUserResponse->serverError();
         }
     }
 }

@@ -88,38 +88,6 @@ class UserRepository
     }
     public function getAllLogs(int $perPage = 10, ?string $search = null): LengthAwarePaginator
     {
-        $logs = Activity::query()
-            ->where('subject_type', User::class)
-            ->with(['causer:id,name', 'subject'])
-            ->when($search, function ($q) use ($search) {
-                        $q->whereHasMorph('subject', [User::class], function ($q) use ($search) {
-                            $q->where('name', 'like', "%{$search}%");
-                        });
-                    })
-            ->latest()
-            ->paginate($perPage);
-
-        $this->attachUsersMap($logs);
-
-        return $logs;
-    }
-    private function attachUsersMap(LengthAwarePaginator $logs): void
-    {
-        $userIds = $logs->getCollection()
-            ->flatMap(fn ($log) => [
-                data_get($log->properties, 'old.fk_me'),
-                data_get($log->properties, 'attributes.fk_me'),
-                data_get($log->properties, 'old.diverifikasi_oleh'),
-                data_get($log->properties, 'attributes.diverifikasi_oleh'),
-            ])
-            ->filter()
-            ->unique()
-            ->values();
-
-        $users = User::whereIn('id', $userIds)->pluck('name', 'id');
-
-        $logs->getCollection()->each(
-            fn ($log) => $log->setRelation('users_map', $users)
-        );
+        return app(LogActivityUserRepository::class)->paginate($perPage, $search);
     }  
 }

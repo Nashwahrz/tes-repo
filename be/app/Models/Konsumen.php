@@ -13,39 +13,39 @@ use Spatie\Activitylog\Traits\LogsActivity;
 
 class Konsumen extends Model
 {
-    use LogsActivity;
+    // use LogsActivity;
 
-    public function getActivitylogOptions(): LogOptions
-    {
-        return LogOptions::defaults()
-            ->useLogName('konsumen')
-            ->logOnly([
-                'nik',
-                'konsumen_name',
-                'fk_temp_lahir',
-                'birth_date',
-                'gender',
-                'ktp_address',
-                'domicile_address',
-                'latitude',
-                'longitude',
-                'rt',
-                'rw',
-                'fk_kelurahan',
-                'fk_kecamatan',
-                'fk_kabupaten_kota',
-                'fk_provinsi',
-                'fk_agama',
-                'marital_status',
-                'fk_pekerjaan',
-                'nationality',
-                'phone',
-                'email',
-                'foto_ktp',
-            ])
-            ->logOnlyDirty()
-            ->dontSubmitEmptyLogs();
-    }
+    // public function getActivitylogOptions(): LogOptions
+    // {
+    //     return LogOptions::defaults()
+    //         ->useLogName('konsumen')
+    //         ->logOnly([
+    //             'nik',
+    //             'konsumen_name',
+    //             'fk_temp_lahir',
+    //             'birth_date',
+    //             'gender',
+    //             'ktp_address',
+    //             'domicile_address',
+    //             'latitude',
+    //             'longitude',
+    //             'rt',
+    //             'rw',
+    //             'fk_kelurahan',
+    //             'fk_kecamatan',
+    //             'fk_kabupaten_kota',
+    //             'fk_provinsi',
+    //             'fk_agama',
+    //             'marital_status',
+    //             'fk_pekerjaan',
+    //             'nationality',
+    //             'phone',
+    //             'email',
+    //             'foto_ktp',
+    //         ])
+    //         ->logOnlyDirty()
+    //         ->dontSubmitEmptyLogs();
+    // }
 
     protected $fillable = [
         'nik',

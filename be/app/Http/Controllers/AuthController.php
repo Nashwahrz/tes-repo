@@ -13,6 +13,7 @@ use App\Mail\SendOtpMail;
 use App\Models\User;
 use App\Repositories\OtpRepository;
 use App\Repositories\UserRepository;
+use App\Services\LogActivityUserService;
 use App\Services\LoginLogService;
 use Hash;
 use Illuminate\Http\Request;
@@ -36,7 +37,10 @@ class AuthController extends Controller
         private LoginResponse $loginResponse,
         private LoginLogService $loginLogService,
         private ThrottleRequests $throttleRequests,
-    ) {}
+        private ?LogActivityUserService $logActivityUserService = null,
+    ) {
+        $this->logActivityUserService = $logActivityUserService ?? app(LogActivityUserService::class);
+    }
 
     public function register(RegisterRequest $request)
     {
@@ -132,10 +136,13 @@ class AuthController extends Controller
     public function logout(Request $request)
     {
         try {
-            $user = $request->user();
-            if ($user && $user->currentAccessToken()) {
-                $user->currentAccessToken()->delete();
-            }
+            // $user = $request->user();
+            // if ($user) {
+            //     if ($user->currentAccessToken()) {
+            //         $user->currentAccessToken()->delete();
+            //     }
+            //     $this->logActivityUserService->logLogout($user);
+            // }
 
             return $this->loginResponse->logoutSuccess();
         } catch (Throwable $e) {

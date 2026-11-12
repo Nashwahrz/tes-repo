@@ -40,6 +40,7 @@ class RolePermissionSeeder extends Seeder
                 'email-whitelists.hapus',
                 'email-whitelists.logs',
                 'log-users.lihat',
+                'log-otps.lihat',
                 'agamas.lihat',
                 'agamas.tambah',
                 'agamas.ubah',

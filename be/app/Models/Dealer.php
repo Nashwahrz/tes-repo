@@ -11,17 +11,17 @@ use Spatie\Activitylog\Traits\LogsActivity;
 #[ScopedBy([DealerModelScope::class])]
 class Dealer extends Model
 {
-    use LogsActivity;
+    // use LogsActivity;
     protected $table = 'master.dealers';
 
-    public function getActivitylogOptions(): LogOptions
-    {
-        return LogOptions::defaults()
-            ->useLogName('dealers')
-            ->logOnly(['dealer_name', 'address', 'latitude', 'longitude'])
-            ->logOnlyDirty()
-            ->dontSubmitEmptyLogs();
-    }
+    // public function getActivitylogOptions(): LogOptions
+    // {
+    //     return LogOptions::defaults()
+    //         ->useLogName('dealers')
+    //         ->logOnly(['dealer_name', 'address', 'latitude', 'longitude'])
+    //         ->logOnlyDirty()
+    //         ->dontSubmitEmptyLogs();
+    // }
     protected $fillable = [
         'dealer_name',
         'address',

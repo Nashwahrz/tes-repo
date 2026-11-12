@@ -9,21 +9,21 @@ use Spatie\Activitylog\Traits\LogsActivity;
 
 class UrlIpLogin extends Model
 {
-    use LogsActivity;
+    // use LogsActivity;
     protected $table = 'setting.url_ip_logins';
 
     protected $fillable = [
         'url',
         'status',
     ];
-    public function getActivitylogOptions(): LogOptions
-    {
-        return LogOptions::defaults()
-            ->useLogName('email whitelist')
-            ->logOnly(['domain', 'status', 'created_by'])
-            ->logOnlyDirty()
-            ->dontSubmitEmptyLogs();
-    }
+    // public function getActivitylogOptions(): LogOptions
+    // {
+    //     return LogOptions::defaults()
+    //         ->useLogName('email whitelist')
+    //         ->logOnly(['domain', 'status', 'created_by'])
+    //         ->logOnlyDirty()
+    //         ->dontSubmitEmptyLogs();
+    // }
 
     protected $casts = [
         'status' => 'boolean',

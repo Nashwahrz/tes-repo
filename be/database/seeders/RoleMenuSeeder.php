@@ -24,6 +24,7 @@ class RoleMenuSeeder extends Seeder
                 'email-whitelists',
                 'log-aktivitas',
                 'log-users',
+                'log-otps',
                 'agamas',
                 'pekerjaans',
                 'provinsis',

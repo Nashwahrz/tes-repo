@@ -35,11 +35,11 @@ class KonsumenRequest extends FormRequest
         }
 
         if ($this->hasFile('foto_ktp')) {
-            $fotoKtpRules = ['nullable', 'image', 'mimes:jpg,jpeg,png', 'max:512'];
+            $fotoKtpRules = ['nullable', 'image', 'mimes:jpg,jpeg,png', 'max:2048'];
         } elseif ($isUpdate || $nikExists) {
             $fotoKtpRules = ['nullable', 'string'];
         } else {
-            $fotoKtpRules = ['required', 'image', 'mimes:jpg,jpeg,png', 'max:512'];
+            $fotoKtpRules = ['required', 'image', 'mimes:jpg,jpeg,png', 'max:2048'];
         }
 
         return [
@@ -128,7 +128,7 @@ class KonsumenRequest extends FormRequest
 
             'foto_ktp.image'    => 'Foto KTP harus berupa gambar.',
             'foto_ktp.mimes'    => 'Format foto KTP harus JPG, JPEG, atau PNG.',
-            'foto_ktp.max'      => 'Ukuran foto KTP maksimal 2 MB.',
+            'foto_ktp.max'      => 'Ukuran foto KTP maksimal 512 kb.',
             'foto_ktp.uploaded' => 'Foto KTP gagal diunggah, coba lagi.',
 
             'nik.digits' => 'NIK harus terdiri dari 16 digit angka.',
