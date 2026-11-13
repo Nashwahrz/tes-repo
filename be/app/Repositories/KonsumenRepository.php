@@ -243,21 +243,5 @@ class KonsumenRepository
         return $paginator;
     }
 
-    // public function getAllLogs(int $perPage = 10, ?string $search = null): LengthAwarePaginator
-    // {
-    //     $logs = Activity::query()
-    //         ->where('subject_type', Konsumen::class)
-    //         ->with(['causer:id,name', 'subject'])
-    //         ->when($search, function ($q) use ($search) {
-    //             $q->whereHasMorph('subject', [Konsumen::class], function ($q) use ($search) {
-    //                 $q->where('name', 'ILIKE', "%{$search}%")
-    //                   ->orWhere('nik', 'ILIKE', "%{$search}%");
-    //             });
-    //         })
-    //         ->latest()
-    //         ->paginate($perPage);
-
-    //     return $logs;
-    // }
     
 }

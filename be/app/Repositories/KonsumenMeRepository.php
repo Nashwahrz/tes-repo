@@ -70,19 +70,5 @@ class KonsumenMeRepository
             ->paginate($perPage);
     }
 
-    public function getAllLogs(int $perPage = 10, ?string $search = null): LengthAwarePaginator
-    {
-        $logs = Activity::query()
-            ->where('subject_type', KonsumenMe::class)
-            ->with(['causer:id,name', 'subject'])
-            ->when($search, function ($q) use ($search) {
-                        $q->whereHasMorph('subject', [KonsumenMe::class], function ($q) use ($search) {
-                            $q->where('name', 'like', "%{$search}%");
-                        });
-                    })
-            ->latest()
-            ->paginate($perPage);
-        return $logs;
-    }
   
 }

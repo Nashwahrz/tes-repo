@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 
 use App\Http\Requests\ConfigurasiRateLimitRequest;
-use App\Http\Resources\ActivityLogResource;
 use App\Http\Resources\LogActivityConfigurasiRateLimitResource;
 use App\Http\Responses\ConfigurasiRateLimitResponse;
 use App\Http\Responses\LogActivityConfigurasiRateLimitResponse;
@@ -128,23 +127,4 @@ class ConfigurasiRateLimitController extends Controller
         }
     }
 
-    // public function destroy(int $id)
-    // {
-    //     try {
-    //         $configurasiRateLimit = $this->configurasiRateLimitRepository->findById($id);
-
-    //         if (!$configurasiRateLimit) {
-    //             return $this->configurasiRateLimitResponse->notFound();
-    //         }
-
-    //         $this->configurasiRateLimitRepository->delete($configurasiRateLimit);
-
-    //         return $this->configurasiRateLimitResponse->deleted('Configurasi rate limit berhasil dihapus.');
-    //     } catch (Throwable $e) {
-    //         Log::error('Gagal menghapus konfigurasi rate limit: ' . $e->getMessage(), [
-    //             'trace' => $e->getTraceAsString(),
-    //         ]);
-    //         return $this->configurasiRateLimitResponse->serverError();
-    //     }
-    // }
 }

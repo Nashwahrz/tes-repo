@@ -33,19 +33,4 @@ class AppKeyOcrRepository
             return AppKeyOcr::where('status', true)->first();
         });
     }
-    public function getAllLogs(int $perPage = 10, ?string $search = null): LengthAwarePaginator
-    {
-        $logs = Activity::query()
-            ->where('subject_type', AppKeyOcr::class)
-            ->with(['causer:id,name', 'subject'])
-            ->when($search, function ($q) use ($search) {
-                        $q->whereHasMorph('subject', [AppKeyOcr::class], function ($q) use ($search) {
-                            $q->where('api_key', 'ILIKE', "%{$search}%");
-                        });
-                    })
-            ->latest()
-            ->paginate($perPage);
-
-        return $logs;
-    }
 }

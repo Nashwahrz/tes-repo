@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\RolePermissionRequest;
-use App\Http\Resources\ActivityLogResource;
 use App\Http\Resources\LogActivityPermissionResource;
 use App\Http\Responses\LogActivitypermissionResponse;
 use App\Http\Responses\RolePermissionResponse;
@@ -150,19 +149,6 @@ class RolePermissionController extends Controller
             return $this->rolePermissionResponse->serverError();
         }
     }
-    // public function logPermissions(Request $request)
-    // {
-    //     try {
-    //         $perPage = $this->paginateController->getPerPage($request);
-
-    //         return ActivityLogResource::collection(
-    //             $this->rolePermissionRepository->getAllPermissionLogs($perPage, $request->query('search'))
-    //         );
-    //     } catch (Throwable $e) {
-    //         Log::error('Gagal mengambil log permission: ' . $e->getMessage());
-    //         return $this->rolePermissionResponse->serverError();
-    //     }
-    // }
     public function logPermissionRoles(Request $request)
     {
         try {

@@ -79,22 +79,6 @@ class AgamaRepository
             ->paginate($perPage)
             ->withQueryString();
     }
-    public function getAllLogs(int $perPage = 10, ?string $search = null): LengthAwarePaginator
-    {
-        $logs = Activity::query()
-            ->where('subject_type', Agama::class)
-            ->with(['causer:id,name', 'subject'])
-            ->when($search, function ($q) use ($search) {
-                        $q->whereHasMorph('subject', [Agama::class], function ($q) use ($search) {
-                            $q->where('agama_name', 'ILIKE', "%{$search}%")
-                            ->orWhere('agama_code', 'ILIKE', "%{$search}%");
-                        });
-                    })
-            ->latest()
-            ->paginate($perPage);
-
-        return $logs;
-    }
 
     public function importFromExcel(string $filePath): array
     {

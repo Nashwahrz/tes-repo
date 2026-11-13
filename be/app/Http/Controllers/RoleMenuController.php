@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\RoleMenuRequest;
-use App\Http\Resources\ActivityLogResource;
 use App\Http\Resources\LogActivityMenuResource;
 use App\Http\Responses\LogActivityMenuResponse;
 use App\Http\Responses\RoleMenuResponse;
@@ -164,19 +163,6 @@ class RoleMenuController extends Controller
             return $this->roleMenuResponse->serverError();
         }
     }
-    // public function logMenus(Request $request)
-    // {
-    //     try {
-    //         $perPage = $this->paginateController->getPerPage($request);
-
-    //         return ActivityLogResource::collection(
-    //             $this->roleMenuRepository->getAllMenuLogs($perPage, $request->query('search'))
-    //         );
-    //     } catch (Throwable $e) {
-    //         Log::error('Gagal mengambil log role menu: ' . $e->getMessage());
-    //         return $this->roleMenuResponse->serverError();
-    //     }
-    // }
     public function logMenuRoles(Request $request)
     {
         try {

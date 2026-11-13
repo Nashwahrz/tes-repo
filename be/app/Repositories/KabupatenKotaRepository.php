@@ -75,23 +75,6 @@ class KabupatenKotaRepository
             ->paginate($perPage)
             ->withQueryString();
     }
-    public function getAllLogs(int $perPage = 10, ?string $search = null): LengthAwarePaginator
-    {
-        $logs = Activity::query()
-            ->where('subject_type', KabupatenKota::class)
-            ->with(['causer:id,name', 'subject'])
-            ->when($search, function ($q) use ($search) {
-                        $q->whereHasMorph('subject', [KabupatenKota::class], function ($q) use ($search) {
-                            $q->where('kabupaten_kota_name', 'ILIKE', "%{$search}%")
-                            ->orWhere('kabupaten_kota_code', 'ILIKE', "%{$search}%");
-                        });
-                    })
-            ->latest()
-            ->paginate($perPage);
-
-      
-        return $logs;
-    }
     public function importFromExcel(string $filePath): array
     {
         $spreadsheet = IOFactory::load($filePath);

@@ -4,8 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\GeografisStatusRequest;
 use App\Http\Requests\ProvinsiRequest;
-use App\Http\Requests\ProvinsiStatusRequest;
-use App\Http\Resources\ActivityLogResource;
 use App\Http\Requests\ImportRequest;
 use App\Http\Responses\ImportResponse;
 use App\Http\Responses\ProvinsiResponse;

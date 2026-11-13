@@ -6,7 +6,6 @@ namespace App\Http\Controllers;
 use App\Http\Requests\GeografisStatusRequest;
 use App\Http\Requests\ImportRequest;
 use App\Http\Requests\KecamatanRequest;
-use App\Http\Resources\ActivityLogResource;
 use App\Http\Responses\ImportResponse;
 use App\Http\Responses\KecamatanResponse;
 use App\Repositories\KecamatanRepository;
@@ -161,19 +160,6 @@ class KecamatanController extends Controller
             return $this->kecamatanResponse->serverError();
         }
     }
-    // public function logs(Request $request)
-    // {
-    //     try {
-    //         $perPage = $this->paginateController->getPerPage($request);
-
-    //         return ActivityLogResource::collection(
-    //             $this->kecamatanRepository->getAllLogs($perPage, $request->query('search'))
-    //         );
-    //     } catch (Throwable $e) {
-    //         Log::error('Gagal mengambil log kecamatan: ' . $e->getMessage());
-    //         return $this->kecamatanResponse->serverError();
-    //     }
-    // }
     public function import(ImportRequest $request)
     {
         try {

@@ -75,22 +75,6 @@ class ProvinsiRepository
             ->paginate($perPage)
             ->withQueryString();
     }
-    public function getAllLogs(int $perPage = 10, ?string $search = null): LengthAwarePaginator
-    {
-        $logs = Activity::query()
-            ->where('subject_type', Provinsi::class)
-            ->with(['causer:id,name', 'subject'])
-            ->when($search, function ($q) use ($search) {
-                        $q->whereHasMorph('subject', [Provinsi::class], function ($q) use ($search) {
-                            $q->where('provinsi_name', 'ILIKE', "%{$search}%")
-                            ->orWhere('provinsi_code', 'ILIKE', "%{$search}%");
-                        });
-                    })
-            ->latest()
-            ->paginate($perPage);
-
-        return $logs;
-    }
     public function importFromExcel(string $filePath): array
     {
         $spreadsheet = IOFactory::load($filePath);
