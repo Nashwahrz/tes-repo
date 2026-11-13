@@ -161,19 +161,19 @@ class KecamatanController extends Controller
             return $this->kecamatanResponse->serverError();
         }
     }
-    public function logs(Request $request)
-    {
-        try {
-            $perPage = $this->paginateController->getPerPage($request);
+    // public function logs(Request $request)
+    // {
+    //     try {
+    //         $perPage = $this->paginateController->getPerPage($request);
 
-            return ActivityLogResource::collection(
-                $this->kecamatanRepository->getAllLogs($perPage, $request->query('search'))
-            );
-        } catch (Throwable $e) {
-            Log::error('Gagal mengambil log kecamatan: ' . $e->getMessage());
-            return $this->kecamatanResponse->serverError();
-        }
-    }
+    //         return ActivityLogResource::collection(
+    //             $this->kecamatanRepository->getAllLogs($perPage, $request->query('search'))
+    //         );
+    //     } catch (Throwable $e) {
+    //         Log::error('Gagal mengambil log kecamatan: ' . $e->getMessage());
+    //         return $this->kecamatanResponse->serverError();
+    //     }
+    // }
     public function import(ImportRequest $request)
     {
         try {

@@ -687,190 +687,6 @@
                 }
             }
         },
-        "/agamas/logs": {
-            "get": {
-                "operationId": "agama.logs",
-                "tags": [
-                    "Agama"
-                ],
-                "parameters": [
-                    {
-                        "name": "search",
-                        "in": "query",
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                ],
-                "responses": {
-                    "500": {
-                        "description": "",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "success": {
-                                            "type": "boolean"
-                                        },
-                                        "message": {
-                                            "type": "string",
-                                            "const": "Terjadi kesalahan pada server. Silakan coba lagi."
-                                        }
-                                    },
-                                    "required": [
-                                        "success",
-                                        "message"
-                                    ]
-                                }
-                            }
-                        }
-                    },
-                    "200": {
-                        "description": "Paginated set of `ActivityLogResource`",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "array",
-                                            "items": {
-                                                "$ref": "#/components/schemas/ActivityLogResource"
-                                            }
-                                        },
-                                        "links": {
-                                            "type": "object",
-                                            "properties": {
-                                                "first": {
-                                                    "type": [
-                                                        "string",
-                                                        "null"
-                                                    ]
-                                                },
-                                                "last": {
-                                                    "type": [
-                                                        "string",
-                                                        "null"
-                                                    ]
-                                                },
-                                                "prev": {
-                                                    "type": [
-                                                        "string",
-                                                        "null"
-                                                    ]
-                                                },
-                                                "next": {
-                                                    "type": [
-                                                        "string",
-                                                        "null"
-                                                    ]
-                                                }
-                                            },
-                                            "required": [
-                                                "first",
-                                                "last",
-                                                "prev",
-                                                "next"
-                                            ]
-                                        },
-                                        "meta": {
-                                            "type": "object",
-                                            "properties": {
-                                                "current_page": {
-                                                    "type": "integer",
-                                                    "minimum": 1
-                                                },
-                                                "from": {
-                                                    "type": [
-                                                        "integer",
-                                                        "null"
-                                                    ],
-                                                    "minimum": 1
-                                                },
-                                                "last_page": {
-                                                    "type": "integer",
-                                                    "minimum": 1
-                                                },
-                                                "links": {
-                                                    "type": "array",
-                                                    "description": "Generated paginator links.",
-                                                    "items": {
-                                                        "type": "object",
-                                                        "properties": {
-                                                            "url": {
-                                                                "type": [
-                                                                    "string",
-                                                                    "null"
-                                                                ]
-                                                            },
-                                                            "label": {
-                                                                "type": "string"
-                                                            },
-                                                            "active": {
-                                                                "type": "boolean"
-                                                            }
-                                                        },
-                                                        "required": [
-                                                            "url",
-                                                            "label",
-                                                            "active"
-                                                        ]
-                                                    }
-                                                },
-                                                "path": {
-                                                    "type": [
-                                                        "string",
-                                                        "null"
-                                                    ],
-                                                    "description": "Base path for paginator generated URLs."
-                                                },
-                                                "per_page": {
-                                                    "type": "integer",
-                                                    "description": "Number of items shown per page.",
-                                                    "minimum": 0
-                                                },
-                                                "to": {
-                                                    "type": [
-                                                        "integer",
-                                                        "null"
-                                                    ],
-                                                    "description": "Number of the last item in the slice.",
-                                                    "minimum": 1
-                                                },
-                                                "total": {
-                                                    "type": "integer",
-                                                    "description": "Total number of items being paginated.",
-                                                    "minimum": 0
-                                                }
-                                            },
-                                            "required": [
-                                                "current_page",
-                                                "from",
-                                                "last_page",
-                                                "links",
-                                                "path",
-                                                "per_page",
-                                                "to",
-                                                "total"
-                                            ]
-                                        }
-                                    },
-                                    "required": [
-                                        "data",
-                                        "links",
-                                        "meta"
-                                    ]
-                                }
-                            }
-                        }
-                    },
-                    "401": {
-                        "$ref": "#/components/responses/AuthenticationException"
-                    }
-                }
-            }
-        },
         "/agamas/import": {
             "post": {
                 "operationId": "agama.import",
@@ -1500,190 +1316,6 @@
                                         "success",
                                         "message",
                                         "data"
-                                    ]
-                                }
-                            }
-                        }
-                    },
-                    "401": {
-                        "$ref": "#/components/responses/AuthenticationException"
-                    }
-                }
-            }
-        },
-        "/app-key-ocrs/logs": {
-            "get": {
-                "operationId": "appKeyOcr.logs",
-                "tags": [
-                    "AppKeyOcr"
-                ],
-                "parameters": [
-                    {
-                        "name": "search",
-                        "in": "query",
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                ],
-                "responses": {
-                    "500": {
-                        "description": "",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "success": {
-                                            "type": "boolean"
-                                        },
-                                        "message": {
-                                            "type": "string",
-                                            "const": "Terjadi kesalahan pada server. Silakan coba lagi."
-                                        }
-                                    },
-                                    "required": [
-                                        "success",
-                                        "message"
-                                    ]
-                                }
-                            }
-                        }
-                    },
-                    "200": {
-                        "description": "Paginated set of `ActivityLogResource`",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "array",
-                                            "items": {
-                                                "$ref": "#/components/schemas/ActivityLogResource"
-                                            }
-                                        },
-                                        "links": {
-                                            "type": "object",
-                                            "properties": {
-                                                "first": {
-                                                    "type": [
-                                                        "string",
-                                                        "null"
-                                                    ]
-                                                },
-                                                "last": {
-                                                    "type": [
-                                                        "string",
-                                                        "null"
-                                                    ]
-                                                },
-                                                "prev": {
-                                                    "type": [
-                                                        "string",
-                                                        "null"
-                                                    ]
-                                                },
-                                                "next": {
-                                                    "type": [
-                                                        "string",
-                                                        "null"
-                                                    ]
-                                                }
-                                            },
-                                            "required": [
-                                                "first",
-                                                "last",
-                                                "prev",
-                                                "next"
-                                            ]
-                                        },
-                                        "meta": {
-                                            "type": "object",
-                                            "properties": {
-                                                "current_page": {
-                                                    "type": "integer",
-                                                    "minimum": 1
-                                                },
-                                                "from": {
-                                                    "type": [
-                                                        "integer",
-                                                        "null"
-                                                    ],
-                                                    "minimum": 1
-                                                },
-                                                "last_page": {
-                                                    "type": "integer",
-                                                    "minimum": 1
-                                                },
-                                                "links": {
-                                                    "type": "array",
-                                                    "description": "Generated paginator links.",
-                                                    "items": {
-                                                        "type": "object",
-                                                        "properties": {
-                                                            "url": {
-                                                                "type": [
-                                                                    "string",
-                                                                    "null"
-                                                                ]
-                                                            },
-                                                            "label": {
-                                                                "type": "string"
-                                                            },
-                                                            "active": {
-                                                                "type": "boolean"
-                                                            }
-                                                        },
-                                                        "required": [
-                                                            "url",
-                                                            "label",
-                                                            "active"
-                                                        ]
-                                                    }
-                                                },
-                                                "path": {
-                                                    "type": [
-                                                        "string",
-                                                        "null"
-                                                    ],
-                                                    "description": "Base path for paginator generated URLs."
-                                                },
-                                                "per_page": {
-                                                    "type": "integer",
-                                                    "description": "Number of items shown per page.",
-                                                    "minimum": 0
-                                                },
-                                                "to": {
-                                                    "type": [
-                                                        "integer",
-                                                        "null"
-                                                    ],
-                                                    "description": "Number of the last item in the slice.",
-                                                    "minimum": 1
-                                                },
-                                                "total": {
-                                                    "type": "integer",
-                                                    "description": "Total number of items being paginated.",
-                                                    "minimum": 0
-                                                }
-                                            },
-                                            "required": [
-                                                "current_page",
-                                                "from",
-                                                "last_page",
-                                                "links",
-                                                "path",
-                                                "per_page",
-                                                "to",
-                                                "total"
-                                            ]
-                                        }
-                                    },
-                                    "required": [
-                                        "data",
-                                        "links",
-                                        "meta"
                                     ]
                                 }
                             }
@@ -2639,190 +2271,6 @@
                 }
             }
         },
-        "/configurasi-rate-limits/logs": {
-            "get": {
-                "operationId": "configurasiRateLimit.logs",
-                "tags": [
-                    "ConfigurasiRateLimit"
-                ],
-                "parameters": [
-                    {
-                        "name": "search",
-                        "in": "query",
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                ],
-                "responses": {
-                    "500": {
-                        "description": "",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "success": {
-                                            "type": "boolean"
-                                        },
-                                        "message": {
-                                            "type": "string",
-                                            "const": "Terjadi kesalahan pada server. Silakan coba lagi."
-                                        }
-                                    },
-                                    "required": [
-                                        "success",
-                                        "message"
-                                    ]
-                                }
-                            }
-                        }
-                    },
-                    "200": {
-                        "description": "Paginated set of `ActivityLogResource`",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "array",
-                                            "items": {
-                                                "$ref": "#/components/schemas/ActivityLogResource"
-                                            }
-                                        },
-                                        "links": {
-                                            "type": "object",
-                                            "properties": {
-                                                "first": {
-                                                    "type": [
-                                                        "string",
-                                                        "null"
-                                                    ]
-                                                },
-                                                "last": {
-                                                    "type": [
-                                                        "string",
-                                                        "null"
-                                                    ]
-                                                },
-                                                "prev": {
-                                                    "type": [
-                                                        "string",
-                                                        "null"
-                                                    ]
-                                                },
-                                                "next": {
-                                                    "type": [
-                                                        "string",
-                                                        "null"
-                                                    ]
-                                                }
-                                            },
-                                            "required": [
-                                                "first",
-                                                "last",
-                                                "prev",
-                                                "next"
-                                            ]
-                                        },
-                                        "meta": {
-                                            "type": "object",
-                                            "properties": {
-                                                "current_page": {
-                                                    "type": "integer",
-                                                    "minimum": 1
-                                                },
-                                                "from": {
-                                                    "type": [
-                                                        "integer",
-                                                        "null"
-                                                    ],
-                                                    "minimum": 1
-                                                },
-                                                "last_page": {
-                                                    "type": "integer",
-                                                    "minimum": 1
-                                                },
-                                                "links": {
-                                                    "type": "array",
-                                                    "description": "Generated paginator links.",
-                                                    "items": {
-                                                        "type": "object",
-                                                        "properties": {
-                                                            "url": {
-                                                                "type": [
-                                                                    "string",
-                                                                    "null"
-                                                                ]
-                                                            },
-                                                            "label": {
-                                                                "type": "string"
-                                                            },
-                                                            "active": {
-                                                                "type": "boolean"
-                                                            }
-                                                        },
-                                                        "required": [
-                                                            "url",
-                                                            "label",
-                                                            "active"
-                                                        ]
-                                                    }
-                                                },
-                                                "path": {
-                                                    "type": [
-                                                        "string",
-                                                        "null"
-                                                    ],
-                                                    "description": "Base path for paginator generated URLs."
-                                                },
-                                                "per_page": {
-                                                    "type": "integer",
-                                                    "description": "Number of items shown per page.",
-                                                    "minimum": 0
-                                                },
-                                                "to": {
-                                                    "type": [
-                                                        "integer",
-                                                        "null"
-                                                    ],
-                                                    "description": "Number of the last item in the slice.",
-                                                    "minimum": 1
-                                                },
-                                                "total": {
-                                                    "type": "integer",
-                                                    "description": "Total number of items being paginated.",
-                                                    "minimum": 0
-                                                }
-                                            },
-                                            "required": [
-                                                "current_page",
-                                                "from",
-                                                "last_page",
-                                                "links",
-                                                "path",
-                                                "per_page",
-                                                "to",
-                                                "total"
-                                            ]
-                                        }
-                                    },
-                                    "required": [
-                                        "data",
-                                        "links",
-                                        "meta"
-                                    ]
-                                }
-                            }
-                        }
-                    },
-                    "401": {
-                        "$ref": "#/components/responses/AuthenticationException"
-                    }
-                }
-            }
-        },
         "/configurasi-rate-limits/{id}": {
             "get": {
                 "operationId": "configurasiRateLimit.show",
@@ -3378,190 +2826,6 @@
                 }
             }
         },
-        "/dealers/logs": {
-            "get": {
-                "operationId": "dealer.logs",
-                "tags": [
-                    "Dealer"
-                ],
-                "parameters": [
-                    {
-                        "name": "search",
-                        "in": "query",
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                ],
-                "responses": {
-                    "500": {
-                        "description": "",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "success": {
-                                            "type": "boolean"
-                                        },
-                                        "message": {
-                                            "type": "string",
-                                            "const": "Terjadi kesalahan pada server. Silakan coba lagi."
-                                        }
-                                    },
-                                    "required": [
-                                        "success",
-                                        "message"
-                                    ]
-                                }
-                            }
-                        }
-                    },
-                    "200": {
-                        "description": "Paginated set of `ActivityLogResource`",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "array",
-                                            "items": {
-                                                "$ref": "#/components/schemas/ActivityLogResource"
-                                            }
-                                        },
-                                        "links": {
-                                            "type": "object",
-                                            "properties": {
-                                                "first": {
-                                                    "type": [
-                                                        "string",
-                                                        "null"
-                                                    ]
-                                                },
-                                                "last": {
-                                                    "type": [
-                                                        "string",
-                                                        "null"
-                                                    ]
-                                                },
-                                                "prev": {
-                                                    "type": [
-                                                        "string",
-                                                        "null"
-                                                    ]
-                                                },
-                                                "next": {
-                                                    "type": [
-                                                        "string",
-                                                        "null"
-                                                    ]
-                                                }
-                                            },
-                                            "required": [
-                                                "first",
-                                                "last",
-                                                "prev",
-                                                "next"
-                                            ]
-                                        },
-                                        "meta": {
-                                            "type": "object",
-                                            "properties": {
-                                                "current_page": {
-                                                    "type": "integer",
-                                                    "minimum": 1
-                                                },
-                                                "from": {
-                                                    "type": [
-                                                        "integer",
-                                                        "null"
-                                                    ],
-                                                    "minimum": 1
-                                                },
-                                                "last_page": {
-                                                    "type": "integer",
-                                                    "minimum": 1
-                                                },
-                                                "links": {
-                                                    "type": "array",
-                                                    "description": "Generated paginator links.",
-                                                    "items": {
-                                                        "type": "object",
-                                                        "properties": {
-                                                            "url": {
-                                                                "type": [
-                                                                    "string",
-                                                                    "null"
-                                                                ]
-                                                            },
-                                                            "label": {
-                                                                "type": "string"
-                                                            },
-                                                            "active": {
-                                                                "type": "boolean"
-                                                            }
-                                                        },
-                                                        "required": [
-                                                            "url",
-                                                            "label",
-                                                            "active"
-                                                        ]
-                                                    }
-                                                },
-                                                "path": {
-                                                    "type": [
-                                                        "string",
-                                                        "null"
-                                                    ],
-                                                    "description": "Base path for paginator generated URLs."
-                                                },
-                                                "per_page": {
-                                                    "type": "integer",
-                                                    "description": "Number of items shown per page.",
-                                                    "minimum": 0
-                                                },
-                                                "to": {
-                                                    "type": [
-                                                        "integer",
-                                                        "null"
-                                                    ],
-                                                    "description": "Number of the last item in the slice.",
-                                                    "minimum": 1
-                                                },
-                                                "total": {
-                                                    "type": "integer",
-                                                    "description": "Total number of items being paginated.",
-                                                    "minimum": 0
-                                                }
-                                            },
-                                            "required": [
-                                                "current_page",
-                                                "from",
-                                                "last_page",
-                                                "links",
-                                                "path",
-                                                "per_page",
-                                                "to",
-                                                "total"
-                                            ]
-                                        }
-                                    },
-                                    "required": [
-                                        "data",
-                                        "links",
-                                        "meta"
-                                    ]
-                                }
-                            }
-                        }
-                    },
-                    "401": {
-                        "$ref": "#/components/responses/AuthenticationException"
-                    }
-                }
-            }
-        },
         "/dealers/{id}": {
             "get": {
                 "operationId": "dealer.show",
@@ -4041,190 +3305,6 @@
                     },
                     "422": {
                         "$ref": "#/components/responses/ValidationException"
-                    }
-                }
-            }
-        },
-        "/email-smtps/logs": {
-            "get": {
-                "operationId": "emailSmtp.logs",
-                "tags": [
-                    "EmailSmtp"
-                ],
-                "parameters": [
-                    {
-                        "name": "search",
-                        "in": "query",
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                ],
-                "responses": {
-                    "500": {
-                        "description": "",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "success": {
-                                            "type": "boolean"
-                                        },
-                                        "message": {
-                                            "type": "string",
-                                            "const": "Terjadi kesalahan pada server. Silakan coba lagi."
-                                        }
-                                    },
-                                    "required": [
-                                        "success",
-                                        "message"
-                                    ]
-                                }
-                            }
-                        }
-                    },
-                    "200": {
-                        "description": "Paginated set of `ActivityLogResource`",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "array",
-                                            "items": {
-                                                "$ref": "#/components/schemas/ActivityLogResource"
-                                            }
-                                        },
-                                        "links": {
-                                            "type": "object",
-                                            "properties": {
-                                                "first": {
-                                                    "type": [
-                                                        "string",
-                                                        "null"
-                                                    ]
-                                                },
-                                                "last": {
-                                                    "type": [
-                                                        "string",
-                                                        "null"
-                                                    ]
-                                                },
-                                                "prev": {
-                                                    "type": [
-                                                        "string",
-                                                        "null"
-                                                    ]
-                                                },
-                                                "next": {
-                                                    "type": [
-                                                        "string",
-                                                        "null"
-                                                    ]
-                                                }
-                                            },
-                                            "required": [
-                                                "first",
-                                                "last",
-                                                "prev",
-                                                "next"
-                                            ]
-                                        },
-                                        "meta": {
-                                            "type": "object",
-                                            "properties": {
-                                                "current_page": {
-                                                    "type": "integer",
-                                                    "minimum": 1
-                                                },
-                                                "from": {
-                                                    "type": [
-                                                        "integer",
-                                                        "null"
-                                                    ],
-                                                    "minimum": 1
-                                                },
-                                                "last_page": {
-                                                    "type": "integer",
-                                                    "minimum": 1
-                                                },
-                                                "links": {
-                                                    "type": "array",
-                                                    "description": "Generated paginator links.",
-                                                    "items": {
-                                                        "type": "object",
-                                                        "properties": {
-                                                            "url": {
-                                                                "type": [
-                                                                    "string",
-                                                                    "null"
-                                                                ]
-                                                            },
-                                                            "label": {
-                                                                "type": "string"
-                                                            },
-                                                            "active": {
-                                                                "type": "boolean"
-                                                            }
-                                                        },
-                                                        "required": [
-                                                            "url",
-                                                            "label",
-                                                            "active"
-                                                        ]
-                                                    }
-                                                },
-                                                "path": {
-                                                    "type": [
-                                                        "string",
-                                                        "null"
-                                                    ],
-                                                    "description": "Base path for paginator generated URLs."
-                                                },
-                                                "per_page": {
-                                                    "type": "integer",
-                                                    "description": "Number of items shown per page.",
-                                                    "minimum": 0
-                                                },
-                                                "to": {
-                                                    "type": [
-                                                        "integer",
-                                                        "null"
-                                                    ],
-                                                    "description": "Number of the last item in the slice.",
-                                                    "minimum": 1
-                                                },
-                                                "total": {
-                                                    "type": "integer",
-                                                    "description": "Total number of items being paginated.",
-                                                    "minimum": 0
-                                                }
-                                            },
-                                            "required": [
-                                                "current_page",
-                                                "from",
-                                                "last_page",
-                                                "links",
-                                                "path",
-                                                "per_page",
-                                                "to",
-                                                "total"
-                                            ]
-                                        }
-                                    },
-                                    "required": [
-                                        "data",
-                                        "links",
-                                        "meta"
-                                    ]
-                                }
-                            }
-                        }
-                    },
-                    "401": {
-                        "$ref": "#/components/responses/AuthenticationException"
                     }
                 }
             }
@@ -4719,149 +3799,6 @@
                     },
                     "422": {
                         "$ref": "#/components/responses/ValidationException"
-                    }
-                }
-            }
-        },
-        "/email-whitelists/logs": {
-            "get": {
-                "operationId": "emailWhiteList.logs",
-                "tags": [
-                    "EmailWhiteList"
-                ],
-                "parameters": [
-                    {
-                        "name": "search",
-                        "in": "query",
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                ],
-                "responses": {
-                    "500": {
-                        "description": "",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "success": {
-                                            "type": "boolean"
-                                        },
-                                        "message": {
-                                            "type": "string",
-                                            "const": "Terjadi kesalahan pada server. Silakan coba lagi."
-                                        }
-                                    },
-                                    "required": [
-                                        "success",
-                                        "message"
-                                    ]
-                                }
-                            }
-                        }
-                    },
-                    "200": {
-                        "description": "Paginated set of `ActivityLogResource`",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "array",
-                                            "items": {
-                                                "$ref": "#/components/schemas/ActivityLogResource"
-                                            }
-                                        },
-                                        "links": {
-                                            "type": "object",
-                                            "properties": {
-                                                "first": {
-                                                    "type": "string"
-                                                },
-                                                "last": {
-                                                    "type": "string"
-                                                },
-                                                "prev": {
-                                                    "type": [
-                                                        "string",
-                                                        "null"
-                                                    ]
-                                                },
-                                                "next": {
-                                                    "type": "string"
-                                                }
-                                            },
-                                            "required": [
-                                                "first",
-                                                "last",
-                                                "prev",
-                                                "next"
-                                            ]
-                                        },
-                                        "meta": {
-                                            "type": "object",
-                                            "properties": {
-                                                "current_page": {
-                                                    "type": "integer"
-                                                },
-                                                "from": {
-                                                    "type": [
-                                                        "integer",
-                                                        "null"
-                                                    ]
-                                                },
-                                                "last_page": {
-                                                    "type": "string"
-                                                },
-                                                "links": {
-                                                    "type": "object",
-                                                    "additionalProperties": {}
-                                                },
-                                                "path": {
-                                                    "type": [
-                                                        "string",
-                                                        "null"
-                                                    ]
-                                                },
-                                                "per_page": {
-                                                    "type": "integer"
-                                                },
-                                                "to": {
-                                                    "type": [
-                                                        "integer",
-                                                        "null"
-                                                    ]
-                                                },
-                                                "total": {
-                                                    "type": "string"
-                                                }
-                                            },
-                                            "required": [
-                                                "current_page",
-                                                "from",
-                                                "last_page",
-                                                "links",
-                                                "path",
-                                                "per_page",
-                                                "to",
-                                                "total"
-                                            ]
-                                        }
-                                    },
-                                    "required": [
-                                        "data",
-                                        "links",
-                                        "meta"
-                                    ]
-                                }
-                            }
-                        }
-                    },
-                    "401": {
-                        "$ref": "#/components/responses/AuthenticationException"
                     }
                 }
             }
@@ -6040,190 +4977,6 @@
                                         "success",
                                         "message",
                                         "data"
-                                    ]
-                                }
-                            }
-                        }
-                    },
-                    "401": {
-                        "$ref": "#/components/responses/AuthenticationException"
-                    }
-                }
-            }
-        },
-        "/kabupaten-kotas/logs": {
-            "get": {
-                "operationId": "kabupatenKota.logs",
-                "tags": [
-                    "KabupatenKota"
-                ],
-                "parameters": [
-                    {
-                        "name": "search",
-                        "in": "query",
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                ],
-                "responses": {
-                    "500": {
-                        "description": "",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "success": {
-                                            "type": "boolean"
-                                        },
-                                        "message": {
-                                            "type": "string",
-                                            "const": "Terjadi kesalahan pada server. Silakan coba lagi."
-                                        }
-                                    },
-                                    "required": [
-                                        "success",
-                                        "message"
-                                    ]
-                                }
-                            }
-                        }
-                    },
-                    "200": {
-                        "description": "Paginated set of `ActivityLogResource`",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "array",
-                                            "items": {
-                                                "$ref": "#/components/schemas/ActivityLogResource"
-                                            }
-                                        },
-                                        "links": {
-                                            "type": "object",
-                                            "properties": {
-                                                "first": {
-                                                    "type": [
-                                                        "string",
-                                                        "null"
-                                                    ]
-                                                },
-                                                "last": {
-                                                    "type": [
-                                                        "string",
-                                                        "null"
-                                                    ]
-                                                },
-                                                "prev": {
-                                                    "type": [
-                                                        "string",
-                                                        "null"
-                                                    ]
-                                                },
-                                                "next": {
-                                                    "type": [
-                                                        "string",
-                                                        "null"
-                                                    ]
-                                                }
-                                            },
-                                            "required": [
-                                                "first",
-                                                "last",
-                                                "prev",
-                                                "next"
-                                            ]
-                                        },
-                                        "meta": {
-                                            "type": "object",
-                                            "properties": {
-                                                "current_page": {
-                                                    "type": "integer",
-                                                    "minimum": 1
-                                                },
-                                                "from": {
-                                                    "type": [
-                                                        "integer",
-                                                        "null"
-                                                    ],
-                                                    "minimum": 1
-                                                },
-                                                "last_page": {
-                                                    "type": "integer",
-                                                    "minimum": 1
-                                                },
-                                                "links": {
-                                                    "type": "array",
-                                                    "description": "Generated paginator links.",
-                                                    "items": {
-                                                        "type": "object",
-                                                        "properties": {
-                                                            "url": {
-                                                                "type": [
-                                                                    "string",
-                                                                    "null"
-                                                                ]
-                                                            },
-                                                            "label": {
-                                                                "type": "string"
-                                                            },
-                                                            "active": {
-                                                                "type": "boolean"
-                                                            }
-                                                        },
-                                                        "required": [
-                                                            "url",
-                                                            "label",
-                                                            "active"
-                                                        ]
-                                                    }
-                                                },
-                                                "path": {
-                                                    "type": [
-                                                        "string",
-                                                        "null"
-                                                    ],
-                                                    "description": "Base path for paginator generated URLs."
-                                                },
-                                                "per_page": {
-                                                    "type": "integer",
-                                                    "description": "Number of items shown per page.",
-                                                    "minimum": 0
-                                                },
-                                                "to": {
-                                                    "type": [
-                                                        "integer",
-                                                        "null"
-                                                    ],
-                                                    "description": "Number of the last item in the slice.",
-                                                    "minimum": 1
-                                                },
-                                                "total": {
-                                                    "type": "integer",
-                                                    "description": "Total number of items being paginated.",
-                                                    "minimum": 0
-                                                }
-                                            },
-                                            "required": [
-                                                "current_page",
-                                                "from",
-                                                "last_page",
-                                                "links",
-                                                "path",
-                                                "per_page",
-                                                "to",
-                                                "total"
-                                            ]
-                                        }
-                                    },
-                                    "required": [
-                                        "data",
-                                        "links",
-                                        "meta"
                                     ]
                                 }
                             }
@@ -7481,190 +6234,6 @@
                 }
             }
         },
-        "/kecamatans/logs": {
-            "get": {
-                "operationId": "kecamatan.logs",
-                "tags": [
-                    "Kecamatan"
-                ],
-                "parameters": [
-                    {
-                        "name": "search",
-                        "in": "query",
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                ],
-                "responses": {
-                    "500": {
-                        "description": "",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "success": {
-                                            "type": "boolean"
-                                        },
-                                        "message": {
-                                            "type": "string",
-                                            "const": "Terjadi kesalahan pada server. Silakan coba lagi."
-                                        }
-                                    },
-                                    "required": [
-                                        "success",
-                                        "message"
-                                    ]
-                                }
-                            }
-                        }
-                    },
-                    "200": {
-                        "description": "Paginated set of `ActivityLogResource`",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "array",
-                                            "items": {
-                                                "$ref": "#/components/schemas/ActivityLogResource"
-                                            }
-                                        },
-                                        "links": {
-                                            "type": "object",
-                                            "properties": {
-                                                "first": {
-                                                    "type": [
-                                                        "string",
-                                                        "null"
-                                                    ]
-                                                },
-                                                "last": {
-                                                    "type": [
-                                                        "string",
-                                                        "null"
-                                                    ]
-                                                },
-                                                "prev": {
-                                                    "type": [
-                                                        "string",
-                                                        "null"
-                                                    ]
-                                                },
-                                                "next": {
-                                                    "type": [
-                                                        "string",
-                                                        "null"
-                                                    ]
-                                                }
-                                            },
-                                            "required": [
-                                                "first",
-                                                "last",
-                                                "prev",
-                                                "next"
-                                            ]
-                                        },
-                                        "meta": {
-                                            "type": "object",
-                                            "properties": {
-                                                "current_page": {
-                                                    "type": "integer",
-                                                    "minimum": 1
-                                                },
-                                                "from": {
-                                                    "type": [
-                                                        "integer",
-                                                        "null"
-                                                    ],
-                                                    "minimum": 1
-                                                },
-                                                "last_page": {
-                                                    "type": "integer",
-                                                    "minimum": 1
-                                                },
-                                                "links": {
-                                                    "type": "array",
-                                                    "description": "Generated paginator links.",
-                                                    "items": {
-                                                        "type": "object",
-                                                        "properties": {
-                                                            "url": {
-                                                                "type": [
-                                                                    "string",
-                                                                    "null"
-                                                                ]
-                                                            },
-                                                            "label": {
-                                                                "type": "string"
-                                                            },
-                                                            "active": {
-                                                                "type": "boolean"
-                                                            }
-                                                        },
-                                                        "required": [
-                                                            "url",
-                                                            "label",
-                                                            "active"
-                                                        ]
-                                                    }
-                                                },
-                                                "path": {
-                                                    "type": [
-                                                        "string",
-                                                        "null"
-                                                    ],
-                                                    "description": "Base path for paginator generated URLs."
-                                                },
-                                                "per_page": {
-                                                    "type": "integer",
-                                                    "description": "Number of items shown per page.",
-                                                    "minimum": 0
-                                                },
-                                                "to": {
-                                                    "type": [
-                                                        "integer",
-                                                        "null"
-                                                    ],
-                                                    "description": "Number of the last item in the slice.",
-                                                    "minimum": 1
-                                                },
-                                                "total": {
-                                                    "type": "integer",
-                                                    "description": "Total number of items being paginated.",
-                                                    "minimum": 0
-                                                }
-                                            },
-                                            "required": [
-                                                "current_page",
-                                                "from",
-                                                "last_page",
-                                                "links",
-                                                "path",
-                                                "per_page",
-                                                "to",
-                                                "total"
-                                            ]
-                                        }
-                                    },
-                                    "required": [
-                                        "data",
-                                        "links",
-                                        "meta"
-                                    ]
-                                }
-                            }
-                        }
-                    },
-                    "401": {
-                        "$ref": "#/components/responses/AuthenticationException"
-                    }
-                }
-            }
-        },
         "/kecamatans/{id}": {
             "get": {
                 "operationId": "kecamatan.show",
@@ -8911,190 +7480,6 @@
                 }
             }
         },
-        "/kelurahans/logs": {
-            "get": {
-                "operationId": "kelurahan.logs",
-                "tags": [
-                    "Kelurahan"
-                ],
-                "parameters": [
-                    {
-                        "name": "search",
-                        "in": "query",
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                ],
-                "responses": {
-                    "500": {
-                        "description": "",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "success": {
-                                            "type": "boolean"
-                                        },
-                                        "message": {
-                                            "type": "string",
-                                            "const": "Terjadi kesalahan pada server. Silakan coba lagi."
-                                        }
-                                    },
-                                    "required": [
-                                        "success",
-                                        "message"
-                                    ]
-                                }
-                            }
-                        }
-                    },
-                    "200": {
-                        "description": "Paginated set of `ActivityLogResource`",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "array",
-                                            "items": {
-                                                "$ref": "#/components/schemas/ActivityLogResource"
-                                            }
-                                        },
-                                        "links": {
-                                            "type": "object",
-                                            "properties": {
-                                                "first": {
-                                                    "type": [
-                                                        "string",
-                                                        "null"
-                                                    ]
-                                                },
-                                                "last": {
-                                                    "type": [
-                                                        "string",
-                                                        "null"
-                                                    ]
-                                                },
-                                                "prev": {
-                                                    "type": [
-                                                        "string",
-                                                        "null"
-                                                    ]
-                                                },
-                                                "next": {
-                                                    "type": [
-                                                        "string",
-                                                        "null"
-                                                    ]
-                                                }
-                                            },
-                                            "required": [
-                                                "first",
-                                                "last",
-                                                "prev",
-                                                "next"
-                                            ]
-                                        },
-                                        "meta": {
-                                            "type": "object",
-                                            "properties": {
-                                                "current_page": {
-                                                    "type": "integer",
-                                                    "minimum": 1
-                                                },
-                                                "from": {
-                                                    "type": [
-                                                        "integer",
-                                                        "null"
-                                                    ],
-                                                    "minimum": 1
-                                                },
-                                                "last_page": {
-                                                    "type": "integer",
-                                                    "minimum": 1
-                                                },
-                                                "links": {
-                                                    "type": "array",
-                                                    "description": "Generated paginator links.",
-                                                    "items": {
-                                                        "type": "object",
-                                                        "properties": {
-                                                            "url": {
-                                                                "type": [
-                                                                    "string",
-                                                                    "null"
-                                                                ]
-                                                            },
-                                                            "label": {
-                                                                "type": "string"
-                                                            },
-                                                            "active": {
-                                                                "type": "boolean"
-                                                            }
-                                                        },
-                                                        "required": [
-                                                            "url",
-                                                            "label",
-                                                            "active"
-                                                        ]
-                                                    }
-                                                },
-                                                "path": {
-                                                    "type": [
-                                                        "string",
-                                                        "null"
-                                                    ],
-                                                    "description": "Base path for paginator generated URLs."
-                                                },
-                                                "per_page": {
-                                                    "type": "integer",
-                                                    "description": "Number of items shown per page.",
-                                                    "minimum": 0
-                                                },
-                                                "to": {
-                                                    "type": [
-                                                        "integer",
-                                                        "null"
-                                                    ],
-                                                    "description": "Number of the last item in the slice.",
-                                                    "minimum": 1
-                                                },
-                                                "total": {
-                                                    "type": "integer",
-                                                    "description": "Total number of items being paginated.",
-                                                    "minimum": 0
-                                                }
-                                            },
-                                            "required": [
-                                                "current_page",
-                                                "from",
-                                                "last_page",
-                                                "links",
-                                                "path",
-                                                "per_page",
-                                                "to",
-                                                "total"
-                                            ]
-                                        }
-                                    },
-                                    "required": [
-                                        "data",
-                                        "links",
-                                        "meta"
-                                    ]
-                                }
-                            }
-                        }
-                    },
-                    "401": {
-                        "$ref": "#/components/responses/AuthenticationException"
-                    }
-                }
-            }
-        },
         "/kelurahans/{id}": {
             "get": {
                 "operationId": "kelurahan.show",
@@ -10136,6 +8521,9 @@
                             }
                         }
                     },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
                     "200": {
                         "description": "",
                         "content": {
@@ -10169,9 +8557,6 @@
                     },
                     "401": {
                         "$ref": "#/components/responses/AuthenticationException"
-                    },
-                    "422": {
-                        "$ref": "#/components/responses/ValidationException"
                     }
                 }
             }
@@ -10415,6 +8800,20 @@
                         "schema": {
                             "type": "string"
                         }
+                    },
+                    {
+                        "name": "status",
+                        "in": "query",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "action",
+                        "in": "query",
+                        "schema": {
+                            "type": "string"
+                        }
                     }
                 ],
                 "responses": {
@@ -10442,49 +8841,30 @@
                         }
                     },
                     "200": {
-                        "description": "Paginated set of `ActivityLogResource`",
+                        "description": "",
                         "content": {
                             "application/json": {
                                 "schema": {
                                     "type": "object",
                                     "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "const": "Daftar log aktivitas konsumen berhasil diambil."
+                                        },
                                         "data": {
-                                            "type": "array",
-                                            "items": {
-                                                "$ref": "#/components/schemas/ActivityLogResource"
-                                            }
-                                        },
-                                        "links": {
-                                            "type": "object",
-                                            "properties": {
-                                                "first": {
-                                                    "type": "string"
-                                                },
-                                                "last": {
-                                                    "type": "string"
-                                                },
-                                                "prev": {
-                                                    "type": [
-                                                        "string",
-                                                        "null"
-                                                    ]
-                                                },
-                                                "next": {
-                                                    "type": "string"
-                                                }
-                                            },
-                                            "required": [
-                                                "first",
-                                                "last",
-                                                "prev",
-                                                "next"
-                                            ]
-                                        },
-                                        "meta": {
                                             "type": "object",
                                             "properties": {
                                                 "current_page": {
                                                     "type": "integer"
+                                                },
+                                                "data": {
+                                                    "type": "string"
+                                                },
+                                                "first_page_url": {
+                                                    "type": "string"
                                                 },
                                                 "from": {
                                                     "type": [
@@ -10495,9 +8875,15 @@
                                                 "last_page": {
                                                     "type": "string"
                                                 },
+                                                "last_page_url": {
+                                                    "type": "string"
+                                                },
                                                 "links": {
                                                     "type": "object",
                                                     "additionalProperties": {}
+                                                },
+                                                "next_page_url": {
+                                                    "type": "string"
                                                 },
                                                 "path": {
                                                     "type": [
@@ -10507,6 +8893,12 @@
                                                 },
                                                 "per_page": {
                                                     "type": "integer"
+                                                },
+                                                "prev_page_url": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
                                                 },
                                                 "to": {
                                                     "type": [
@@ -10520,20 +8912,25 @@
                                             },
                                             "required": [
                                                 "current_page",
+                                                "data",
+                                                "first_page_url",
                                                 "from",
                                                 "last_page",
+                                                "last_page_url",
                                                 "links",
+                                                "next_page_url",
                                                 "path",
                                                 "per_page",
+                                                "prev_page_url",
                                                 "to",
                                                 "total"
                                             ]
                                         }
                                     },
                                     "required": [
-                                        "data",
-                                        "links",
-                                        "meta"
+                                        "success",
+                                        "message",
+                                        "data"
                                     ]
                                 }
                             }
@@ -10651,7 +9048,7 @@
                 }
             },
             "put": {
-                "operationId": "konsumen.update_124",
+                "operationId": "konsumen.update_115",
                 "tags": [
                     "Konsumen"
                 ],
@@ -10784,7 +9181,7 @@
         },
         "/konsumens/{id}/update": {
             "post": {
-                "operationId": "konsumen.update_125",
+                "operationId": "konsumen.update_116",
                 "tags": [
                     "Konsumen"
                 ],
@@ -12692,190 +11089,6 @@
                                 "schema": {
                                     "type": "string",
                                     "const": "max-age=0"
-                                }
-                            }
-                        }
-                    },
-                    "401": {
-                        "$ref": "#/components/responses/AuthenticationException"
-                    }
-                }
-            }
-        },
-        "/pekerjaans/logs": {
-            "get": {
-                "operationId": "pekerjaan.logs",
-                "tags": [
-                    "Pekerjaan"
-                ],
-                "parameters": [
-                    {
-                        "name": "search",
-                        "in": "query",
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                ],
-                "responses": {
-                    "500": {
-                        "description": "",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "success": {
-                                            "type": "boolean"
-                                        },
-                                        "message": {
-                                            "type": "string",
-                                            "const": "Terjadi kesalahan pada server. Silakan coba lagi."
-                                        }
-                                    },
-                                    "required": [
-                                        "success",
-                                        "message"
-                                    ]
-                                }
-                            }
-                        }
-                    },
-                    "200": {
-                        "description": "Paginated set of `ActivityLogResource`",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "array",
-                                            "items": {
-                                                "$ref": "#/components/schemas/ActivityLogResource"
-                                            }
-                                        },
-                                        "links": {
-                                            "type": "object",
-                                            "properties": {
-                                                "first": {
-                                                    "type": [
-                                                        "string",
-                                                        "null"
-                                                    ]
-                                                },
-                                                "last": {
-                                                    "type": [
-                                                        "string",
-                                                        "null"
-                                                    ]
-                                                },
-                                                "prev": {
-                                                    "type": [
-                                                        "string",
-                                                        "null"
-                                                    ]
-                                                },
-                                                "next": {
-                                                    "type": [
-                                                        "string",
-                                                        "null"
-                                                    ]
-                                                }
-                                            },
-                                            "required": [
-                                                "first",
-                                                "last",
-                                                "prev",
-                                                "next"
-                                            ]
-                                        },
-                                        "meta": {
-                                            "type": "object",
-                                            "properties": {
-                                                "current_page": {
-                                                    "type": "integer",
-                                                    "minimum": 1
-                                                },
-                                                "from": {
-                                                    "type": [
-                                                        "integer",
-                                                        "null"
-                                                    ],
-                                                    "minimum": 1
-                                                },
-                                                "last_page": {
-                                                    "type": "integer",
-                                                    "minimum": 1
-                                                },
-                                                "links": {
-                                                    "type": "array",
-                                                    "description": "Generated paginator links.",
-                                                    "items": {
-                                                        "type": "object",
-                                                        "properties": {
-                                                            "url": {
-                                                                "type": [
-                                                                    "string",
-                                                                    "null"
-                                                                ]
-                                                            },
-                                                            "label": {
-                                                                "type": "string"
-                                                            },
-                                                            "active": {
-                                                                "type": "boolean"
-                                                            }
-                                                        },
-                                                        "required": [
-                                                            "url",
-                                                            "label",
-                                                            "active"
-                                                        ]
-                                                    }
-                                                },
-                                                "path": {
-                                                    "type": [
-                                                        "string",
-                                                        "null"
-                                                    ],
-                                                    "description": "Base path for paginator generated URLs."
-                                                },
-                                                "per_page": {
-                                                    "type": "integer",
-                                                    "description": "Number of items shown per page.",
-                                                    "minimum": 0
-                                                },
-                                                "to": {
-                                                    "type": [
-                                                        "integer",
-                                                        "null"
-                                                    ],
-                                                    "description": "Number of the last item in the slice.",
-                                                    "minimum": 1
-                                                },
-                                                "total": {
-                                                    "type": "integer",
-                                                    "description": "Total number of items being paginated.",
-                                                    "minimum": 0
-                                                }
-                                            },
-                                            "required": [
-                                                "current_page",
-                                                "from",
-                                                "last_page",
-                                                "links",
-                                                "path",
-                                                "per_page",
-                                                "to",
-                                                "total"
-                                            ]
-                                        }
-                                    },
-                                    "required": [
-                                        "data",
-                                        "links",
-                                        "meta"
-                                    ]
                                 }
                             }
                         }
@@ -14818,49 +13031,30 @@
                         }
                     },
                     "200": {
-                        "description": "Paginated set of `ActivityLogResource`",
+                        "description": "",
                         "content": {
                             "application/json": {
                                 "schema": {
                                     "type": "object",
                                     "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "const": "Daftar log aktivitas menu role berhasil diambil."
+                                        },
                                         "data": {
-                                            "type": "array",
-                                            "items": {
-                                                "$ref": "#/components/schemas/ActivityLogResource"
-                                            }
-                                        },
-                                        "links": {
-                                            "type": "object",
-                                            "properties": {
-                                                "first": {
-                                                    "type": "string"
-                                                },
-                                                "last": {
-                                                    "type": "string"
-                                                },
-                                                "prev": {
-                                                    "type": [
-                                                        "string",
-                                                        "null"
-                                                    ]
-                                                },
-                                                "next": {
-                                                    "type": "string"
-                                                }
-                                            },
-                                            "required": [
-                                                "first",
-                                                "last",
-                                                "prev",
-                                                "next"
-                                            ]
-                                        },
-                                        "meta": {
                                             "type": "object",
                                             "properties": {
                                                 "current_page": {
                                                     "type": "integer"
+                                                },
+                                                "data": {
+                                                    "type": "string"
+                                                },
+                                                "first_page_url": {
+                                                    "type": "string"
                                                 },
                                                 "from": {
                                                     "type": [
@@ -14871,9 +13065,15 @@
                                                 "last_page": {
                                                     "type": "string"
                                                 },
+                                                "last_page_url": {
+                                                    "type": "string"
+                                                },
                                                 "links": {
                                                     "type": "object",
                                                     "additionalProperties": {}
+                                                },
+                                                "next_page_url": {
+                                                    "type": "string"
                                                 },
                                                 "path": {
                                                     "type": [
@@ -14883,6 +13083,12 @@
                                                 },
                                                 "per_page": {
                                                     "type": "integer"
+                                                },
+                                                "prev_page_url": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
                                                 },
                                                 "to": {
                                                     "type": [
@@ -14896,20 +13102,25 @@
                                             },
                                             "required": [
                                                 "current_page",
+                                                "data",
+                                                "first_page_url",
                                                 "from",
                                                 "last_page",
+                                                "last_page_url",
                                                 "links",
+                                                "next_page_url",
                                                 "path",
                                                 "per_page",
+                                                "prev_page_url",
                                                 "to",
                                                 "total"
                                             ]
                                         }
                                     },
                                     "required": [
-                                        "data",
-                                        "links",
-                                        "meta"
+                                        "success",
+                                        "message",
+                                        "data"
                                     ]
                                 }
                             }
@@ -15464,49 +13675,30 @@
                         }
                     },
                     "200": {
-                        "description": "Paginated set of `ActivityLogResource`",
+                        "description": "",
                         "content": {
                             "application/json": {
                                 "schema": {
                                     "type": "object",
                                     "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "const": "Daftar log aktivitas permission role berhasil diambil."
+                                        },
                                         "data": {
-                                            "type": "array",
-                                            "items": {
-                                                "$ref": "#/components/schemas/ActivityLogResource"
-                                            }
-                                        },
-                                        "links": {
-                                            "type": "object",
-                                            "properties": {
-                                                "first": {
-                                                    "type": "string"
-                                                },
-                                                "last": {
-                                                    "type": "string"
-                                                },
-                                                "prev": {
-                                                    "type": [
-                                                        "string",
-                                                        "null"
-                                                    ]
-                                                },
-                                                "next": {
-                                                    "type": "string"
-                                                }
-                                            },
-                                            "required": [
-                                                "first",
-                                                "last",
-                                                "prev",
-                                                "next"
-                                            ]
-                                        },
-                                        "meta": {
                                             "type": "object",
                                             "properties": {
                                                 "current_page": {
                                                     "type": "integer"
+                                                },
+                                                "data": {
+                                                    "type": "string"
+                                                },
+                                                "first_page_url": {
+                                                    "type": "string"
                                                 },
                                                 "from": {
                                                     "type": [
@@ -15517,9 +13709,15 @@
                                                 "last_page": {
                                                     "type": "string"
                                                 },
+                                                "last_page_url": {
+                                                    "type": "string"
+                                                },
                                                 "links": {
                                                     "type": "object",
                                                     "additionalProperties": {}
+                                                },
+                                                "next_page_url": {
+                                                    "type": "string"
                                                 },
                                                 "path": {
                                                     "type": [
@@ -15529,6 +13727,12 @@
                                                 },
                                                 "per_page": {
                                                     "type": "integer"
+                                                },
+                                                "prev_page_url": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
                                                 },
                                                 "to": {
                                                     "type": [
@@ -15542,20 +13746,25 @@
                                             },
                                             "required": [
                                                 "current_page",
+                                                "data",
+                                                "first_page_url",
                                                 "from",
                                                 "last_page",
+                                                "last_page_url",
                                                 "links",
+                                                "next_page_url",
                                                 "path",
                                                 "per_page",
+                                                "prev_page_url",
                                                 "to",
                                                 "total"
                                             ]
                                         }
                                     },
                                     "required": [
-                                        "data",
-                                        "links",
-                                        "meta"
+                                        "success",
+                                        "message",
+                                        "data"
                                     ]
                                 }
                             }
@@ -17048,109 +15257,6 @@
                 ],
                 "title": "ActiveKonsumenRequest"
             },
-            "ActivityLogResource": {
-                "type": "object",
-                "properties": {
-                    "id": {
-                        "type": "integer"
-                    },
-                    "log_name": {
-                        "type": [
-                            "string",
-                            "null"
-                        ]
-                    },
-                    "aksi": {
-                        "type": [
-                            "string",
-                            "null"
-                        ]
-                    },
-                    "deskripsi": {
-                        "type": "string"
-                    },
-                    "subject": {
-                        "type": [
-                            "object",
-                            "null"
-                        ],
-                        "properties": {
-                            "id": {
-                                "type": [
-                                    "integer",
-                                    "null"
-                                ]
-                            },
-                            "name": {
-                                "type": [
-                                    "string",
-                                    "null"
-                                ]
-                            }
-                        },
-                        "required": [
-                            "id",
-                            "name"
-                        ]
-                    },
-                    "oleh": {
-                        "type": [
-                            "object",
-                            "null"
-                        ],
-                        "properties": {
-                            "id": {
-                                "type": [
-                                    "integer",
-                                    "null"
-                                ]
-                            },
-                            "name": {
-                                "type": [
-                                    "string",
-                                    "null"
-                                ]
-                            }
-                        },
-                        "required": [
-                            "id",
-                            "name"
-                        ]
-                    },
-                    "waktu": {
-                        "type": [
-                            "string",
-                            "null"
-                        ]
-                    },
-                    "data_lama": {
-                        "type": [
-                            "array",
-                            "null"
-                        ],
-                        "items": {}
-                    },
-                    "data_baru": {
-                        "type": [
-                            "array",
-                            "null"
-                        ],
-                        "items": {}
-                    }
-                },
-                "required": [
-                    "id",
-                    "log_name",
-                    "aksi",
-                    "deskripsi",
-                    "subject",
-                    "oleh",
-                    "waktu",
-                    "data_lama",
-                    "data_baru"
-                ],
-                "title": "ActivityLogResource"
-            },
             "Agama": {
                 "type": "object",
                 "properties": {
@@ -17343,11 +15449,9 @@
             "ConfigurasiRateLimitRequest": {
                 "type": "object",
                 "properties": {
-                    "name": {
-                        "type": "string"
-                    },
                     "request_per_minutes": {
                         "type": "integer",
+                        "description": "'name'=> ['required','string'],",
                         "minimum": 1
                     },
                     "minutes": {
@@ -17359,7 +15463,6 @@
                     }
                 },
                 "required": [
-                    "name",
                     "request_per_minutes",
                     "minutes",
                     "status"
@@ -18039,7 +16142,7 @@
                         "type": "string",
                         "format": "binary",
                         "contentMediaType": "application/octet-stream",
-                        "description": "Maximum file size: 512 kilobytes."
+                        "description": "Maximum file size: 2048 kilobytes."
                     },
                     "nik": {
                         "type": "string"

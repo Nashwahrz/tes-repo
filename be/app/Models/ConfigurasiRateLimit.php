@@ -19,7 +19,7 @@ class ConfigurasiRateLimit extends Model
     //         ->dontSubmitEmptyLogs();
     // }
     protected $fillable = [
-        'name',
+        // 'name',
         'request_per_minutes',
         'minutes',
         'status',

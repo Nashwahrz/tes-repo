@@ -66,17 +66,17 @@ class UrlIpLoginController extends Controller
             return $this->urlIpResponse->serverError();
         }
     }
-    public function logPermissions(Request $request)
-    {
-        try {
-            $perPage = $this->paginateController->getPerPage($request);
+    // public function logPermissions(Request $request)
+    // {
+    //     try {
+    //         $perPage = $this->paginateController->getPerPage($request);
 
-            return ActivityLogResource::collection(
-                $this->urlIpLoginRepository->getAllLogs($perPage, $request->query('search'))
-            );
-        } catch (Throwable $e) {
-            Log::error('Gagal mengambil log url ip login: ' . $e->getMessage());
-            return $this->urlIpResponse->serverError();
-        }
-    }
+    //         return ActivityLogResource::collection(
+    //             $this->urlIpLoginRepository->getAllLogs($perPage, $request->query('search'))
+    //         );
+    //     } catch (Throwable $e) {
+    //         Log::error('Gagal mengambil log url ip login: ' . $e->getMessage());
+    //         return $this->urlIpResponse->serverError();
+    //     }
+    // }
 }
