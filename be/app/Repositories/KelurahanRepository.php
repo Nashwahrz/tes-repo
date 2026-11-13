@@ -75,22 +75,7 @@ class KelurahanRepository
             ->paginate($perPage)
             ->withQueryString();
     }
-    public function getAllLogs(int $perPage = 10, ?string $search = null): LengthAwarePaginator
-    {
-        $logs = Activity::query()
-            ->where('subject_type', Kelurahan::class)
-            ->with(['causer:id,name', 'subject'])
-            ->when($search, function ($q) use ($search) {
-                        $q->whereHasMorph('subject', [Kelurahan::class], function ($q) use ($search) {
-                            $q->where('kelurahan_name', 'ILIKE', "%{$search}%")
-                            ->orWhere('kelurahan_code', 'ILIKE', "%{$search}%");
-                        });
-                    })
-            ->latest()
-            ->paginate($perPage);
 
-        return $logs;
-    }
     public function importFromExcel(string $filePath): array
     {
         $spreadsheet = IOFactory::load($filePath);

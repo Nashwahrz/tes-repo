@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Http\Requests\AgamaRequest;
 use App\Http\Requests\GeografisStatusRequest;
 use App\Http\Requests\ImportRequest;
-use App\Http\Resources\ActivityLogResource;
 use App\Http\Responses\AgamaResponse;
 use App\Http\Responses\ImportResponse;
 use App\Repositories\AgamaRepository;
@@ -159,19 +158,6 @@ class AgamaController extends Controller
             return $this->agamaResponse->serverError();
         }
     }
-    // public function logs(Request $request)
-    // {
-    //     try {
-    //         $perPage = $this->paginateController->getPerPage($request);
-
-    //         return ActivityLogResource::collection(
-    //             $this->agamaRepository->getAllLogs($perPage, $request->query('search'))
-    //         );
-    //     } catch (Throwable $e) {
-    //         Log::error('Gagal mengambil log agama: ' . $e->getMessage());
-    //         return $this->agamaResponse->serverError();
-    //     }
-    // }
 
     public function import(ImportRequest $request)
     {

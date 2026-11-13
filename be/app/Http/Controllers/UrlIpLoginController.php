@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\UrlIpLoginRequest;
-use App\Http\Resources\ActivityLogResource;
 use App\Http\Responses\UrlIpResponse;
 use App\Repositories\UrlIpLoginRepository;
 use Illuminate\Http\Request;
@@ -66,17 +65,4 @@ class UrlIpLoginController extends Controller
             return $this->urlIpResponse->serverError();
         }
     }
-    // public function logPermissions(Request $request)
-    // {
-    //     try {
-    //         $perPage = $this->paginateController->getPerPage($request);
-
-    //         return ActivityLogResource::collection(
-    //             $this->urlIpLoginRepository->getAllLogs($perPage, $request->query('search'))
-    //         );
-    //     } catch (Throwable $e) {
-    //         Log::error('Gagal mengambil log url ip login: ' . $e->getMessage());
-    //         return $this->urlIpResponse->serverError();
-    //     }
-    // }
 }

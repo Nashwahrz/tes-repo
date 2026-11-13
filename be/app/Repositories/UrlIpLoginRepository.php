@@ -32,19 +32,4 @@ class UrlIpLoginRepository
             return UrlIpLogin::where('status', true)->first();
         });
     }
-    public function getAllLogs(int $perPage = 10, ?string $search = null): LengthAwarePaginator
-    {
-        $logs = Activity::query()
-            ->where('subject_type', UrlIpLogin::class)
-            ->with(['causer:id,name', 'subject'])
-            ->when($search, function ($q) use ($search) {
-                        $q->whereHasMorph('subject', [UrlIpLogin::class], function ($q) use ($search) {
-                            $q->where('url', 'ILIKE', "%{$search}%");
-                        });
-                    })
-            ->latest()
-            ->paginate($perPage);
-
-        return $logs;
-    }
 }

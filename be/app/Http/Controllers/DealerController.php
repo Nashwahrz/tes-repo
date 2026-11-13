@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\DealerRequest;
-use App\Http\Resources\ActivityLogResource;
 use App\Http\Responses\DealerResponse;
 use App\Repositories\DealerRepository;
 use Illuminate\Database\UniqueConstraintViolationException;
@@ -108,18 +107,5 @@ class DealerController extends Controller
             return $this->dealerResponse->serverError();
         }
     }
-    // public function logs(Request $request)
-    // {
-    //     try {
-    //         $perPage = $this->paginateController->getPerPage($request);
-
-    //         return ActivityLogResource::collection(
-    //             $this->dealerRepository->getAllLogs($perPage, $request->query('search'))
-    //         );
-    //     } catch (Throwable $e) {
-    //         Log::error('Gagal mengambil log dealer: ' . $e->getMessage());
-    //         return $this->dealerResponse->serverError();
-    //     }
-    // }
 
 }

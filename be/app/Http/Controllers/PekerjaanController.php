@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Http\Requests\GeografisStatusRequest;
 use App\Http\Requests\ImportRequest;
 use App\Http\Requests\PekerjaanRequest;
-use App\Http\Resources\ActivityLogResource;
 use App\Http\Responses\ImportResponse;
 use App\Http\Responses\PekerjaanResponse;
 use App\Repositories\PekerjaanRepository;
@@ -172,19 +171,6 @@ class PekerjaanController extends Controller
             return $this->pekerjaanResponse->serverError();
         }
     }
-    // public function logs(Request $request)
-    // {
-    //     try {
-    //         $perPage = $this->paginateController->getPerPage($request);
-
-    //         return ActivityLogResource::collection(
-    //             $this->pekerjaanRepository->getAllLogs($perPage, $request->query('search'))
-    //         );
-    //     } catch (Throwable $e) {
-    //         Log::error('Gagal mengambil log pekerjaan: ' . $e->getMessage());
-    //         return $this->pekerjaanResponse->serverError();
-    //     }
-    // }
     public function import(ImportRequest $request)
     {
         try {

@@ -10,7 +10,6 @@ use App\Http\Requests\ActiveKonsumenRequest;
 use App\Http\Requests\CheckNikRequest;
 use App\Http\Requests\KonsumenRequest;
 use App\Http\Requests\ScanKtpRequest;
-use App\Http\Resources\ActivityLogResource;
 use App\Http\Resources\LogActivityKonsumenResource;
 use App\Http\Responses\KonsumenMeResponse;
 use App\Http\Responses\KonsumenResponse;

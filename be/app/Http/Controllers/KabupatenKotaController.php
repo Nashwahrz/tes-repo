@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Http\Requests\GeografisStatusRequest;
 use App\Http\Requests\ImportRequest;
 use App\Http\Requests\KabupatenKotaRequest;
-use App\Http\Resources\ActivityLogResource;
 use App\Http\Responses\ImportResponse;
 use App\Http\Responses\KabupatenKotaResponse;
 use App\Repositories\KabupatenKotaRepository;
@@ -159,19 +158,7 @@ class KabupatenKotaController extends Controller
             return $this->kabupatenKotaResponse->serverError();
         }
     }
-    // public function logs(Request $request)
-    // {
-    //     try {
-    //         $perPage = $this->paginateController->getPerPage($request);
-
-    //         return ActivityLogResource::collection(
-    //             $this->kabupatenKotaRepository->getAllLogs($perPage, $request->query('search'))
-    //         );
-    //     } catch (Throwable $e) {
-    //         Log::error('Gagal mengambil log kabupaten kota: ' . $e->getMessage());
-    //         return $this->kabupatenKotaResponse->serverError();
-    //     }
-    // }
+   
     public function import(ImportRequest $request)
     {
         try {
