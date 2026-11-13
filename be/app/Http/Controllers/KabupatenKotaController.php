@@ -159,19 +159,19 @@ class KabupatenKotaController extends Controller
             return $this->kabupatenKotaResponse->serverError();
         }
     }
-    public function logs(Request $request)
-    {
-        try {
-            $perPage = $this->paginateController->getPerPage($request);
+    // public function logs(Request $request)
+    // {
+    //     try {
+    //         $perPage = $this->paginateController->getPerPage($request);
 
-            return ActivityLogResource::collection(
-                $this->kabupatenKotaRepository->getAllLogs($perPage, $request->query('search'))
-            );
-        } catch (Throwable $e) {
-            Log::error('Gagal mengambil log kabupaten kota: ' . $e->getMessage());
-            return $this->kabupatenKotaResponse->serverError();
-        }
-    }
+    //         return ActivityLogResource::collection(
+    //             $this->kabupatenKotaRepository->getAllLogs($perPage, $request->query('search'))
+    //         );
+    //     } catch (Throwable $e) {
+    //         Log::error('Gagal mengambil log kabupaten kota: ' . $e->getMessage());
+    //         return $this->kabupatenKotaResponse->serverError();
+    //     }
+    // }
     public function import(ImportRequest $request)
     {
         try {

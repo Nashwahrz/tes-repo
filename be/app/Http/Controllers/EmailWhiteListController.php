@@ -107,19 +107,19 @@ class EmailWhiteListController extends Controller
             return $this->emailWhiteListResponse->serverError();
         }
     }
-    public function logs(Request $request)
-    {
-        try {
-            $perPage = $this->paginateController->getPerPage($request);
+    // public function logs(Request $request)
+    // {
+    //     try {
+    //         $perPage = $this->paginateController->getPerPage($request);
 
-            return ActivityLogResource::collection(
-                $this->emailWhiteListRepository->getAllLogs($perPage, $request->query('search'))
-            );
-        } catch (Throwable $e) {
-            Log::error('Gagal mengambil log user: ' . $e->getMessage());
-            return $this->emailWhiteListResponse->serverError();
-        }
-    }
+    //         return ActivityLogResource::collection(
+    //             $this->emailWhiteListRepository->getAllLogs($perPage, $request->query('search'))
+    //         );
+    //     } catch (Throwable $e) {
+    //         Log::error('Gagal mengambil log user: ' . $e->getMessage());
+    //         return $this->emailWhiteListResponse->serverError();
+    //     }
+    // }
 
 
 }

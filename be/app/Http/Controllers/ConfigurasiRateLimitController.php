@@ -5,8 +5,12 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\ConfigurasiRateLimitRequest;
 use App\Http\Resources\ActivityLogResource;
+use App\Http\Resources\LogActivityConfigurasiRateLimitResource;
 use App\Http\Responses\ConfigurasiRateLimitResponse;
+use App\Http\Responses\LogActivityConfigurasiRateLimitResponse;
 use App\Repositories\ConfigurasiRateLimitRepository;
+use App\Repositories\LogActivityConfigurasiRateLimitRepository;
+use App\Services\LogActivityConfigurasiRateLimitService;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -17,8 +21,16 @@ class ConfigurasiRateLimitController extends Controller
     public function __construct(
         private ConfigurasiRateLimitRepository $configurasiRateLimitRepository,
         private ConfigurasiRateLimitResponse $configurasiRateLimitResponse,
-        private PaginateController $paginateController
-    ) {}
+        private PaginateController $paginateController,
+        private ?LogActivityConfigurasiRateLimitService $logActivityConfigurasiRateLimitService = null,
+        private ?LogActivityConfigurasiRateLimitRepository $logActivityConfigurasiRateLimitRepository = null,
+        private ?LogActivityConfigurasiRateLimitResponse $logActivityConfigurasiRateLimitResponse = null,
+       
+    ) {
+        $this->logActivityConfigurasiRateLimitService    = $logActivityConfigurasiRateLimitService ?? app(LogActivityConfigurasiRateLimitService::class);
+        $this->logActivityConfigurasiRateLimitRepository = $logActivityConfigurasiRateLimitRepository ?? app(LogActivityConfigurasiRateLimitRepository::class);
+        $this->logActivityConfigurasiRateLimitResponse   = $logActivityConfigurasiRateLimitResponse ?? app(LogActivityConfigurasiRateLimitResponse::class);
+    }
 
     public function index(Request $request)
     {
@@ -77,7 +89,11 @@ class ConfigurasiRateLimitController extends Controller
                 return $this->configurasiRateLimitResponse->notFound();
             }
 
-            $updatedConfigurasiRateLimit = $this->configurasiRateLimitRepository->update($configurasiRateLimit, $request->validated());
+           $updatedConfigurasiRateLimit = $this->configurasiRateLimitRepository->update($configurasiRateLimit, $request->validated());
+            $this->logActivityConfigurasiRateLimitService->logUpdated(
+                $updatedConfigurasiRateLimit,
+                $request->user()
+            );
 
             return $this->configurasiRateLimitResponse->success($updatedConfigurasiRateLimit, 'Configurasi rate limit berhasil diperbarui.');
         } catch (UniqueConstraintViolationException $e) {
@@ -89,17 +105,26 @@ class ConfigurasiRateLimitController extends Controller
             return $this->configurasiRateLimitResponse->serverError();
         }
     }
+
     public function logs(Request $request)
     {
         try {
             $perPage = $this->paginateController->getPerPage($request);
+            $logs    = $this->logActivityConfigurasiRateLimitRepository->paginate($perPage, $request->query('search'));
 
-            return ActivityLogResource::collection(
-                $this->configurasiRateLimitRepository->getAllLogs($perPage, $request->query('search'))
+            $transformed = $logs->through(
+                fn ($log) => (new LogActivityConfigurasiRateLimitResource($log))->resolve()
+            );
+
+            return $this->logActivityConfigurasiRateLimitResponse->list(
+                $transformed,
+                'Daftar log aktivitas konfigurasi rate limit berhasil diambil.'
             );
         } catch (Throwable $e) {
-            Log::error('Gagal mengambil log agama: ' . $e->getMessage());
-            return $this->configurasiRateLimitResponse->serverError();
+            Log::error('Gagal mengambil log konfigurasi rate limit: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString(),
+            ]);
+            return $this->logActivityConfigurasiRateLimitResponse->serverError();
         }
     }
 

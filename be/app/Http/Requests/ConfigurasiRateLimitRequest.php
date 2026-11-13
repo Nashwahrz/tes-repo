@@ -24,7 +24,7 @@ class ConfigurasiRateLimitRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name'=> ['required','string'],
+            // 'name'=> ['required','string'],
             'request_per_minutes'=> ['required','integer', 'min:1'],
             'minutes'=> ['required','integer', 'min:1'],
             'status'=> ['required','boolean'],
@@ -34,8 +34,8 @@ class ConfigurasiRateLimitRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'name.required' => 'Nama wajib diisi.',
-            'name.string' => 'Nama harus berupa string.',
+            // 'name.required' => 'Nama wajib diisi.',
+            // 'name.string' => 'Nama harus berupa string.',
             'request_per_minutes.required' => 'Request per minutes wajib diisi.',
             'request_per_minutes.integer' => 'Request per minutes harus berupa integer.',
             'request_per_minutes.min' => 'Request per minutes minimal 1.',

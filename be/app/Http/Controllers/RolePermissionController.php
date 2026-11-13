@@ -4,8 +4,12 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\RolePermissionRequest;
 use App\Http\Resources\ActivityLogResource;
+use App\Http\Resources\LogActivityPermissionResource;
+use App\Http\Responses\LogActivitypermissionResponse;
 use App\Http\Responses\RolePermissionResponse;
+use App\Repositories\LogActivityPermissionRepository;
 use App\Repositories\RolePermissionRepository;
+use App\Services\LogActivityPermissionService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Throwable;
@@ -15,8 +19,15 @@ class RolePermissionController extends Controller
     public function __construct(
         private RolePermissionRepository $rolePermissionRepository,
         private RolePermissionResponse $rolePermissionResponse,
-        private PaginateController $paginateController
-    ) {}
+        private PaginateController $paginateController,
+        private ?LogActivityPermissionService $logActivityPermissionService = null,
+        private ?LogActivityPermissionRepository $logActivityPermissionRepository = null,
+        private ?LogActivitypermissionResponse $logActivityPermissionResponse = null
+    ) {
+        $this->logActivityPermissionService = app(LogActivityPermissionService::class);
+        $this->logActivityPermissionRepository = app(LogActivityPermissionRepository::class);
+        $this->logActivityPermissionResponse = app(LogActivitypermissionResponse::class);
+    }
 
    
     public function index()
@@ -84,9 +95,25 @@ class RolePermissionController extends Controller
             if (!$role) {
                 return $this->rolePermissionResponse->notFound('Role tidak ditemukan.');
             }
+            $oldPermissions = $role->permissions->map(fn ($m) => [
+                'id'        => $m->id,
+                'permission_name' => $m->permission_name
+            ])->toArray();
 
             $permissionIds = $request->validated('permission_ids', []);
             $updatedRole = $this->rolePermissionRepository->syncRolePermissions($role, $permissionIds);
+
+            $newPermissions = $updatedRole->permissions->map(fn ($m) => [
+                'id'        => $m->id,
+                'permission_name' => $m->permission_name,
+            ])->toArray();
+
+            $this->logActivityPermissionService->logRolePermissionsSynced(
+                $updatedRole,
+                $oldPermissions,
+                $newPermissions,
+                $request->user()
+            );
 
             return $this->rolePermissionResponse->rolePermissions(
                 $updatedRole,
@@ -123,30 +150,38 @@ class RolePermissionController extends Controller
             return $this->rolePermissionResponse->serverError();
         }
     }
-    public function logPermissions(Request $request)
-    {
-        try {
-            $perPage = $this->paginateController->getPerPage($request);
+    // public function logPermissions(Request $request)
+    // {
+    //     try {
+    //         $perPage = $this->paginateController->getPerPage($request);
 
-            return ActivityLogResource::collection(
-                $this->rolePermissionRepository->getAllPermissionLogs($perPage, $request->query('search'))
-            );
-        } catch (Throwable $e) {
-            Log::error('Gagal mengambil log permission: ' . $e->getMessage());
-            return $this->rolePermissionResponse->serverError();
-        }
-    }
+    //         return ActivityLogResource::collection(
+    //             $this->rolePermissionRepository->getAllPermissionLogs($perPage, $request->query('search'))
+    //         );
+    //     } catch (Throwable $e) {
+    //         Log::error('Gagal mengambil log permission: ' . $e->getMessage());
+    //         return $this->rolePermissionResponse->serverError();
+    //     }
+    // }
     public function logPermissionRoles(Request $request)
     {
         try {
             $perPage = $this->paginateController->getPerPage($request);
+            $logs    = $this->logActivityPermissionRepository->paginate($perPage, $request->query('search'));
 
-            return ActivityLogResource::collection(
-                $this->rolePermissionRepository->getAllPermissionRoleLogs($perPage, $request->query('search'))
+            $transformed = $logs->through(
+                fn ($log) => (new LogActivityPermissionResource($log))->resolve()
+            );
+
+            return $this->logActivityPermissionResponse->list(
+                $transformed,
+                'Daftar log aktivitas permission role berhasil diambil.'
             );
         } catch (Throwable $e) {
-            Log::error('Gagal mengambil log permission role: ' . $e->getMessage());
-            return $this->rolePermissionResponse->serverError();
+            Log::error('Gagal mengambil log role permission: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString(),
+            ]);
+            return $this->logActivityPermissionResponse->serverError();
         }
     }
 }

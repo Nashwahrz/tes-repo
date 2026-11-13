@@ -4,8 +4,12 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\RoleMenuRequest;
 use App\Http\Resources\ActivityLogResource;
+use App\Http\Resources\LogActivityMenuResource;
+use App\Http\Responses\LogActivityMenuResponse;
 use App\Http\Responses\RoleMenuResponse;
+use App\Repositories\LogActivityMenuRepository;
 use App\Repositories\RoleMenuRepository;
+use App\Services\LogActivityMenuService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Throwable;
@@ -15,8 +19,15 @@ class RoleMenuController extends Controller
     public function __construct(
         private RoleMenuRepository $roleMenuRepository,
         private RoleMenuResponse $roleMenuResponse,
-        private PaginateController $paginateController
-    ) {}
+        private PaginateController $paginateController,
+        private ?LogActivityMenuService $logActivityMenuService = null,
+        private ?LogActivityMenuRepository $logActivityMenuRepository = null,
+        private ?LogActivityMenuResponse $logActivityMenuResponse = null
+    ) {
+        $this->logActivityMenuService    = $logActivityMenuService ?? app(LogActivityMenuService::class);
+        $this->logActivityMenuRepository = $logActivityMenuRepository ?? app(LogActivityMenuRepository::class);
+        $this->logActivityMenuResponse   = $logActivityMenuResponse ?? app(LogActivityMenuResponse::class);
+    }
 
     /**
      * Get all roles with their assigned menus and list of all available menus.
@@ -94,8 +105,27 @@ class RoleMenuController extends Controller
                 return $this->roleMenuResponse->notFound('Role tidak ditemukan.');
             }
 
+            $oldMenus = $role->menus->map(fn ($m) => [
+                'id'        => $m->id,
+                'menu_name' => $m->menu_name,
+                'url'       => $m->url,
+            ])->toArray();
+
             $menuIds = $request->validated('menu_ids', []);
             $updatedRole = $this->roleMenuRepository->syncRoleMenus($role, $menuIds);
+
+            $newMenus = $updatedRole->menus->map(fn ($m) => [
+                'id'        => $m->id,
+                'menu_name' => $m->menu_name,
+                'url'       => $m->url,
+            ])->toArray();
+
+            $this->logActivityMenuService->logRoleMenusSynced(
+                $updatedRole,
+                $oldMenus,
+                $newMenus,
+                $request->user()
+            );
 
             return $this->roleMenuResponse->roleMenus(
                 $updatedRole,
@@ -134,30 +164,38 @@ class RoleMenuController extends Controller
             return $this->roleMenuResponse->serverError();
         }
     }
-    public function logMenus(Request $request)
-    {
-        try {
-            $perPage = $this->paginateController->getPerPage($request);
+    // public function logMenus(Request $request)
+    // {
+    //     try {
+    //         $perPage = $this->paginateController->getPerPage($request);
 
-            return ActivityLogResource::collection(
-                $this->roleMenuRepository->getAllMenuLogs($perPage, $request->query('search'))
-            );
-        } catch (Throwable $e) {
-            Log::error('Gagal mengambil log role menu: ' . $e->getMessage());
-            return $this->roleMenuResponse->serverError();
-        }
-    }
+    //         return ActivityLogResource::collection(
+    //             $this->roleMenuRepository->getAllMenuLogs($perPage, $request->query('search'))
+    //         );
+    //     } catch (Throwable $e) {
+    //         Log::error('Gagal mengambil log role menu: ' . $e->getMessage());
+    //         return $this->roleMenuResponse->serverError();
+    //     }
+    // }
     public function logMenuRoles(Request $request)
     {
         try {
             $perPage = $this->paginateController->getPerPage($request);
+            $logs    = $this->logActivityMenuRepository->paginate($perPage, $request->query('search'));
 
-            return ActivityLogResource::collection(
-                $this->roleMenuRepository->getAllMenuRoleLogs($perPage, $request->query('search'))
+            $transformed = $logs->through(
+                fn ($log) => (new LogActivityMenuResource($log))->resolve()
+            );
+
+            return $this->logActivityMenuResponse->list(
+                $transformed,
+                'Daftar log aktivitas menu role berhasil diambil.'
             );
         } catch (Throwable $e) {
-            Log::error('Gagal mengambil log role menu: ' . $e->getMessage());
-            return $this->roleMenuResponse->serverError();
+            Log::error('Gagal mengambil log role menu: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString(),
+            ]);
+            return $this->logActivityMenuResponse->serverError();
         }
     }
 
