@@ -3,13 +3,16 @@
 namespace App\Http\Controllers;
 
 use App\Enums\StatusUser;
+use App\Enums\StoragePath;
 use App\Http\Requests\ActivateUserRequest;
 use App\Http\Requests\GetAtasanOptionsRequest;
+use App\Http\Requests\UpdatePhotoRequest;
 use App\Http\Resources\LogActivityUserResource;
 use App\Http\Responses\LogActivityUserResponse;
 use App\Http\Responses\UserResponse;
 use App\Mail\SendActivateUser;
 use App\Models\Role;
+use App\Models\User;
 use App\Repositories\UserRepository;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -185,4 +188,55 @@ class UserController extends Controller
             return $this->logActivityUserResponse->serverError();
         }
     }
+
+
+    public function profile(Request $request)
+    {
+        try {
+            $user = $request->user();
+            $user->load(['dealer', 'role', 'atasan']);
+
+            return $this->userResponse->success($user, 'Data profil user berhasil diambil.');
+        } catch (Throwable $e) {
+            Log::error('Gagal mengambil data user login: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            return $this->userResponse->serverError();
+        }
+    }
+
+    public function updatePhoto(UpdatePhotoRequest $request)
+    {
+        try {
+            $user = $request->user();
+            $updatedUser = $this->userRepository->updatePhoto($user, $request->file('photo'));
+
+            return $this->userResponse->success($updatedUser, 'Foto profil berhasil diperbarui.');
+        } catch (Throwable $e) {
+            Log::error('Gagal memperbarui foto profil: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            return $this->userResponse->serverError();
+        }
+    }
+
+    public function profilePhoto(Request $request)
+    {
+        $user = $request->user();
+
+        if (!$user || !$user->photo) {
+            return $this->userResponse->notFound('Foto profil belum diunggah.');
+        }
+
+        $disk = StoragePath::UserPhoto->filesystem();
+        if (!$disk->exists($user->photo)) {
+            return $this->userResponse->notFound('File foto profil tidak ditemukan.');
+        }
+
+        return response()->file($disk->path($user->photo));
+    }
+
+
 }

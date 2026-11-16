@@ -12,6 +12,7 @@ use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 use Spatie\Activitylog\Models\Activity;
 
 class TempKonsumenRepository
@@ -136,7 +137,7 @@ class TempKonsumenRepository
                     ->exists();
 
                 if ($alreadyInMe) {
-                    throw \Illuminate\Validation\ValidationException::withMessages([
+                    throw ValidationException::withMessages([
                         'nik' => ['Konsumen dengan NIK ini sudah ada di daftar konsumen Anda.'],
                     ]);
                 }

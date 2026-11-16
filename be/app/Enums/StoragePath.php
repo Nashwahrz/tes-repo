@@ -6,13 +6,15 @@ use Illuminate\Contracts\Filesystem\Filesystem;
 
 enum StoragePath: string
 {
-    case Ktp = 'ktp';
+    case Ktp       = 'ktp';
+    case UserPhoto = 'user_photos';
 
  
     public function disk(): StorageDisk
     {
         return match ($this) {
-            self::Ktp => StorageDisk::Local,
+            self::Ktp       => StorageDisk::Local,
+            self::UserPhoto => StorageDisk::Public,
         };
     }
 
