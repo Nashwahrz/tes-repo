@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Enums\OtpPurpose;
+use App\Enums\StatusUser;
+use App\Enums\TokenLifetime;
 use App\Http\Requests\LoginRequest;
 use App\Http\Requests\ResetPasswordRequest;
 use App\Http\Responses\LoginResponse;
@@ -22,7 +24,6 @@ use Throwable;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
-use App\Enums\StatusUser;
 use OpenApi\Attributes as OA;
 use Illuminate\Routing\Middleware\ThrottleRequests;
 use Illuminate\Http\Exceptions\HttpResponseException;
@@ -119,8 +120,7 @@ class AuthController extends Controller
             $this->loginLogService->clearAttempts($ip, $email);
             $this->loginLogService->log($user, $request);
 
-            $expirationMinutes = config('sanctum.expiration');
-            $expiresAt = $expirationMinutes ? now()->addMinutes((int) $expirationMinutes) : null;
+            $expiresAt = now()->addMinutes(TokenLifetime::AuthToken->minutes());
 
             $token = $user->createToken('auth_token', ['*'], $expiresAt)->plainTextToken;
 
