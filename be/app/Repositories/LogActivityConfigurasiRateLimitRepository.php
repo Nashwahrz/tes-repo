@@ -8,7 +8,7 @@ use Illuminate\Pagination\LengthAwarePaginator;
 
 class LogActivityConfigurasiRateLimitRepository
 {
-    public function paginate(int $perPage = 10, ?string $search = null): LengthAwarePaginator
+    public function index(int $perPage = 10, ?string $search = null): LengthAwarePaginator
     {
         return LogActivityConfigurasiRateLimit::query()
             ->with(['rateLimit:id,name', 'causer:id,name,email'])
@@ -24,7 +24,7 @@ class LogActivityConfigurasiRateLimitRepository
     }
 
     
-    public function paginateByUserId(int $userId, int $perPage = 10): LengthAwarePaginator
+    public function indexByUserId(int $userId, int $perPage = 10): LengthAwarePaginator
     {
         return LogActivityConfigurasiRateLimit::query()
             ->with(['rateLimit:id,name', 'causer:id,name,email'])

@@ -9,7 +9,7 @@ use Illuminate\Pagination\LengthAwarePaginator;
 
 class LogActivityKonsumenRepository
 {
-    public function paginate(
+    public function index(
         int $perPage = 10,
         ?string $search = null,
         ?StatusKonsumen $status = null,

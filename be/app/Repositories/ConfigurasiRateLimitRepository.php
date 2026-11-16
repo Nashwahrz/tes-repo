@@ -38,7 +38,7 @@ class ConfigurasiRateLimitRepository
     // {
     //     return (bool) $configurasiRateLimit->delete();
     // }
-    public function paginate(int $perPage = 10, ?string $search = null): LengthAwarePaginator
+    public function index(int $perPage = 10, ?string $search = null): LengthAwarePaginator
     {
         return ConfigurasiRateLimit::query()
             ->when($search, fn ($q) => $q->where('name', 'ILIKE', "%{$search}%"))

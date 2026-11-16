@@ -8,7 +8,7 @@ use Illuminate\Pagination\LengthAwarePaginator;
 
 class LogBlockedUserRepository
 {
-    public function paginate(
+    public function index(
         int $perPage = 10,
         ?string $search = null,
         ?string $type = null,

@@ -22,7 +22,7 @@ class DealerController extends Controller
     {
         try {
             $perPage = $this->paginateController->getPerPage($request);
-            $dealers = $this->dealerRepository->paginate($perPage, $request->query('search'));
+            $dealers = $this->dealerRepository->index($perPage, $request->query('search'));
             return $this->dealerResponse->list($dealers);
         } catch (Throwable $e) {
             Log::error('Gagal mengambil data dealer: ' . $e->getMessage(), [

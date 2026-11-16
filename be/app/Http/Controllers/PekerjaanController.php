@@ -26,7 +26,7 @@ class PekerjaanController extends Controller
     {
         try {
             $perPage = $this->paginateController->getPerPage($request);
-            $pekerjaans = $this->pekerjaanRepository->paginateAll($perPage, $request->query('search'));
+            $pekerjaans = $this->pekerjaanRepository->indexAll($perPage, $request->query('search'));
             return $this->pekerjaanResponse->list($pekerjaans);
         } catch (Throwable $e) {
             Log::error('Gagal mengambil data pekerjaan: ' . $e->getMessage(), [
@@ -65,7 +65,7 @@ class PekerjaanController extends Controller
     public function index()
     {
         try {
-            $data = $this->pekerjaanRepository->paginate();
+            $data = $this->pekerjaanRepository->index();
             return $this->pekerjaanResponse->list($data, 'Data opsi hierarki pekerjaan berhasil diambil.');
         } catch (Throwable $e) {
             Log::error('Gagal mengambil tree opsi pekerjaan: ' . $e->getMessage(), [

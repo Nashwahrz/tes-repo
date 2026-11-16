@@ -155,7 +155,7 @@ class UserController extends Controller
                 ? StatusUser::tryFrom($request->query('status'))
                 : null;
 
-            $users = $this->userRepository->paginate($status);
+            $users = $this->userRepository->index($status);
 
             return $this->userResponse->list($users, 'Daftar user berhasil diambil.');
         } catch (Throwable $e) {

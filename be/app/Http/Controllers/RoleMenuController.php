@@ -167,7 +167,7 @@ class RoleMenuController extends Controller
     {
         try {
             $perPage = $this->paginateController->getPerPage($request);
-            $logs    = $this->logActivityMenuRepository->paginate($perPage, $request->query('search'));
+            $logs    = $this->logActivityMenuRepository->index($perPage, $request->query('search'));
 
             $transformed = $logs->through(
                 fn ($log) => (new LogActivityMenuResource($log))->resolve()

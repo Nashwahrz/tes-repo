@@ -75,7 +75,7 @@ class UserRepository
         return $query->get();
     }
 
-    public function paginate(?StatusUser $status = null, int $perPage = 10, ?string $search = null): LengthAwarePaginator
+    public function index(?StatusUser $status = null, int $perPage = 10, ?string $search = null): LengthAwarePaginator
     {
         return User::query()
             ->with(['role', 'dealer', 'atasan'])

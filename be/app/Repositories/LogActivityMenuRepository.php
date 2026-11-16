@@ -7,7 +7,7 @@ use Illuminate\Pagination\LengthAwarePaginator;
 
 class LogActivityMenuRepository
 {
-    public function paginate(int $perPage = 10, ?string $search = null): LengthAwarePaginator
+    public function index(int $perPage = 10, ?string $search = null): LengthAwarePaginator
     {
         return LogActivityMenu::query()
             ->with(['role:id,role_name', 'menu:id,menu_name', 'causer:id,name,email'])

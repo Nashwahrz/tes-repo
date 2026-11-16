@@ -40,7 +40,7 @@ class KecamatanRepository
     {
         return (bool) $kecamatan->delete();
     }
-    public function paginate(int $perPage = 10, ?string $search = null): LengthAwarePaginator
+    public function index(int $perPage = 10, ?string $search = null): LengthAwarePaginator
     {
         return Kecamatan::query()
             ->when($search, fn ($q) => $q->where(function ($q) use ($search) {
@@ -51,7 +51,7 @@ class KecamatanRepository
             ->paginate($perPage)
             ->withQueryString();
     }
-    public function paginateAktif(int $perPage = 10, ?string $search = null): LengthAwarePaginator
+    public function indexAktif(int $perPage = 10, ?string $search = null): LengthAwarePaginator
     {
         return Kecamatan::query()
             ->when($search, fn ($q) => $q->where(function ($q) use ($search) {
@@ -63,7 +63,7 @@ class KecamatanRepository
             ->paginate($perPage)
             ->withQueryString();
     }
-    public function paginateNonAktif(int $perPage = 10, ?string $search = null): LengthAwarePaginator
+    public function indexNonAktif(int $perPage = 10, ?string $search = null): LengthAwarePaginator
     {
         return Kecamatan::query()
             ->when($search, fn ($q) => $q->where(function ($q) use ($search) {

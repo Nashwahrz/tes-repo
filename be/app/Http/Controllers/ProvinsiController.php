@@ -26,7 +26,7 @@ class ProvinsiController extends Controller
     {
         try {
             $perPage = $this->paginateController->getPerPage($request);
-            $provinsis = $this->provinsiRepository->paginate($perPage, $request->query('search'));
+            $provinsis = $this->provinsiRepository->index($perPage, $request->query('search'));
             return $this->provinsiResponse->list($provinsis);
         } catch (Throwable $e) {
             Log::error('Gagal mengambil data provinsi: ' . $e->getMessage(), [
@@ -39,7 +39,7 @@ class ProvinsiController extends Controller
     {
         try {
             $perPage = $this->paginateController->getPerPage($request);
-            $provinsis = $this->provinsiRepository->paginateAktif($perPage, $request->query('search'));
+            $provinsis = $this->provinsiRepository->indexAktif($perPage, $request->query('search'));
             return $this->provinsiResponse->list($provinsis);
         } catch (Throwable $e) {
             Log::error('Gagal mengambil data provinsi: ' . $e->getMessage(), [
@@ -52,7 +52,7 @@ class ProvinsiController extends Controller
     {
         try {
             $perPage = $this->paginateController->getPerPage($request);
-            $provinsis = $this->provinsiRepository->paginateNonAktif($perPage, $request->query('search'));
+            $provinsis = $this->provinsiRepository->indexNonAktif($perPage, $request->query('search'));
             return $this->provinsiResponse->list($provinsis);
         } catch (Throwable $e) {
             Log::error('Gagal mengambil data provinsi: ' . $e->getMessage(), [

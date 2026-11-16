@@ -153,7 +153,7 @@ class RolePermissionController extends Controller
     {
         try {
             $perPage = $this->paginateController->getPerPage($request);
-            $logs    = $this->logActivityPermissionRepository->paginate($perPage, $request->query('search'));
+            $logs    = $this->logActivityPermissionRepository->index($perPage, $request->query('search'));
 
             $transformed = $logs->through(
                 fn ($log) => (new LogActivityPermissionResource($log))->resolve()

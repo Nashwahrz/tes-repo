@@ -35,7 +35,7 @@ class ConfigurasiRateLimitController extends Controller
     {
         try {
             $perPage = $this->paginateController->getPerPage($request);
-            $configurasiRateLimits = $this->configurasiRateLimitRepository->paginate($perPage, $request->query('search'));
+            $configurasiRateLimits = $this->configurasiRateLimitRepository->index($perPage, $request->query('search'));
             return $this->configurasiRateLimitResponse->list($configurasiRateLimits);
         } catch (Throwable $e) {
             Log::error('Gagal mengambil data konfigurasi rate limit: ' . $e->getMessage(), [
@@ -109,7 +109,7 @@ class ConfigurasiRateLimitController extends Controller
     {
         try {
             $perPage = $this->paginateController->getPerPage($request);
-            $logs    = $this->logActivityConfigurasiRateLimitRepository->paginate($perPage, $request->query('search'));
+            $logs    = $this->logActivityConfigurasiRateLimitRepository->index($perPage, $request->query('search'));
 
             $transformed = $logs->through(
                 fn ($log) => (new LogActivityConfigurasiRateLimitResource($log))->resolve()
