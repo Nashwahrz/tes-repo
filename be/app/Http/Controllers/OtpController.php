@@ -187,7 +187,7 @@ class OtpController extends Controller
             $purpose = $request->query('purpose') ? OtpPurpose::tryFrom($request->query('purpose')) : null;
             $action  = $request->query('action') ? LogOtpAction::tryFrom($request->query('action')) : null;
 
-            $logs = $this->logActivityOtpRepository->paginate($perPage, $search, $purpose, $action);
+            $logs = $this->logActivityOtpRepository->index($perPage, $search, $purpose, $action);
 
             $transformed = $logs->through(
                 fn ($log) => (new LogActivityOtpResource($log))->resolve()

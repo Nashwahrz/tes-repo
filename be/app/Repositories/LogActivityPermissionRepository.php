@@ -7,7 +7,7 @@ use Illuminate\Pagination\LengthAwarePaginator;
 
 class LogActivityPermissionRepository
 {
-    public function paginate(int $perPage = 10, ?string $search = null): LengthAwarePaginator
+    public function index(int $perPage = 10, ?string $search = null): LengthAwarePaginator
     {
         return LogActivityPermission::query()
             ->with(['role:id,role_name', 'permission:id,permission_name', 'causer:id,name,email'])

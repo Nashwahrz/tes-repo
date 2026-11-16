@@ -40,7 +40,7 @@ class KelurahanRepository
     {   
         return (bool) $kelurahan->delete();
     }
-    public function paginate(int $perPage = null, ?string $search = null): LengthAwarePaginator
+    public function index(int $perPage = null, ?string $search = null): LengthAwarePaginator
     {
         return Kelurahan::query()
             ->when($search, fn ($q) => $q->where(function ($q) use ($search) {
@@ -51,7 +51,7 @@ class KelurahanRepository
             ->paginate($perPage)
             ->withQueryString();
     }
-    public function paginateAktif(int $perPage = null, ?string $search = null): LengthAwarePaginator
+    public function indexAktif(int $perPage = null, ?string $search = null): LengthAwarePaginator
     {
         return Kelurahan::query()
             ->when($search, fn ($q) => $q->where(function ($q) use ($search) {
@@ -63,7 +63,7 @@ class KelurahanRepository
             ->paginate($perPage)
             ->withQueryString();
     }
-    public function paginateNonAktif(int $perPage = null, ?string $search = null): LengthAwarePaginator
+    public function indexNonAktif(int $perPage = null, ?string $search = null): LengthAwarePaginator
     {
         return Kelurahan::query()
             ->when($search, fn ($q) => $q->where(function ($q) use ($search) {

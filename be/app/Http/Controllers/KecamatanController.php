@@ -27,7 +27,7 @@ class KecamatanController extends Controller
     {
         try {
             $perPage = $this->paginateController->getPerPage($request);
-            $kecamatans = $this->kecamatanRepository->paginate($perPage, $request->query('search'));
+            $kecamatans = $this->kecamatanRepository->index($perPage, $request->query('search'));
             return $this->kecamatanResponse->list($kecamatans);
         } catch (Throwable $e) {
             Log::error('Gagal mengambil data kecamatan: ' . $e->getMessage(), [
@@ -40,7 +40,7 @@ class KecamatanController extends Controller
     {
         try {
             $perPage = $this->paginateController->getPerPage($request);
-            $kecamatans = $this->kecamatanRepository->paginateAktif($perPage, $request->query('search'));
+            $kecamatans = $this->kecamatanRepository->indexAktif($perPage, $request->query('search'));
             return $this->kecamatanResponse->list($kecamatans);
         } catch (Throwable $e) {
             Log::error('Gagal mengambil data kecamatan: ' . $e->getMessage(), [
@@ -53,7 +53,7 @@ class KecamatanController extends Controller
     {
         try {
             $perPage = $this->paginateController->getPerPage($request);
-            $kecamatans = $this->kecamatanRepository->paginateNonAktif($perPage, $request->query('search'));
+            $kecamatans = $this->kecamatanRepository->indexNonAktif($perPage, $request->query('search'));
             return $this->kecamatanResponse->list($kecamatans);
         } catch (Throwable $e) {
             Log::error('Gagal mengambil data kecamatan: ' . $e->getMessage(), [

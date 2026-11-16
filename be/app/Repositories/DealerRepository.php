@@ -38,7 +38,7 @@ class DealerRepository
     {
         return (bool) $dealer->delete();
     }
-    public function paginate(int $perPage = 10, ?string $search = null): LengthAwarePaginator
+    public function index(int $perPage = 10, ?string $search = null): LengthAwarePaginator
     {
         return Dealer::query()
             ->when($search, fn ($q) => $q->where('dealer_name', 'ILIKE', "%{$search}%"))

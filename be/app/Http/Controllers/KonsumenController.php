@@ -53,7 +53,7 @@ class KonsumenController extends Controller
     {
         try {
             $perPage = $this->paginateController->getPerPage($request);
-            $konsumens = $this->konsumenRepository->paginate(
+            $konsumens = $this->konsumenRepository->index(
                 $perPage,
                 $request->query('search'),
                 $request->user()?->id ?? auth()->id()
@@ -71,7 +71,7 @@ class KonsumenController extends Controller
     {
         try {
             $perPage = $this->paginateController->getPerPage($request);
-            $konsumens = $this->konsumenRepository->paginateAll(
+            $konsumens = $this->konsumenRepository->indexAll(
                 $perPage,
                 $request->query('search')
             );
@@ -95,7 +95,7 @@ class KonsumenController extends Controller
                     Konsumen::empty()->paginate($perPage)
                 );
             }
-            $konsumens = $this->konsumenRepository->paginateDealerAll(
+            $konsumens = $this->konsumenRepository->indexDealerAll(
                 perPage: $perPage,
                 search: $request->query('search'),
                 userId: null,
@@ -439,7 +439,7 @@ class KonsumenController extends Controller
             $status  = $request->query('status') ? StatusKonsumen::tryFrom($request->query('status')) : null;
             $action  = $request->query('action') ? LogKonsumenAction::tryFrom($request->query('action')) : null;
 
-            $logs = $this->logActivityKonsumenRepository->paginate($perPage, $search, $status, $action);
+            $logs = $this->logActivityKonsumenRepository->index($perPage, $search, $status, $action);
 
             $transformed = $logs->through(
                 fn ($log) => (new LogActivityKonsumenResource($log))->resolve()

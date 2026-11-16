@@ -17,7 +17,7 @@ class LogUserController extends Controller
     public function index()
     {
         try {
-            $logUser = $this->logUserRepository->paginate();
+            $logUser = $this->logUserRepository->index();
 
             return $this->logUserResponse->list($logUser, 'Daftar log user berhasil diambil.');
         } catch (Throwable $e) {

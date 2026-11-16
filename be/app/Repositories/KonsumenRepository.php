@@ -62,26 +62,26 @@ class KonsumenRepository
         return (bool) $konsumen->delete();
     }
 
-    public function paginate(int $perPage = 10, ?string $search = null, ?int $userId = null): LengthAwarePaginator
+    public function index(int $perPage = 10, ?string $search = null, ?int $userId = null): LengthAwarePaginator
     {
         $userId ??= auth()->id();
         abort_if(! $userId, 403);
 
-        return $this->paginateCombined(perPage: $perPage, search: $search, userId: $userId);
+        return $this->indexCombined(perPage: $perPage, search: $search, userId: $userId);
     }
 
-    public function paginateAll(int $perPage = 10, ?string $search = null): LengthAwarePaginator
+    public function indexAll(int $perPage = 10, ?string $search = null): LengthAwarePaginator
     {
-        return $this->paginateCombined(perPage: $perPage, search: $search, userId: null);
+        return $this->indexCombined(perPage: $perPage, search: $search, userId: null);
     }
 
-    public function paginateDealerAll(int $perPage = 10, ?string $search = null, ?int $userId = null, ?int $dealerId = null): LengthAwarePaginator
+    public function indexDealerAll(int $perPage = 10, ?string $search = null, ?int $userId = null, ?int $dealerId = null): LengthAwarePaginator
     {
         abort_if(! $dealerId, 403);
-        return $this->paginateCombined(perPage: $perPage, search: $search, userId: $userId, dealerId: $dealerId);
+        return $this->indexCombined(perPage: $perPage, search: $search, userId: $userId, dealerId: $dealerId);
     }
 
-    public function paginateCombined(
+    public function indexCombined(
         int $perPage = 10,
         ?string $search = null,
         ?int $userId = null,

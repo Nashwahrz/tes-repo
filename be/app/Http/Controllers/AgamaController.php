@@ -26,7 +26,7 @@ class AgamaController extends Controller
     {
         try {
             $perPage = $this->paginateController->getPerPage($request);
-            $agamas = $this->agamaRepository->paginate($perPage, $request->query('search'));
+            $agamas = $this->agamaRepository->index($perPage, $request->query('search'));
             return $this->agamaResponse->list($agamas);
         } catch (Throwable $e) {
             Log::error('Gagal mengambil data agama: ' . $e->getMessage(), [
@@ -39,7 +39,7 @@ class AgamaController extends Controller
     {
         try {
             $perPage = $this->paginateController->getPerPage($request);
-            $agamas = $this->agamaRepository->paginateAktif($perPage, $request->query('search'));
+            $agamas = $this->agamaRepository->indexAktif($perPage, $request->query('search'));
             return $this->agamaResponse->list($agamas);
         } catch (Throwable $e) {
             Log::error('Gagal mengambil data agama: ' . $e->getMessage(), [
@@ -52,7 +52,7 @@ class AgamaController extends Controller
     {
         try {
             $perPage = $this->paginateController->getPerPage($request);
-            $agamas = $this->agamaRepository->paginateNonAktif($perPage, $request->query('search'));
+            $agamas = $this->agamaRepository->indexNonAktif($perPage, $request->query('search'));
             return $this->agamaResponse->list($agamas);
         } catch (Throwable $e) {
             Log::error('Gagal mengambil data agama: ' . $e->getMessage(), [

@@ -9,7 +9,7 @@ use Illuminate\Pagination\LengthAwarePaginator;
 
 class LogActivityOtpRepository
 {
-    public function paginate(
+    public function index(
         int $perPage = 10,
         ?string $search = null,
         ?OtpPurpose $purpose = null,
@@ -31,7 +31,7 @@ class LogActivityOtpRepository
             ->withQueryString();
     }
 
-    public function paginateByUserId(int $userId, int $perPage = 10): LengthAwarePaginator
+    public function indexByUserId(int $userId, int $perPage = 10): LengthAwarePaginator
     {
         return LogActivityOtp::query()
             ->where('fk_user', $userId)

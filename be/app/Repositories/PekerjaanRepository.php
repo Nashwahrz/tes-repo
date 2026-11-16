@@ -60,7 +60,7 @@ class PekerjaanRepository
     {
         return (bool) $pekerjaan->delete();
     }
-    public function paginateAll(int $perPage = 10, ?string $search = null): LengthAwarePaginator
+    public function indexAll(int $perPage = 10, ?string $search = null): LengthAwarePaginator
     {
         return Pekerjaan::query()
             ->when($search, fn ($q) => $q->where(function ($q) use ($search) {
@@ -95,7 +95,7 @@ class PekerjaanRepository
     //         ->paginate($perPage)
     //         ->withQueryString();
     // }
-    public function paginate(): array
+    public function index(): array
     {
         $tableName = (new Pekerjaan())->getTable();
 

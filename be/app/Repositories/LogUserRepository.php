@@ -9,7 +9,7 @@ use Illuminate\Support\Carbon;
 
 class LogUserRepository
 {
-    public function paginate(int $perPage = 10, ?string $search = null): LengthAwarePaginator
+    public function index(int $perPage = 10, ?string $search = null): LengthAwarePaginator
     {
         return LogUser::query()
             ->with('user:id,name')

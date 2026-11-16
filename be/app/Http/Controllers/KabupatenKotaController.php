@@ -26,7 +26,7 @@ class KabupatenKotaController extends Controller
     {
         try {
             $perPage = $this->paginateController->getPerPage($request);
-            $kabupatenKotas = $this->kabupatenKotaRepository->paginate($perPage, $request->query('search'));
+            $kabupatenKotas = $this->kabupatenKotaRepository->index($perPage, $request->query('search'));
             return $this->kabupatenKotaResponse->list($kabupatenKotas);
         } catch (Throwable $e) {
             Log::error('Gagal mengambil data kabupaten kota: ' . $e->getMessage(), [
@@ -39,7 +39,7 @@ class KabupatenKotaController extends Controller
     {
         try {
             $perPage = $this->paginateController->getPerPage($request);
-            $kabupatenKotas = $this->kabupatenKotaRepository->paginateAktif($perPage, $request->query('search'));
+            $kabupatenKotas = $this->kabupatenKotaRepository->indexAktif($perPage, $request->query('search'));
             return $this->kabupatenKotaResponse->list($kabupatenKotas);
         } catch (Throwable $e) {
             Log::error('Gagal mengambil data kabupaten kota: ' . $e->getMessage(), [
@@ -52,7 +52,7 @@ class KabupatenKotaController extends Controller
     {
         try {
             $perPage = $this->paginateController->getPerPage($request);
-            $kabupatenKotas = $this->kabupatenKotaRepository->paginateNonAktif($perPage, $request->query('search'));
+            $kabupatenKotas = $this->kabupatenKotaRepository->indexNonAktif($perPage, $request->query('search'));
             return $this->kabupatenKotaResponse->list($kabupatenKotas);
         } catch (Throwable $e) {
             Log::error('Gagal mengambil data kabupaten kota: ' . $e->getMessage(), [

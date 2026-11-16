@@ -26,7 +26,7 @@ class KelurahanController extends Controller
     {
         try {
             $perPage = $this->paginateController->getPerPage($request);
-            $kelurahans = $this->kelurahanRepository->paginate($perPage, $request->query('search'));
+            $kelurahans = $this->kelurahanRepository->index($perPage, $request->query('search'));
             return $this->kelurahanResponse->list($kelurahans);
         } catch (Throwable $e) {
             Log::error('Gagal mengambil data kelurahan: ' . $e->getMessage(), [
@@ -39,7 +39,7 @@ class KelurahanController extends Controller
     {
         try {
             $perPage = $this->paginateController->getPerPage($request);
-            $kelurahans = $this->kelurahanRepository->paginateAktif($perPage, $request->query('search'));
+            $kelurahans = $this->kelurahanRepository->indexAktif($perPage, $request->query('search'));
             return $this->kelurahanResponse->list($kelurahans);
         } catch (Throwable $e) {
             Log::error('Gagal mengambil data kelurahan: ' . $e->getMessage(), [
@@ -52,7 +52,7 @@ class KelurahanController extends Controller
     {
         try {
             $perPage = $this->paginateController->getPerPage($request);
-            $kelurahans = $this->kelurahanRepository->paginateNonAktif($perPage, $request->query('search'));
+            $kelurahans = $this->kelurahanRepository->indexNonAktif($perPage, $request->query('search'));
             return $this->kelurahanResponse->list($kelurahans);
         } catch (Throwable $e) {
             Log::error('Gagal mengambil data kelurahan: ' . $e->getMessage(), [

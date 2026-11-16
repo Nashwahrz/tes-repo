@@ -29,7 +29,7 @@ class LogBlockedUserController extends Controller
             $type    = $request->query('type');
             $status  = $request->query('status'); 
 
-            $logs = $this->logBlockedUserRepository->paginate($perPage, $search, $type, $status);
+            $logs = $this->logBlockedUserRepository->index($perPage, $search, $type, $status);
 
             return $this->response->list($logs);
         } catch (Throwable $e) {
