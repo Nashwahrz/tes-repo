@@ -4,6 +4,7 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use App\Enums\StatusUser;
+use App\Enums\StoragePath;
 use App\Models\Scopes\DealerScope;
 use App\Observers\UserObserver;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
@@ -53,14 +54,24 @@ class User extends Authenticatable
      *
      * @return array<string, string>
      */
-    protected function casts(): array
+    protected $casts = [
+        'email_verified_at' => 'datetime',
+        'password'          => 'hashed',
+        'email_verification'  => 'boolean',
+        'status'            => StatusUser::class,
+    ];
+
+    protected $appends = ['photo_url'];
+
+    protected function photoUrl(): Attribute
     {
-        return [
-            'email_verified_at' => 'datetime',
-            'password'          => 'hashed',
-            'email_verification'  => 'boolean',
-            'status'            => StatusUser::class,
-        ];
+        return Attribute::get(function () {
+            if (!$this->photo) {
+                return null;
+            }
+
+            return StoragePath::UserPhoto->filesystem()->url($this->photo);
+        });
     }
 
     public function dealer()
@@ -69,7 +80,7 @@ class User extends Authenticatable
     }
     public function atasan()
     {
-        return $this->belongsTo(User::class, 'fk_atasan');
+        return $this->belongsTo(User::class, 'fk_atasan')->withoutGlobalScope(DealerScope::class);
     }
     public function role()
     {

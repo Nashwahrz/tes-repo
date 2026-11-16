@@ -19,6 +19,8 @@ class UserResponse
                 'id'               => $user->id,
                 'name'             => $user->name,
                 'email'            => $user->email,
+                'photo'            => $user->photo,
+                'photo_url'        => $user->photo_url,
                 'status'           => $user->status,
                 'email_verifikasi' => $user->email_verification,
                 'fk_dealer'        => $user->fk_dealer,

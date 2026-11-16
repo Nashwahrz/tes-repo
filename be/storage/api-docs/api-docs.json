@@ -6,7 +6,7 @@
     },
     "servers": [
         {
-            "url": "http://localhost:8000/api"
+            "url": "https://entries-duo-most-affairs.trycloudflare.com/api"
         }
     ],
     "security": [
@@ -9233,7 +9233,7 @@
                 }
             },
             "put": {
-                "operationId": "konsumen.update_116",
+                "operationId": "konsumen.update_119",
                 "tags": [
                     "Konsumen"
                 ],
@@ -9366,7 +9366,7 @@
         },
         "/konsumens/{id}/update": {
             "post": {
-                "operationId": "konsumen.update_117",
+                "operationId": "konsumen.update_120",
                 "tags": [
                     "Konsumen"
                 ],
@@ -14541,6 +14541,440 @@
                 }
             }
         },
+        "/profile": {
+            "get": {
+                "operationId": "user.profile",
+                "tags": [
+                    "User"
+                ],
+                "responses": {
+                    "500": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "const": "Terjadi kesalahan pada server. Silakan coba lagi."
+                                        }
+                                    },
+                                    "required": [
+                                        "success",
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "const": "Data profil user login berhasil diambil."
+                                        },
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer"
+                                                },
+                                                "name": {
+                                                    "type": "string"
+                                                },
+                                                "email": {
+                                                    "type": "string"
+                                                },
+                                                "photo": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "photo_url": {
+                                                    "type": "null"
+                                                },
+                                                "status": {
+                                                    "$ref": "#/components/schemas/StatusUser"
+                                                },
+                                                "email_verifikasi": {
+                                                    "type": "boolean"
+                                                },
+                                                "fk_dealer": {
+                                                    "type": [
+                                                        "integer",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "dealer": {
+                                                    "type": [
+                                                        "object",
+                                                        "null"
+                                                    ],
+                                                    "properties": {
+                                                        "id": {
+                                                            "type": "integer"
+                                                        },
+                                                        "name": {
+                                                            "type": "string"
+                                                        },
+                                                        "alamat": {
+                                                            "type": "string"
+                                                        }
+                                                    },
+                                                    "required": [
+                                                        "id",
+                                                        "name",
+                                                        "alamat"
+                                                    ]
+                                                },
+                                                "fk_role": {
+                                                    "type": "integer"
+                                                },
+                                                "role": {
+                                                    "type": [
+                                                        "object",
+                                                        "null"
+                                                    ],
+                                                    "properties": {
+                                                        "id": {
+                                                            "type": "integer"
+                                                        },
+                                                        "name": {
+                                                            "type": "string"
+                                                        }
+                                                    },
+                                                    "required": [
+                                                        "id",
+                                                        "name"
+                                                    ]
+                                                },
+                                                "fk_atasan": {
+                                                    "type": [
+                                                        "integer",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "atasan": {
+                                                    "type": [
+                                                        "object",
+                                                        "null"
+                                                    ],
+                                                    "properties": {
+                                                        "id": {
+                                                            "type": "integer"
+                                                        },
+                                                        "name": {
+                                                            "type": "string"
+                                                        }
+                                                    },
+                                                    "required": [
+                                                        "id",
+                                                        "name"
+                                                    ]
+                                                }
+                                            },
+                                            "required": [
+                                                "id",
+                                                "name",
+                                                "email",
+                                                "photo",
+                                                "photo_url",
+                                                "status",
+                                                "email_verifikasi",
+                                                "fk_dealer",
+                                                "dealer",
+                                                "fk_role",
+                                                "role",
+                                                "fk_atasan",
+                                                "atasan"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "success",
+                                        "message",
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/profile/photo": {
+            "post": {
+                "operationId": "user.updatePhoto",
+                "summary": "Memperbarui foto profil user yang sedang login",
+                "tags": [
+                    "User"
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/UpdatePhotoRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "500": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "const": "Terjadi kesalahan pada server. Silakan coba lagi."
+                                        }
+                                    },
+                                    "required": [
+                                        "success",
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "const": "Foto profil berhasil diperbarui."
+                                        },
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer"
+                                                },
+                                                "name": {
+                                                    "type": "string"
+                                                },
+                                                "email": {
+                                                    "type": "string"
+                                                },
+                                                "photo": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "photo_url": {
+                                                    "type": "null"
+                                                },
+                                                "status": {
+                                                    "$ref": "#/components/schemas/StatusUser"
+                                                },
+                                                "email_verifikasi": {
+                                                    "type": "boolean"
+                                                },
+                                                "fk_dealer": {
+                                                    "type": [
+                                                        "integer",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "dealer": {
+                                                    "type": [
+                                                        "object",
+                                                        "null"
+                                                    ],
+                                                    "properties": {
+                                                        "id": {
+                                                            "type": "integer"
+                                                        },
+                                                        "name": {
+                                                            "type": "string"
+                                                        },
+                                                        "alamat": {
+                                                            "type": "string"
+                                                        }
+                                                    },
+                                                    "required": [
+                                                        "id",
+                                                        "name",
+                                                        "alamat"
+                                                    ]
+                                                },
+                                                "fk_role": {
+                                                    "type": "integer"
+                                                },
+                                                "role": {
+                                                    "type": [
+                                                        "object",
+                                                        "null"
+                                                    ],
+                                                    "properties": {
+                                                        "id": {
+                                                            "type": "integer"
+                                                        },
+                                                        "name": {
+                                                            "type": "string"
+                                                        }
+                                                    },
+                                                    "required": [
+                                                        "id",
+                                                        "name"
+                                                    ]
+                                                },
+                                                "fk_atasan": {
+                                                    "type": [
+                                                        "integer",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "atasan": {
+                                                    "type": [
+                                                        "object",
+                                                        "null"
+                                                    ],
+                                                    "properties": {
+                                                        "id": {
+                                                            "type": "integer"
+                                                        },
+                                                        "name": {
+                                                            "type": "string"
+                                                        }
+                                                    },
+                                                    "required": [
+                                                        "id",
+                                                        "name"
+                                                    ]
+                                                }
+                                            },
+                                            "required": [
+                                                "id",
+                                                "name",
+                                                "email",
+                                                "photo",
+                                                "photo_url",
+                                                "status",
+                                                "email_verifikasi",
+                                                "fk_dealer",
+                                                "dealer",
+                                                "fk_role",
+                                                "role",
+                                                "fk_atasan",
+                                                "atasan"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "success",
+                                        "message",
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    }
+                }
+            },
+            "get": {
+                "operationId": "user.profilePhoto",
+                "summary": "Menampilkan file foto profil user yang sedang login",
+                "tags": [
+                    "User"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/octet-stream": {
+                                "schema": {
+                                    "type": "string",
+                                    "format": "binary"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "anyOf": [
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "success": {
+                                                    "type": "boolean"
+                                                },
+                                                "message": {
+                                                    "type": "string",
+                                                    "const": "File foto profil tidak ditemukan."
+                                                }
+                                            },
+                                            "required": [
+                                                "success",
+                                                "message"
+                                            ]
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "success": {
+                                                    "type": "boolean"
+                                                },
+                                                "message": {
+                                                    "type": "string",
+                                                    "const": "Foto profil belum diunggah."
+                                                }
+                                            },
+                                            "required": [
+                                                "success",
+                                                "message"
+                                            ]
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
         "/users": {
             "get": {
                 "operationId": "user.index",
@@ -15260,6 +15694,15 @@
                                                 "email": {
                                                     "type": "string"
                                                 },
+                                                "photo": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "photo_url": {
+                                                    "type": "null"
+                                                },
                                                 "status": {
                                                     "$ref": "#/components/schemas/StatusUser"
                                                 },
@@ -15344,6 +15787,8 @@
                                                 "id",
                                                 "name",
                                                 "email",
+                                                "photo",
+                                                "photo_url",
                                                 "status",
                                                 "email_verifikasi",
                                                 "fk_dealer",
@@ -17357,6 +17802,21 @@
                 ],
                 "title": "TypeTempKonsumen"
             },
+            "UpdatePhotoRequest": {
+                "type": "object",
+                "properties": {
+                    "photo": {
+                        "type": "string",
+                        "format": "binary",
+                        "contentMediaType": "application/octet-stream",
+                        "description": "Maximum file size: 2048 kilobytes."
+                    }
+                },
+                "required": [
+                    "photo"
+                ],
+                "title": "UpdatePhotoRequest"
+            },
             "UrlIpLogin": {
                 "type": "object",
                 "properties": {
@@ -17462,6 +17922,9 @@
                     },
                     "fk_role": {
                         "type": "integer"
+                    },
+                    "photo_url": {
+                        "type": "null"
                     }
                 },
                 "required": [
@@ -17475,7 +17938,8 @@
                     "updated_at",
                     "fk_dealer",
                     "fk_atasan",
-                    "fk_role"
+                    "fk_role",
+                    "photo_url"
                 ],
                 "title": "User"
             },

@@ -4,6 +4,7 @@ namespace App\Repositories;
 
 use App\Enums\RoleEnum;
 use App\Enums\StatusUser;
+use App\Enums\StoragePath;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Collection;
 
@@ -30,6 +31,26 @@ class UserRepository
             'fk_atasan' => $atasanId,
             'status'    => $status,
         ]);
+
+        return $user->fresh(['role', 'dealer', 'atasan']);
+    }
+
+    public function updatePhoto(User $user, $file): User
+    {
+        $storage = StoragePath::UserPhoto->filesystem();
+
+        if ($user->photo && $storage->exists($user->photo)) {
+            $storage->delete($user->photo);
+        }
+
+        $filename = 'user_' . $user->name . '_' .  date('Ymd_His') . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
+        $path = $file->storeAs(
+            StoragePath::UserPhoto->value,
+            $filename,
+            StoragePath::UserPhoto->disk()->value
+        );
+
+        $user->update(['photo' => $path]);
 
         return $user->fresh(['role', 'dealer', 'atasan']);
     }
