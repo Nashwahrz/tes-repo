@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\TokenLifetime;
 use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Http\Middleware\ValidateCsrfToken;
 use Laravel\Sanctum\Http\Middleware\AuthenticateSession;
@@ -50,7 +51,7 @@ return [
     |
     */
 
-    'expiration' => env('SANCTUM_EXPIRATION', 1440),
+    'expiration' => TokenLifetime::AuthToken->value,
 
     /*
     |--------------------------------------------------------------------------
