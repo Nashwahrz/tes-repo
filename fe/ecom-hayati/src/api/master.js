@@ -233,7 +233,37 @@ export const getMasterByKode = (path, kode) => {
 // CRUD data master (agama, pekerjaan, dan wilayah: provinsi, kabupaten/kota, kecamatan, kelurahan).
 // Tambah: { kode, name, kode_<induk> }; ubah: { name, kode_<induk> } (kode tidak bisa diubah). Tidak ada hapus: data dinonaktifkan lewat status.
 // BE memaginasi 10 data per halaman: { data: { data: [...], current_page, last_page, total } }
+// Pekerjaan berhierarki: BE memaginasi /pekerjaans/all menurut id terbaru, jadi seluruh data dimuat, disusun
+// Header -> anak-anaknya (Detail) tepat di bawah induknya, lalu dipecah per halaman di FE.
+const PEKERJAAN_PAGE_SIZE = 10;
+const typeOfRow = (r) => r.type_header?.value ?? r.type_header;
+const bySeq = (a, b) => (a.sequence ?? 0) - (b.sequence ?? 0) || String(a.pekerjaan_code).localeCompare(String(b.pekerjaan_code), undefined, { numeric: true });
+export const getPekerjaanHierarchyPage = async (page = 1, search = '') => {
+  const fetchPage = async (n) => (await api.get('/pekerjaans/all', { params: { page: n, per_page: MAX_PER_PAGE, ...(search ? { search } : {}) } })).data.data;
+  const first = await fetchPage(1);
+  const rest = await Promise.all(Array.from({ length: Math.max((first.last_page ?? 1) - 1, 0) }, (_, i) => fetchPage(i + 2)));
+  const all = [first, ...rest].flatMap((p) => p.data ?? []).map((r) => fromBe('/pekerjaans', r));
+  const headers = all.filter((r) => typeOfRow(r) !== 'D').sort(bySeq);
+  const details = all.filter((r) => typeOfRow(r) === 'D');
+  const headerCodes = new Set(headers.map((h) => String(h.pekerjaan_code)));
+  const childrenOf = (code) => details.filter((d) => String(d.id_parent) === String(code)).sort(bySeq);
+  // Detail yang induknya tidak ikut hasil (mis. pencarian) tetap tampil, dikelompokkan menurut kode induk
+  const orphans = details.filter((d) => !headerCodes.has(String(d.id_parent))).sort((a, b) => String(a.id_parent).localeCompare(String(b.id_parent), undefined, { numeric: true }) || bySeq(a, b));
+  // Paginasi per kelompok (satu header beserta anak-anaknya), bukan per baris, supaya anak tidak terpisah dari headernya
+  const groups = [
+    ...headers.map((h) => [h, ...childrenOf(h.pekerjaan_code)]),
+    ...orphans.map((o) => [o]),
+  ];
+  const lastPage = Math.max(Math.ceil(groups.length / PEKERJAAN_PAGE_SIZE), 1);
+  const p = Math.min(Math.max(page, 1), lastPage);
+  return {
+    rows: groups.slice((p - 1) * PEKERJAAN_PAGE_SIZE, p * PEKERJAAN_PAGE_SIZE).flat(),
+    meta: { page: p, lastPage, total: groups.length, perPage: PEKERJAAN_PAGE_SIZE },
+  };
+};
+
 export const getMasterPage = async (path, page = 1, search = '') => {
+  if (path === '/pekerjaans') return getPekerjaanHierarchyPage(page, search);
   const targetPath = path === '/pekerjaans' ? '/pekerjaans/all' : path;
   const p = (await api.get(targetPath, { params: { page, ...(search ? { search } : {}) } })).data.data;
   return { rows: (p.data ?? []).map((r) => fromBe(path, r)), meta: toMeta(p) };

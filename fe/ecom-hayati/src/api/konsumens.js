@@ -1,6 +1,6 @@
 // src/api/konsumens.js
 import api from './axios';
-import { toMeta, MAX_PER_PAGE } from './pagination';
+import { toMeta, toPage, MAX_PER_PAGE } from './pagination';
 
 // Konsumen / dokumen KTP (BE: /konsumens, butuh permission konsumens.*)
 // BE menyimpan status verifikasi per relasi penginput (tabel konsumen_mes), bukan di konsumen:
@@ -115,10 +115,31 @@ export const verifyKonsumen = async (id, status, note) =>
   (await api.put(`/konsumens/activate/${id}`, { status, ...(status !== 'diterima' ? { note } : {}) })).data;
 
 // Riwayat aktivitas konsumen (BE: GET /konsumens/logs, butuh permission konsumens.logs); BE memaginasi: { data: [...], meta }
+// BE log konsumen (tabel log tersendiri): { action, action_label, konsumen_name, fk_me, causer, old_data, new_data, created_at, ... }
+// diubah ke bentuk yang dipakai KonsumenLogPanel: { log_name, aksi, deskripsi, subject, oleh, waktu, data_lama, data_baru }
+const LOG_JENIS = { SUBMITTED: 'temp konsumen', UPDATED: 'temp konsumen', REVISED: 'temp konsumen', REJECTED: 'temp konsumen', VERIFIED: 'konsumen', LINKED: 'konsumen me' };
+const LOG_AKSI = { SUBMITTED: 'created', VERIFIED: 'created', LINKED: 'created' };
+export const normalizeKonsumenLog = (l) => {
+  if (l.action === undefined) return l; // sudah bentuk lama
+  const act = String(l.action).toUpperCase();
+  const idKonsumen = l.fk_konsumen ?? l.fk_temp_konsumen;
+  return {
+    id: l.id,
+    log_name: LOG_JENIS[act] ?? 'temp konsumen',
+    aksi: LOG_AKSI[act] ?? 'updated',
+    deskripsi: l.action_label ?? l.description,
+    subject: { id: idKonsumen, name: l.konsumen_name },
+    oleh: l.causer ?? null,
+    waktu: l.created_at,
+    data_lama: l.old_data ?? null,
+    data_baru: act === 'LINKED' ? { ...(l.new_data ?? {}), me: l.fk_me, fk_konsumen: l.fk_konsumen } : (l.new_data ?? null),
+  };
+};
+
 export const getKonsumenLogs = async (page = 1, search = '', logName = '') => {
   const body = (await api.get('/konsumens/logs', { params: { page, ...(search ? { search } : {}), ...(logName ? { log_name: logName } : {}) } })).data;
-  const m = body.meta ?? {};
-  return { rows: body.data ?? [], meta: toMeta(m) };
+  const res = toPage(body);
+  return { ...res, rows: res.rows.map(normalizeKonsumenLog) };
 };
 
 // Cari konsumen menurut NIK/nama (BE: POST /konsumens/check-nik, 12-16 karakter). Hasil: { isRegistered, list }

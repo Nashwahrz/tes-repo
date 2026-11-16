@@ -27,6 +27,7 @@ const GROUP_LABEL = {
   konsumens: 'Daftar Konsumen',
   'email-whitelists': 'Email WhiteList',
   'log-users': 'Log Users Login',
+  'log-otps': 'Log OTP',
   agamas: 'Daftar Agama',
   pekerjaans: 'Daftar Pekerjaan',
   'configurasi-rate-limits': 'Setting Rate Limit',

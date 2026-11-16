@@ -37,6 +37,7 @@ function KonsumenForm({ editing, takeFrom, can, onClose, onSaved, onError }) {
   const [confirmSave, setConfirmSave] = useState(false);
   const [verifying, setVerifying] = useState(false); // memeriksa foto sebagai KTP sebelum simpan
   const fileRef = useRef(null);
+  const pendingFileRef = useRef(null);
   const pageRef = useRef(null);
   useEffect(() => { pageRef.current?.scrollIntoView({ block: 'start' }); }, []); // halaman penuh: mulai dari atas
   const scanNoteRef = useRef(null);
@@ -48,6 +49,7 @@ function KonsumenForm({ editing, takeFrom, can, onClose, onSaved, onError }) {
   const setPicked = (f) => {
     if (previewRef.current) URL.revokeObjectURL(previewRef.current);
     previewRef.current = f ? URL.createObjectURL(f) : '';
+    pendingFileRef.current = f;
     setFile(f);
     setPreview(previewRef.current);
   };
@@ -190,14 +192,17 @@ function KonsumenForm({ editing, takeFrom, can, onClose, onSaved, onError }) {
       return;
     }
     onError('');
-    // Melebihi 2MB: foto diperkecil otomatis di browser saat Simpan diklik
+    // Melebihi 512KB: foto diperkecil otomatis di browser saat Simpan diklik
     let f = file;
     if (f && f.size > MAX_FILE) {
       setCompressing(true);
       try {
         const res = await compressImage(f, TARGET_FILE);
-        setCompressNote(`Foto diperkecil otomatis dari ${(f.size / 1048576).toFixed(1)}MB menjadi ${(res.file.size / 1048576).toFixed(1)}MB.`);
+        const fromStr = f.size >= 1048576 ? `${(f.size / 1048576).toFixed(1)}MB` : `${Math.round(f.size / 1024)}KB`;
+        const toStr = `${Math.round(res.file.size / 1024)}KB`;
+        setCompressNote(`Foto diperkecil otomatis dari ${fromStr} menjadi ${toStr}.`);
         f = res.file;
+        pendingFileRef.current = f;
         setFile(f);
       } catch (err) {
         onError(err.message || 'Foto tidak dapat diperkecil.');
@@ -239,7 +244,8 @@ function KonsumenForm({ editing, takeFrom, can, onClose, onSaved, onError }) {
       if (reuse && !changedKeys.includes(k)) v = k === 'latitude' || k === 'longitude' ? String(reuse[k]) : v;
       fd.append(k, v);
     });
-    if (file) fd.append('foto_ktp', file);
+    const uploadFile = pendingFileRef.current || file;
+    if (uploadFile) fd.append('foto_ktp', uploadFile);
 
     setSaving(true);
     onError('');
@@ -288,7 +294,7 @@ function KonsumenForm({ editing, takeFrom, can, onClose, onSaved, onError }) {
           )}
           {photoWarn.map((w) => <p key={w} className="dash-alert warning" role="status"><strong>!</strong> {w}</p>)}
           {compressNote && <p id="ktp-compress-note" className="dash-map-hint" role="status">{compressNote}</p>}
-          <p className="dash-map-hint">JPG/PNG. Foto di atas 2MB diperkecil otomatis saat disimpan.{editing && ' Kosongkan bila foto tidak diganti.'}{can.scan && ' Pilih foto baru untuk memakai OCR.'}</p>
+          <p className="dash-map-hint">JPG/PNG. Foto di atas 512KB diperkecil otomatis saat disimpan.{editing && ' Kosongkan bila foto tidak diganti.'}{can.scan && ' Pilih foto baru untuk memakai OCR.'}</p>
           {touched.foto_ktp && errors.foto_ktp && <p className="dash-field-error">{errors.foto_ktp}</p>}
         </div>
 
@@ -374,7 +380,7 @@ function KonsumenForm({ editing, takeFrom, can, onClose, onSaved, onError }) {
         </div>
         <div className="dash-form-row">
           {field('marital_status', 'Status Perkawinan', { options: KAWIN })}
-          {field('fk_pekerjaan', 'Pekerjaan', { idOptions: master.pekerjaan })}
+          {field('fk_pekerjaan', 'Pekerjaan', { pekerjaanTree: master.pekerjaanTree })}
         </div>
         {masterNote && <p className="dash-map-hint">Sebagian daftar master dari server tidak dapat dimuat. {masterNote}</p>}
         <div className="dash-form-row">

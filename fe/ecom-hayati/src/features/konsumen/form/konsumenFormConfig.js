@@ -26,9 +26,9 @@ export const matchOpt = (options, text) => {
 };
 export const matchId = (options, text) => matchOpt(options, text)?.kode;
 export const FIELDS = Object.keys(EMPTY);
-export const MAX_FILE = 2 * 1024 * 1024; // 2MB, sama dengan BE
+export const MAX_FILE = 512 * 1024; // 512KB, batas BE
 export const MAX_PICK = 25 * 1024 * 1024; // foto asli di atas ini ditolak; di bawahnya diperkecil otomatis bila melebihi MAX_FILE
-export const TARGET_FILE = 1.9 * 1024 * 1024; // sasaran hasil perkecilan, sedikit di bawah batas BE
+export const TARGET_FILE = 500 * 1024; // sasaran hasil perkecilan (sedikit di bawah batas BE 512KB)
 
 // birth_date dari BE bisa "YYYY-MM-DD" (daftar) atau ISO UTC (model Eloquent, mis. hasil cek NIK).
 // ISO UTC dari tanggal Jakarta mundur sehari (1990-05-10 -> "1990-05-09T17:00:00Z"), jadi dikembalikan ke zona waktu BE (Asia/Jakarta)

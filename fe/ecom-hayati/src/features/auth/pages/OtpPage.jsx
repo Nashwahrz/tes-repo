@@ -1,10 +1,11 @@
 // src/features/auth/pages/OtpPage.jsx
 import { useEffect, useRef, useState } from 'react';
-import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { sendOtp, verifyOtp, retryAfterSeconds } from '../../../api/authServices';
 import '../styles/LoginPage.css';
 import '../styles/OtpPage.css';
 import { formatWait } from '../utils/formatWait';
+import { isMailFailed } from '../utils/mailWarning';
 
 const LOGO_SRC = '/logo.png';
 const OTP_LENGTH = 6;
@@ -15,7 +16,10 @@ function OtpPage() {
   const [searchParams] = useSearchParams();
   const email = searchParams.get('email') || '';
   const [digits, setDigits] = useState(Array(OTP_LENGTH).fill(''));
-  const [error, setError] = useState('');
+  const location = useLocation();
+  // Dari registrasi: akun dibuat tetapi email OTP gagal terkirim
+  const [error, setError] = useState(location.state?.warning || '');
+  const [warnMsg, setWarnMsg] = useState(location.state?.warning || '');
   const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
   const [resending, setResending] = useState(false);
@@ -106,7 +110,9 @@ function OtpPage() {
       // Kena rate limit: jeda kirim ulang mengikuti waktu tunggu dari BE
       const wait = retryAfterSeconds(err);
       if (wait) setCooldown(wait);
-      setError(errorMessage(err));
+      const msg = errorMessage(err);
+      setWarnMsg(isMailFailed(err) ? msg : '');
+      setError(msg);
     } finally {
       setResending(false);
     }
@@ -144,7 +150,7 @@ function OtpPage() {
             ))}
           </div>
 
-          {(lock > 0 || error) && <p className="login-error">{lock > 0 ? `Terlalu banyak percobaan. Silakan coba lagi dalam ${formatWait(lock)}.` : error}</p>}
+          {(lock > 0 || error) && <p className={`login-error${error && error === warnMsg ? ' login-warning' : ''}`}>{lock > 0 ? `Terlalu banyak percobaan. Silakan coba lagi dalam ${formatWait(lock)}.` : error}</p>}
           {success && <p className="login-success">{success}</p>}
 
           <button id="otp-submit" type="submit" className={`login-submit${loading ? ' is-loading' : ''}`} disabled={loading || !email || lock > 0}>

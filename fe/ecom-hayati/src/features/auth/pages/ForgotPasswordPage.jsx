@@ -11,6 +11,7 @@ const LOGO_SRC = '/logo.png';
 const OTP_LENGTH = 6;
 const RESEND_SECONDS = 60;
 
+import { isMailFailed } from '../utils/mailWarning';
 const errorMessage = (err) => {
   const data = err.response?.data;
   return data?.errors ? Object.values(data.errors).flat().join(' ') : data?.message || 'Tidak dapat terhubung ke server.';
@@ -32,6 +33,7 @@ function ForgotPasswordPage() {
   const [confirm, setConfirm] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
+  const [warnMsg, setWarnMsg] = useState('');
   const [fieldErr, setFieldErr] = useState({}); // pesan per kolom di bawah kolomnya (bukan pop-up bawaan browser)
   const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
@@ -53,7 +55,7 @@ function ForgotPasswordPage() {
     return () => clearTimeout(t);
   }, [lock]);
 
-  const clearMessages = () => { setError(''); setSuccess(''); };
+  const clearMessages = () => { setError(''); setWarnMsg(''); setSuccess(''); };
 
   const handleChange = (index, e) => {
     const value = e.target.value.replace(/\D/g, '').slice(-1);
@@ -94,7 +96,7 @@ function ForgotPasswordPage() {
     } catch (err) {
       const wait = retryAfterSeconds(err);
       if (wait) setCooldown(wait);
-      setError(errorMessage(err));
+      { const m = errorMessage(err); setWarnMsg(isMailFailed(err) ? m : ''); setError(m); }
     } finally {
       setLoading(false);
     }
@@ -141,7 +143,7 @@ function ForgotPasswordPage() {
         setPassword('');
         setConfirm('');
       }
-      setError(errorMessage(err));
+      { const m = errorMessage(err); setWarnMsg(isMailFailed(err) ? m : ''); setError(m); }
     } finally {
       setLoading(false);
     }
@@ -156,7 +158,7 @@ function ForgotPasswordPage() {
     } catch (err) {
       const wait = retryAfterSeconds(err);
       if (wait) setCooldown(wait);
-      setError(errorMessage(err));
+      { const m = errorMessage(err); setWarnMsg(isMailFailed(err) ? m : ''); setError(m); }
     } finally {
       setResending(false);
     }
@@ -184,7 +186,7 @@ function ForgotPasswordPage() {
               <input className="login-input" id="email" type="email" placeholder="contoh: nama@email.com" value={email} onChange={(e) => { setEmail(e.target.value); clearField('email'); }} aria-invalid={!!fieldErr.email} autoFocus />
             </div>
             {fieldErr.email && <p className="field-error" role="alert">{fieldErr.email}</p>}
-            {error && <p className="login-error">{error}</p>}
+            {error && <p className={`login-error${error && error === warnMsg ? ' login-warning' : ''}`}>{error}</p>}
             <button id="forgot-submit-email" type="submit" className={`login-submit${loading ? ' is-loading' : ''}`} disabled={loading || cooldown > 0}>
               {loading ? <><span className="auth-spin" aria-hidden="true" /> Mengirim...</> : cooldown > 0 ? `Coba lagi dalam ${formatWait(cooldown)}` : 'Kirim Kode OTP →'}
             </button>
@@ -212,7 +214,7 @@ function ForgotPasswordPage() {
                   />
                 ))}
               </div>
-              {(lock > 0 || error) && <p className="login-error">{lock > 0 ? `Terlalu banyak percobaan. Silakan coba lagi dalam ${formatWait(lock)}.` : error}</p>}
+              {(lock > 0 || error) && <p className={`login-error${error && error === warnMsg ? ' login-warning' : ''}`}>{lock > 0 ? `Terlalu banyak percobaan. Silakan coba lagi dalam ${formatWait(lock)}.` : error}</p>}
               {success && <p className="login-success">{success}</p>}
               <button id="forgot-submit-otp" type="submit" className={`login-submit${loading ? ' is-loading' : ''}`} disabled={loading || lock > 0}>
                 {loading ? <><span className="auth-spin" aria-hidden="true" /> Memverifikasi...</> : 'Verifikasi →'}
@@ -250,7 +252,7 @@ function ForgotPasswordPage() {
               <input className="login-input" id="confirm" type={showPassword ? 'text' : 'password'} placeholder="Ulangi password baru" value={confirm} onChange={(e) => { setConfirm(e.target.value); clearField('confirm'); }} aria-invalid={!!fieldErr.confirm} />
             </div>
             {fieldErr.confirm && <p className="field-error" role="alert">{fieldErr.confirm}</p>}
-            {error && <p className="login-error">{error}</p>}
+            {error && <p className={`login-error${error && error === warnMsg ? ' login-warning' : ''}`}>{error}</p>}
             {success && <p className="login-success">{success}</p>}
             <button id="forgot-submit-password" type="submit" className={`login-submit${loading ? ' is-loading' : ''}`} disabled={loading || !!success}>
               {loading ? <><span className="auth-spin" aria-hidden="true" /> Menyimpan...</> : 'Simpan Password →'}

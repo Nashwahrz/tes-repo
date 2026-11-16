@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import {
-  errorMessage, getAgamas, getPekerjaans, getProvinsis, getKabupatens, searchKecamatans, searchKelurahans, getMasterByKode, refreshMasterOptions,
+  errorMessage, getAgamas, getPekerjaanTree, getProvinsis, getKabupatens, searchKecamatans, searchKelurahans, getMasterByKode, refreshMasterOptions,
 } from '../../../api/authServices';
 
 // Jeda setelah ketukan terakhir sebelum kecamatan/kelurahan dicari di BE (satu pencarian bisa mengambil banyak halaman)
@@ -39,7 +39,7 @@ function useGeoSearch({ key, parentId, selectedId, path, search, term, reload, s
 const NONE = { kecamatan: false, kelurahan: false };
 
 export function useKonsumenMaster(form) {
-  const [master, setMaster] = useState({ agama: [], pekerjaan: [], provinsi: [], kabupaten: [], kecamatan: [], kelurahan: [], tempatLahir: [] });
+  const [master, setMaster] = useState({ agama: [], pekerjaanTree: [], provinsi: [], kabupaten: [], kecamatan: [], kelurahan: [], tempatLahir: [] });
   const [masterNote, setMasterNote] = useState('');
   const [geoQuery, setGeoQuery] = useState({ kecamatan: '', kelurahan: '' }); // teks yang sedang diketik
   // Dropdown yang daftarnya sudah dimuat penuh (provinsi, kabupaten/kota, agama, pekerjaan): disaring langsung saat mengetik
@@ -57,13 +57,13 @@ export function useKonsumenMaster(form) {
 
   useEffect(() => {
     let active = true;
-    Promise.allSettled([getAgamas(), getPekerjaans(), getProvinsis(), getKabupatens()]).then(([a, p, pv, kb]) => {
+    Promise.allSettled([getAgamas(), getPekerjaanTree(), getProvinsis(), getKabupatens()]).then(([a, p, pv, kb]) => {
       if (!active) return;
       const failed = [['Agama', a], ['Pekerjaan', p], ['Provinsi', pv], ['Kabupaten/Kota', kb]].filter(([, r]) => r.status === 'rejected');
       failed.forEach(([label, r]) => console.warn(`Master ${label} gagal dimuat:`, r.reason));
       setMasterNote(failed.map(([label, r]) => `${label}: ${errorMessage(r.reason)}`).join(' · '));
       const val = (r) => (r.status === 'fulfilled' ? r.value : []);
-      setMaster((m) => ({ ...m, agama: val(a), pekerjaan: val(p), provinsi: val(pv), tempatLahir: val(kb) }));
+      setMaster((m) => ({ ...m, agama: val(a), pekerjaanTree: Array.isArray(val(p)) ? val(p) : [], provinsi: val(pv), tempatLahir: val(kb) }));
     });
     return () => { active = false; };
   }, []);

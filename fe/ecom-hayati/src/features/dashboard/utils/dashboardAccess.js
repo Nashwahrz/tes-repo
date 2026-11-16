@@ -28,8 +28,9 @@ export function deriveAccess(access) {
   const canSmtp = hasMenu('email-smtps') && can('email-smtps.lihat');
   const canLoginLog = hasMenu('log-users') && can('log-users.lihat');
   const canKonsumenLog = hasMenu('konsumens') && can('konsumens.logs');
+  const canOtpLog = hasMenu('log-otps') && can('log-otps.lihat');
   const logSources = availableLogSources(hasMenu, can); // log perubahan data lain (dealer, master, wilayah, pengaturan, role)
-  const canLog = canLoginLog || canKonsumenLog || logSources.length > 0;
+  const canLog = canLoginLog || canKonsumenLog || canOtpLog || logSources.length > 0;
   const canRateLimit = hasMenu('configurasi-rate-limits') && can('configurasi-rate-limits.lihat');
   const canAgama = hasMenu('agamas') && can('agamas.lihat');
   const canPekerjaan = hasMenu('pekerjaans') && can('pekerjaans.lihat');
@@ -60,6 +61,6 @@ export function deriveAccess(access) {
   return {
     hasMenu, can, menus,
     canDealer, canUsers, canSales, canKonsumen, canAcc, canActivate, canRoleMenu, canRolePerm, canRole,
-    canWhitelist, canUrlIp, canOcr, canSmtp, canLoginLog, canKonsumenLog, canLog, logSources, canRateLimit, canVerifyKonsumen,
+    canWhitelist, canUrlIp, canOcr, canSmtp, canLoginLog, canKonsumenLog, canOtpLog, canLog, logSources, canRateLimit, canVerifyKonsumen,
   };
 }

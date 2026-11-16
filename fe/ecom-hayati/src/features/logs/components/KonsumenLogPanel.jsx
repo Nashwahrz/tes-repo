@@ -40,7 +40,7 @@ const AKSI_JENIS = {
   konsumen: { created: 'Konsumen ditambah', updated: 'Konsumen diubah', deleted: 'Konsumen dihapus' },
   'konsumen me': { created: 'Penginput ditautkan', updated: 'Penginput diubah', deleted: 'Penginput dilepas' },
 };
-const aksiOf = (l) => AKSI_JENIS[l.log_name]?.[l.aksi] ?? AKSI[l.aksi] ?? l.deskripsi ?? l.aksi;
+const aksiOf = (l) => l.deskripsi ?? AKSI_JENIS[l.log_name]?.[l.aksi] ?? AKSI[l.aksi] ?? l.aksi;
 
 const fmtWaktu = (iso) => (iso ? new Date(iso).toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' }) : '-');
 // masters: { 'fk_provinsi#32': 'Jawa Barat' }; nama belum termuat/tidak ada = tampil kodenya saja

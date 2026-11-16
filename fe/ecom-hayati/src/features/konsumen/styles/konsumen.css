@@ -88,6 +88,11 @@
 
 .konsumen-form-page .dash-ktp-big { max-width: 360px; width: 100%; }
 
+/* Upload KTP di form konsumen: jarak lega tombol, pesan alert, dan petunjuk */
+#konsumen-foto_ktp .dash-actions { margin-bottom: 12px; }
+#konsumen-foto_ktp .dash-alert { margin: 12px 0; }
+#konsumen-foto_ktp .dash-map-hint { margin-top: 10px; }
+
 .konsumen-form-page .dash-modal-actions { position: sticky; bottom: 0; background: #fff; }
 
 /* Daftar NIK terdaftar di form konsumen */

@@ -29,7 +29,16 @@ function Sidebar({ nav, menu, badges, changed, name, role, dealer, onSelect, onL
   // Grup terbuka bila berisi menu aktif, kecuali pengguna melipatnya sendiri (atau membukanya)
   const [groupToggle, setGroupToggle] = useState({});
   const groupOpen = (g) => groupToggle[g.group] ?? g.items.includes(menu);
-  const toggleGroup = (g) => setGroupToggle((t) => ({ ...t, [g.group]: !groupOpen(g) }));
+  const toggleGroup = (g) => {
+    const willOpen = !groupOpen(g);
+    setGroupToggle((t) => ({ ...t, [g.group]: willOpen }));
+    // Grup yang baru dibuka digulir agar submenunya terlihat penuh di daftar menu
+    if (willOpen) {
+      requestAnimationFrame(() => {
+        document.getElementById(`menu-group-${g.group.toLowerCase().replace(/\W+/g, '-')}`)?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+      });
+    }
+  };
 
   const select = (m) => { setOpen(false); onSelect(m); };
 
@@ -83,7 +92,7 @@ function Sidebar({ nav, menu, badges, changed, name, role, dealer, onSelect, onL
             const isOpen = groupOpen(n);
             const total = n.items.reduce((sum, m) => sum + (badges[m] || 0), 0);
             return (
-              <li key={n.group} className={`dash-menu-group${isOpen ? ' open' : ''}${n.items.includes(menu) ? ' has-active' : ''}`}>
+              <li key={n.group} id={`menu-group-${n.group.toLowerCase().replace(/\W+/g, '-')}`} className={`dash-menu-group${isOpen ? ' open' : ''}${n.items.includes(menu) ? ' has-active' : ''}`}>
                 <button id={`btn-nav-group-${n.group.toLowerCase().replace(/\W+/g, '-')}`} type="button" className="dash-menu-group-head" aria-expanded={isOpen} onClick={() => toggleGroup(n)}>
                   <Icon name={n.icon} size={17} />
                   {n.group}

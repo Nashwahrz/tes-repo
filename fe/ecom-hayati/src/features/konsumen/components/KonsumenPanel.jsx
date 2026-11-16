@@ -57,7 +57,9 @@ function KonsumenPanel({ can, userId, onChanged, dealers = [], myDealerId = null
   const [detailRow, setDetailRow] = useState(null);
   // Detail ikut memakai data terbaru (URL foto baru) setelah daftar dimuat ulang
   const [detailFresh, setDetailFresh] = useState(null);
-  const sameRow = (a, b) => a.konsumen_me_id === b.konsumen_me_id; // satu konsumen bisa tampil beberapa kali (satu per penginput)
+  // Identitas baris: pengajuan (temp) dibedakan dari konsumen diterima, karena id keduanya berasal dari tabel berbeda dan bisa sama
+  const rowKey = (k) => (k.konsumen_me_id != null ? `me-${k.konsumen_me_id}` : `k-${k.id}-${k.fk_me ?? ''}`);
+  const sameRow = (a, b) => rowKey(a) === rowKey(b); // satu konsumen bisa tampil beberapa kali (satu per penginput)
   const detailRaw = detailRow ? { ...(rows.find((r) => sameRow(r, detailRow)) ?? detailRow), ...(detailFresh?.id === detailRow.id ? detailFresh : {}) } : null;
   // verified_by bisa berupa id (tanpa relasi) atau objek akun: bila id, namanya dicari dari daftar akun
   const detail = detailRaw && detailRaw.verified_by != null && typeof detailRaw.verified_by !== 'object'
@@ -326,7 +328,7 @@ function KonsumenPanel({ can, userId, onChanged, dealers = [], myDealerId = null
             </thead>
             <tbody>
               {paged.map((k, idx) => (
-                <tr key={k.konsumen_me_id ?? k.id} className={k.status === 'ditolak' ? 'row-rejected' : k.status === 'revisi' ? 'row-revisi' : undefined}>
+                <tr key={rowKey(k)}className={k.status === 'ditolak' ? 'row-rejected' : k.status === 'revisi' ? 'row-revisi' : undefined}>
                   <td className="col-no">{rowOffset + idx + 1}</td>
                   <td>
                     {can.tambah && k.status === 'diterima' && k.id_temp == null ? (

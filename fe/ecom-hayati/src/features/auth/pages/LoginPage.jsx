@@ -5,6 +5,7 @@ import { loginUser, retryAfterSeconds } from '../../../api/authServices';
 import { queryClient } from '../../../api/queryClient';
 import '../styles/LoginPage.css';
 import { formatWait } from '../utils/formatWait';
+import { isMailFailed } from '../utils/mailWarning';
 
 const LOGO_SRC = '/logo.png';
 
@@ -13,6 +14,7 @@ function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [warnMsg, setWarnMsg] = useState('');
   const [fieldErr, setFieldErr] = useState({}); // pesan per kolom, tampil di bawah kolomnya (bukan pop-up bawaan browser)
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -83,6 +85,7 @@ function LoginPage() {
       }
 
       const msg = data?.errors ? Object.values(data.errors).flat().join(' ') : data?.message || 'Tidak dapat terhubung ke server.';
+      setWarnMsg(isMailFailed(err) ? msg : '');
       setError(msg);
     } finally {
       setLoading(false);
@@ -151,7 +154,7 @@ function LoginPage() {
 
           <p className="login-forgot"><Link to="/lupa-password">Lupa password?</Link></p>
 
-          {error && <p className="login-error">{error}</p>}
+          {error && <p className={`login-error${error && error === warnMsg ? ' login-warning' : ''}`}>{error}</p>}
 
           <button id="login-submit" type="submit" className={`login-submit${loading ? ' is-loading' : ''}`} disabled={loading || waitSec > 0}>
             {loading ? <><span className="auth-spin" aria-hidden="true" /> Memproses...</> : waitSec > 0 ? `Coba lagi dalam ${formatWait(waitSec)}` : 'Masuk →'}

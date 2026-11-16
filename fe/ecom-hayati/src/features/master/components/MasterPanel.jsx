@@ -7,6 +7,7 @@
 import { useEffect, useState } from 'react';
 import { getMasterPage, getMasterOptions, getChildrenByParent, getMasterByKode, searchMaster, createMaster, updateMaster, setMasterStatus, exportMaster, getPekerjaanHeaders, errorMessage } from '../../../api/authServices';
 import { MASTER_CODE_LENGTH } from '../../../api/masterExcel';
+import '../styles/pekerjaan.css';
 import Toast from '../../../shared/components/Toast';
 import Modal from '../../../shared/components/Modal';
 import Loading, { Spin } from '../../../shared/components/Loading';
@@ -166,6 +167,7 @@ function MasterPanel({ tabKey, can }) {
   const isPekerjaan = tab.key === 'pekerjaan';
 
   const [rows, setRows] = useState([]);
+  const [openHeaders, setOpenHeaders] = useState(() => new Set()); // kode header pekerjaan yang anak-anaknya sedang ditampilkan
   const [meta, setMeta] = useState({ page: 1, lastPage: 1, total: 0 });
   const [page, setPage] = useState(1);
   const [query, setQuery] = useState('');
@@ -306,6 +308,7 @@ function MasterPanel({ tabKey, can }) {
     });
   }, [rows]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  const isNew = editing === 'new';
   // Validasi untuk pekerjaan: kode 1–3 digit angka; untuk master lain: persis N digit
   const pkKodeError = !isNew ? '' : !pkForm.kode.trim() ? 'Kode wajib diisi.' : !/^\d{1,3}$/.test(pkForm.kode.trim()) ? 'Kode harus 1–3 digit angka.' : '';
   const pkNameError = !pkForm.name.trim() ? 'Nama wajib diisi.' : pkForm.name.trim().length > 255 ? 'Maksimal 255 karakter.' : '';
@@ -316,7 +319,6 @@ function MasterPanel({ tabKey, can }) {
   const hasPkError = !!(pkKodeError || pkNameError || pkTypeError || pkSectorError || pkParentError || pkSeqError);
 
   const nameError = !form.name.trim() ? 'Nama wajib diisi.' : form.name.trim().length > 255 ? 'Maksimal 255 karakter.' : '';
-  const isNew = editing === 'new';
   // Mengikuti request BE: kode wajib & persis N digit angka (N beda per master) saat tambah; induk wajib pada wilayah
   const codeLen = MASTER_CODE_LENGTH[tab.key];
   const kodeError = !isNew ? '' : !form.kode.trim() ? 'Kode wajib diisi.' : !(/^\d+$/.test(form.kode.trim()) && form.kode.trim().length === codeLen) ? `Kode harus berupa angka tepat ${codeLen} digit.` : '';
@@ -510,44 +512,90 @@ function MasterPanel({ tabKey, can }) {
         <p className="dash-empty">{filtered && !search ? `Tidak ada ${tab.label.toLowerCase()} pada filter ini.` : search ? `Tidak ada ${tab.label.toLowerCase()} yang cocok dengan "${search}".` : `Belum ada data ${tab.label.toLowerCase()}.`}</p>
       ) : (
         <div className="dash-table-wrap">
-          <table className="dash-table">
+          <table className={`dash-table${isPekerjaan ? ' dash-pk-table' : ''}`}>
             <thead>
               <tr>
-                <th className="col-no">No</th>
+                {!isPekerjaan && <th className="col-no">No</th>}
                 <th>Kode</th>
                 <th>Nama</th>
-                {isPekerjaan && <th>Tipe</th>}
-                {isPekerjaan && <th>Sektor</th>}
-                {isPekerjaan && <th>Urutan</th>}
+                {isPekerjaan && <th className="pk-hide-sm">Tipe</th>}
+                {isPekerjaan && <th className="pk-hide-md">Sektor</th>}
+                {isPekerjaan && <th className="pk-seq pk-hide-md">Urutan</th>}
                 {tab.parent && <th>{tab.parent.label}</th>}
                 <th>Status</th>
                 {showAksi && <th className="col-aksi">Aksi</th>}
               </tr>
             </thead>
             <tbody>
-              {rows.map((r, idx) => (
-                <tr key={r.id}>
-                  <td className="col-no">{(meta.page - 1) * (meta.perPage ?? PAGE_SIZE) + idx + 1}</td>
-                  <td>{r.kode ?? '-'}</td>
-                  <td><strong className="dash-cell-name">{r.name}</strong></td>
-                  {isPekerjaan && <td>{(r.type_header?.value ?? r.type_header) === 'H' ? 'Header' : (r.type_header?.value ?? r.type_header) === 'D' ? 'Detail' : '-'}</td>}
-                  {isPekerjaan && <td>{r.sector_job ?? '-'}</td>}
-                  {isPekerjaan && <td>{r.sequence ?? '-'}</td>}
+              {(() => {
+                // Pekerjaan: baris anak hanya tampil bila headernya dibuka (atau sedang mencari); nomor dihitung per header
+                const typeOf = (x) => x.type_header?.value ?? x.type_header;
+                const kids = {};
+                if (isPekerjaan) rows.forEach((x) => { if (typeOf(x) === 'D') (kids[String(x.id_parent)] ??= []).push(x); });
+                const pageStart = (meta.page - 1) * (meta.perPage ?? PAGE_SIZE);
+                const toggleHeader = (code) => setOpenHeaders((prev) => { const n = new Set(prev); if (n.has(code)) n.delete(code); else n.add(code); return n; });
+                return rows.map((r, idx) => {
+                  const pkType = isPekerjaan ? typeOf(r) : null;
+                  const isDetail = pkType === 'D';
+                  const code = String(r.kode);
+                  const childList = isPekerjaan && !isDetail ? (kids[code] ?? []) : [];
+                  const hasKids = childList.length > 0;
+                  const expanded = hasKids && (!!search || openHeaders.has(code));
+                  const isOrphan = isDetail && !rows.some((x) => String(x.kode) === String(r.id_parent) && typeOf(x) !== 'D');
+                  if (isDetail && !isOrphan && !(!!search || openHeaders.has(String(r.id_parent)))) return null;
+                  const next = rows[idx + 1];
+                  const isLastChild = isDetail && !isOrphan && !(next && typeOf(next) === 'D' && String(next.id_parent) === String(r.id_parent));
+                  const rowCls = isPekerjaan ? `${isDetail && !isOrphan ? 'pk-detail' : 'pk-header'}${isLastChild ? ' pk-last' : ''}${hasKids ? ' pk-toggle' : ''}${expanded ? ' pk-open' : ''}` : undefined;
+                  const onRowClick = hasKids ? (e) => { if (!e.target.closest('button, input, label, a, [role="switch"]')) toggleHeader(code); } : undefined;
+                  return (
+                <tr key={r.id} className={rowCls} onClick={onRowClick}>
+                  {!isPekerjaan && <td className="col-no">{pageStart + idx + 1}</td>}
+                  <td className={isPekerjaan ? 'pk-kode' : undefined}>{r.kode ?? '-'}</td>
+                  <td className={isPekerjaan ? 'pk-name-cell' : undefined}>
+                    {hasKids ? (
+                      <button
+                        id={`btn-master-pekerjaan-toggle-${r.id}`}
+                        type="button"
+                        className="pk-toggle-btn"
+                        aria-expanded={expanded}
+                        aria-label={`${expanded ? 'Tutup' : 'Buka'} ${childList.length} pekerjaan di ${r.name}`}
+                        onClick={() => toggleHeader(code)}
+                      >
+                        <span className="pk-chevron" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6" /></svg></span>
+                        <strong className="dash-cell-name">{r.name}</strong>
+                        <span className="pk-count">{childList.length} pekerjaan</span>
+                      </button>
+                    ) : (
+                      <strong className="dash-cell-name">{r.name}</strong>
+                    )}
+                    {isPekerjaan && (
+                      <span className="dash-cell-sub pk-sub">
+                        <span className="pk-sub-type">{pkType === 'H' ? 'Header' : isDetail ? 'Detail' : ''}</span>
+                        {r.sector_job && <span className="pk-sub-sector">{r.sector_job}</span>}
+                        {r.sequence != null && <span className="pk-sub-seq">Urutan {r.sequence}</span>}
+                      </span>
+                    )}
+                  </td>
+                  {isPekerjaan && <td className="pk-hide-sm"><span className={`pk-chip ${isDetail ? 'detail' : 'header'}`}>{pkType === 'H' ? 'Header' : isDetail ? 'Detail' : '-'}</span></td>}
+                  {isPekerjaan && <td className="pk-hide-md">{r.sector_job ? <span className="pk-chip sector">{r.sector_job}</span> : '-'}</td>}
+                  {isPekerjaan && <td className="pk-seq pk-hide-md">{r.sequence ?? '-'}</td>}
                   {tab.parent && <td>{r[tab.parent.field] ? parentNames[r[tab.parent.field]] ?? '...' : '-'}</td>}
                   <td>
-                    {showAksi
+                    {showAksi && !hasKids
                       ? <Switch id={`btn-master-${tab.key}-status-${r.id}`} checked={isActive(r)} label={isActive(r) ? 'Nonaktifkan' : 'Aktifkan'} onToggle={() => setToToggle(r)} />
                       : <span className={`dash-status ${isActive(r) ? 'aktif' : 'nonaktif'}`}>{isActive(r) ? 'Aktif' : 'Nonaktif'}</span>}
                   </td>
                   {showAksi && (
                     <td className="col-aksi">
                       <div className="dash-actions">
-                        {perm('ubah') && <IconButton id={`btn-master-${tab.key}-edit-${r.id}`} icon="edit" label="Ubah" onClick={() => openForm(r)} />}
+                        {perm('ubah') && !hasKids && <IconButton id={`btn-master-${tab.key}-edit-${r.id}`} icon="edit" label="Ubah" onClick={() => openForm(r)} />}
                       </div>
                     </td>
                   )}
                 </tr>
-              ))}
+                  );
+                });
+              })()}
             </tbody>
           </table>
         </div>

@@ -32,7 +32,12 @@ export async function scanKtpToForm(file, master) {
   // Induk tidak cocok -> turunannya tidak bisa dicari; tetap dicatat agar user tahu perlu diisi manual
   const skip = (key, text) => { const t = String(text ?? '').trim(); if (t) unmatched.push({ key, label: LABELS[key], text: t }); };
   pick('fk_agama', master.agama, data.agama);
-  pick('fk_pekerjaan', master.pekerjaan, data.pekerjaan);
+  // master.pekerjaan sudah diganti pekerjaanTree (hierarki): ratakan header yang bisa dipilih + anak-anaknya
+  const pekerjaanOpts = (master.pekerjaanTree ?? []).flatMap((h) => [
+    ...(h.is_selectable ? [{ kode: h.pekerjaan_code, name: h.pekerjaan_name }] : []),
+    ...(h.children ?? []).map((c) => ({ kode: c.pekerjaan_code, name: c.pekerjaan_name })),
+  ]);
+  pick('fk_pekerjaan', pekerjaanOpts, data.pekerjaan);
   pick('fk_temp_lahir', master.tempatLahir, data.tmp_lahir);
   let prov = pick('fk_provinsi', master.provinsi, data.provinsi);
   // Di KTP kabupaten/kota tidak berlabel: ia hanya satu baris tepat di bawah "PROVINSI ..." ("KOTA PADANG", "KAB. SOLOK", atau tanpa awalan seperti "JAKARTA SELATAN").

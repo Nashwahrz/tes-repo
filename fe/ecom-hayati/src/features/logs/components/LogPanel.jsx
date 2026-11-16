@@ -3,13 +3,15 @@ import LoginLogPanel from './LoginLogPanel';
 import KonsumenLogPanel from './KonsumenLogPanel';
 import BlockedUserLogPanel from './BlockedUserLogPanel';
 import ActivityLogPanel from './ActivityLogPanel';
+import OtpLogPanel from './OtpLogPanel';
 
 // Satu menu untuk semua log; tab hanya muncul untuk log yang boleh dilihat role
-function LogPanel({ canLogin, canKonsumen, canBlocked, sources = [] }) {
+function LogPanel({ canLogin, canKonsumen, canBlocked, canOtp, sources = [] }) {
   const tabs = [
     ...(canLogin ? [{ key: 'login', label: 'Log Login', render: () => <LoginLogPanel /> }] : []),
     ...(canKonsumen ? [{ key: 'konsumen', label: 'Riwayat Konsumen', render: () => <KonsumenLogPanel /> }] : []),
     ...(canBlocked ? [{ key: 'blokir', label: 'Akun Terblokir', render: () => <BlockedUserLogPanel /> }] : []),
+    ...(canOtp ? [{ key: 'otp', label: 'Riwayat OTP', render: () => <OtpLogPanel /> }] : []),
     ...(sources.length ? [{ key: 'data', label: 'Perubahan Data', render: () => <ActivityLogPanel sources={sources} /> }] : []),
   ];
   const [tab, setTab] = useState(tabs[0].key);

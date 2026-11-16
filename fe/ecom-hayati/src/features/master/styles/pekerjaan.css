@@ -1,0 +1,76 @@
+/* features/master/styles/pekerjaan.css
+   Tabel master Pekerjaan: header sebagai baris grup yang bisa dibuka/ditutup, anak (Detail) menjorok di bawahnya.
+   Warna netral (abu & biru), tanpa merah/oranye. */
+
+.dash-table.dash-pk-table { border-collapse: separate; border-spacing: 0; }
+
+/* Baris Header */
+.dash-pk-table tr.pk-header > td { background: #f8fafc; border-top: 1px solid #e4e7ec; }
+.dash-pk-table tr.pk-header:first-child > td { border-top: 0; }
+.dash-pk-table tr.pk-header .dash-cell-name { color: var(--ink); }
+.dash-pk-table tr.pk-toggle { cursor: pointer; }
+.dash-pk-table tr.pk-toggle:hover > td { background: #f1f5f9; }
+.dash-pk-table tr.pk-toggle.pk-open > td { background: #eef2f7; }
+
+/* Tombol buka/tutup di sel nama header */
+.pk-toggle-btn {
+  display: inline-flex; align-items: center; gap: 8px; max-width: 100%; padding: 2px 4px 2px 0; margin: 0;
+  font: inherit; color: inherit; text-align: left; background: none; border: 0; border-radius: 6px; cursor: pointer;
+}
+.pk-toggle-btn:focus-visible { outline: 2px solid #84adff; outline-offset: 2px; }
+.pk-chevron { display: inline-grid; place-items: center; flex-shrink: 0; width: 22px; height: 22px; color: #475467; background: #fff; border: 1px solid #d0d5dd; border-radius: 6px; transition: transform 0.18s, background 0.15s; }
+.pk-toggle-btn:hover .pk-chevron { background: #f2f4f7; }
+tr.pk-open .pk-chevron { transform: rotate(90deg); }
+.pk-count { flex-shrink: 0; padding: 1px 8px; font-size: 11px; font-weight: 500; color: #475467; background: #fff; border: 1px solid #e4e7ec; border-radius: 999px; white-space: nowrap; }
+@media (prefers-reduced-motion: reduce) { .pk-chevron { transition: none; } }
+
+/* Baris Detail: menjorok tanpa garis konektor */
+.dash-pk-table tr.pk-detail > td { background: #fff; }
+.dash-pk-table tr.pk-detail > td.pk-name-cell { position: relative; padding-left: 44px; }
+.dash-pk-table tr.pk-detail .dash-cell-name { font-weight: 500; color: #344054; }
+.dash-pk-table tr.pk-detail > td { padding-top: 7px; padding-bottom: 7px; }
+.dash-pk-table tr.pk-detail:hover > td { background: #fafbfc; }
+.dash-pk-table tr.pk-detail.pk-last > td { border-bottom-color: #e4e7ec; }
+
+/* Anak muncul halus saat grup dibuka */
+@keyframes pk-in { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
+.dash-pk-table tr.pk-detail { animation: pk-in 0.16s ease-out; }
+@media (prefers-reduced-motion: reduce) { .dash-pk-table tr.pk-detail { animation: none; } }
+
+/* Kolom kecil tidak melebar; aksi rapat di kanan */
+.dash-pk-table th.col-no, .dash-pk-table td.col-no { width: 44px; }
+.dash-pk-table td.pk-kode, .dash-pk-table th:nth-child(2) { width: 72px; }
+.dash-pk-table .col-aksi { width: 1%; white-space: nowrap; }
+
+/* Chip tipe & sektor */
+.pk-chip { display: inline-block; padding: 2px 9px; font-size: 11px; font-weight: 600; line-height: 1.5; white-space: nowrap; border-radius: 999px; }
+.pk-chip.header { color: #344054; background: #eef2f6; border: 1px solid #d0d5dd; }
+.pk-chip.detail { color: #475467; background: #f2f4f7; border: 1px solid #e4e7ec; }
+.pk-chip.sector { color: #175cd3; background: #eff8ff; border: 1px solid #d1e9ff; }
+
+.dash-pk-table td.pk-seq { text-align: center; color: var(--muted); font-variant-numeric: tabular-nums; }
+.dash-pk-table th.pk-seq { text-align: center; }
+.dash-pk-table td.pk-kode { font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+/* Keterangan di bawah nama muncul hanya untuk kolom yang sedang disembunyikan */
+.pk-sub { display: none; }
+.pk-sub > span:not(:first-child)::before { content: ' · '; }
+.pk-sub-type + span::before { content: '' !important; }
+
+/* Responsif */
+@media (max-width: 900px) {
+  .dash-pk-table .pk-hide-md { display: none; }
+  .pk-sub { display: block; }
+  .pk-sub-type { display: none; }
+  .pk-toggle-btn + .pk-sub { padding-left: 30px; }
+}
+
+@media (max-width: 600px) {
+  .dash-table.dash-pk-table { min-width: 0; }
+  .dash-pk-table .pk-hide-sm { display: none; }
+  .pk-sub-type { display: inline; font-weight: 600; }
+  .pk-sub-type + span::before { content: ' · ' !important; }
+  .dash-pk-table tr.pk-detail > td.pk-name-cell { padding-left: 40px; }
+  .dash-pk-table .dash-cell-name { white-space: normal; word-break: break-word; }
+  .pk-toggle-btn { flex-wrap: wrap; }
+}

@@ -40,6 +40,7 @@ function RegisterPage() {
   const [error, setError] = useState('');
   const [submitted, setSubmitted] = useState(false); // setelah klik Daftar: kolom kosong ikut diberi pesan
   const [success, setSuccess] = useState('');
+  const [warning, setWarning] = useState('');
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
@@ -72,10 +73,12 @@ function RegisterPage() {
     try {
       const data = await registerUser(name, email, password, password_confirmation, Number(fk_role));
 
-      setSuccess(data?.message || 'Registrasi berhasil! Mengarahkan ke verifikasi OTP...');
+      // Akun sudah dibuat tetapi email OTP gagal terkirim: beri peringatan, user tetap diarahkan ke halaman OTP untuk kirim ulang
+      if (data?.warning) setWarning(data.message);
+      else setSuccess(data?.message || 'Registrasi berhasil! Mengarahkan ke verifikasi OTP...');
       setTimeout(() => {
-        navigate(`/otp?email=${encodeURIComponent(email)}`);
-      }, 1500);
+        navigate(`/otp?email=${encodeURIComponent(email)}`, { state: data?.warning ? { warning: data.message } : undefined });
+      }, data?.warning ? 3500 : 1500);
     } catch (err) {
       const data = err.response?.data;
       const msg = data?.errors ? Object.values(data.errors).flat().join(' ') : data?.message || 'Tidak dapat terhubung ke server.';
@@ -195,6 +198,7 @@ function RegisterPage() {
           {confirmError && <p className="field-error" role="alert">{confirmError}</p>}
 
           {error && <p className="login-error">{error}</p>}
+          {warning && <p className="login-error login-warning" role="alert">{warning}</p>}
           {success && <p className="login-success">{success}</p>}
 
           <button id="register-submit" type="submit" className={`login-submit${loading ? ' is-loading' : ''}`} disabled={loading}>

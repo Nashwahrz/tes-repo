@@ -1,4 +1,6 @@
+import { useState } from 'react';
 import { Spin } from '../../../shared/components/Loading';
+import '../styles/pekerjaan.css';
 import { MENU_PATHS, MENU_KECAMATAN, MENU_KELURAHAN } from '../../dashboard/utils/menuPaths';
 import { fieldId } from './konsumenFormConfig';
 
@@ -123,6 +125,205 @@ function PickInput({ name, label, id, cls, ctx, idOptions, disabled, hint }) {
   );
 }
 
+// Dropdown pekerjaan bertingkat: header yang punya anak-anak tidak bisa langsung dipilih;
+// klik header buka daftar anak-anaknya, klik lagi header tutup. Header tanpa anak bisa dipilih langsung.
+function PekerjaanPickInput({ name, label, id, cls, ctx, pekerjaanTree, disabled, hint }) {
+  const { form, setField, geo } = ctx;
+  const { pickText, setPickText, pickOpen, setPickOpen } = geo;
+  const isOpen = pickOpen === name;
+
+  // State lokal: kode header yang sedang dibuka anak-anaknya
+  const [expandedHeader, setExpandedHeader] = useState(null);
+
+  // Cari nama dari tree berdasarkan kode yang terpilih
+  const findName = (kode) => {
+    for (const h of pekerjaanTree) {
+      if (String(h.pekerjaan_code) === String(kode)) return h.pekerjaan_name;
+      for (const c of (h.children ?? [])) {
+        if (String(c.pekerjaan_code) === String(kode)) return c.pekerjaan_name;
+      }
+    }
+    return '';
+  };
+
+  const selectedName = form[name] ? findName(form[name]) : '';
+  const searchQ = (pickText[name] ?? '').trim().toLowerCase();
+
+  // Saat ada pencarian teks: ratakan semua item (header + anak) dan saring
+  const flatFiltered = searchQ
+    ? pekerjaanTree.flatMap((h) => {
+        const hMatch = h.pekerjaan_name.toLowerCase().includes(searchQ);
+        const children = (h.children ?? []).filter((c) => c.pekerjaan_name.toLowerCase().includes(searchQ));
+        const items = [];
+        // Tampilkan header jika header sendiri cocok DAN tidak punya anak (bisa dipilih),
+        // atau sebagai label grup bila ada anak yang cocok
+        if (children.length > 0) {
+          items.push({ ...h, _isHeader: true, _hasChildren: true, _groupLabel: true });
+          items.push(...children.map((c) => ({ ...c, _isHeader: false, _parentName: h.pekerjaan_name })));
+        } else if (hMatch && !(h.children ?? []).length) {
+          items.push({ ...h, _isHeader: true, _hasChildren: false });
+        } else if (hMatch) {
+          // header dengan anak, tapi tidak ada anak yang cocok — tampilkan headernya saja sebagai non-pilih
+          items.push({ ...h, _isHeader: true, _hasChildren: true, _groupLabel: true });
+        }
+        return items;
+      })
+    : null; // null = tampilkan mode tree
+
+  const handleSelect = (kode) => {
+    setField(name)({ target: { value: String(kode) } });
+    setPickOpen('');
+    setPickText((t) => ({ ...t, [name]: '' }));
+    setExpandedHeader(null);
+  };
+
+  const handleHeaderClick = (hCode, hasChildren) => {
+    if (!hasChildren) {
+      // Header tanpa anak: langsung pilih
+      handleSelect(hCode);
+      return;
+    }
+    setExpandedHeader((prev) => (prev === hCode ? null : hCode));
+  };
+
+  return (
+    <>
+      <input
+        id={id}
+        data-testid={id}
+        className={cls}
+        type="text"
+        autoComplete="off"
+        value={isOpen ? (pickText[name] ?? '') : selectedName}
+        onChange={(e) => {
+          setPickText((t) => ({ ...t, [name]: e.target.value }));
+          if (form[name]) setField(name)({ target: { value: '' } });
+          setPickOpen(name);
+          setExpandedHeader(null);
+        }}
+        onFocus={(e) => {
+          setPickOpen(name);
+          setPickText((t) => ({ ...t, [name]: '' }));
+          if (form[name]) e.target.select();
+          // Buka header dari nilai terpilih saat ini
+          if (form[name]) {
+            for (const h of pekerjaanTree) {
+              if ((h.children ?? []).some((c) => String(c.pekerjaan_code) === String(form[name]))) {
+                setExpandedHeader(h.pekerjaan_code);
+                break;
+              }
+            }
+          }
+        }}
+        onBlur={() => {
+          setPickOpen((k) => (k === name ? '' : k));
+          setExpandedHeader(null);
+        }}
+        onKeyDown={(e) => { if (e.key === 'Escape') { setPickOpen(''); setExpandedHeader(null); } }}
+        placeholder={disabled ? hint : `Cari / pilih ${label.toLowerCase()}`}
+        disabled={disabled}
+      />
+
+      {isOpen && !disabled && (
+        <ul className="dash-geo-list dash-pekerjaan-list" role="listbox" aria-label={label}>
+          {/* Mode pencarian: daftar diratakan & disaring */}
+          {flatFiltered !== null ? (
+            flatFiltered.length === 0
+              ? <li className="dash-geo-empty">Tidak ditemukan</li>
+              : flatFiltered.map((item, i) => {
+                  const kode = item.pekerjaan_code;
+                  const nama = item.pekerjaan_name;
+                  if (item._groupLabel) {
+                    return (
+                      <li key={`grp-${kode}-${i}`} className="dash-pekerjaan-header-label">
+                        <span>{nama}</span>
+                      </li>
+                    );
+                  }
+                  return (
+                    <li key={kode} className={item._isHeader ? '' : 'dash-pekerjaan-child'}>
+                      <button
+                        id={`btn-konsumen-option-${name}-${kode}`}
+                        data-testid={`btn-konsumen-option-${name}-${kode}`}
+                        type="button"
+                        role="option"
+                        aria-selected={String(kode) === String(form[name])}
+                        onMouseDown={(e) => e.preventDefault()}
+                        onClick={() => handleSelect(kode)}
+                      >
+                        {nama}
+                      </button>
+                    </li>
+                  );
+                })
+          ) : (
+            /* Mode tree: header + anak */
+            pekerjaanTree.length === 0
+              ? <li className="dash-geo-empty">Data pekerjaan belum tersedia</li>
+              : pekerjaanTree.map((h) => {
+                  const hCode = h.pekerjaan_code;
+                  const hasChildren = (h.children ?? []).length > 0;
+                  const isExpanded = expandedHeader === hCode;
+                  const isSelectedHeader = String(hCode) === String(form[name]);
+
+                  return (
+                    <li key={hCode} className="dash-pekerjaan-group">
+                      {/* Baris header */}
+                      <button
+                        id={`btn-konsumen-option-${name}-${hCode}`}
+                        data-testid={`btn-konsumen-option-${name}-${hCode}`}
+                        type="button"
+                        role={hasChildren ? 'button' : 'option'}
+                        aria-selected={isSelectedHeader}
+                        aria-expanded={hasChildren ? isExpanded : undefined}
+                        className={`dash-pekerjaan-header${isSelectedHeader ? ' selected' : ''}`}
+                        onMouseDown={(e) => e.preventDefault()}
+                        onClick={() => handleHeaderClick(hCode, hasChildren)}
+                      >
+                        <span className="dash-pekerjaan-header-name">{h.pekerjaan_name}</span>
+                        {hasChildren && (
+                          <span className="dash-pekerjaan-chevron" aria-hidden="true">
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                              <polyline points="9 18 15 12 9 6" />
+                            </svg>
+                          </span>
+                        )}
+                      </button>
+
+                      {/* Daftar anak — tampil saat header di-expand */}
+                      {hasChildren && isExpanded && (
+                        <ul className="dash-pekerjaan-children" role="group">
+                          {h.children.map((c) => {
+                            const cKode = c.pekerjaan_code;
+                            const isSelectedChild = String(cKode) === String(form[name]);
+                            return (
+                              <li key={cKode} className="dash-pekerjaan-child">
+                                <button
+                                  id={`btn-konsumen-option-${name}-${cKode}`}
+                                  data-testid={`btn-konsumen-option-${name}-${cKode}`}
+                                  type="button"
+                                  role="option"
+                                  aria-selected={isSelectedChild}
+                                  onMouseDown={(e) => e.preventDefault()}
+                                  onClick={() => handleSelect(cKode)}
+                                >
+                                  {c.pekerjaan_name}
+                                </button>
+                              </li>
+                            );
+                          })}
+                        </ul>
+                      )}
+                    </li>
+                  );
+                })
+          )}
+        </ul>
+      )}
+    </>
+  );
+}
+
 function KonsumenField({ name, label, ctx, ...props }) {
   const { form, errors, touched, setField, ocr } = ctx;
   const cls = `dash-input${touched[name] && errors[name] ? ' invalid' : ''}`;
@@ -132,7 +333,9 @@ function KonsumenField({ name, label, ctx, ...props }) {
   return (
     <div className="dash-form-group">
       <label htmlFor={id}>{label} *</label>
-      {props.idOptions ? (
+      {props.pekerjaanTree ? (
+        <PekerjaanPickInput name={name} label={label} id={id} cls={cls} ctx={ctx} pekerjaanTree={props.pekerjaanTree} disabled={props.disabled} hint={props.hint} />
+      ) : props.idOptions ? (
         props.searchKey ? <GeoSearchInput {...pickerProps} searchKey={props.searchKey} /> : <PickInput {...pickerProps} />
       ) : props.options ? (
         <select id={id} data-testid={id} className={cls} value={selected ?? form[name]} onChange={setField(name)} disabled={props.disabled}>

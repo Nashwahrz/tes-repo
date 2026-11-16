@@ -279,3 +279,8 @@ select.login-input {
 .login-forgot a:hover {
   text-decoration: underline;
 }
+
+.login-error.login-warning {
+  color: #92400e;
+  background: #fef3c7;
+}

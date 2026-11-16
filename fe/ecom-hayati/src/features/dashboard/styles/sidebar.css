@@ -242,6 +242,13 @@
 
 /* Lencana jumlah data menunggu di menu sidebar */
 
+/* Sidebar desktop: tinggi tepat satu layar; hanya daftar menu yang di-scroll (brand & akun tetap terlihat) */
+@media (min-width: 901px) {
+  .dash-side { height: 100vh; height: 100dvh; max-height: 100vh; max-height: 100dvh; overflow: hidden; }
+  .dash-brand, .dash-side-foot { flex-shrink: 0; }
+  .dash-menu { flex: 1 1 0; min-height: 0; overflow-y: auto; overflow-x: hidden; padding-bottom: 8px; }
+}
+
 /* Grup menu + submenu */
 
 .dash-menu-group { margin-bottom: 2px; }

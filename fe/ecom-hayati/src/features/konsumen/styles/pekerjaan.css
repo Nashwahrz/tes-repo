@@ -1,0 +1,185 @@
+/* ============================================================
+   Dropdown pekerjaan bertingkat — PekerjaanPickInput
+   Skema warna: netral abu-abu, tanpa warna aksen merah
+   ============================================================ */
+
+/* Override tinggi max dari .dash-geo-list */
+.dash-pekerjaan-list {
+  max-height: 300px;
+  padding: 4px 0;
+}
+
+/* Sembunyikan separator default antar-li dari .dash-geo-list */
+.dash-pekerjaan-list li + li {
+  border-top: none;
+}
+
+/* ================================================================
+   GRUP (satu header + anak-anaknya)
+   ================================================================ */
+.dash-pekerjaan-group {
+  margin: 2px 6px;
+  border-radius: 7px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+}
+.dash-pekerjaan-group + .dash-pekerjaan-group {
+  margin-top: 4px;
+}
+
+/* ================================================================
+   TOMBOL HEADER
+   ================================================================ */
+.dash-pekerjaan-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  padding: 9px 12px;
+  border: none;
+  background: #f2f2f2;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.12s;
+}
+.dash-pekerjaan-header:hover,
+.dash-pekerjaan-header:focus-visible {
+  background: #e8e8e8;
+  outline: none;
+}
+.dash-pekerjaan-header.selected {
+  background: #e4e4e4;
+}
+
+/* Nama pekerjaan di header: bold gelap */
+.dash-pekerjaan-header-name {
+  flex: 1;
+  min-width: 0;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Chevron: panah SVG rapi & bersih tanpa background kotak */
+.dash-pekerjaan-chevron {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--muted, #71717a);
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), color 0.15s ease;
+}
+
+.dash-pekerjaan-header:hover .dash-pekerjaan-chevron,
+.dash-pekerjaan-header:focus-visible .dash-pekerjaan-chevron {
+  color: var(--ink, #18181b);
+}
+
+.dash-pekerjaan-header[aria-expanded='true'] .dash-pekerjaan-chevron {
+  transform: rotate(90deg);
+  color: var(--ink, #18181b);
+}
+
+/* ================================================================
+   DAFTAR ANAK
+   ================================================================ */
+.dash-pekerjaan-children {
+  list-style: none;
+  margin: 0;
+  padding: 2px 0;
+  background: #fff;
+  border-top: 1px solid var(--line);
+}
+
+/* ================================================================
+   ITEM ANAK
+   ================================================================ */
+.dash-pekerjaan-child {
+  border-top: none !important;
+}
+.dash-pekerjaan-child + .dash-pekerjaan-child {
+  border-top: 1px solid #f0f0f0 !important;
+}
+
+.dash-pekerjaan-child button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  /* Indent lebih dalam dari header untuk beda tingkatan */
+  padding: 7px 10px 7px 22px;
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 400;
+  text-align: left;
+  background: transparent;
+  border: none;
+  border-left: 2px solid transparent;
+  cursor: pointer;
+  color: var(--ink);
+  transition: background 0.1s, border-color 0.1s;
+}
+
+/* Bullet titik abu — penanda visual anak */
+.dash-pekerjaan-child button::before {
+  content: '';
+  flex-shrink: 0;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: #ccc;
+  transition: background 0.1s;
+}
+
+.dash-pekerjaan-child button:hover,
+.dash-pekerjaan-child button:focus-visible {
+  background: #f5f5f5;
+  border-left-color: #bbb;
+  outline: none;
+}
+.dash-pekerjaan-child button:hover::before,
+.dash-pekerjaan-child button:focus-visible::before {
+  background: #666;
+}
+
+/* Anak yang terpilih: bolder + border kiri abu gelap */
+.dash-pekerjaan-child button[aria-selected='true'] {
+  background: #f0f0f0;
+  color: var(--ink);
+  font-weight: 600;
+  border-left-color: #555;
+}
+.dash-pekerjaan-child button[aria-selected='true']::before {
+  background: #333;
+}
+
+/* ================================================================
+   MODE PENCARIAN — label grup (tidak bisa diklik)
+   ================================================================ */
+.dash-pekerjaan-header-label {
+  display: flex;
+  align-items: center;
+  padding: 7px 10px 5px;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--muted);
+  background: #f2f2f2;
+  margin: 4px 6px 0;
+  border-radius: 6px 6px 0 0;
+  border: 1px solid var(--line);
+  border-bottom: none;
+}
+.dash-pekerjaan-header-label:first-child {
+  margin-top: 2px;
+}
+
+/* Item anak dalam mode pencarian */
+.dash-pekerjaan-list .dash-pekerjaan-child button {
+  padding-left: 26px;
+}

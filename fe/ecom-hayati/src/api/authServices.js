@@ -13,4 +13,5 @@ export * from './access';
 export * from './rateLimit';
 export * from './blockedUsers';
 export * from './activityLogs';
+export * from './otpLogs';
 export { errorMessage, retryAfterSeconds } from './shared';
