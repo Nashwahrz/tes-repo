@@ -1,13 +1,37 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import Icon from '../../../shared/components/Icon';
 import { MENU_ICONS } from '../utils/navConfig';
 import { MENU_PATHS } from '../utils/menuPaths';
+import { getProfile } from '../../../api/authServices';
+import ProfileAvatar from './ProfileAvatar';
+import ProfileModal from './ProfileModal';
 
 const LOGO_SRC = '/logo.png';
 
 const menuId = (m) => `menu-${MENU_PATHS[m].slice(1).replace(/\//g, '-')}`;
 
 function Sidebar({ nav, menu, badges, changed, name, role, dealer, onSelect, onLogout }) {
+  const [showProfile, setShowProfile] = useState(false);
+  // Role & dealer dari /profile: daftar /users tidak bisa dibaca user biasa, jadi props role/dealer bisa kosong
+  const [profile, setProfile] = useState(null);
+  useEffect(() => {
+    let active = true;
+    getProfile().then((p) => { if (active) setProfile(p); }).catch(() => {});
+    return () => { active = false; };
+  }, []);
+  const [userMenu, setUserMenu] = useState(false); // dropdown Profil Saya / Keluar di kartu akun
+  const footRef = useRef(null);
+
+  // Dropdown akun menutup saat klik di luar kartu atau menekan Esc
+  useEffect(() => {
+    if (!userMenu) return undefined;
+    const onDown = (e) => { if (!footRef.current?.contains(e.target)) setUserMenu(false); };
+    const onKey = (e) => { if (e.key === 'Escape') setUserMenu(false); };
+    document.addEventListener('mousedown', onDown);
+    document.addEventListener('keydown', onKey);
+    return () => { document.removeEventListener('mousedown', onDown); document.removeEventListener('keydown', onKey); };
+  }, [userMenu]);
   // Sidebar desktop bisa disembunyikan; pilihan diingat di localStorage
   const [hidden, setHidden] = useState(() => {
     try { return localStorage.getItem('dash-side-hidden') === '1'; } catch { return false; }
@@ -106,16 +130,34 @@ function Sidebar({ nav, menu, badges, changed, name, role, dealer, onSelect, onL
           })}
         </ul>
 
-        <div className="dash-side-foot">
-          <div className="dash-avatar">{name.charAt(0).toUpperCase()}</div>
+        <div className="dash-side-foot" ref={footRef}>
+          <ProfileAvatar name={name} />
           <div className="dash-side-user">
             <strong>{name}</strong>
-            <small>{role ? `${role}${dealer ? ` · ${dealer}` : ''}` : 'Pengguna'}</small>
+            <small>{role || profile?.role?.name || 'Pengguna'}</small>
+            {(dealer || profile?.dealer?.name) && <small>{dealer || profile.dealer.name}</small>}
           </div>
-          <button id="btn-logout" className="dash-logout" onClick={() => { setOpen(false); onLogout(); }} title="Keluar dari akun">
-            <Icon name="logout" size={15} />
-            Keluar
+          <button id="btn-user-menu" type="button" className="dash-user-toggle" aria-haspopup="menu" aria-expanded={userMenu} aria-label="Menu akun" title="Menu akun" onClick={() => setUserMenu((v) => !v)}>
+            <span style={{ display: 'inline-flex', transform: userMenu ? 'none' : 'rotate(180deg)', transition: 'transform 0.15s' }}><Icon name="chevron" size={16} /></span>
           </button>
+          {userMenu && (
+            <ul className="dash-user-menu" role="menu">
+              <li role="none">
+                <button id="btn-profile-view" type="button" role="menuitem" onClick={() => { setUserMenu(false); setOpen(false); setShowProfile(true); }}>
+                  <Icon name="id" size={15} />
+                  Profil Saya
+                </button>
+              </li>
+              <li role="none">
+                <button id="btn-logout" type="button" role="menuitem" className="danger" onClick={() => { setUserMenu(false); setOpen(false); onLogout(); }}>
+                  <Icon name="logout" size={15} />
+                  Keluar
+                </button>
+              </li>
+            </ul>
+          )}
+          {/* Portal ke .dash (pemilik variabel CSS): sidebar punya stacking context sendiri, modal di dalamnya tertimpa konten dashboard */}
+          {showProfile && createPortal(<ProfileModal onClose={() => setShowProfile(false)} />, document.querySelector('.dash') ?? document.body)}
         </div>
       </aside>
 

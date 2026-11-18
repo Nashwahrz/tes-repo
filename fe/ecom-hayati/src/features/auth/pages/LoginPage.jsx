@@ -13,7 +13,19 @@ function LoginPage() {
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+  // Dikeluarkan otomatis karena token BE (30 menit) habis: tampilkan alasannya sekali
+  const [error, setError] = useState(() => {
+    try {
+      const why = localStorage.getItem('sessionExpired');
+      if (why) {
+        localStorage.removeItem('sessionExpired');
+        return why === 'idle'
+          ? 'Anda keluar otomatis karena tidak ada aktivitas selama 15 menit. Silakan masuk kembali.'
+          : 'Sesi Anda telah berakhir (30 menit). Silakan masuk kembali.';
+      }
+    } catch { /* abaikan */ }
+    return '';
+  });
   const [warnMsg, setWarnMsg] = useState('');
   const [fieldErr, setFieldErr] = useState({}); // pesan per kolom, tampil di bawah kolomnya (bukan pop-up bawaan browser)
   const [loading, setLoading] = useState(false);
@@ -57,6 +69,7 @@ function LoginPage() {
 
       // Simpan token ke localStorage
       localStorage.setItem('token', data.token);
+      localStorage.setItem('loginAt', String(Date.now())); // mulai hitung lama akses
       localStorage.setItem('user', JSON.stringify(data.data));
 
       // Buang sisa cache data sesi sebelumnya sebelum masuk dashboard

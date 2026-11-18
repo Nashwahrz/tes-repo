@@ -2,6 +2,7 @@ import Icon from '../../../shared/components/Icon';
 import Loading from '../../../shared/components/Loading';
 import SalesChart from '../../sales/components/SalesChart';
 import ServerClock from '../../dashboard/components/ServerClock';
+import SessionTimer from '../../dashboard/components/SessionTimer';
 import { rupiah } from '../../sales/utils/salesAnalytics';
 import { totalSales } from '../../sales/utils/salesPrototype';
 import { MENU_ICONS } from '../../dashboard/utils/navConfig';
@@ -18,6 +19,7 @@ function HomeView({ name, today, scopeNote, can, sales, stats, pending, dealers,
       <div className="dash-welcome-text">
         <small>{today}</small>
         <small className="dash-server-time"><ServerClock /></small>
+        <small className="dash-server-time"><SessionTimer /></small>
         <h1>Halo, {name}</h1>
         <p>{canDealer || canUsers ? `Pantau ${[canDealer && 'jaringan dealer motor', canUsers && 'status akun pengguna'].filter(Boolean).join(' dan ')} dalam satu tampilan.` : 'Pilih menu di samping untuk mulai bekerja.'} {scopeNote}</p>
       </div>

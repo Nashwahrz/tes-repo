@@ -287,3 +287,29 @@
 @media (prefers-reduced-motion: reduce) {
   .dash-menu-dot { animation: none; }
 }
+
+/* Avatar berisi foto profil */
+.dash-avatar-photo { overflow: hidden; }
+.dash-avatar-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+/* Modal lihat profil */
+.profile-modal { max-width: 420px; }
+.profile-hero { display: flex; flex-direction: column; align-items: center; gap: 8px; margin-bottom: 14px; }
+.profile-photo { width: 84px; height: 84px; font-size: 32px; overflow: hidden; }
+.profile-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.profile-list { margin: 0; }
+.profile-list > div { display: flex; justify-content: space-between; gap: 16px; padding: 8px 0; border-top: 1px solid var(--line, rgba(0, 0, 0, 0.08)); font-size: 13px; }
+.profile-list dt { color: var(--muted); flex-shrink: 0; }
+.profile-list dd { margin: 0; font-weight: 600; text-align: right; word-break: break-word; }
+
+/* Kartu akun: tombol panah membuka dropdown Profil Saya / Keluar */
+.dash-side-foot { position: relative; flex-wrap: nowrap; }
+.dash-side-user small { display: block; }
+.dash-user-toggle { display: grid; place-items: center; flex-shrink: 0; width: 30px; height: 30px; color: var(--accent); background: #fff; border: 1px solid var(--tint-line); border-radius: 8px; cursor: pointer; }
+.dash-user-toggle:hover { background: var(--grad); color: #fff; border-color: transparent; }
+.dash-user-toggle:focus-visible { outline: none; box-shadow: var(--ring); }
+.dash-user-menu { position: absolute; left: 0; right: 0; bottom: calc(100% + 6px); z-index: 20; margin: 0; padding: 6px; list-style: none; background: #fff; border: 1px solid var(--line); border-radius: 12px; box-shadow: 0 10px 24px rgba(0, 0, 0, 0.14); }
+.dash-user-menu button { display: flex; align-items: center; gap: 8px; width: 100%; padding: 9px 10px; font: inherit; font-size: 13px; font-weight: 600; color: inherit; text-align: left; background: none; border: 0; border-radius: 8px; cursor: pointer; }
+.dash-user-menu button:hover { background: #faf6f3; }
+.dash-user-menu button.danger { color: var(--accent); }
+.dash-user-menu button:focus-visible { outline: none; box-shadow: var(--ring); }

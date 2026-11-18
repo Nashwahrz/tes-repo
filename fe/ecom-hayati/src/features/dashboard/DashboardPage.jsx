@@ -12,9 +12,11 @@ import HomeView from '../home/components/HomeView';
 import ConfirmModal from '../../shared/components/ConfirmModal';
 import { NAV } from './utils/navConfig';
 import { clearCache } from './utils/dashboardCache';
+import { queryClient } from '../../api/queryClient';
 import { deriveAccess } from './utils/dashboardAccess';
 import { useDashboardData } from './hooks/useDashboardData';
 import { useChangeWatcher, accSig, konsumenSig } from './hooks/useChangeWatcher';
+import { useIdleLogout } from './hooks/useIdleLogout';
 import { SALES_PROTOTYPE, salesFor } from '../sales/utils/salesPrototype';
 // Urutan impor = urutan cascade: dasar dashboard dulu, lalu komponen bersama, lalu tiap fitur
 import './styles/dashboard.css';
@@ -31,6 +33,8 @@ import '../dealer/styles/dealer.css';
 import '../home/styles/home.css';
 import '../sales/styles/sales.css';
 import '../sales/styles/sales-chart.css';
+
+const IDLE_LOGOUT_MS = 15 * 60 * 1000; // 15 menit tanpa aktivitas (token BE sendiri 30 menit)
 
 // Panel hanya dimuat saat menunya dibuka
 const AccUserPanel = lazy(() => import('../accounts/components/AccUserPanel'));
@@ -154,9 +158,27 @@ function DashboardPage() {
     await logoutUser().catch(() => {});
     localStorage.removeItem('token');
     localStorage.removeItem('user');
+    localStorage.removeItem('loginAt');
+    localStorage.removeItem('lastActivity');
     clearCache();
     navigate('/', { replace: true });
+    queryClient.clear(); // setelah pindah halaman agar panel tidak sempat refetch
   };
+
+  // Logout/token habis di tab lain: token hilang dari localStorage -> tab ini ikut keluar
+  useEffect(() => {
+    const onStorage = (e) => {
+      if (e.key === 'token' && !e.newValue) navigate('/', { replace: true });
+    };
+    window.addEventListener('storage', onStorage);
+    return () => window.removeEventListener('storage', onStorage);
+  }, [navigate]);
+
+  // Tidak ada aktivitas selama IDLE_LOGOUT_MS -> keluar otomatis, login menampilkan alasannya
+  useIdleLogout(async () => {
+    try { localStorage.setItem('sessionExpired', 'idle'); } catch { /* abaikan */ }
+    await handleLogout();
+  }, IDLE_LOGOUT_MS);
 
   const name = me?.name || selfInfo?.name || user?.email?.split('@')[0] || 'Pengguna';
   const today = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });

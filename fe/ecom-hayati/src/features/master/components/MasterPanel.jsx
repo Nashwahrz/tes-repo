@@ -10,6 +10,7 @@ import { MASTER_CODE_LENGTH } from '../../../api/masterExcel';
 import '../styles/pekerjaan.css';
 import Toast from '../../../shared/components/Toast';
 import Modal from '../../../shared/components/Modal';
+import SpaceWarning from '../../../shared/components/SpaceWarning';
 import Loading, { Spin } from '../../../shared/components/Loading';
 import Pager from '../../../shared/components/Pager';
 import IconButton from '../../../shared/components/IconButton';
@@ -58,6 +59,7 @@ function PekerjaanForm({ form: pf, setForm: spf, touched, isNew, pekerjaanHeader
             autoFocus
           />
           {touched && kodeError && <p className="dash-field-error">{kodeError}</p>}
+          <SpaceWarning value={pf.kode} />
           <p className="dash-map-hint">Kode unik 1–3 digit angka, tidak dapat diubah setelah disimpan.</p>
         </div>
       )}
@@ -65,6 +67,7 @@ function PekerjaanForm({ form: pf, setForm: spf, touched, isNew, pekerjaanHeader
         <label htmlFor="pekerjaan-name">Nama *</label>
         <input id="pekerjaan-name" className={`dash-input${touched && nameError ? ' invalid' : ''}`} value={pf.name} onChange={(e) => spf((f) => ({ ...f, name: e.target.value }))} autoFocus={!isNew} />
         {touched && nameError && <p className="dash-field-error">{nameError}</p>}
+        <SpaceWarning value={pf.name} />
       </div>
       <div className="dash-form-group">
         <label htmlFor="pekerjaan-sequence">Urutan tampilan *</label>
@@ -645,6 +648,7 @@ function MasterPanel({ tabKey, can }) {
                   autoFocus={isNew}
                 />
                 {touched && kodeError && <p className="dash-field-error">{kodeError}</p>}
+                <SpaceWarning value={form.kode} />
                 {isNew ? <p className="dash-map-hint">Kode wajib {codeLen} digit angka, harus unik, dan tidak dapat diubah setelah disimpan.</p> : <p className="dash-map-hint">Kode tidak dapat diubah.</p>}
               </div>
               <div className="dash-form-group">
@@ -657,6 +661,7 @@ function MasterPanel({ tabKey, can }) {
                   autoFocus={!isNew}
                 />
                 {touched && nameError && <p className="dash-field-error">{nameError}</p>}
+                <SpaceWarning value={form.name} />
               </div>
               {tab.parent && (
                 <div className="dash-form-group">

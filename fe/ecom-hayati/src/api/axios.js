@@ -28,10 +28,16 @@ api.interceptors.response.use(
   },
   (error) => {
     recordServerDate(error.response?.headers);
-    if (error.response?.status === 401 && localStorage.getItem('token')) {
+    // /logout dikecualikan: 401 di sana berarti token sudah mati, user tetap sedang keluar sendiri
+    // (jangan timpa alasan logout atau memaksa redirect di tengah proses logout).
+    const isLogout = error.config?.url?.endsWith('/logout');
+    if (error.response?.status === 401 && !isLogout && localStorage.getItem('token')) {
       localStorage.removeItem('token');
       localStorage.removeItem('user');
+      localStorage.removeItem('loginAt');
       sessionStorage.clear();
+      // Token BE berlaku 30 menit: beri tahu halaman login agar menampilkan alasan user dikeluarkan
+      try { localStorage.setItem('sessionExpired', '1'); } catch { /* abaikan */ }
       window.location.replace('/');
     }
     return Promise.reject(error);

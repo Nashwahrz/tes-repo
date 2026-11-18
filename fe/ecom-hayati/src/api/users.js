@@ -25,3 +25,24 @@ export const getAtasanOptions = async (fk_role, fk_dealer) =>
 // Log login pengguna (BE: GET /log-users, permission log-users.lihat); dipaginasi 10 data per halaman, semua halaman digabung.
 // Baris: { id, fk_user, user?: { id, name }, ip_address, browser, platform, device, city, region, country, latitude, longitude, logged_in_at }
 export const getLoginLogs = () => fetchAllPages('/log-users');
+
+// Profil user login (BE: GET /profile). Foto: photo (path) dan photo_url
+export const getProfile = async () => normUser((await api.get('/profile')).data.data);
+
+// Foto profil sebagai object URL (GET /profile/photo butuh token, jadi diambil sebagai blob). null bila belum ada foto.
+export const getProfilePhoto = async () => {
+  try {
+    const res = await api.get('/profile/photo', { responseType: 'blob' });
+    return URL.createObjectURL(res.data);
+  } catch (err) {
+    if (err.response?.status === 404) return null;
+    throw err;
+  }
+};
+
+// Unggah foto profil (BE: POST /profile/photo, field `photo`, jpeg/png/jpg/webp, maks. 512KB)
+export const uploadProfilePhoto = async (file) => {
+  const fd = new FormData();
+  fd.append('photo', file);
+  return (await api.post('/profile/photo', fd, { headers: { 'Content-Type': 'multipart/form-data' } })).data.data;
+};
