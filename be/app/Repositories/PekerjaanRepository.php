@@ -114,10 +114,10 @@ class PekerjaanRepository
             ->with(['children' => function ($q) {
                 $q->where('type_header', TypeHeaderPekerjaan::Detail)
                   ->where('status', true)
-                  ->orderBy('sequence')
+                 // ->orderBy('sequence')
                   ->orderBy('pekerjaan_code');
             }])
-            ->orderBy('sequence')
+            // ->orderBy('sequence')
             ->orderBy('pekerjaan_code')
             ->get();
 
@@ -128,14 +128,14 @@ class PekerjaanRepository
                 'pekerjaan_code' => $header->pekerjaan_code,
                 'pekerjaan_name' => $header->pekerjaan_name,
                 'sector_job'     => $header->sector_job,
-                'sequence'       => $header->sequence,
+               // 'sequence'       => $header->sequence,
                 'type_header'    => $header->type_header?->value,
                 'is_selectable'  => (bool) $header->status && !$hasActiveChildren,
                 'children'       => $header->children->map(fn ($child) => [
                     'pekerjaan_code' => $child->pekerjaan_code,
                     'pekerjaan_name' => $child->pekerjaan_name,
                     'sector_job'     => $child->sector_job,
-                    'sequence'       => $child->sequence,
+                   // 'sequence'       => $child->sequence,
                     'type_header'    => $child->type_header?->value,
                     'is_selectable'  => true,
                 ])->values()->all(),
@@ -152,14 +152,14 @@ class PekerjaanRepository
         $header = array_shift($rows);
         $normalizedHeader = array_map(fn ($h) => strtolower(trim((string) $h)), $header);
 
-        $expectedHeader = ['pekerjaan_code', 'pekerjaan_name','sequence','type_header','sector_job','id_parent','status'];
+        $expectedHeader = ['pekerjaan_code', 'pekerjaan_name','type_header','sector_job','id_parent','status'];
         $actualHeader   = array_values(array_filter($normalizedHeader));
 
         if (array_slice($actualHeader, 0, 7) !== $expectedHeader) {
             return [
                 'success'  => 0,
                 'failed'   => 0,
-                'errors'   => ['Header Excel tidak sesuai format. Harus : pekerjaan_code, pekerjaan_name,sequence,type_header,sector_job,id_parent,status'],
+                'errors'   => ['Header Excel tidak sesuai format. Harus : pekerjaan_code, pekerjaan_name,type_header,sector_job,id_parent,status'],
                 'imported' => [],
             ];
         }
@@ -181,7 +181,7 @@ class PekerjaanRepository
 
                 $pekerjaanCode = isset($columnMap['pekerjaan_code']) ? trim((string) ($row[$columnMap['pekerjaan_code']] ?? '')) : '';
                 $pekerjaanName = isset($columnMap['pekerjaan_name']) ? trim((string) ($row[$columnMap['pekerjaan_name']] ?? '')) : '';
-                $sequence = isset($columnMap['sequence']) ? trim((string) ($row[$columnMap['sequence']] ?? '')) : '';
+         //       $sequence = isset($columnMap['sequence']) ? trim((string) ($row[$columnMap['sequence']] ?? '')) : '';
                 $typeHeader = isset($columnMap['type_header']) ? trim((string) ($row[$columnMap['type_header']] ?? '')) : '';
                 $sectorJob = isset($columnMap['sector_job']) ? trim((string) ($row[$columnMap['sector_job']] ?? '')) : '';
                 $idParent = isset($columnMap['id_parent']) ? trim((string) ($row[$columnMap['id_parent']] ?? '')) : '';
@@ -194,7 +194,7 @@ class PekerjaanRepository
                 $rowData = [
                     'pekerjaan_code' => $pekerjaanCode,
                     'pekerjaan_name' => $pekerjaanName,
-                    'sequence'       => is_numeric($sequence) ? (int) $sequence : $sequence,
+                 //   'sequence'       => is_numeric($sequence) ? (int) $sequence : $sequence,
                     'type_header'    => $typeHeader,
                     'sector_job'     => $sectorJob,
                     'id_parent'      => $idParent === '' ? null : $idParent,
@@ -238,8 +238,8 @@ class PekerjaanRepository
         $sheet       = $spreadsheet->getActiveSheet();
         $sheet->setTitle('Data Pekerjaan');
 
-        $headers = ['No', 'pekerjaan_code', 'pekerjaan_name','sequence','type_header','sector_job','id_parent','status'];
-        $columns = ['A', 'B', 'C','D','E','F','G','H'];
+        $headers = ['No', 'pekerjaan_code', 'pekerjaan_name','type_header','sector_job','id_parent','status'];
+        $columns = ['A', 'B', 'C','D','E','F','G'];
 
         foreach ($headers as $index => $headerTitle) {
             $col = $columns[$index];
@@ -252,11 +252,11 @@ class PekerjaanRepository
             $sheet->setCellValue("A{$rowNumber}", $i + 1);
             $sheet->setCellValueExplicit("B{$rowNumber}", (string) $pekerjaan->pekerjaan_code, \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING);
             $sheet->setCellValue("C{$rowNumber}", $pekerjaan->pekerjaan_name);
-            $sheet->setCellValue("D{$rowNumber}", $pekerjaan->sequence);
-            $sheet->setCellValue("E{$rowNumber}", $pekerjaan->type_header->value);
-            $sheet->setCellValue("F{$rowNumber}", $pekerjaan->sector_job);
-            $sheet->setCellValue("G{$rowNumber}", $pekerjaan->id_parent);
-            $sheet->setCellValue("H{$rowNumber}", StatusMasterData::labelFromBoolean($pekerjaan->status));
+          //  $sheet->setCellValue("D{$rowNumber}", $pekerjaan->sequence);
+            $sheet->setCellValue("D{$rowNumber}", $pekerjaan->type_header->value);
+            $sheet->setCellValue("E{$rowNumber}", $pekerjaan->sector_job);
+            $sheet->setCellValue("F{$rowNumber}", $pekerjaan->id_parent);
+            $sheet->setCellValue("G{$rowNumber}", StatusMasterData::labelFromBoolean($pekerjaan->status));
             $rowNumber++;
         }
 

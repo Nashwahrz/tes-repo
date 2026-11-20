@@ -9,7 +9,6 @@ enum StorageDisk: string
 {
     case Local  = 'local';
     case Public = 'public';
-    case S3     = 's3';
 
     public function disk(): Filesystem
     {

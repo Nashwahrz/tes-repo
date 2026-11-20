@@ -16,7 +16,7 @@ return new class extends Migration
            // $table->string('id_md');
             $table->string('pekerjaan_code')->unique();
             $table->string('pekerjaan_name');
-            $table->integer('sequence');
+            // $table->integer('sequence');
             $table->string('type_header');
             $table->string('sector_job');
             $table->integer('id_parent');

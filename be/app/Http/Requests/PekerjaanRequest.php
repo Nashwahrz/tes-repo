@@ -61,10 +61,10 @@ class PekerjaanRequest extends FormRequest
                     'max:255',
                     Rule::unique(Pekerjaan::class, 'pekerjaan_name')->ignore($pekerjaanId),
                 ],
-                'sequence' => [
-                    'required',
-                    'integer',
-                ],
+                // 'sequence' => [
+                //     'required',
+                //     'integer',
+                // ],
                 'type_header' => [
                     'required',
                     Rule::enum(TypeHeaderPekerjaan::class),
@@ -94,10 +94,10 @@ class PekerjaanRequest extends FormRequest
                 'max:255',
                 Rule::unique(Pekerjaan::class, 'pekerjaan_name'),
             ],
-            'sequence' => [
-                'required',
-                'integer',
-            ],
+            // 'sequence' => [
+            //     'required',
+            //     'integer',
+            // ],
             'type_header' => [
                 'required',
                 Rule::enum(TypeHeaderPekerjaan::class),
@@ -127,8 +127,8 @@ class PekerjaanRequest extends FormRequest
             'pekerjaan_name.max'      => 'Nama pekerjaan tidak boleh lebih dari :max karakter.',
             'pekerjaan_name.unique'   => 'Nama pekerjaan sudah terdaftar.',
 
-            'sequence.required' => 'Urutan tampilan wajib diisi.',
-            'sequence.integer'  => 'Urutan tampilan harus berupa angka bulat.',
+            // 'sequence.required' => 'Urutan tampilan wajib diisi.',
+            // 'sequence.integer'  => 'Urutan tampilan harus berupa angka bulat.',
 
             'type_header.required' => 'Tipe header wajib diisi.',
             'type_header.enum'     => 'Tipe header tidak valid.',
