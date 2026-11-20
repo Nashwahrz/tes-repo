@@ -6,7 +6,7 @@
     },
     "servers": [
         {
-            "url": "https://entries-duo-most-affairs.trycloudflare.com/api"
+            "url": "http://localhost:8000/api"
         }
     ],
     "security": [
@@ -10741,11 +10741,9 @@
                                                     "sector_job": {
                                                         "type": "string"
                                                     },
-                                                    "sequence": {
-                                                        "type": "integer"
-                                                    },
                                                     "type_header": {
-                                                        "type": "string"
+                                                        "type": "string",
+                                                        "description": "'sequence'       => $header->sequence,"
                                                     },
                                                     "is_selectable": {
                                                         "type": "string"
@@ -10764,11 +10762,9 @@
                                                                 "sector_job": {
                                                                     "type": "string"
                                                                 },
-                                                                "sequence": {
-                                                                    "type": "integer"
-                                                                },
                                                                 "type_header": {
-                                                                    "type": "string"
+                                                                    "type": "string",
+                                                                    "description": "'sequence'       => $child->sequence,"
                                                                 },
                                                                 "is_selectable": {
                                                                     "type": "boolean"
@@ -10778,7 +10774,6 @@
                                                                 "pekerjaan_code",
                                                                 "pekerjaan_name",
                                                                 "sector_job",
-                                                                "sequence",
                                                                 "type_header",
                                                                 "is_selectable"
                                                             ]
@@ -10789,7 +10784,6 @@
                                                     "pekerjaan_code",
                                                     "pekerjaan_name",
                                                     "sector_job",
-                                                    "sequence",
                                                     "type_header",
                                                     "is_selectable",
                                                     "children"
@@ -14583,7 +14577,7 @@
                                         },
                                         "message": {
                                             "type": "string",
-                                            "const": "Data profil user login berhasil diambil."
+                                            "const": "Data profil user berhasil diambil."
                                         },
                                         "data": {
                                             "type": "object",
@@ -14604,7 +14598,10 @@
                                                     ]
                                                 },
                                                 "photo_url": {
-                                                    "type": "null"
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
                                                 },
                                                 "status": {
                                                     "$ref": "#/components/schemas/StatusUser"
@@ -14721,7 +14718,6 @@
         "/profile/photo": {
             "post": {
                 "operationId": "user.updatePhoto",
-                "summary": "Memperbarui foto profil user yang sedang login",
                 "tags": [
                     "User"
                 ],
@@ -14792,7 +14788,10 @@
                                                     ]
                                                 },
                                                 "photo_url": {
-                                                    "type": "null"
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
                                                 },
                                                 "status": {
                                                     "$ref": "#/components/schemas/StatusUser"
@@ -14910,7 +14909,6 @@
             },
             "get": {
                 "operationId": "user.profilePhoto",
-                "summary": "Menampilkan file foto profil user yang sedang login",
                 "tags": [
                     "User"
                 ],
@@ -15701,7 +15699,10 @@
                                                     ]
                                                 },
                                                 "photo_url": {
-                                                    "type": "null"
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
                                                 },
                                                 "status": {
                                                     "$ref": "#/components/schemas/StatusUser"
@@ -17218,9 +17219,6 @@
                     "pekerjaan_name": {
                         "type": "string"
                     },
-                    "sequence": {
-                        "type": "integer"
-                    },
                     "type_header": {
                         "$ref": "#/components/schemas/TypeHeaderPekerjaan"
                     },
@@ -17252,7 +17250,6 @@
                     "id",
                     "pekerjaan_code",
                     "pekerjaan_name",
-                    "sequence",
                     "type_header",
                     "sector_job",
                     "id_parent",
@@ -17274,10 +17271,8 @@
                         "type": "string",
                         "maxLength": 255
                     },
-                    "sequence": {
-                        "type": "integer"
-                    },
                     "type_header": {
+                        "description": "'sequence' => [\n'required',\n'integer',\n],",
                         "$ref": "#/components/schemas/TypeHeaderPekerjaan"
                     },
                     "sector_job": {
@@ -17299,7 +17294,6 @@
                 "required": [
                     "pekerjaan_code",
                     "pekerjaan_name",
-                    "sequence",
                     "type_header",
                     "sector_job"
                 ],
@@ -17809,7 +17803,7 @@
                         "type": "string",
                         "format": "binary",
                         "contentMediaType": "application/octet-stream",
-                        "description": "Maximum file size: 2048 kilobytes."
+                        "description": "Maximum file size: 512 kilobytes."
                     }
                 },
                 "required": [
@@ -17924,7 +17918,10 @@
                         "type": "integer"
                     },
                     "photo_url": {
-                        "type": "null"
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     }
                 },
                 "required": [

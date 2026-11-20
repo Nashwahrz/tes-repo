@@ -27,7 +27,7 @@ class Pekerjaan extends Model
     protected $fillable = [
         'pekerjaan_code',
         'pekerjaan_name',
-        'sequence',
+      //  'sequence',
         'type_header',
         'sector_job',
         'id_parent',
@@ -39,7 +39,7 @@ class Pekerjaan extends Model
         return [
             'type_header' => TypeHeaderPekerjaan::class,
             'status'      => 'boolean',
-            'sequence'    => 'integer',
+          //  'sequence'    => 'integer',
         ];
     }
     public function children(): HasMany

@@ -70,7 +70,7 @@ class User extends Authenticatable
                 return null;
             }
 
-            return StoragePath::UserPhoto->filesystem()->url($this->photo);
+            return asset('storage/' . $this->photo);
         });
     }
 
