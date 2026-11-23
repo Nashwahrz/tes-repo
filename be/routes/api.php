@@ -20,6 +20,7 @@ use App\Http\Controllers\RoleMenuController;
 use App\Http\Controllers\RolePermissionController;
 use App\Http\Controllers\UrlIpLoginController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\MotorController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -225,6 +226,15 @@ use Illuminate\Support\Facades\Route;
             Route::get('/{id}', [EmailWhiteListController::class, 'show'])->middleware('permission:email-whitelists.lihat');
             Route::put('/{id}', [EmailWhiteListController::class, 'update'])->middleware('permission:email-whitelists.ubah');
             Route::delete('/{id}', [EmailWhiteListController::class, 'destroy'])->middleware('permission:email-whitelists.hapus');
+        });
+        Route::prefix('motors')->middleware('menu.access:motors')->group(function () {
+            Route::get('/', [MotorController::class, 'index'])->middleware('permission:motors.lihat');
+            Route::post('/', [MotorController::class, 'store'])->middleware('permission:motors.tambah');
+            Route::post('/import', [MotorController::class, 'import'])->middleware('permission:motors.tambah');
+            Route::get('/export', [MotorController::class, 'export'])->middleware('permission:motors.lihat');
+            Route::get('/{id}', [MotorController::class, 'show'])->middleware('permission:motors.lihat');
+            Route::put('/{id}', [MotorController::class, 'update'])->middleware('permission:motors.ubah');
+            Route::delete('/{id}', [MotorController::class, 'destroy'])->middleware('permission:motors.hapus');
         });
 
     });
