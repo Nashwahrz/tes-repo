@@ -1,6 +1,6 @@
 // Menu dashboard <-> path URL. Path unik per menu agar URL bisa di-bookmark dan tombol back/forward berfungsi.
 export const MENU_HOME = 'Dashboard';
-export const MENU_PRODUK = 'Daftar Motor';
+export const MENU_MOTOR = 'Daftar Motor';
 export const MENU_PENJUALAN = 'Penjualan';
 export const MENU_DEALER = 'Daftar Dealer';
 export const MENU_KONSUMEN = 'Daftar Konsumen';
@@ -31,7 +31,7 @@ export const MASTER_MENUS = {
 
 export const MENU_PATHS = {
   [MENU_HOME]: '/dashboard',
-  [MENU_PRODUK]: '/produk',
+  [MENU_MOTOR]: '/motor',
   [MENU_PENJUALAN]: '/penjualan',
   [MENU_DEALER]: '/dealer',
   [MENU_KONSUMEN]: '/konsumen',

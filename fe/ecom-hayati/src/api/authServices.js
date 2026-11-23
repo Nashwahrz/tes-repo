@@ -5,6 +5,7 @@ export * from './users';
 export * from './dealers';
 export * from './master';
 export * from './konsumens';
+export * from './motors';
 export * from './whitelist';
 export * from './emailSmtp';
 export * from './urlIpLogin';
