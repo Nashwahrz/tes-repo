@@ -234,7 +234,7 @@ use Illuminate\Support\Facades\Route;
             Route::get('/export', [MotorController::class, 'export'])->middleware('permission:motors.lihat');
             Route::get('/{id}', [MotorController::class, 'show'])->middleware('permission:motors.lihat');
             // Route::put('/{id}', [MotorController::class, 'update'])->middleware('permission:motors.ubah');
-            Route::delete('/{id}', [MotorController::class, 'destroy'])->middleware('permission:motors.hapus');
+            // Route::delete('/{id}', [MotorController::class, 'destroy'])->middleware('permission:motors.hapus');
         });
 
     });

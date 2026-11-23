@@ -97,6 +97,7 @@ class MotorController extends Controller
     }
     */
 
+    /*
     public function destroy(int $id)
     {
         try {
@@ -116,6 +117,7 @@ class MotorController extends Controller
             return $this->motorResponse->serverError();
         }
     }
+    */
 
     /**
      * Import data motor dari file .UTC atau Excel (.xlsx/.xls).
