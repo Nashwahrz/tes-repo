@@ -3,7 +3,7 @@ import { lazy, Suspense, useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { logoutUser, getKonsumenStatusTotals } from '../../api/authServices';
 import {
-  MENU_HOME, MENU_PRODUK, MENU_PENJUALAN, MENU_DEALER, MENU_KONSUMEN, MENU_ACC, MENU_ROLE, MENU_WHITELIST, MENU_SMTP, MENU_URLIP, MENU_OCR, MENU_RATELIMIT, MENU_LOG, MENU_KECAMATAN, MENU_KELURAHAN, MASTER_MENUS, MENU_PATHS, menuFromPath,
+  MENU_HOME, MENU_MOTOR, MENU_PENJUALAN, MENU_DEALER, MENU_KONSUMEN, MENU_ACC, MENU_ROLE, MENU_WHITELIST, MENU_SMTP, MENU_URLIP, MENU_OCR, MENU_RATELIMIT, MENU_LOG, MENU_KECAMATAN, MENU_KELURAHAN, MASTER_MENUS, MENU_PATHS, menuFromPath,
 } from './utils/menuPaths';
 import Loading from '../../shared/components/Loading';
 import Icon from '../../shared/components/Icon';
@@ -18,7 +18,6 @@ import { useDashboardData } from './hooks/useDashboardData';
 import { useChangeWatcher, accSig, konsumenSig } from './hooks/useChangeWatcher';
 import { useIdleLogout } from './hooks/useIdleLogout';
 import { SALES_PROTOTYPE, salesFor } from '../sales/utils/salesPrototype';
-// Urutan impor = urutan cascade: dasar dashboard dulu, lalu komponen bersama, lalu tiap fitur
 import './styles/dashboard.css';
 import './styles/sidebar.css';
 import '../../shared/styles/toast.css';
@@ -49,6 +48,7 @@ const EmailWhitelistPanel = lazy(() => import('../settings/components/EmailWhite
 const RoleAccessPanel = lazy(() => import('../accounts/components/RoleAccessPanel'));
 const RateLimitPanel = lazy(() => import('../settings/components/RateLimitPanel'));
 const MasterPanel = lazy(() => import('../master/components/MasterPanel'));
+const MotorPanel = lazy(() => import('../motor/components/MotorPanel'));
 
 const ROLE_ADMIN = 'Super Admin';
 
@@ -224,12 +224,16 @@ function DashboardPage() {
             </div>
           )}
 
-          {menu === MENU_PRODUK && (
+          {menu === MENU_MOTOR && (
             <div className="dash-card">
-              <div className="dash-card-head">
-                <h3><Icon name="box" size={17} /> Produk</h3>
-              </div>
-              <p className="dash-empty">Fitur produk belum tersedia.</p>
+              <Suspense fallback={<Loading rows={4} />}>
+                <MotorPanel
+                  can={{
+                    import: can('motors.tambah'),
+                    export: can('motors.lihat'),
+                  }}
+                />
+              </Suspense>
             </div>
           )}
 
