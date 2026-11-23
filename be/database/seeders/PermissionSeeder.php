@@ -48,6 +48,7 @@ class PermissionSeeder extends Seeder
             'agamas.lihat-aktif',
             'agamas.lihat-non-aktif',
             'pekerjaans.lihat',
+            'pekerjaans.lihat-all',
             'pekerjaans.tambah',
             'pekerjaans.ubah',
             'pekerjaans.hapus',

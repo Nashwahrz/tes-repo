@@ -68,7 +68,7 @@ use Illuminate\Support\Facades\Route;
         });
         Route::prefix('pekerjaans')->middleware('menu.access:pekerjaans')->group(function () {
             Route::get('/', [PekerjaanController::class, 'index'])->middleware('permission:pekerjaans.lihat');
-            Route::get('/all', [PekerjaanController::class, 'indexAll'])->middleware('permission:pekerjaans.lihat');
+            Route::get('/all', [PekerjaanController::class, 'indexAll'])->middleware('permission:pekerjaans.lihat-all');
             // Route::get('/aktif', [PekerjaanController::class, 'indexAktif'])->middleware('permission:pekerjaans.lihat-aktif');
             // Route::get('/non-aktif', [PekerjaanController::class, 'indexNonAktif'])->middleware('permission:pekerjaans.lihat-non-aktif');
             Route::post('/', [PekerjaanController::class, 'store'])->middleware('permission:pekerjaans.tambah');
