@@ -89,6 +89,10 @@ class PermissionSeeder extends Seeder
             'url-ip-logins.ubah',
             'app-key-ocrs.lihat',
             'app-key-ocrs.ubah',
+            'motors.lihat',
+            'motors.tambah',
+            'motors.ubah',
+            'motors.hapus',
             
         ];
         $rows = array_map(fn ($nama) => [

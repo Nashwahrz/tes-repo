@@ -86,7 +86,11 @@ class RolePermissionSeeder extends Seeder
                 'url-ip-logins.lihat',
                 'url-ip-logins.ubah',
                 'app-key-ocrs.lihat',
-                'app-key-ocrs.ubah'
+                'app-key-ocrs.ubah',
+                'motors.lihat',
+                'motors.tambah',
+                'motors.ubah',
+                'motors.hapus',
             ],
             'Kacab' => [
                 'dealers.lihat',

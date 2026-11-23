@@ -35,6 +35,7 @@ class RoleMenuSeeder extends Seeder
                 'email-smtps',
                 'url-ip-logins',
                 'app-key-ocrs',
+                'motors',
             ],
             'Kacab' => [
                 'dashboard',
