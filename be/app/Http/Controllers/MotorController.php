@@ -36,20 +36,24 @@ class MotorController extends Controller
         }
     }
 
+    /*
     public function store(MotorRequest $request)
     {
         try {
-            $motor = $this->motorRepository->create($request->validated());
-            return $this->motorResponse->success($motor, 'Data motor berhasil ditambahkan.');
-        } catch (UniqueConstraintViolationException $e) {
-            return $this->motorResponse->itemTaken();
+            $motor   = $this->motorRepository->createOrUpdate($request->validated());
+            $message = $motor->wasRecentlyCreated
+                ? 'Data motor berhasil ditambahkan.'
+                : "Data motor dengan kode item {$motor->item_code} berhasil diperbarui.";
+
+            return $this->motorResponse->success($motor, $message);
         } catch (Throwable $e) {
-            Log::error('Gagal menambahkan motor: ' . $e->getMessage(), [
+            Log::error('Gagal menambahkan atau memperbarui motor: ' . $e->getMessage(), [
                 'trace' => $e->getTraceAsString(),
             ]);
             return $this->motorResponse->serverError();
         }
     }
+    */
 
     public function show(int $id)
     {
@@ -69,6 +73,7 @@ class MotorController extends Controller
         }
     }
 
+    /*
     public function update(MotorRequest $request, int $id)
     {
         try {
@@ -90,6 +95,7 @@ class MotorController extends Controller
             return $this->motorResponse->serverError();
         }
     }
+    */
 
     public function destroy(int $id)
     {

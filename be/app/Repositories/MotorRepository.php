@@ -22,7 +22,32 @@ class MotorRepository
 
     public function create(array $data): Motor
     {
-        return Motor::create($data);
+        return $this->createOrUpdate($data);
+    }
+
+    public function createOrUpdate(array $data): Motor
+    {
+        $typeCode  = strtoupper(trim((string) ($data['type_code'] ?? '')));
+        $colorCode = strtoupper(trim((string) ($data['color_code'] ?? '')));
+        $itemCode  = !empty($data['item_code'])
+            ? strtoupper(trim((string) $data['item_code']))
+            : "{$typeCode}-{$colorCode}";
+
+        return Motor::updateOrCreate(
+            [
+                'item_code' => $itemCode,
+            ],
+            [
+                'type_code'         => $typeCode,
+                'type_description'  => $data['type_description'] ?? '',
+                'color_code'        => $colorCode,
+                'color_description' => $data['color_description'] ?? '',
+                'market_name'       => $data['market_name'] ?? '',
+                'class'             => $data['class'] ?? '',
+                'start_date'        => $data['start_date'] ?? null,
+                'end_date'          => $data['end_date'] ?? null,
+            ]
+        );
     }
 
     public function update(Motor $motor, array $data): Motor

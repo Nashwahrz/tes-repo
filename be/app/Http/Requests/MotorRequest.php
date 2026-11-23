@@ -28,17 +28,19 @@ class MotorRequest extends FormRequest
     {
         $id = $this->route('id');
 
-        $uniqueColorCode = Rule::unique(Motor::class, 'color_code')
-            ->where(fn ($query) => $query->where('type_code', $this->type_code));
+        $colorRules = ['required', 'string', 'max:10'];
 
+        // Saat update (PUT/PATCH), pastikan kombinasi tipe & warna tidak bertabrakan dengan ID motor lain
         if ($this->isMethod('put') || $this->isMethod('patch')) {
-            $uniqueColorCode->ignore($id);
+            $colorRules[] = Rule::unique(Motor::class, 'color_code')
+                ->where(fn ($query) => $query->where('type_code', $this->type_code))
+                ->ignore($id);
         }
 
         return [
             'type_code'         => ['required', 'string', 'max:15'],
             'type_description'  => ['required', 'string', 'max:100'],
-            'color_code'        => ['required', 'string', 'max:10', $uniqueColorCode],
+            'color_code'        => $colorRules,
             'color_description' => ['required', 'string', 'max:100'],
             'market_name'       => ['required', 'string', 'max:150'],
             'class'             => ['required', 'string', 'max:50'],

@@ -229,11 +229,11 @@ use Illuminate\Support\Facades\Route;
         });
         Route::prefix('motors')->middleware('menu.access:motors')->group(function () {
             Route::get('/', [MotorController::class, 'index'])->middleware('permission:motors.lihat');
-            Route::post('/', [MotorController::class, 'store'])->middleware('permission:motors.tambah');
+            // Route::post('/', [MotorController::class, 'store'])->middleware('permission:motors.tambah');
             Route::post('/import', [MotorController::class, 'import'])->middleware('permission:motors.tambah');
             Route::get('/export', [MotorController::class, 'export'])->middleware('permission:motors.lihat');
             Route::get('/{id}', [MotorController::class, 'show'])->middleware('permission:motors.lihat');
-            Route::put('/{id}', [MotorController::class, 'update'])->middleware('permission:motors.ubah');
+            // Route::put('/{id}', [MotorController::class, 'update'])->middleware('permission:motors.ubah');
             Route::delete('/{id}', [MotorController::class, 'destroy'])->middleware('permission:motors.hapus');
         });
 
