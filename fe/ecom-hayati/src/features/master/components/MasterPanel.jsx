@@ -4,10 +4,12 @@
 // Tiap data punya kode (unik, tidak bisa diubah) dan status. Data tidak dihapus, hanya dinonaktifkan (PUT {path}/{id}/status).
 // Induk wilayah dihubungkan lewat kode (kode_provinsi, kode_kabupaten_kota, kode_kecamatan).
 // Pekerjaan: hierarki 2 tingkat (Header = H, Detail = D); form tambah/ubah khusus pekerjaan memakai PekerjaanForm.
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { getMasterPage, getMasterOptions, getChildrenByParent, getMasterByKode, searchMaster, createMaster, updateMaster, setMasterStatus, exportMaster, getPekerjaanHeaders, errorMessage } from '../../../api/authServices';
 import { MASTER_CODE_LENGTH } from '../../../api/masterExcel';
 import '../styles/pekerjaan.css';
+import '../styles/master.css';
 import Toast from '../../../shared/components/Toast';
 import Modal from '../../../shared/components/Modal';
 import SpaceWarning from '../../../shared/components/SpaceWarning';
@@ -109,56 +111,267 @@ function PekerjaanForm({ form: pf, setForm: spf, touched, isNew, pekerjaanHeader
 }
 
 // Tab dipilih lewat submenu Data Master di sidebar; hak akses menunya sudah diperiksa di DashboardPage
-// Pilih induk lewat nama (bukan ID): ketik untuk mencari, klik hasilnya
+// Pilih induk lewat dropdown yang bisa dicari: langsung menampilkan daftar saat diklik, bisa difilter sambil mengetik
 function ParentPicker({ parent, value, name, onPick }) {
-  const [query, setQuery] = useState('');
-  const [results, setResults] = useState([]);
-  const [doneFor, setDoneFor] = useState(''); // query yang hasilnya sudah selesai dimuat
+  const [text, setText] = useState(name || '');
+  const [options, setOptions] = useState([]);
+  const [serverResults, setServerResults] = useState([]);
+  const [open, setOpen] = useState(false);
+  const [isTyping, setIsTyping] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [dropPos, setDropPos] = useState(null);
+  const inputRef = useRef(null);
 
+  // Hitung ulang posisi dropdown agar tidak terpotong oleh modal (position: fixed)
+  const updateDropPos = () => {
+    if (!inputRef.current) return;
+    const rect = inputRef.current.getBoundingClientRect();
+    const spaceBelow = window.innerHeight - rect.bottom;
+    const dropH = 184; // maxHeight dropdown + margin
+    const above = spaceBelow < dropH && rect.top > dropH;
+    setDropPos({
+      top: above ? rect.top - dropH - 4 : rect.bottom + 4,
+      left: rect.left,
+      width: rect.width,
+    });
+  };
+
+  // Reposisi saat scroll / resize agar dropdown mengikuti input
   useEffect(() => {
-    const q = query.trim();
-    if (q.length < 2) return undefined;
+    if (!open) return undefined;
+    updateDropPos();
+    window.addEventListener('scroll', updateDropPos, true);
+    window.addEventListener('resize', updateDropPos);
+    return () => {
+      window.removeEventListener('scroll', updateDropPos, true);
+      window.removeEventListener('resize', updateDropPos);
+    };
+  }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Sinkronkan text saat name dari induk berubah / baru selesai dimuat
+  useEffect(() => {
+    if (!isTyping) {
+      setText(name || '');
+    }
+  }, [name, isTyping]);
+
+  // Jika ada value tapi belum ada name (misal parentNames belum sempat terisi saat modal dibuka)
+  useEffect(() => {
+    if (value && !name && !text) {
+      getMasterByKode(parent.path, value)
+        .then((d) => {
+          if (d?.name) {
+            setText(d.name);
+            onPick(String(value), d.name);
+          }
+        })
+        .catch(() => {});
+    }
+  }, [value, name, text, parent.path]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Jika value dikosongkan dari luar
+  useEffect(() => {
+    if (!value && !isTyping) {
+      setText('');
+    }
+  }, [value, isTyping]);
+
+  // Muat opsi dropdown saat parent berubah (provinsi dan kabupaten/kota dimuat penuh agar langsung tampil semua)
+  useEffect(() => {
+    let active = true;
+    setLoading(true);
+    if (parent.path === '/provinsis' || parent.path === '/kabupaten-kotas') {
+      getMasterOptions(parent.path)
+        .then((list) => {
+          if (active) {
+            setOptions(list || []);
+            setLoading(false);
+          }
+        })
+        .catch(() => {
+          if (active) setLoading(false);
+        });
+    } else {
+      // Untuk kecamatan: ambil 50 data awal agar dropdown langsung memiliki daftar
+      searchMaster(parent.path, '', undefined, 50)
+        .then((list) => {
+          if (active) {
+            setOptions(list || []);
+            setLoading(false);
+          }
+        })
+        .catch(() => {
+          if (active) setLoading(false);
+        });
+    }
+    return () => { active = false; };
+  }, [parent.path]);
+
+  // Untuk path di luar provinsis/kabupaten-kotas (misal kecamatans), cari ke BE jika user mengetik
+  useEffect(() => {
+    if (!isTyping || parent.path === '/provinsis' || parent.path === '/kabupaten-kotas') return undefined;
+    const q = text.trim();
+    if (q.length < 2) {
+      setServerResults([]);
+      return undefined;
+    }
     const ctrl = new AbortController();
     const t = setTimeout(() => {
       searchMaster(parent.path, q, ctrl.signal)
-        .then((rows) => setResults(rows))
+        .then((rows) => setServerResults(rows))
         .catch(() => {})
-        .finally(() => !ctrl.signal.aborted && setDoneFor(q));
-    }, 400);
+        .finally(() => {});
+    }, 300);
     return () => { clearTimeout(t); ctrl.abort(); };
-  }, [query, parent.path]);
+  }, [text, isTyping, parent.path]);
 
-  // "Mencari..." juga selama menunggu user berhenti mengetik, supaya tidak sempat tampil "Tidak ditemukan" / hasil lama
-  const busy = query.trim().length >= 2 && doneFor !== query.trim();
+  const q = isTyping ? text.trim().toLowerCase() : '';
+  const displayList = (parent.path === '/provinsis' || parent.path === '/kabupaten-kotas')
+    ? (q ? options.filter((o) => o.name.toLowerCase().includes(q) || String(o.kode).includes(q)) : options)
+    : (q && serverResults.length > 0 ? serverResults : q ? options.filter((o) => o.name.toLowerCase().includes(q)) : options);
+
+  const handleChange = (e) => {
+    const val = e.target.value;
+    setText(val);
+    setIsTyping(true);
+    setOpen(true);
+    if (!val.trim()) {
+      onPick('', '');
+    }
+  };
+
+  const handleSelect = (r) => {
+    onPick(String(r.kode), r.name);
+    setText(r.name);
+    setIsTyping(false);
+    setOpen(false);
+  };
+
+  const handleClear = () => {
+    onPick('', '');
+    setText('');
+    setIsTyping(false);
+    setOpen(true);
+  };
+
+  const handleFocus = (e) => {
+    updateDropPos();
+    setOpen(true);
+    if (value) {
+      e.target.select();
+    }
+  };
+
+  const handleBlur = () => {
+    setTimeout(() => {
+      setOpen(false);
+      setIsTyping(false);
+      if (value) {
+        setText(name || '');
+      }
+    }, 200);
+  };
 
   return (
-    <div>
-      {value && (
-        <p className="dash-card-desc" style={{ marginBottom: 6 }}>
-          Dipilih: <strong>{name || '...'}</strong>{' '}
-          <button id="btn-master-parent-clear" type="button" className="dash-link" onClick={() => onPick('', '')}>Hapus</button>
-        </p>
-      )}
-      <input
-        id="master-parent"
-        className="dash-input"
-        placeholder={`Ketik nama ${parent.label.toLowerCase()}...`}
-        value={query}
-        onChange={(e) => setQuery(e.target.value)}
-        autoComplete="off"
-      />
-      {query.trim().length >= 2 && (
-        <ul style={{ listStyle: 'none', margin: '6px 0 0', padding: 0, maxHeight: 160, overflowY: 'auto', border: '1px solid var(--line)', borderRadius: 8 }}>
-          {busy && <li style={{ padding: '8px 10px', color: 'var(--muted)' }}>Mencari...</li>}
-          {!busy && results.length === 0 && <li style={{ padding: '8px 10px', color: 'var(--muted)' }}>Tidak ditemukan.</li>}
-          {results.map((r) => (
-            <li key={r.id}>
-              <button id={`btn-master-parent-option-${r.kode}`} type="button" className="dash-menu-item" style={{ width: '100%', textAlign: 'left', background: 'none', border: 0, padding: '8px 10px', cursor: 'pointer' }} onClick={() => { onPick(String(r.kode), r.name); setQuery(''); }}>
-                {r.name} <span style={{ color: 'var(--muted)' }}>· {r.kode}</span>
-              </button>
-            </li>
-          ))}
-        </ul>
+    <div style={{ position: 'relative' }}>
+      <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+        <input
+          ref={inputRef}
+          id="master-parent"
+          className="dash-input"
+          style={{ paddingRight: value ? 36 : undefined }}
+          placeholder={`Pilih / ketik nama ${parent.label.toLowerCase()}...`}
+          value={text}
+          onChange={handleChange}
+          onFocus={handleFocus}
+          onBlur={handleBlur}
+          autoComplete="off"
+        />
+        {value && (
+          <button
+            id="btn-master-parent-clear"
+            type="button"
+            title={`Hapus ${parent.label.toLowerCase()}`}
+            onClick={handleClear}
+            style={{
+              position: 'absolute',
+              right: 10,
+              top: '50%',
+              transform: 'translateY(-50%)',
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              padding: 4,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: 'var(--muted)',
+            }}
+          >
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+          </button>
+        )}
+      </div>
+
+      {open && dropPos && createPortal(
+        <ul
+          style={{
+            position: 'fixed',
+            top: dropPos.top,
+            left: dropPos.left,
+            width: dropPos.width,
+            zIndex: 9999,
+            listStyle: 'none',
+            margin: '4px 0 0',
+            padding: 0,
+            maxHeight: 180,
+            overflowY: 'auto',
+            border: '1px solid var(--line)',
+            borderRadius: 8,
+            background: '#fff',
+            boxShadow: '0 4px 16px rgba(0,0,0,0.12)',
+          }}
+        >
+          {loading && options.length === 0 && (
+            <li style={{ padding: '8px 12px', color: 'var(--muted)', fontSize: 13 }}>Memuat daftar...</li>
+          )}
+          {!loading && displayList.length === 0 && (
+            <li style={{ padding: '8px 12px', color: 'var(--muted)', fontSize: 13 }}>Tidak ditemukan.</li>
+          )}
+          {displayList.map((r) => {
+            const isSelected = String(r.kode) === String(value);
+            return (
+              <li key={r.kode || r.id}>
+                <button
+                  id={`btn-master-parent-option-${r.kode}`}
+                  type="button"
+                  className="dash-menu-item"
+                  style={{
+                    width: '100%',
+                    textAlign: 'left',
+                    background: isSelected ? '#f5f5f5' : 'none',
+                    fontWeight: isSelected ? 600 : 400,
+                    border: 0,
+                    padding: '8px 12px',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                  }}
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={() => handleSelect(r)}
+                >
+                  <span>{r.name}</span>
+                  <span style={{ color: 'var(--muted)', fontSize: 12 }}>{r.kode}</span>
+                </button>
+              </li>
+            );
+          })}
+        </ul>,
+        document.body
       )}
     </div>
   );
@@ -207,6 +420,26 @@ function MasterPanel({ tabKey, can }) {
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState('');
   const [error, setError] = useState('');
+  const [viewDetailModal, setViewDetailModal] = useState(null); // null | { header, kids }
+  const [selectedHeaderFilter, setSelectedHeaderFilter] = useState(''); // filter header untuk tabel detail pekerjaan
+  const detailSectionRef = useRef(null);
+
+  // Reset filter detail saat pindah tab atau halaman
+  useEffect(() => {
+    setSelectedHeaderFilter('');
+    setViewDetailModal(null);
+  }, [tab.key, page]);
+
+  // Sinkronkan data di dalam viewDetailModal jika rows berubah (setelah edit / toggle status)
+  useEffect(() => {
+    if (viewDetailModal?.header) {
+      const typeOf = (x) => x.type_header?.value ?? x.type_header;
+      const headerCode = String(viewDetailModal.header.kode);
+      const updatedKids = rows.filter((r) => typeOf(r) === 'D' && String(r.id_parent) === headerCode);
+      const updatedHeader = rows.find((r) => typeOf(r) !== 'D' && String(r.kode) === headerCode) ?? viewDetailModal.header;
+      setViewDetailModal({ header: updatedHeader, kids: updatedKids });
+    }
+  }, [rows]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Kelurahan baru difilter setelah kecamatan dipilih (provinsi & kabupaten hanya mempersempit pilihan kecamatan)
   const byKecamatan = tab.key === 'kelurahan';
@@ -363,6 +596,31 @@ function MasterPanel({ tabKey, can }) {
     }
     setEditing(row);
   };
+
+  const openTambahDetail = (header) => {
+    setSuccess('');
+    setError('');
+    setTouched(false);
+    setPkForm({
+      kode: '',
+      name: '',
+      sequence: '',
+      type_header: 'D',
+      sector_job: header?.sector_job || '',
+      id_parent: String(header?.kode || ''),
+    });
+    if (!pekerjaanHeaders.length) {
+      setLoadingHeaders(true);
+      getPekerjaanHeaders().then(setPekerjaanHeaders).catch(() => {}).finally(() => setLoadingHeaders(false));
+    }
+    setEditing('new');
+  };
+
+  const handleViewDetail = (header, kids) => {
+    setViewDetailModal({ header, kids });
+    setSelectedHeaderFilter(String(header.kode));
+  };
+
   const closeForm = () => setEditing(null);
 
   const handleSubmit = async (e) => {
@@ -448,157 +706,355 @@ function MasterPanel({ tabKey, can }) {
   };
 
   return (
-    <div>
-      <div className="dash-card-head">
-        <h3>
-          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 8l-9-5-9 5 9 5 9-5z" /><path d="M3 8v8l9 5 9-5V8" /></svg>
-          Data Master · {tab.label}
-        </h3>
+    <div className="mp-root">
+      {/* ── Header Panel ── */}
+      <div className="mp-header">
+        <div className="mp-header-left">
+          <div className="mp-header-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 8l-9-5-9 5 9 5 9-5z"/><path d="M3 8v8l9 5 9-5V8"/></svg>
+          </div>
+          <div>
+            <p className="mp-header-eyebrow">Data Master</p>
+            <h2 className="mp-header-title">{tab.label}</h2>
+          </div>
+        </div>
         {!unavailable && (
-          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          <div className="mp-header-actions">
             {perm('lihat') && (
-              <button id={`btn-master-${tab.key}-export`} className="dash-btn outline" onClick={handleExport} disabled={exporting}>{exporting ? 'Mengekspor...' : 'Ekspor Excel'}</button>
+              <button id={`btn-master-${tab.key}-export`} className="dash-btn outline" onClick={handleExport} disabled={exporting}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                {exporting ? 'Mengekspor...' : 'Ekspor'}
+              </button>
             )}
             {perm('tambah') && (
               <>
-                <button id={`btn-master-${tab.key}-import`} className="dash-btn outline" onClick={() => { setSuccess(''); setError(''); setImporting(true); }}>Impor Excel</button>
-                <button id={`btn-master-${tab.key}-add`} className="dash-btn solid" onClick={() => openForm('new')}>+ Tambah {tab.label}</button>
+                <button id={`btn-master-${tab.key}-import`} className="dash-btn outline" onClick={() => { setSuccess(''); setError(''); setImporting(true); }}>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10" transform="rotate(180 12 12)"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                  Impor
+                </button>
+                <button id={`btn-master-${tab.key}-add`} className="dash-btn solid" onClick={() => openForm('new')}>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                  Tambah {tab.label}
+                </button>
               </>
             )}
           </div>
         )}
       </div>
-      <p className="dash-card-desc">Kelola daftar {tab.label.toLowerCase()} yang dipakai sebagai pilihan pada form.</p>
 
-      <div className="dash-toolbar">
-        <input id={`master-${tab.key}-search`}
-          className="dash-input"
-          style={{ maxWidth: 320 }}
-          type="search"
-          placeholder={`Cari ${tab.label.toLowerCase()}...`}
-          aria-label={`Cari ${tab.label}`}
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-        />
+      {/* ── Toolbar Pencarian & Filter ── */}
+      <div className="mp-toolbar">
+        <div className="mp-search-wrap">
+          <svg className="mp-search-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input
+            id={`master-${tab.key}-search`}
+            className="mp-search-input"
+            type="search"
+            placeholder={`Cari ${tab.label.toLowerCase()}...`}
+            aria-label={`Cari ${tab.label}`}
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+          />
+        </div>
         {tab.filters && (
-          <select id={`master-${tab.key}-filter-provinsi`} className="dash-input" style={{ maxWidth: 220 }} aria-label="Filter provinsi" value={fProv} onChange={(e) => changeFilter(setFProv, e.target.value, true)}>
-            <option value="">Semua provinsi</option>
-            {provOptions.map((p) => <option key={p.kode} value={p.kode}>{p.name}</option>)}
-          </select>
+          <div className="mp-filters">
+            <select id={`master-${tab.key}-filter-provinsi`} className="mp-select" aria-label="Filter provinsi" value={fProv} onChange={(e) => changeFilter(setFProv, e.target.value, true)}>
+              <option value="">Semua provinsi</option>
+              {provOptions.map((p) => <option key={p.kode} value={p.kode}>{p.name}</option>)}
+            </select>
+            {tab.filters?.includes('kabupaten') && (
+              <select id={`master-${tab.key}-filter-kabupaten`} className="mp-select" aria-label="Filter kabupaten/kota" value={fKab} onChange={(e) => changeFilter(setFKab, e.target.value)}>
+                <option value="">Semua kabupaten / kota</option>
+                {kabOptions.map((k) => <option key={k.kode} value={k.kode}>{k.name}</option>)}
+              </select>
+            )}
+            {tab.filters?.includes('kecamatan') && (
+              <select id={`master-${tab.key}-filter-kecamatan`} className="mp-select" aria-label="Filter kecamatan" value={fKec} disabled={!fKab} onChange={(e) => changeFilter(setFKec, e.target.value)}>
+                <option value="">{fKab ? 'Pilih kecamatan' : 'Pilih kab/kota dulu'}</option>
+                {kecOptions.map((k) => <option key={k.kode} value={k.kode}>{k.name}</option>)}
+              </select>
+            )}
+            {manual && (
+              <button id={`btn-master-${tab.key}-filter-apply`} type="button" className="dash-btn solid" onClick={runFilter} disabled={!filterReady || loading} title={filterReady ? '' : 'Isi provinsi, kab/kota, dan kecamatan dulu'}>
+                {loading && appliedKec !== fKec ? <Spin /> : 'Cari'}
+              </button>
+            )}
+            {(filtered || fProv || fKab) && (
+              <button id={`btn-master-${tab.key}-clear-filter`} type="button" className="mp-clear-filter" onClick={() => { setPage(1); setFProv(''); setFKab(''); setFKec(''); if (!manual || appliedKec) setLoading(true); setAppliedKec(''); }}>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                Hapus filter
+              </button>
+            )}
+          </div>
         )}
-        {tab.filters?.includes('kabupaten') && (
-          <select id={`master-${tab.key}-filter-kabupaten`} className="dash-input" style={{ maxWidth: 240 }} aria-label="Filter kabupaten/kota" value={fKab} onChange={(e) => changeFilter(setFKab, e.target.value)}>
-            <option value="">Semua kabupaten / kota</option>
-            {kabOptions.map((k) => <option key={k.kode} value={k.kode}>{k.name}</option>)}
-          </select>
-        )}
-        {tab.filters?.includes('kecamatan') && (
-          <select id={`master-${tab.key}-filter-kecamatan`} className="dash-input" style={{ maxWidth: 240 }} aria-label="Filter kecamatan" value={fKec} disabled={!fKab} onChange={(e) => changeFilter(setFKec, e.target.value)}>
-            <option value="">{fKab ? 'Pilih kecamatan' : 'Pilih kabupaten/kota dulu'}</option>
-            {kecOptions.map((k) => <option key={k.kode} value={k.kode}>{k.name}</option>)}
-          </select>
-        )}
-        {manual && <button id={`btn-master-${tab.key}-filter-apply`} type="button" className="dash-btn solid" onClick={runFilter} disabled={!filterReady || loading} title={filterReady ? '' : 'Isi provinsi, kabupaten/kota, dan kecamatan dulu'}>{loading && appliedKec !== fKec ? <Spin /> : 'Cari'}</button>}
-        {(filtered || fProv || fKab) && <button id={`btn-master-${tab.key}-clear-filter`} type="button" className="dash-link" onClick={() => { setPage(1); setFProv(''); setFKab(''); setFKec(''); if (!manual || appliedKec) setLoading(true); setAppliedKec(''); }}>Hapus filter</button>}
       </div>
-      {manual && !filtered && <p className="dash-map-hint">Untuk menyaring per kecamatan, isi provinsi, kabupaten/kota, dan kecamatan, lalu klik Cari. Tanpa filter, seluruh kelurahan tampil per halaman.</p>}
-      {tab.key === 'kecamatan' && filtered && loading && <p className="dash-map-hint">Memuat seluruh data kecamatan untuk disaring. Hanya sekali; berikutnya langsung tampil.</p>}
+
+      {/* Petunjuk kelurahan */}
+      {manual && !filtered && (
+        <div className="mp-hint">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          Isi provinsi, kabupaten/kota, dan kecamatan, lalu klik <strong>Cari</strong> untuk menyaring per kecamatan. Tanpa filter, seluruh kelurahan tampil per halaman.
+        </div>
+      )}
+      {tab.key === 'kecamatan' && filtered && loading && (
+        <div className="mp-hint">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          Memuat seluruh data kecamatan untuk disaring. Hanya sekali; berikutnya langsung tampil.
+        </div>
+      )}
 
       <Toast kind="success" message={success} onClose={() => setSuccess('')} />
       <Toast kind="error" message={error} onClose={() => setError('')} />
 
+      {/* ── Konten Tabel ── */}
       {loading ? (
         <Loading rows={4} />
       ) : unavailable ? (
         <p className="dash-alert warning">Endpoint <code>{tab.path}</code> belum tersedia di backend, jadi data {tab.label.toLowerCase()} belum dapat dimuat. Tab ini akan berfungsi setelah backend menyediakannya.</p>
       ) : rows.length === 0 ? (
-        <p className="dash-empty">{filtered && !search ? `Tidak ada ${tab.label.toLowerCase()} pada filter ini.` : search ? `Tidak ada ${tab.label.toLowerCase()} yang cocok dengan "${search}".` : `Belum ada data ${tab.label.toLowerCase()}.`}</p>
+        <div className="mp-empty">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+          <p>{filtered && !search ? `Tidak ada ${tab.label.toLowerCase()} pada filter ini.` : search ? `Tidak ada ${tab.label.toLowerCase()} yang cocok dengan "${search}".` : `Belum ada data ${tab.label.toLowerCase()}.`}</p>
+        </div>
+      ) : isPekerjaan ? (
+        /* ── PEKERJAAN: 2 tabel terpisah (Header & Detail) ── */
+        (() => {
+          const typeOf = (x) => x.type_header?.value ?? x.type_header;
+          const headers = rows.filter((r) => typeOf(r) !== 'D');
+          const details = rows.filter((r) => typeOf(r) === 'D');
+          // Peta kode header → nama (untuk kolom "Induk" di tabel detail)
+          const headerNameMap = {};
+          rows.forEach((r) => { if (typeOf(r) !== 'D') headerNameMap[String(r.kode)] = r.name; });
+          const getHeaderName = (idParent) => headerNameMap[String(idParent)] ?? parentNames[String(idParent)] ?? '...';
+
+          // Saring detail jika user memilih filter header tertentu
+          const displayDetails = selectedHeaderFilter
+            ? details.filter((d) => String(d.id_parent) === String(selectedHeaderFilter))
+            : details;
+
+          return (
+            <div className="pk-two-tables">
+              {/* ── Tabel Header ── */}
+              <div className="pk-section">
+                <div className="pk-section-head">
+                  <div className="pk-section-label">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
+                    Header Pekerjaan
+                    <span className="pk-section-count">{headers.length}</span>
+                  </div>
+                </div>
+                {headers.length === 0 ? (
+                  <p className="pk-section-empty">Tidak ada data Header di halaman ini.</p>
+                ) : (
+                  <div className="dash-table-wrap mp-table-wrap">
+                    <table className="dash-table mp-table">
+                      <thead>
+                        <tr>
+                          <th className="mp-th-no">#</th>
+                          <th className="mp-th-kode">Kode</th>
+                          <th>Nama</th>
+                          <th className="pk-hide-md">Sektor</th>
+                          <th className="mp-th-sm pk-seq pk-hide-md">Urutan</th>
+                          <th className="mp-th-status">Status</th>
+                          {showAksi && <th className="mp-th-aksi">Aksi</th>}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {headers.map((r, idx) => {
+                          const kids = details.filter((d) => String(d.id_parent) === String(r.kode));
+                          const hasKids = kids.length > 0;
+                          const isFilteringThis = String(selectedHeaderFilter) === String(r.kode);
+                          return (
+                            <tr key={r.id} className={isFilteringThis ? 'pk-row-selected' : undefined}>
+                              <td className="mp-td-no">{idx + 1}</td>
+                              <td className="mp-td-kode">
+                                <span className="mp-kode-badge pk-kode-header">{r.kode}</span>
+                              </td>
+                              <td><span className="mp-cell-name" style={{ fontWeight: 600 }}>{r.name}</span></td>
+                              <td className="pk-hide-md">{r.sector_job ? <span className="pk-chip sector">{r.sector_job}</span> : <span className="mp-muted">—</span>}</td>
+                              <td className="pk-seq pk-hide-md">{r.sequence ?? <span className="mp-muted">—</span>}</td>
+                              <td className="mp-td-status">
+                                {hasKids ? (
+                                  <button
+                                    id={`btn-master-pekerjaan-view-detail-${r.id}`}
+                                    type="button"
+                                    className="pk-btn-detail"
+                                    onClick={() => handleViewDetail(r, kids)}
+                                    title={`Lihat ${kids.length} detail pekerjaan di ${r.name}`}
+                                  >
+                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                                    <span>Lihat Detail</span>
+                                    <span className="pk-btn-detail-count">{kids.length}</span>
+                                  </button>
+                                ) : (
+                                  showAksi ? (
+                                    <Switch id={`btn-master-pekerjaan-status-${r.id}`} checked={isActive(r)} label={isActive(r) ? 'Nonaktifkan' : 'Aktifkan'} onToggle={() => setToToggle(r)} />
+                                  ) : (
+                                    <span className={`dash-status ${isActive(r) ? 'aktif' : 'nonaktif'}`}>{isActive(r) ? 'Aktif' : 'Nonaktif'}</span>
+                                  )
+                                )}
+                              </td>
+                              {showAksi && (
+                                <td className="mp-th-aksi">
+                                  <div className="dash-actions">
+                                    {perm('ubah') && <IconButton id={`btn-master-pekerjaan-edit-${r.id}`} icon="edit" label="Ubah" onClick={() => openForm(r)} />}
+                                  </div>
+                                </td>
+                              )}
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+
+              {/* ── Tabel Detail ── */}
+              <div className="pk-section" ref={detailSectionRef}>
+                <div className="pk-section-head">
+                  <div className="pk-section-label">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+                    Detail Pekerjaan
+                    <span className="pk-section-count">
+                      {selectedHeaderFilter ? `${displayDetails.length} dari ${details.length}` : details.length}
+                    </span>
+                  </div>
+                  <div className="pk-section-filter">
+                    {selectedHeaderFilter && (
+                      <button
+                        type="button"
+                        className="mp-clear-filter pk-reset-btn"
+                        onClick={() => setSelectedHeaderFilter('')}
+                        title="Tampilkan semua detail"
+                      >
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                        Tampilkan Semua
+                      </button>
+                    )}
+                    <select
+                      className="mp-select pk-filter-select"
+                      value={selectedHeaderFilter}
+                      onChange={(e) => setSelectedHeaderFilter(e.target.value)}
+                      aria-label="Filter berdasarkan induk header"
+                    >
+                      <option value="">Semua Header ({details.length})</option>
+                      {headers.map((h) => {
+                        const count = details.filter((d) => String(d.id_parent) === String(h.kode)).length;
+                        return (
+                          <option key={h.kode} value={h.kode}>
+                            {h.name} ({count})
+                          </option>
+                        );
+                      })}
+                    </select>
+                  </div>
+                </div>
+                {displayDetails.length === 0 ? (
+                  <p className="pk-section-empty">
+                    {selectedHeaderFilter
+                      ? `Tidak ada data detail untuk header "${getHeaderName(selectedHeaderFilter)}".`
+                      : 'Tidak ada data Detail di halaman ini.'}
+                  </p>
+                ) : (
+                  <div className="dash-table-wrap mp-table-wrap">
+                    <table className="dash-table mp-table">
+                      <thead>
+                        <tr>
+                          <th className="mp-th-no">#</th>
+                          <th className="mp-th-kode">Kode</th>
+                          <th>Nama</th>
+                          <th>Induk (Header)</th>
+                          <th className="pk-hide-md">Sektor</th>
+                          <th className="mp-th-sm pk-seq pk-hide-md">Urutan</th>
+                          <th className="mp-th-status">Status</th>
+                          {showAksi && <th className="mp-th-aksi">Aksi</th>}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {displayDetails.map((r, idx) => (
+                          <tr key={r.id}>
+                            <td className="mp-td-no">{idx + 1}</td>
+                            <td className="mp-td-kode">
+                              <span className="mp-kode-badge">{r.kode}</span>
+                            </td>
+                            <td><span className="mp-cell-name">{r.name}</span></td>
+                            <td className="mp-td-parent">
+                              {r.id_parent ? (
+                                <button
+                                  type="button"
+                                  className="pk-parent-ref-btn"
+                                  title={`Saring detail hanya untuk ${getHeaderName(r.id_parent)}`}
+                                  onClick={() => setSelectedHeaderFilter(String(r.id_parent))}
+                                >
+                                  {getHeaderName(r.id_parent)}
+                                </button>
+                              ) : <span className="mp-muted">—</span>}
+                            </td>
+                            <td className="pk-hide-md">{r.sector_job ? <span className="pk-chip sector">{r.sector_job}</span> : <span className="mp-muted">—</span>}</td>
+                            <td className="pk-seq pk-hide-md">{r.sequence ?? <span className="mp-muted">—</span>}</td>
+                            <td className="mp-td-status">
+                              {showAksi
+                                ? <Switch id={`btn-master-pekerjaan-status-${r.id}`} checked={isActive(r)} label={isActive(r) ? 'Nonaktifkan' : 'Aktifkan'} onToggle={() => setToToggle(r)} />
+                                : <span className={`dash-status ${isActive(r) ? 'aktif' : 'nonaktif'}`}>{isActive(r) ? 'Aktif' : 'Nonaktif'}</span>}
+                            </td>
+                            {showAksi && (
+                              <td className="mp-th-aksi">
+                                <div className="dash-actions">
+                                  {perm('ubah') && <IconButton id={`btn-master-pekerjaan-detail-edit-${r.id}`} icon="edit" label="Ubah" onClick={() => openForm(r)} />}
+                                </div>
+                              </td>
+                            )}
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+            </div>
+          );
+        })()
       ) : (
-        <div className="dash-table-wrap">
-          <table className={`dash-table${isPekerjaan ? ' dash-pk-table' : ''}`}>
+        /* ── TABEL BIASA (non-pekerjaan) ── */
+        <div className="dash-table-wrap mp-table-wrap">
+          <table className="dash-table mp-table">
             <thead>
               <tr>
-                {!isPekerjaan && <th className="col-no">No</th>}
-                <th>Kode</th>
+                <th className="mp-th-no">#</th>
+                <th className="mp-th-kode">Kode</th>
                 <th>Nama</th>
-                {isPekerjaan && <th className="pk-hide-sm">Tipe</th>}
-                {isPekerjaan && <th className="pk-hide-md">Sektor</th>}
-                {isPekerjaan && <th className="pk-seq pk-hide-md">Urutan</th>}
                 {tab.parent && <th>{tab.parent.label}</th>}
-                <th>Status</th>
-                {showAksi && <th className="col-aksi">Aksi</th>}
+                <th className="mp-th-status">Status</th>
+                {showAksi && <th className="mp-th-aksi">Aksi</th>}
               </tr>
             </thead>
             <tbody>
-              {(() => {
-                // Pekerjaan: baris anak hanya tampil bila headernya dibuka (atau sedang mencari); nomor dihitung per header
-                const typeOf = (x) => x.type_header?.value ?? x.type_header;
-                const kids = {};
-                if (isPekerjaan) rows.forEach((x) => { if (typeOf(x) === 'D') (kids[String(x.id_parent)] ??= []).push(x); });
+              {rows.map((r, idx) => {
                 const pageStart = (meta.page - 1) * (meta.perPage ?? PAGE_SIZE);
-                const toggleHeader = (code) => setOpenHeaders((prev) => { const n = new Set(prev); if (n.has(code)) n.delete(code); else n.add(code); return n; });
-                return rows.map((r, idx) => {
-                  const pkType = isPekerjaan ? typeOf(r) : null;
-                  const isDetail = pkType === 'D';
-                  const code = String(r.kode);
-                  const childList = isPekerjaan && !isDetail ? (kids[code] ?? []) : [];
-                  const hasKids = childList.length > 0;
-                  const expanded = hasKids && (!!search || openHeaders.has(code));
-                  const isOrphan = isDetail && !rows.some((x) => String(x.kode) === String(r.id_parent) && typeOf(x) !== 'D');
-                  if (isDetail && !isOrphan && !(!!search || openHeaders.has(String(r.id_parent)))) return null;
-                  const next = rows[idx + 1];
-                  const isLastChild = isDetail && !isOrphan && !(next && typeOf(next) === 'D' && String(next.id_parent) === String(r.id_parent));
-                  const rowCls = isPekerjaan ? `${isDetail && !isOrphan ? 'pk-detail' : 'pk-header'}${isLastChild ? ' pk-last' : ''}${hasKids ? ' pk-toggle' : ''}${expanded ? ' pk-open' : ''}` : undefined;
-                  const onRowClick = hasKids ? (e) => { if (!e.target.closest('button, input, label, a, [role="switch"]')) toggleHeader(code); } : undefined;
-                  return (
-                <tr key={r.id} className={rowCls} onClick={onRowClick}>
-                  {!isPekerjaan && <td className="col-no">{pageStart + idx + 1}</td>}
-                  <td className={isPekerjaan ? 'pk-kode' : undefined}>{r.kode ?? '-'}</td>
-                  <td className={isPekerjaan ? 'pk-name-cell' : undefined}>
-                    {hasKids ? (
-                      <button
-                        id={`btn-master-pekerjaan-toggle-${r.id}`}
-                        type="button"
-                        className="pk-toggle-btn"
-                        aria-expanded={expanded}
-                        aria-label={`${expanded ? 'Tutup' : 'Buka'} ${childList.length} pekerjaan di ${r.name}`}
-                        onClick={() => toggleHeader(code)}
-                      >
-                        <span className="pk-chevron" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6" /></svg></span>
-                        <strong className="dash-cell-name">{r.name}</strong>
-                        <span className="pk-count">{childList.length} pekerjaan</span>
-                      </button>
-                    ) : (
-                      <strong className="dash-cell-name">{r.name}</strong>
-                    )}
-                    {isPekerjaan && (
-                      <span className="dash-cell-sub pk-sub">
-                        <span className="pk-sub-type">{pkType === 'H' ? 'Header' : isDetail ? 'Detail' : ''}</span>
-                        {r.sector_job && <span className="pk-sub-sector">{r.sector_job}</span>}
-                        {r.sequence != null && <span className="pk-sub-seq">Urutan {r.sequence}</span>}
-                      </span>
-                    )}
-                  </td>
-                  {isPekerjaan && <td className="pk-hide-sm"><span className={`pk-chip ${isDetail ? 'detail' : 'header'}`}>{pkType === 'H' ? 'Header' : isDetail ? 'Detail' : '-'}</span></td>}
-                  {isPekerjaan && <td className="pk-hide-md">{r.sector_job ? <span className="pk-chip sector">{r.sector_job}</span> : '-'}</td>}
-                  {isPekerjaan && <td className="pk-seq pk-hide-md">{r.sequence ?? '-'}</td>}
-                  {tab.parent && <td>{r[tab.parent.field] ? parentNames[r[tab.parent.field]] ?? '...' : '-'}</td>}
-                  <td>
-                    {showAksi && !hasKids
-                      ? <Switch id={`btn-master-${tab.key}-status-${r.id}`} checked={isActive(r)} label={isActive(r) ? 'Nonaktifkan' : 'Aktifkan'} onToggle={() => setToToggle(r)} />
-                      : <span className={`dash-status ${isActive(r) ? 'aktif' : 'nonaktif'}`}>{isActive(r) ? 'Aktif' : 'Nonaktif'}</span>}
-                  </td>
-                  {showAksi && (
-                    <td className="col-aksi">
-                      <div className="dash-actions">
-                        {perm('ubah') && !hasKids && <IconButton id={`btn-master-${tab.key}-edit-${r.id}`} icon="edit" label="Ubah" onClick={() => openForm(r)} />}
-                      </div>
+                return (
+                  <tr key={r.id}>
+                    <td className="mp-td-no">{pageStart + idx + 1}</td>
+                    <td className="mp-td-kode">
+                      <span className="mp-kode-badge">{r.kode ?? '-'}</span>
                     </td>
-                  )}
-                </tr>
-                  );
-                });
-              })()}
+                    <td><span className="mp-cell-name">{r.name}</span></td>
+                    {tab.parent && <td className="mp-td-parent">{r[tab.parent.field] ? parentNames[r[tab.parent.field]] ?? '...' : <span className="mp-muted">—</span>}</td>}
+                    <td className="mp-td-status">
+                      {showAksi
+                        ? <Switch id={`btn-master-${tab.key}-status-${r.id}`} checked={isActive(r)} label={isActive(r) ? 'Nonaktifkan' : 'Aktifkan'} onToggle={() => setToToggle(r)} />
+                        : <span className={`dash-status ${isActive(r) ? 'aktif' : 'nonaktif'}`}>{isActive(r) ? 'Aktif' : 'Nonaktif'}</span>}
+                    </td>
+                    {showAksi && (
+                      <td className="mp-th-aksi">
+                        <div className="dash-actions">
+                          {perm('ubah') && <IconButton id={`btn-master-${tab.key}-edit-${r.id}`} icon="edit" label="Ubah" onClick={() => openForm(r)} />}
+                        </div>
+                      </td>
+                    )}
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
@@ -675,6 +1131,101 @@ function MasterPanel({ tabKey, can }) {
           <div className="dash-modal-actions">
             <button id={`btn-master-${tab.key}-cancel`} type="button" className="dash-btn outline" onClick={closeForm} disabled={saving}>Batal</button>
             <button id={`btn-master-${tab.key}-save`} type="submit" className="dash-btn solid" disabled={saving}>{saving ? <><Spin />Menyimpan...</> : 'Simpan'}</button>
+          </div>
+        </Modal>
+      )}
+
+      {/* ── Modal Pop-up Lihat Detail Pekerjaan ── */}
+      {viewDetailModal && (
+        <Modal onClose={() => setViewDetailModal(null)}>
+          <div style={{ marginBottom: 14 }}>
+            <h3 style={{ margin: '0 0 4px', fontSize: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--accent)' }}><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              Detail Pekerjaan · {viewDetailModal.header.name}
+            </h3>
+            <p className="dash-card-desc" style={{ margin: 0 }}>
+              Induk Header: <strong>{viewDetailModal.header.name}</strong> <span className="mp-kode-badge pk-kode-header">{viewDetailModal.header.kode}</span> · {viewDetailModal.kids.length} pekerjaan detail
+            </p>
+          </div>
+
+          {viewDetailModal.kids.length === 0 ? (
+            <p className="pk-section-empty" style={{ margin: '14px 0' }}>Belum ada data detail untuk header ini.</p>
+          ) : (
+            <div className="dash-table-wrap mp-table-wrap" style={{ maxHeight: '52vh', overflowY: 'auto' }}>
+              <table className="dash-table mp-table">
+                <thead>
+                  <tr>
+                    <th className="mp-th-no">#</th>
+                    <th className="mp-th-kode">Kode</th>
+                    <th>Nama</th>
+                    <th className="pk-hide-md">Sektor</th>
+                    <th className="mp-th-sm pk-seq pk-hide-md">Urutan</th>
+                    <th className="mp-th-status">Status</th>
+                    {showAksi && <th className="mp-th-aksi">Aksi</th>}
+                  </tr>
+                </thead>
+                <tbody>
+                  {viewDetailModal.kids.map((d, idx) => (
+                    <tr key={d.id}>
+                      <td className="mp-td-no">{idx + 1}</td>
+                      <td className="mp-td-kode">
+                        <span className="mp-kode-badge">{d.kode}</span>
+                      </td>
+                      <td><span className="mp-cell-name">{d.name}</span></td>
+                      <td className="pk-hide-md">{d.sector_job ? <span className="pk-chip sector">{d.sector_job}</span> : <span className="mp-muted">—</span>}</td>
+                      <td className="pk-seq pk-hide-md">{d.sequence ?? <span className="mp-muted">—</span>}</td>
+                      <td className="mp-td-status">
+                        {showAksi ? (
+                          <Switch
+                            id={`btn-modal-detail-status-${d.id}`}
+                            checked={isActive(d)}
+                            label={isActive(d) ? 'Nonaktifkan' : 'Aktifkan'}
+                            onToggle={() => setToToggle(d)}
+                          />
+                        ) : (
+                          <span className={`dash-status ${isActive(d) ? 'aktif' : 'nonaktif'}`}>{isActive(d) ? 'Aktif' : 'Nonaktif'}</span>
+                        )}
+                      </td>
+                      {showAksi && (
+                        <td className="mp-th-aksi">
+                          <div className="dash-actions">
+                            {perm('ubah') && (
+                              <IconButton
+                                id={`btn-modal-detail-edit-${d.id}`}
+                                icon="edit"
+                                label="Ubah"
+                                onClick={() => openForm(d)}
+                              />
+                            )}
+                          </div>
+                        </td>
+                      )}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+
+          <div className="dash-modal-actions" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 14 }}>
+            <div>
+              {perm('tambah') && (
+                <button
+                  type="button"
+                  className="dash-btn outline"
+                  onClick={() => {
+                    const h = viewDetailModal.header;
+                    setViewDetailModal(null);
+                    openTambahDetail(h);
+                  }}
+                >
+                  + Tambah Detail di {viewDetailModal.header.name}
+                </button>
+              )}
+            </div>
+            <button type="button" className="dash-btn solid" onClick={() => setViewDetailModal(null)}>
+              Tutup
+            </button>
           </div>
         </Modal>
       )}

@@ -1,76 +1,231 @@
-/* features/master/styles/pekerjaan.css
-   Tabel master Pekerjaan: header sebagai baris grup yang bisa dibuka/ditutup, anak (Detail) menjorok di bawahnya.
-   Warna netral (abu & biru), tanpa merah/oranye. */
+/* features/master/styles/pekerjaan.css — 2 separate compact tables (Header & Detail) */
 
-.dash-table.dash-pk-table { border-collapse: separate; border-spacing: 0; }
-
-/* Baris Header */
-.dash-pk-table tr.pk-header > td { background: #f8fafc; border-top: 1px solid #e4e7ec; }
-.dash-pk-table tr.pk-header:first-child > td { border-top: 0; }
-.dash-pk-table tr.pk-header .dash-cell-name { color: var(--ink); }
-.dash-pk-table tr.pk-toggle { cursor: pointer; }
-.dash-pk-table tr.pk-toggle:hover > td { background: #f1f5f9; }
-.dash-pk-table tr.pk-toggle.pk-open > td { background: #eef2f7; }
-
-/* Tombol buka/tutup di sel nama header */
-.pk-toggle-btn {
-  display: inline-flex; align-items: center; gap: 8px; max-width: 100%; padding: 2px 4px 2px 0; margin: 0;
-  font: inherit; color: inherit; text-align: left; background: none; border: 0; border-radius: 6px; cursor: pointer;
+/* ══════════════════════════════════════════
+   TWO TABLES LAYOUT
+══════════════════════════════════════════ */
+.pk-two-tables {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 12px;
 }
-.pk-toggle-btn:focus-visible { outline: 2px solid #84adff; outline-offset: 2px; }
-.pk-chevron { display: inline-grid; place-items: center; flex-shrink: 0; width: 22px; height: 22px; color: #475467; background: #fff; border: 1px solid #d0d5dd; border-radius: 6px; transition: transform 0.18s, background 0.15s; }
-.pk-toggle-btn:hover .pk-chevron { background: #f2f4f7; }
-tr.pk-open .pk-chevron { transform: rotate(90deg); }
-.pk-count { flex-shrink: 0; padding: 1px 8px; font-size: 11px; font-weight: 500; color: #475467; background: #fff; border: 1px solid #e4e7ec; border-radius: 999px; white-space: nowrap; }
-@media (prefers-reduced-motion: reduce) { .pk-chevron { transition: none; } }
 
-/* Baris Detail: menjorok tanpa garis konektor */
-.dash-pk-table tr.pk-detail > td { background: #fff; }
-.dash-pk-table tr.pk-detail > td.pk-name-cell { position: relative; padding-left: 44px; }
-.dash-pk-table tr.pk-detail .dash-cell-name { font-weight: 500; color: #344054; }
-.dash-pk-table tr.pk-detail > td { padding-top: 7px; padding-bottom: 7px; }
-.dash-pk-table tr.pk-detail:hover > td { background: #fafbfc; }
-.dash-pk-table tr.pk-detail.pk-last > td { border-bottom-color: #e4e7ec; }
+.pk-section {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
 
-/* Anak muncul halus saat grup dibuka */
-@keyframes pk-in { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
-.dash-pk-table tr.pk-detail { animation: pk-in 0.16s ease-out; }
-@media (prefers-reduced-motion: reduce) { .dash-pk-table tr.pk-detail { animation: none; } }
+/* ══════════════════════════════════════════
+   SECTION HEADER & FILTER
+══════════════════════════════════════════ */
+.pk-section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 2px 0;
+}
 
-/* Kolom kecil tidak melebar; aksi rapat di kanan */
-.dash-pk-table th.col-no, .dash-pk-table td.col-no { width: 44px; }
-.dash-pk-table td.pk-kode, .dash-pk-table th:nth-child(2) { width: 72px; }
-.dash-pk-table .col-aksi { width: 1%; white-space: nowrap; }
+.pk-section-label {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--ink);
+  letter-spacing: -0.01em;
+}
 
-/* Chip tipe & sektor */
-.pk-chip { display: inline-block; padding: 2px 9px; font-size: 11px; font-weight: 600; line-height: 1.5; white-space: nowrap; border-radius: 999px; }
-.pk-chip.header { color: #344054; background: #eef2f6; border: 1px solid #d0d5dd; }
+.pk-section-label svg {
+  color: var(--accent);
+  flex-shrink: 0;
+}
+
+.pk-section-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 6px;
+  font-size: 10px;
+  font-weight: 700;
+  color: #344054;
+  background: #f2f4f7;
+  border: 1px solid #e4e7ec;
+  border-radius: 999px;
+  font-variant-numeric: tabular-nums;
+}
+
+.pk-section-filter {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.pk-filter-select {
+  font-size: 11.5px !important;
+  padding: 5px 26px 5px 8px !important;
+  min-width: 140px !important;
+  max-width: 220px !important;
+  border-radius: 6px !important;
+}
+
+.pk-reset-btn {
+  font-size: 11px !important;
+  padding: 4px 8px !important;
+  border-radius: 6px !important;
+  color: var(--accent) !important;
+  border-color: var(--accent) !important;
+}
+
+.pk-section-empty {
+  margin: 0;
+  padding: 18px 12px;
+  font-size: 12px;
+  color: var(--muted);
+  background: #fcfcfd;
+  border: 1px dashed var(--line);
+  border-radius: 8px;
+  text-align: center;
+}
+
+/* ══════════════════════════════════════════
+   TOMBOL LIHAT DETAIL (di Header table)
+══════════════════════════════════════════ */
+.pk-btn-detail {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 8px;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: #1d4ed8;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  border-radius: 6px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.14s, border-color 0.14s, color 0.14s, transform 0.1s;
+}
+.pk-btn-detail:hover {
+  background: #dbeafe;
+  border-color: #93c5fd;
+  color: #1e40af;
+  transform: translateY(-1px);
+}
+.pk-btn-detail:active {
+  transform: translateY(0);
+}
+.pk-btn-detail svg {
+  flex-shrink: 0;
+}
+.pk-btn-detail-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  font-size: 10px;
+  font-weight: 700;
+  color: #1e40af;
+  background: #fff;
+  border-radius: 999px;
+  border: 1px solid #bfdbfe;
+}
+
+/* Row terpilih di tabel header saat difilter */
+tr.pk-row-selected > td {
+  background: #eff6ff !important;
+}
+
+/* ══════════════════════════════════════════
+   BADGES & CHIPS
+══════════════════════════════════════════ */
+/* Badge kode untuk header (biru lembut agar kontras dengan detail) */
+.pk-kode-header {
+  background: #eff6ff !important;
+  border-color: #bfdbfe !important;
+  color: #1d4ed8 !important;
+  font-weight: 700 !important;
+}
+
+/* Chip referensi induk (Header) di tabel Detail: tombol interaktif */
+.pk-parent-ref-btn {
+  display: inline-flex;
+  align-items: center;
+  padding: 1px 7px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #1e40af;
+  background: #f0f7ff;
+  border: 1px solid #dbeafe;
+  border-radius: 5px;
+  cursor: pointer;
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  transition: background 0.14s, border-color 0.14s;
+}
+.pk-parent-ref-btn:hover {
+  background: #e0f0fe;
+  border-color: #93c5fd;
+}
+
+/* Chip referensi statis (fallback) */
+.pk-parent-ref {
+  display: inline-flex;
+  align-items: center;
+  padding: 1px 7px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #1e40af;
+  background: #f0f7ff;
+  border: 1px solid #dbeafe;
+  border-radius: 5px;
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Chip sektor & umum */
+.pk-chip {
+  display: inline-block;
+  padding: 1px 7px;
+  font-size: 10.5px;
+  font-weight: 600;
+  line-height: 1.6;
+  white-space: nowrap;
+  border-radius: 999px;
+}
+.pk-chip.header { color: #1d2939; background: #dce5ef; border: 1px solid #b2c5da; }
 .pk-chip.detail { color: #475467; background: #f2f4f7; border: 1px solid #e4e7ec; }
 .pk-chip.sector { color: #175cd3; background: #eff8ff; border: 1px solid #d1e9ff; }
 
-.dash-pk-table td.pk-seq { text-align: center; color: var(--muted); font-variant-numeric: tabular-nums; }
-.dash-pk-table th.pk-seq { text-align: center; }
-.dash-pk-table td.pk-kode { font-variant-numeric: tabular-nums; white-space: nowrap; }
+/* Urutan tampilan */
+.pk-seq {
+  text-align: center;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
 
-/* Keterangan di bawah nama muncul hanya untuk kolom yang sedang disembunyikan */
-.pk-sub { display: none; }
-.pk-sub > span:not(:first-child)::before { content: ' · '; }
-.pk-sub-type + span::before { content: '' !important; }
-
-/* Responsif */
+/* ══════════════════════════════════════════
+   RESPONSIF (Mobile & Tablet)
+══════════════════════════════════════════ */
 @media (max-width: 900px) {
-  .dash-pk-table .pk-hide-md { display: none; }
-  .pk-sub { display: block; }
-  .pk-sub-type { display: none; }
-  .pk-toggle-btn + .pk-sub { padding-left: 30px; }
+  .pk-hide-md { display: none !important; }
 }
 
 @media (max-width: 600px) {
-  .dash-table.dash-pk-table { min-width: 0; }
-  .dash-pk-table .pk-hide-sm { display: none; }
-  .pk-sub-type { display: inline; font-weight: 600; }
-  .pk-sub-type + span::before { content: ' · ' !important; }
-  .dash-pk-table tr.pk-detail > td.pk-name-cell { padding-left: 40px; }
-  .dash-pk-table .dash-cell-name { white-space: normal; word-break: break-word; }
-  .pk-toggle-btn { flex-wrap: wrap; }
+  .pk-hide-sm { display: none !important; }
+  .pk-section-head { flex-direction: column; align-items: flex-start; gap: 6px; }
+  .pk-section-filter { width: 100%; justify-content: space-between; }
+  .pk-filter-select { flex: 1; max-width: 100% !important; }
+  .pk-btn-detail { padding: 4px 7px; font-size: 11px; }
 }

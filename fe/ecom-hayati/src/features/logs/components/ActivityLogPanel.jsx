@@ -8,7 +8,13 @@ import Pager from '../../../shared/components/Pager';
 import IconButton from '../../../shared/components/IconButton';
 import { getActivityLogs, errorMessage } from '../../../api/authServices';
 
-const AKSI = { created: 'Ditambah', updated: 'Diubah', deleted: 'Dihapus' };
+const AKSI = {
+  created: 'Ditambah',
+  updated: 'Diubah',
+  deleted: 'Dihapus',
+  status_changed: 'Ubah Status',
+  password_changed: 'Ubah Password',
+};
 const FIELD_LABEL = {
   name: 'Nama', email: 'Email', status: 'Status', alamat: 'Alamat', latitude: 'Latitude', longitude: 'Longitude', kode: 'Kode',
   fk_dealer: 'Dealer', fk_atasan: 'Atasan', fk_role: 'Role', fk_menu: 'Menu', fk_permission: 'Permission',
@@ -35,14 +41,31 @@ const fmtVal = (k, v) => {
   return String(v);
 };
 
+// Field yang tidak perlu ditampilkan di detail log (tidak informatif untuk user)
+const SKIP_KEYS = new Set(['id', 'created_at', 'updated_at']);
+
 // Daftar perubahan: [key, label, nilai lama, nilai baru] hanya untuk field yang berubah
 function changesOf(log) {
   const lama = log.data_lama ?? {};
   const baru = log.data_baru ?? {};
   return [...new Set([...Object.keys(baru), ...Object.keys(lama)])]
-    .filter((k) => k !== 'updated_at' && JSON.stringify(lama[k]) !== JSON.stringify(baru[k]))
+    .filter((k) => !SKIP_KEYS.has(k) && JSON.stringify(lama[k]) !== JSON.stringify(baru[k]))
     .map((k) => [k, humanize(k), fmtVal(k, lama[k]), fmtVal(k, baru[k])]);
 }
+
+// Hitung diff untuk field berisi daftar koma: { diaktifkan, dinonaktifkan }
+function menuDiff(lamaStr, baruStr) {
+  const toSet = (s) => new Set((s === '-' ? '' : s).split(',').map((x) => x.trim()).filter(Boolean));
+  const lama = toSet(lamaStr);
+  const baru = toSet(baruStr);
+  return {
+    diaktifkan: [...baru].filter((m) => !lama.has(m)),
+    dinonaktifkan: [...lama].filter((m) => !baru.has(m)),
+  };
+}
+
+// Field yang ditampilkan sebagai diff (bukan sebelum/sesudah)
+const DIFF_KEYS = new Set(['menu', 'permission']);
 
 // BE: subject = { id, name } (null bila tidak ada)
 const subjectOf = (l) => l.subject?.name ?? (l.subject?.id != null ? `#${l.subject.id}` : '-');
@@ -152,15 +175,80 @@ function ActivityLogPanel({ sources }) {
           {changes.length === 0 ? (
             <p className="dash-empty">Tidak ada rincian perubahan.</p>
           ) : (
-            <div className="dash-table-wrap">
-              <table className="dash-table">
-                <thead><tr><th>Data</th><th>Sebelum</th><th>Sesudah</th></tr></thead>
-                <tbody>
-                  {changes.map(([k, label, lama, baru]) => (
-                    <tr key={k}><td>{label}</td><td className="acc-muted">{lama}</td><td><strong>{baru}</strong></td></tr>
-                  ))}
-                </tbody>
-              </table>
+            <div className="log-changes-list">
+              {changes.map(([k, label, lama, baru]) => {
+                if (DIFF_KEYS.has(k)) {
+                  const { diaktifkan, dinonaktifkan } = menuDiff(lama, baru);
+                  return (
+                    <div key={k} className="log-change-row">
+                      <div className="log-change-field">{label}</div>
+                      <div className="log-change-diff">
+                        {diaktifkan.length > 0 && (
+                          <div className="log-diff-group">
+                            <span className="log-diff-heading log-diff-heading--added">
+                              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                              Diaktifkan
+                            </span>
+                            <div className="log-diff-pills">
+                              {diaktifkan.map((m) => (
+                                <span key={m} className="log-pill log-pill--added">{m}</span>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                        {dinonaktifkan.length > 0 && (
+                          <div className="log-diff-group">
+                            <span className="log-diff-heading log-diff-heading--removed">
+                              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                              Dinonaktifkan
+                            </span>
+                            <div className="log-diff-pills">
+                              {dinonaktifkan.map((m) => (
+                                <span key={m} className="log-pill log-pill--removed">{m}</span>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                        {diaktifkan.length === 0 && dinonaktifkan.length === 0 && (
+                          <span className="acc-muted">Tidak ada perubahan</span>
+                        )}
+                      </div>
+                    </div>
+                  );
+                }
+                const isCreated = detail.aksi === 'created';
+                const isDeleted = detail.aksi === 'deleted';
+
+                return (
+                  <div key={k} className="log-change-row">
+                    <div className="log-change-field">{label}</div>
+                    <div className="log-change-val">
+                      {isCreated ? (
+                        // Ditambah: seluruh data baru dibuat, tampilkan nilainya langsung
+                        <span className="log-val-after">{baru}</span>
+                      ) : isDeleted ? (
+                        // Dihapus: seluruh data dihapus, tampilkan nilai yang dihapus
+                        <span className="log-val-deleted">{lama}</span>
+                      ) : (
+                        // Diubah: tampilkan perubahan jelas sebelum (kosong atau nilai lama) → sesudah
+                        <>
+                          {lama === '-' ? (
+                            <span className="log-val-empty">(kosong)</span>
+                          ) : (
+                            <span className="log-val-before">{lama}</span>
+                          )}
+                          <svg className="log-val-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+                          {baru === '-' ? (
+                            <span className="log-val-empty">(kosong)</span>
+                          ) : (
+                            <span className="log-val-after">{baru}</span>
+                          )}
+                        </>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           )}
         </Modal>

@@ -21,7 +21,7 @@ function LoginPage() {
         localStorage.removeItem('sessionExpired');
         return why === 'idle'
           ? 'Anda keluar otomatis karena tidak ada aktivitas selama 15 menit. Silakan masuk kembali.'
-          : 'Sesi Anda telah berakhir (30 menit). Silakan masuk kembali.';
+          : 'Sesi Anda telah berakhir. Silakan masuk kembali.';
       }
     } catch { /* abaikan */ }
     return '';

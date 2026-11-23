@@ -883,3 +883,49 @@ select.dash-input, .dash-select {
 .dash-tabs.wide .dash-tab { padding: 10px 24px; font-size: 13px; border-radius: 10px; }
 
 .dash-table th.col-no, .dash-table td.col-no { width: 1%; white-space: nowrap; text-align: right; color: var(--muted); }
+
+/* ---------- Log diff: menu/permission diaktifkan & dinonaktifkan ---------- */
+
+/* Wrapper list perubahan (mengganti tabel di modal detail) */
+.log-changes-list { display: flex; flex-direction: column; gap: 0; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
+
+.log-change-row { display: grid; grid-template-columns: 100px 1fr; gap: 0; border-bottom: 1px solid var(--line); }
+
+.log-change-row:last-child { border-bottom: 0; }
+
+.log-change-field { padding: 12px 14px; font-size: 11px; font-weight: 600; color: var(--muted); background: #fafafa; text-transform: uppercase; letter-spacing: 0.03em; display: flex; align-items: flex-start; border-right: 1px solid var(--line); }
+
+.log-change-diff { padding: 12px 14px; display: flex; flex-direction: column; gap: 10px; }
+
+.log-change-val { padding: 12px 14px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 13px; }
+
+/* Nilai sebelum → sesudah (field biasa) */
+.log-val-before { color: var(--muted); text-decoration: line-through; font-size: 12px; }
+
+.log-val-arrow { color: var(--muted); flex-shrink: 0; }
+
+.log-val-after { font-weight: 600; font-size: 13px; }
+
+/* Nilai dihapus (tidak ada sesudahnya) */
+.log-val-deleted { color: #b42318; text-decoration: line-through; font-size: 13px; font-weight: 500; }
+
+/* Nilai kosong / sebelumnya belum diisi */
+.log-val-empty { color: var(--muted); font-style: italic; font-size: 12px; }
+
+/* Grup diaktifkan / dinonaktifkan */
+.log-diff-group { display: flex; flex-direction: column; gap: 6px; }
+
+.log-diff-heading { font-size: 11px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; display: inline-flex; align-items: center; gap: 4px; }
+
+.log-diff-heading--added { color: #067647; }
+
+.log-diff-heading--removed { color: #b42318; }
+
+/* Pill per menu */
+.log-diff-pills { display: flex; flex-wrap: wrap; gap: 5px; }
+
+.log-pill { display: inline-block; padding: 3px 10px; border-radius: 999px; font-size: 12px; font-weight: 500; line-height: 1.5; }
+
+.log-pill--added { background: #ecfdf3; color: #067647; border: 1px solid #abefc6; }
+
+.log-pill--removed { background: #fff1f0; color: #b42318; border: 1px solid #fecdc9; }

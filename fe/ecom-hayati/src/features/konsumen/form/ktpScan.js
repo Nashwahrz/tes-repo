@@ -37,7 +37,13 @@ export async function scanKtpToForm(file, master) {
     ...(h.is_selectable ? [{ kode: h.pekerjaan_code, name: h.pekerjaan_name }] : []),
     ...(h.children ?? []).map((c) => ({ kode: c.pekerjaan_code, name: c.pekerjaan_name })),
   ]);
-  pick('fk_pekerjaan', pekerjaanOpts, data.pekerjaan);
+  // Bersihkan tanggal yang terkadang ikut terbaca OCR di samping/bawah teks pekerjaan (mis. "PELAJAR/MAHASISWA 01-01-2023")
+  const rawPekerjaan = String(data.pekerjaan ?? '').trim();
+  const cleanedPekerjaan = rawPekerjaan.replace(/\s+\d{2}[-/.]\d{2}[-/.]\d{4}.*$/, '').trim();
+  const matchedPekerjaan = pick('fk_pekerjaan', pekerjaanOpts, cleanedPekerjaan);
+  if (matchedPekerjaan === undefined && cleanedPekerjaan !== rawPekerjaan) {
+    pick('fk_pekerjaan', pekerjaanOpts, rawPekerjaan);
+  }
   pick('fk_temp_lahir', master.tempatLahir, data.tmp_lahir);
   let prov = pick('fk_provinsi', master.provinsi, data.provinsi);
   // Di KTP kabupaten/kota tidak berlabel: ia hanya satu baris tepat di bawah "PROVINSI ..." ("KOTA PADANG", "KAB. SOLOK", atau tanpa awalan seperti "JAKARTA SELATAN").
