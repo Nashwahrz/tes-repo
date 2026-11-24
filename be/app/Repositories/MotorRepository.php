@@ -82,6 +82,7 @@ class MotorRepository
         }));
     }
 
+    /*
     public function importFromExcel(string $filePath): array
     {
         $spreadsheet = IOFactory::load($filePath);
@@ -188,6 +189,7 @@ class MotorRepository
             ];
         });
     }
+    */
 
     public function exportToExcel(?string $search = null): string
     {
@@ -273,17 +275,18 @@ class MotorRepository
             'end_date'          => ['nullable', 'date', 'after_or_equal:start_date'],
         ];
 
-        $success  = 0;
-        $created  = 0;
-        $updated  = 0;
-        $failed   = 0;
-        $errors   = [];
-        $imported = [];
+        $success   = 0;
+        $created   = 0;
+        $updated   = 0;
+        $unchanged = 0;
+        $failed    = 0;
+        $errors    = [];
+        $imported  = [];
 
-        DB::transaction(function () use ($lines, $rules, $messages, &$success, &$created, &$updated, &$failed, &$errors, &$imported) {
+        DB::transaction(function () use ($lines, $rules, $messages, &$success, &$created, &$updated, &$unchanged, &$failed, &$errors, &$imported) {
             foreach ($lines as $index => $line) {
                 $lineNumber = $index + 1;
-                $line = trim($line);
+                $line = preg_replace('/^\xEF\xBB\xBF/', '', trim($line));
                 if ($line === '') {
                     continue;
                 }
@@ -314,7 +317,8 @@ class MotorRepository
                     continue;
                 }
 
-                if ($endDateRaw !== '' && !preg_match('/^(\d{2})(\d{2})(\d{4})$/', $endDateRaw) && !preg_match('/^\d{4}-\d{2}-\d{2}$/', $endDateRaw)) {
+                $isEndDateEmpty = ($endDateRaw === '' || $endDateRaw === '0' || $endDateRaw === '00000000');
+                if (!$isEndDateEmpty && !preg_match('/^(\d{2})(\d{2})(\d{4})$/', $endDateRaw) && !preg_match('/^\d{4}-\d{2}-\d{2}$/', $endDateRaw)) {
                     $failed++;
                     $errors[] = "Baris {$lineNumber}: Format tanggal akhir ('{$endDateRaw}') tidak valid (harus 8 digit ddmmyyyy).";
                     continue;
@@ -344,13 +348,32 @@ class MotorRepository
                     continue;
                 }
 
-                // Jika item_code sudah ada di database -> UPDATE data.
-                // Jika item_code belum ada di database -> CREATE data baru.
-                $motor = Motor::updateOrCreate(
-                    [
-                        'item_code' => $itemCode,
-                    ],
-                    [
+                // Cari data motor yang sudah ada:
+                // 1. Berdasarkan item_code (misal: MS2-BK)
+                // 2. Atau berdasarkan kombinasi unik (type_code & color_code)
+                $motor = Motor::where('item_code', $itemCode)->first();
+                if (!$motor) {
+                    $motor = Motor::where('type_code', $typeCode)
+                        ->where('color_code', $colorCode)
+                        ->first();
+                }
+
+                // Cek apakah kombinasi type_code & color_code sudah terdaftar pada motor lain
+                $duplicateQuery = Motor::where('type_code', $typeCode)
+                    ->where('color_code', $colorCode);
+                if ($motor) {
+                    $duplicateQuery->where('id', '!=', $motor->id);
+                }
+
+                if ($duplicateQuery->exists()) {
+                    $failed++;
+                    $errors[] = "Baris {$lineNumber}: Kombinasi kode tipe '{$typeCode}' dan kode warna '{$colorCode}' sudah terdaftar pada data motor lain.";
+                    continue;
+                }
+
+                if (!$motor) {
+                    $motor = Motor::create([
+                        'item_code'         => $itemCode,
                         'type_code'         => $typeCode,
                         'type_description'  => $rowData['type_description'],
                         'color_code'        => $colorCode,
@@ -359,33 +382,85 @@ class MotorRepository
                         'class'             => $class,
                         'start_date'        => $startDate,
                         'end_date'          => $endDate,
-                    ]
-                );
+                    ]);
 
-                if ($motor->wasRecentlyCreated) {
                     $created++;
+                    $success++;
+                    $imported[] = [
+                        'item_code'   => $motor->item_code,
+                        'type_code'   => $motor->type_code,
+                        'color_code'  => $motor->color_code,
+                        'market_name' => $motor->market_name,
+                        'aksi'        => 'ditambahkan',
+                    ];
                 } else {
-                    $updated++;
-                }
+                    $motor->fill([
+                        'type_code'         => $typeCode,
+                        'type_description'  => $rowData['type_description'],
+                        'color_code'        => $colorCode,
+                        'color_description' => $colorDescription,
+                        'market_name'       => $marketName,
+                        'class'             => $class,
+                        'start_date'        => $startDate,
+                        'end_date'          => $endDate,
+                    ]);
 
-                $success++;
-                $imported[] = [
-                    'item_code'   => $motor->item_code,
-                    'type_code'   => $motor->type_code,
-                    'color_code'  => $motor->color_code,
-                    'market_name' => $motor->market_name,
-                    'aksi'        => $motor->wasRecentlyCreated ? 'ditambahkan' : 'diperbarui',
-                ];
+                    if ($motor->isDirty()) {
+                        $fieldLabels = [
+                            'item_code'         => 'Kode Item',
+                            'type_code'         => 'Kode Tipe',
+                            'type_description'  => 'Deskripsi Tipe',
+                            'color_code'        => 'Kode Warna',
+                            'color_description' => 'Deskripsi Warna',
+                            'market_name'       => 'Nama Pasar',
+                            'class'             => 'Kelas',
+                            'start_date'        => 'Tanggal Awal',
+                            'end_date'          => 'Tanggal Akhir',
+                        ];
+
+                        $changedColumns = [];
+                        $detailChanges  = [];
+
+                        foreach ($motor->getDirty() as $field => $newVal) {
+                            $label = $fieldLabels[$field] ?? $field;
+                            $changedColumns[] = $label;
+
+                            $oldVal = $motor->getOriginal($field);
+                            if ($oldVal instanceof \DateTimeInterface) {
+                                $oldVal = $oldVal->format('Y-m-d');
+                            }
+                            $oldStr = $oldVal !== null && $oldVal !== '' ? (string) $oldVal : '-';
+                            $newStr = $newVal !== null && $newVal !== '' ? (string) $newVal : '-';
+                            $detailChanges[] = "{$label}: {$oldStr} -> {$newStr}";
+                        }
+
+                        $motor->save();
+                        $updated++;
+                        $success++;
+                        $imported[] = [
+                            'item_code'         => $motor->item_code,
+                            'type_code'         => $motor->type_code,
+                            'color_code'        => $motor->color_code,
+                            'market_name'       => $motor->market_name,
+                            'aksi'              => 'diperbarui',
+                            'kolom_diubah'      => $changedColumns,
+                            'rincian_perubahan' => $detailChanges,
+                        ];
+                    } else {
+                        $unchanged++;
+                    }
+                }
             }
         });
 
         return [
-            'success'       => $success,
-            'created_count' => $created,
-            'updated_count' => $updated,
-            'failed'        => $failed,
-            'errors'        => $errors,
-            'imported'      => $imported,
+            'success'         => $success,
+            'created_count'   => $created,
+            'updated_count'   => $updated,
+            'unchanged_count' => $unchanged,
+            'failed'          => $failed,
+            'errors'          => $errors,
+            'imported'        => $imported,
         ];
     }
 

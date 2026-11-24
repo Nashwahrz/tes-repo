@@ -129,13 +129,20 @@ class MotorController extends Controller
             $extension = strtolower($file->getClientOriginalExtension());
             $filePath  = $file->getRealPath();
 
+            // Sementara hanya menerima impor dari berkas format .utc
+            $result = $this->motorRepository->importFromUtc($filePath);
+
+            /*
             if (in_array($extension, ['utc', 'txt', 'csv'])) {
                 $result = $this->motorRepository->importFromUtc($filePath);
             } else {
                 $result = $this->motorRepository->importFromExcel($filePath);
             }
+            */
 
-            if ($result['success'] === 0 && !empty($result['errors'])) {
+            $unchanged = $result['unchanged_count'] ?? 0;
+
+            if ($result['success'] === 0 && $unchanged === 0 && !empty($result['errors'])) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Validasi gagal: format atau panjang karakter data pada berkas tidak sesuai.',
@@ -144,20 +151,49 @@ class MotorController extends Controller
             }
 
             if (isset($result['created_count']) && isset($result['updated_count'])) {
-                $statusMsg = $result['failed'] > 0
-                    ? "Import Motor selesai dengan beberapa data gagal validasi. Berhasil: {$result['success']} (Baru: {$result['created_count']}, Diperbarui: {$result['updated_count']}), Gagal: {$result['failed']}."
-                    : "Import Motor selesai. Berhasil: {$result['success']} (Baru: {$result['created_count']}, Diperbarui: {$result['updated_count']}), Gagal: {$result['failed']}.";
+                $created = $result['created_count'];
+                $updated = $result['updated_count'];
+                $failed  = $result['failed'];
+
+                if ($created === 0 && $updated === 0) {
+                    $statusMsg = $failed > 0
+                        ? "Tidak ada perubahan data motor ({$failed} baris data gagal validasi)."
+                        : "Tidak ada perubahan data motor (semua data pada berkas sudah sesuai dan mutakhir).";
+                } elseif ($created === 0 && $updated === 1 && !empty($result['imported'][0]['kolom_diubah'])) {
+                    $itemCode = $result['imported'][0]['item_code'];
+                    $colsStr  = implode(', ', $result['imported'][0]['kolom_diubah']);
+                    $statusMsg = $failed > 0
+                        ? "Import Motor selesai. Data {$itemCode} berhasil diperbarui pada kolom [{$colsStr}] (terdapat {$failed} baris data lain gagal validasi)."
+                        : "Import Motor selesai. Data {$itemCode} berhasil diperbarui pada kolom [{$colsStr}].";
+                } else {
+                    $details = [];
+                    if ($created > 0) {
+                        $details[] = "Baru: {$created}";
+                    }
+                    if ($updated > 0) {
+                        $details[] = "Diperbarui: {$updated}";
+                    }
+                    if ($unchanged > 0) {
+                        $details[] = "Tidak Berubah: {$unchanged}";
+                    }
+                    $detailsStr = implode(', ', $details);
+
+                    $statusMsg = $failed > 0
+                        ? "Import Motor selesai dengan beberapa data gagal validasi. Berhasil: {$result['success']} ({$detailsStr}), Gagal: {$failed}."
+                        : "Import Motor selesai. Berhasil: {$result['success']} ({$detailsStr}), Gagal: {$failed}.";
+                }
 
                 return response()->json([
                     'success' => true,
                     'message' => $statusMsg,
                     'data'    => [
-                        'success_count' => $result['success'],
-                        'created_count' => $result['created_count'],
-                        'updated_count' => $result['updated_count'],
-                        'failed_count'  => $result['failed'],
-                        'errors'        => $result['errors'],
-                        'imported'      => $result['imported'],
+                        'success_count'   => $result['success'],
+                        'created_count'   => $created,
+                        'updated_count'   => $updated,
+                        'unchanged_count' => $unchanged,
+                        'failed_count'    => $failed,
+                        'errors'          => $result['errors'],
+                        'imported'        => $result['imported'],
                     ],
                 ], 200);
             }

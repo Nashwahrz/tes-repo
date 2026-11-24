@@ -20,7 +20,8 @@ class ImportMotorRequest extends FormRequest
             'file' => [
                 'required',
                 'file',
-                'extensions:utc,txt,csv,xlsx,xls',
+                'extensions:utc',
+                // 'extensions:utc,txt,csv,xlsx,xls', // Sementara hanya .utc
                 'max:500',
             ],
         ];
@@ -31,7 +32,7 @@ class ImportMotorRequest extends FormRequest
         return [
             'file.required'   => 'Berkas file wajib diunggah.',
             'file.file'       => 'Yang diunggah harus berupa berkas file.',
-            'file.extensions' => 'Format berkas harus .utc, .txt, .csv, .xlsx, atau .xls.',
+            'file.extensions' => 'Format berkas harus berformat .utc.',
             'file.max'        => 'Ukuran berkas maksimal 500KB.',
         ];
     }
