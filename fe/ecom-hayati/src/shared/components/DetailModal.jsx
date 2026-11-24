@@ -13,6 +13,8 @@ export default function DetailModal({
         <h3>{title}</h3>
         <button
           type="button"
+           id="btn-tutup-x"
+          data-testid="button-tutup-x"
           className="dash-modal-close"
           onClick={onClose}
           aria-label="Tutup"
@@ -47,7 +49,7 @@ export default function DetailModal({
 
       <div className="dash-modal-actions" style={{ marginTop: 20 }}>
         {actions}
-        <button type="button" className="dash-btn" onClick={onClose}>
+        <button id="btn-tutup-detail" data-testid="button-tutup-detail" type="button" className="dash-btn" onClick={onClose}>
           Tutup
         </button>
       </div>
