@@ -326,7 +326,19 @@ class MotorRepository
 
                 $startDate = $this->parseUtcDate($startDateRaw);
                 $endDate   = $this->parseUtcDate($endDateRaw);
-                $itemCode  = $itemCodeRaw !== '' ? strtoupper($itemCodeRaw) : "{$typeCode}-{$colorCode}";
+
+                // Validasi kesesuaian kode item dengan kode tipe & kode warna
+                $expectedItemCode   = "{$typeCode}-{$colorCode}";
+                $normalizedItemCode = str_replace('-', '', strtoupper($itemCodeRaw));
+                $normalizedExpected = str_replace('-', '', $expectedItemCode);
+
+                if ($itemCodeRaw !== '' && $normalizedItemCode !== $normalizedExpected) {
+                    $failed++;
+                    $errors[] = "Baris {$lineNumber}: Kode tipe atau warna tidak sesuai dengan kode item.";
+                    continue;
+                }
+
+                $itemCode = $expectedItemCode;
 
                 $rowData = [
                     'item_code'         => $itemCode,
@@ -348,9 +360,7 @@ class MotorRepository
                     continue;
                 }
 
-                // Cari data motor yang sudah ada:
-                // 1. Berdasarkan item_code (misal: MS2-BK)
-                // 2. Atau berdasarkan kombinasi unik (type_code & color_code)
+                // Cari data motor yang sudah ada berdasarkan item_code (atau type_code & color_code)
                 $motor = Motor::where('item_code', $itemCode)->first();
                 if (!$motor) {
                     $motor = Motor::where('type_code', $typeCode)
@@ -358,17 +368,24 @@ class MotorRepository
                         ->first();
                 }
 
-                // Cek apakah kombinasi type_code & color_code sudah terdaftar pada motor lain
-                $duplicateQuery = Motor::where('type_code', $typeCode)
-                    ->where('color_code', $colorCode);
                 if ($motor) {
-                    $duplicateQuery->where('id', '!=', $motor->id);
-                }
+                    // Validasi: kode tipe dan kode warna motor lama tidak dapat diubah
+                    if ($motor->type_code !== $typeCode || $motor->color_code !== $colorCode) {
+                        $failed++;
+                        $errors[] = "Baris {$lineNumber}: Kode tipe dan warna tidak dapat diubah.";
+                        continue;
+                    }
+                } else {
+                    // Untuk motor baru, pastikan kombinasi type_code & color_code belum pernah ada
+                    $duplicateExists = Motor::where('type_code', $typeCode)
+                        ->where('color_code', $colorCode)
+                        ->exists();
 
-                if ($duplicateQuery->exists()) {
-                    $failed++;
-                    $errors[] = "Baris {$lineNumber}: Kombinasi kode tipe '{$typeCode}' dan kode warna '{$colorCode}' sudah terdaftar pada data motor lain.";
-                    continue;
+                    if ($duplicateExists) {
+                        $failed++;
+                        $errors[] = "Baris {$lineNumber}: Tipe dan warna motor ini sudah terdaftar.";
+                        continue;
+                    }
                 }
 
                 if (!$motor) {
@@ -395,9 +412,7 @@ class MotorRepository
                     ];
                 } else {
                     $motor->fill([
-                        'type_code'         => $typeCode,
                         'type_description'  => $rowData['type_description'],
-                        'color_code'        => $colorCode,
                         'color_description' => $colorDescription,
                         'market_name'       => $marketName,
                         'class'             => $class,
