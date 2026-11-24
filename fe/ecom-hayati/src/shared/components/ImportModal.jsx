@@ -88,6 +88,7 @@ export default function ImportModal({
 
   const stats = result?.data || result || {};
   const successCount = stats.success_count ?? stats.ok ?? 0;
+  const UnchangedCount = stats.unchanged_count;
   const createdCount = stats.created_count;
   const updatedCount = stats.updated_count;
   const failedCount = stats.failed_count ?? stats.failed ?? 0;
@@ -154,7 +155,7 @@ export default function ImportModal({
               </div>
             </div>
           ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+            <div id="upload-dropzone-content" data-testid="upload-dropzone-content" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
               <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{ display: 'block', marginBottom: 8 }}>
                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
                 <polyline points="17 8 12 3 7 8" />
@@ -231,6 +232,7 @@ export default function ImportModal({
           </div>
           <div style={{ fontSize: '0.9em', color: '#334155' }}>
             <div>• Berhasil diproses: <strong>{successCount}</strong></div>
+            {UnchangedCount !== undefined && <div>• Data tidak berubah: <strong>{UnchangedCount}</strong></div>}
             {createdCount !== undefined && <div>• Data baru ditambahkan: <strong>{createdCount}</strong></div>}
             {updatedCount !== undefined && <div>• Data diperbarui: <strong>{updatedCount}</strong></div>}
             <div>• Gagal: <strong>{failedCount}</strong></div>
@@ -260,12 +262,14 @@ export default function ImportModal({
       )}
 
       <div className="dash-modal-actions" style={{ marginTop: 20 }}>
-        <button type="button" className="dash-btn" onClick={onClose} disabled={importing}>
+        <button id="btn-close-import-file" data-testid="btn-close-import-file" type="button" className="dash-btn" onClick={onClose} disabled={importing}>
           {result ? 'Tutup' : 'Batal'}
         </button>
         {!result && (
           <button
             type="button"
+            id="btn-import-file"
+            data-testid="btn-import-file"
             className="dash-btn solid"
             disabled={!file || importing}
             onClick={handleProcessImport}

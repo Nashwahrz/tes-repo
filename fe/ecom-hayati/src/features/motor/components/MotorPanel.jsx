@@ -77,6 +77,7 @@ export default function MotorPanel({ can = { import: true, export: true } }) {
           {can.export && (
             <button
               id="btn-motor-export"
+              data-testid="button-export-data-motor"
               className="dash-btn outline"
               style={{ display: 'inline-flex', alignItems: 'center', background: '#f0fdf4',borderColor: '#86efac',color: '#15803d', gap: 6 }}
               disabled={exporting}
@@ -93,6 +94,7 @@ export default function MotorPanel({ can = { import: true, export: true } }) {
           {can.import && (
             <button
               id="btn-motor-import"
+              data-testid="button-import-data-motor"
               className="dash-btn solid"
               style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}
               onClick={() => setImportOpen(true)}
@@ -111,6 +113,7 @@ export default function MotorPanel({ can = { import: true, export: true } }) {
 
       <input
         id="motor-search"
+        data-testid="button-search-data-motor"
         className="dash-input dash-input-search"
         type="search"
         placeholder="Cari kode tipe, warna, atau nama pasar motor..."
@@ -177,6 +180,7 @@ export default function MotorPanel({ can = { import: true, export: true } }) {
                       <div className="dash-actions">
                         <IconButton
                           id={`btn-motor-detail-${m.id}`}
+                          data-testid="button-detail-data-motor"
                           icon="view"
                           label="Detail"
                           onClick={() => setDetailRow(m)}
@@ -193,8 +197,8 @@ export default function MotorPanel({ can = { import: true, export: true } }) {
             page={meta.page}
             lastPage={meta.lastPage}
             total={meta.total}
-            perPage={meta.perPage}
-            onPageChange={setPage}
+            unit="motor"
+            onPage={setPage}
           />
         </>
       )}
