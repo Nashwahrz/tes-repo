@@ -28,7 +28,7 @@ class MotorRequest extends FormRequest
     {
         $id = $this->route('id');
 
-        $colorRules = ['required', 'string', 'max:10'];
+        $colorRules = ['required', 'string', 'max:2'];
 
         // Saat update (PUT/PATCH), pastikan kombinasi tipe & warna tidak bertabrakan dengan ID motor lain
         if ($this->isMethod('put') || $this->isMethod('patch')) {
@@ -38,12 +38,13 @@ class MotorRequest extends FormRequest
         }
 
         return [
-            'type_code'         => ['required', 'string', 'max:15'],
-            'type_description'  => ['required', 'string', 'max:100'],
+            'item_code'         => ['sometimes', 'string', 'max:6'],
+            'type_code'         => ['required', 'string', 'max:3'],
+            'type_description'  => ['required', 'string', 'max:25'],
             'color_code'        => $colorRules,
-            'color_description' => ['required', 'string', 'max:100'],
-            'market_name'       => ['required', 'string', 'max:150'],
-            'class'             => ['required', 'string', 'max:50'],
+            'color_description' => ['required', 'string', 'max:15'],
+            'market_name'       => ['required', 'string', 'max:25'],
+            'class'             => ['required', 'string', 'max:1'],
             'start_date'        => ['required', 'date'],
             'end_date'          => ['nullable', 'date', 'after_or_equal:start_date'],
         ];
@@ -52,19 +53,21 @@ class MotorRequest extends FormRequest
     public function messages(): array
     {
         return [
+            'item_code.required'          => 'Kode item wajib diisi.',
+            'item_code.max'               => 'Kode item maksimal 6 karakter.',
             'type_code.required'          => 'Kode tipe wajib diisi.',
-            'type_code.max'               => 'Kode tipe maksimal 15 karakter.',
+            'type_code.max'               => 'Kode tipe maksimal 3 karakter.',
             'type_description.required'   => 'Deskripsi tipe wajib diisi.',
-            'type_description.max'        => 'Deskripsi tipe maksimal 100 karakter.',
+            'type_description.max'        => 'Deskripsi tipe maksimal 25 karakter.',
             'color_code.required'         => 'Kode warna wajib diisi.',
-            'color_code.max'              => 'Kode warna maksimal 10 karakter.',
+            'color_code.max'              => 'Kode warna maksimal 2 karakter.',
             'color_code.unique'           => 'Kombinasi kode tipe dan kode warna ini sudah terdaftar.',
             'color_description.required'  => 'Deskripsi warna wajib diisi.',
-            'color_description.max'       => 'Deskripsi warna maksimal 100 karakter.',
+            'color_description.max'       => 'Deskripsi warna maksimal 15 karakter.',
             'market_name.required'        => 'Nama pasar wajib diisi.',
-            'market_name.max'             => 'Nama pasar maksimal 150 karakter.',
+            'market_name.max'             => 'Nama pasar maksimal 25 karakter.',
             'class.required'              => 'Kelas motor wajib diisi.',
-            'class.max'                   => 'Kelas motor maksimal 50 karakter.',
+            'class.max'                   => 'Kelas motor maksimal 1 karakter.',
             'start_date.required'         => 'Tanggal awal wajib diisi.',
             'start_date.date'             => 'Format tanggal awal tidak valid.',
             'end_date.date'               => 'Format tanggal akhir tidak valid.',

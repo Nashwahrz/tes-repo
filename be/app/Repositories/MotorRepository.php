@@ -150,18 +150,18 @@ class MotorRepository
                 ];
 
                 $rules = [
-                    'type_code'         => ['required', 'string', 'max:15'],
-                    'type_description'  => ['required', 'string', 'max:100'],
+                    'type_code'         => ['required', 'string', 'max:3'],
+                    'type_description'  => ['required', 'string', 'max:25'],
                     'color_code'        => [
                         'required',
                         'string',
-                        'max:10',
+                        'max:2',
                         Rule::unique(Motor::class, 'color_code')
                             ->where(fn ($q) => $q->where('type_code', $typeCode)),
                     ],
-                    'color_description' => ['required', 'string', 'max:100'],
-                    'market_name'       => ['required', 'string', 'max:150'],
-                    'class'             => ['required', 'string', 'max:50'],
+                    'color_description' => ['required', 'string', 'max:15'],
+                    'market_name'       => ['required', 'string', 'max:25'],
+                    'class'             => ['required', 'string', 'max:1'],
                     'start_date'        => ['required', 'date'],
                     'end_date'          => ['nullable', 'date', 'after_or_equal:start_date'],
                 ];
@@ -260,6 +260,19 @@ class MotorRepository
             ];
         }
 
+        $messages = (new MotorRequest())->messages();
+        $rules = [
+            'item_code'         => ['required', 'string', 'max:6'],
+            'type_code'         => ['required', 'string', 'max:3'],
+            'type_description'  => ['required', 'string', 'max:25'],
+            'color_code'        => ['required', 'string', 'max:2'],
+            'color_description' => ['required', 'string', 'max:15'],
+            'market_name'       => ['required', 'string', 'max:25'],
+            'class'             => ['required', 'string', 'max:1'],
+            'start_date'        => ['required', 'date'],
+            'end_date'          => ['nullable', 'date', 'after_or_equal:start_date'],
+        ];
+
         $success  = 0;
         $created  = 0;
         $updated  = 0;
@@ -267,7 +280,7 @@ class MotorRepository
         $errors   = [];
         $imported = [];
 
-        DB::transaction(function () use ($lines, &$success, &$created, &$updated, &$failed, &$errors, &$imported) {
+        DB::transaction(function () use ($lines, $rules, $messages, &$success, &$created, &$updated, &$failed, &$errors, &$imported) {
             foreach ($lines as $index => $line) {
                 $lineNumber = $index + 1;
                 $line = trim($line);
@@ -280,7 +293,7 @@ class MotorRepository
 
                 if (count($cols) < 8) {
                     $failed++;
-                    $errors[] = "Baris {$lineNumber}: Format kolom tidak lengkap (ditemukan " . count($cols) . " kolom).";
+                    $errors[] = "Baris {$lineNumber}: Format kolom tidak lengkap (ditemukan " . count($cols) . " kolom, minimal 8 kolom).";
                     continue;
                 }
 
@@ -295,21 +308,41 @@ class MotorRepository
                 $startDateRaw    = trim($cols[8] ?? '');
                 $endDateRaw      = trim($cols[9] ?? '');
 
-                if ($typeCode === '' || $colorCode === '') {
+                if ($startDateRaw !== '' && !preg_match('/^(\d{2})(\d{2})(\d{4})$/', $startDateRaw) && !preg_match('/^\d{4}-\d{2}-\d{2}$/', $startDateRaw)) {
                     $failed++;
-                    $errors[] = "Baris {$lineNumber}: Kode tipe dan kode warna wajib diisi.";
+                    $errors[] = "Baris {$lineNumber}: Format tanggal awal ('{$startDateRaw}') tidak valid (harus 8 digit ddmmyyyy).";
+                    continue;
+                }
+
+                if ($endDateRaw !== '' && !preg_match('/^(\d{2})(\d{2})(\d{4})$/', $endDateRaw) && !preg_match('/^\d{4}-\d{2}-\d{2}$/', $endDateRaw)) {
+                    $failed++;
+                    $errors[] = "Baris {$lineNumber}: Format tanggal akhir ('{$endDateRaw}') tidak valid (harus 8 digit ddmmyyyy).";
                     continue;
                 }
 
                 $startDate = $this->parseUtcDate($startDateRaw);
-                if (!$startDate) {
+                $endDate   = $this->parseUtcDate($endDateRaw);
+                $itemCode  = $itemCodeRaw !== '' ? strtoupper($itemCodeRaw) : "{$typeCode}-{$colorCode}";
+
+                $rowData = [
+                    'item_code'         => $itemCode,
+                    'type_code'         => $typeCode,
+                    'type_description'  => $typeDescription !== '' ? $typeDescription : $marketName,
+                    'color_code'        => $colorCode,
+                    'color_description' => $colorDescription,
+                    'market_name'       => $marketName,
+                    'class'             => $class,
+                    'start_date'        => $startDate,
+                    'end_date'          => $endDate,
+                ];
+
+                // Validasi data dan panjang karakter sesuai MotorRequest
+                $validator = Validator::make($rowData, $rules, $messages);
+                if ($validator->fails()) {
                     $failed++;
-                    $errors[] = "Baris {$lineNumber}: Format tanggal awal ('{$startDateRaw}') tidak valid.";
+                    $errors[] = "Baris {$lineNumber}: " . implode(', ', $validator->errors()->all());
                     continue;
                 }
-
-                $endDate  = $this->parseUtcDate($endDateRaw);
-                $itemCode = $itemCodeRaw !== '' ? strtoupper($itemCodeRaw) : "{$typeCode}-{$colorCode}";
 
                 // Jika item_code sudah ada di database -> UPDATE data.
                 // Jika item_code belum ada di database -> CREATE data baru.
@@ -319,7 +352,7 @@ class MotorRepository
                     ],
                     [
                         'type_code'         => $typeCode,
-                        'type_description'  => $typeDescription !== '' ? $typeDescription : $marketName,
+                        'type_description'  => $rowData['type_description'],
                         'color_code'        => $colorCode,
                         'color_description' => $colorDescription,
                         'market_name'       => $marketName,

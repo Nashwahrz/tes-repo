@@ -10,14 +10,14 @@ return new class extends Migration
     {
         Schema::create('master.motors', function (Blueprint $table) {
             $table->id();
-            // item_code: gabungan type_code + color_code (SKU unik)
-            $table->string('item_code', 30)->unique();
-            $table->string('type_code', 15)->index();
-            $table->string('type_description', 100);
-            $table->string('color_code', 10)->index();
-            $table->string('color_description', 100);
-            $table->string('market_name', 150)->index();
-            $table->string('class', 50)->index(); 
+            // item_code: gabungan type_code + color_code (SKU unik, length: 6)
+            $table->string('item_code', 6)->unique();
+            $table->string('type_code', 3)->index();
+            $table->string('type_description', 25);
+            $table->string('color_code', 2)->index();
+            $table->string('color_description', 15);
+            $table->string('market_name', 25)->index();
+            $table->string('class', 1)->index(); 
             $table->date('start_date');
             $table->date('end_date')->nullable();
             $table->timestamps();

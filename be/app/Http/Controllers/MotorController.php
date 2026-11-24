@@ -136,13 +136,21 @@ class MotorController extends Controller
             }
 
             if ($result['success'] === 0 && !empty($result['errors'])) {
-                return $this->importResponse->formatError($result['errors']);
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Validasi gagal: format atau panjang karakter data pada berkas tidak sesuai.',
+                    'errors'  => $result['errors'],
+                ], 422);
             }
 
             if (isset($result['created_count']) && isset($result['updated_count'])) {
+                $statusMsg = $result['failed'] > 0
+                    ? "Import Motor selesai dengan beberapa data gagal validasi. Berhasil: {$result['success']} (Baru: {$result['created_count']}, Diperbarui: {$result['updated_count']}), Gagal: {$result['failed']}."
+                    : "Import Motor selesai. Berhasil: {$result['success']} (Baru: {$result['created_count']}, Diperbarui: {$result['updated_count']}), Gagal: {$result['failed']}.";
+
                 return response()->json([
                     'success' => true,
-                    'message' => "Import Motor selesai. Berhasil: {$result['success']} (Baru: {$result['created_count']}, Diperbarui: {$result['updated_count']}), Gagal: {$result['failed']}.",
+                    'message' => $statusMsg,
                     'data'    => [
                         'success_count' => $result['success'],
                         'created_count' => $result['created_count'],

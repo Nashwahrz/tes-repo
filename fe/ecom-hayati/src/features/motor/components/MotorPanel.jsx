@@ -218,9 +218,9 @@ export default function MotorPanel({ can = { import: true, export: true } }) {
       {importOpen && (
         <ImportModal
           title="Import Data Motor"
-          description="Pilih berkas dari komputer Anda. Mendukung berkas .utc, .txt, .csv, atau Excel (.xlsx, .xls) dengan ukuran maksimal 5MB."
+          description="Pilih berkas dari komputer Anda. Mendukung berkas .utc, .txt, .csv, atau Excel (.xlsx, .xls) dengan ukuran maksimal 500KB."
           allowedExtensions={['utc', 'txt', 'csv', 'xlsx', 'xls']}
-          maxSizeBytes={5 * 1024 * 1024}
+          maxSizeBytes={500 * 1024}
           onImport={importMotors}
           onSuccess={(res) => {
             setSuccess(res?.message || 'Data motor berhasil diimpor.');
