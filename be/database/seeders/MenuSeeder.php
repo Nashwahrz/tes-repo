@@ -38,6 +38,7 @@ class MenuSeeder extends Seeder
             ['menu_name' => 'app key ocr',       'url' => 'app-key-ocrs',         'sequence' => 22, 'status' => true],
             ['menu_name' => 'Log OTP',       'url' => 'log-otps',         'sequence' => 23, 'status' => true],
             ['menu_name' => 'Master Motor',          'url' => 'motors','sequence' => 24, 'status' => true],
+            ['menu_name' => 'Stok Motor',            'url' => 'motor-stocks','sequence' => 25, 'status' => true],
             
         ];
          $menus = array_map(fn ($m) => $m + [
