@@ -10107,272 +10107,12 @@
                         "$ref": "#/components/responses/AuthenticationException"
                     }
                 }
-            },
-            "post": {
-                "operationId": "motor.store",
-                "tags": [
-                    "Motor"
-                ],
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "$ref": "#/components/schemas/MotorRequest"
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "500": {
-                        "description": "",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "success": {
-                                            "type": "boolean"
-                                        },
-                                        "message": {
-                                            "type": "string",
-                                            "const": "Terjadi kesalahan pada server. Silakan coba lagi."
-                                        }
-                                    },
-                                    "required": [
-                                        "success",
-                                        "message"
-                                    ]
-                                }
-                            }
-                        }
-                    },
-                    "409": {
-                        "description": "",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "success": {
-                                            "type": "boolean"
-                                        },
-                                        "message": {
-                                            "type": "string",
-                                            "const": "Kode item motor sudah terdaftar."
-                                        },
-                                        "errors": {
-                                            "type": "object",
-                                            "properties": {
-                                                "kode_item": {
-                                                    "type": "array",
-                                                    "prefixItems": [
-                                                        {
-                                                            "type": "string",
-                                                            "const": "Kombinasi kode tipe dan kode warna sudah terdaftar."
-                                                        }
-                                                    ],
-                                                    "minItems": 1,
-                                                    "maxItems": 1
-                                                }
-                                            },
-                                            "required": [
-                                                "kode_item"
-                                            ]
-                                        }
-                                    },
-                                    "required": [
-                                        "success",
-                                        "message",
-                                        "errors"
-                                    ]
-                                }
-                            }
-                        }
-                    },
-                    "200": {
-                        "description": "",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "success": {
-                                            "type": "boolean"
-                                        },
-                                        "message": {
-                                            "type": "string",
-                                            "const": "Data motor berhasil ditambahkan."
-                                        },
-                                        "data": {
-                                            "$ref": "#/components/schemas/Motor"
-                                        }
-                                    },
-                                    "required": [
-                                        "success",
-                                        "message",
-                                        "data"
-                                    ]
-                                }
-                            }
-                        }
-                    },
-                    "401": {
-                        "$ref": "#/components/responses/AuthenticationException"
-                    },
-                    "422": {
-                        "$ref": "#/components/responses/ValidationException"
-                    }
-                }
-            }
-        },
-        "/motors/aktif": {
-            "get": {
-                "operationId": "motor.indexAktif",
-                "tags": [
-                    "Motor"
-                ],
-                "parameters": [
-                    {
-                        "name": "search",
-                        "in": "query",
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                ],
-                "responses": {
-                    "500": {
-                        "description": "",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "success": {
-                                            "type": "boolean"
-                                        },
-                                        "message": {
-                                            "type": "string",
-                                            "const": "Terjadi kesalahan pada server. Silakan coba lagi."
-                                        }
-                                    },
-                                    "required": [
-                                        "success",
-                                        "message"
-                                    ]
-                                }
-                            }
-                        }
-                    },
-                    "200": {
-                        "description": "",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "success": {
-                                            "type": "boolean"
-                                        },
-                                        "message": {
-                                            "type": "string",
-                                            "const": "Data motor berhasil diambil."
-                                        },
-                                        "data": {
-                                            "$ref": "#/components/schemas/LengthAwarePaginator"
-                                        }
-                                    },
-                                    "required": [
-                                        "success",
-                                        "message",
-                                        "data"
-                                    ]
-                                }
-                            }
-                        }
-                    },
-                    "401": {
-                        "$ref": "#/components/responses/AuthenticationException"
-                    }
-                }
-            }
-        },
-        "/motors/non-aktif": {
-            "get": {
-                "operationId": "motor.indexNonAktif",
-                "tags": [
-                    "Motor"
-                ],
-                "parameters": [
-                    {
-                        "name": "search",
-                        "in": "query",
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                ],
-                "responses": {
-                    "500": {
-                        "description": "",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "success": {
-                                            "type": "boolean"
-                                        },
-                                        "message": {
-                                            "type": "string",
-                                            "const": "Terjadi kesalahan pada server. Silakan coba lagi."
-                                        }
-                                    },
-                                    "required": [
-                                        "success",
-                                        "message"
-                                    ]
-                                }
-                            }
-                        }
-                    },
-                    "200": {
-                        "description": "",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "success": {
-                                            "type": "boolean"
-                                        },
-                                        "message": {
-                                            "type": "string",
-                                            "const": "Data motor berhasil diambil."
-                                        },
-                                        "data": {
-                                            "$ref": "#/components/schemas/LengthAwarePaginator"
-                                        }
-                                    },
-                                    "required": [
-                                        "success",
-                                        "message",
-                                        "data"
-                                    ]
-                                }
-                            }
-                        }
-                    },
-                    "401": {
-                        "$ref": "#/components/responses/AuthenticationException"
-                    }
-                }
             }
         },
         "/motors/import": {
             "post": {
                 "operationId": "motor.import",
+                "summary": "Import data motor dari file .UTC atau Excel (.xlsx/.xls)",
                 "tags": [
                     "Motor"
                 ],
@@ -10381,7 +10121,7 @@
                     "content": {
                         "multipart/form-data": {
                             "schema": {
-                                "$ref": "#/components/schemas/ImportRequest"
+                                "$ref": "#/components/schemas/ImportMotorRequest"
                             }
                         }
                     }
@@ -10415,42 +10155,107 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "success": {
-                                            "type": "boolean"
-                                        },
-                                        "message": {
-                                            "type": "string"
-                                        },
-                                        "data": {
+                                    "anyOf": [
+                                        {
                                             "type": "object",
                                             "properties": {
-                                                "success_count": {
+                                                "success": {
+                                                    "type": "boolean"
+                                                },
+                                                "message": {
                                                     "type": "string"
                                                 },
-                                                "failed_count": {
-                                                    "type": "string"
-                                                },
-                                                "errors": {
-                                                    "type": "string"
-                                                },
-                                                "imported": {
-                                                    "type": "string"
+                                                "data": {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "success_count": {
+                                                            "type": "string"
+                                                        },
+                                                        "failed_count": {
+                                                            "type": "string"
+                                                        },
+                                                        "errors": {
+                                                            "type": "string"
+                                                        },
+                                                        "imported": {
+                                                            "type": "string"
+                                                        }
+                                                    },
+                                                    "required": [
+                                                        "success_count",
+                                                        "failed_count",
+                                                        "errors",
+                                                        "imported"
+                                                    ]
                                                 }
                                             },
                                             "required": [
-                                                "success_count",
-                                                "failed_count",
-                                                "errors",
-                                                "imported"
+                                                "success",
+                                                "message",
+                                                "data"
+                                            ]
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "success": {
+                                                    "type": "boolean"
+                                                },
+                                                "message": {
+                                                    "type": "string"
+                                                },
+                                                "data": {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "success_count": {
+                                                            "type": "string"
+                                                        },
+                                                        "created_count": {
+                                                            "type": "string"
+                                                        },
+                                                        "updated_count": {
+                                                            "type": "string"
+                                                        },
+                                                        "unchanged_count": {
+                                                            "anyOf": [
+                                                                {
+                                                                    "type": "string"
+                                                                },
+                                                                {
+                                                                    "type": "integer",
+                                                                    "enum": [
+                                                                        0
+                                                                    ]
+                                                                }
+                                                            ]
+                                                        },
+                                                        "failed_count": {
+                                                            "type": "string"
+                                                        },
+                                                        "errors": {
+                                                            "type": "string"
+                                                        },
+                                                        "imported": {
+                                                            "type": "string"
+                                                        }
+                                                    },
+                                                    "required": [
+                                                        "success_count",
+                                                        "created_count",
+                                                        "updated_count",
+                                                        "unchanged_count",
+                                                        "failed_count",
+                                                        "errors",
+                                                        "imported"
+                                                    ]
+                                                }
+                                            },
+                                            "required": [
+                                                "success",
+                                                "message",
+                                                "data"
                                             ]
                                         }
-                                    },
-                                    "required": [
-                                        "success",
-                                        "message",
-                                        "data"
                                     ]
                                 }
                             }
@@ -10474,13 +10279,6 @@
                 "parameters": [
                     {
                         "name": "search",
-                        "in": "query",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "name": "status",
                         "in": "query",
                         "schema": {
                             "type": "string"
@@ -10641,11 +10439,776 @@
                         "$ref": "#/components/responses/AuthenticationException"
                     }
                 }
+            }
+        },
+        "/motor-stocks": {
+            "get": {
+                "operationId": "motorStock.index",
+                "summary": "Ambil daftar stok motor terpaginasi dari tabel motor_stocks",
+                "tags": [
+                    "MotorStock"
+                ],
+                "parameters": [
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "item_code",
+                        "in": "query",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "500": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "const": "Terjadi kesalahan pada server. Silakan coba lagi."
+                                        }
+                                    },
+                                    "required": [
+                                        "success",
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "const": "Data stok motor berhasil diambil."
+                                        },
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "current_page": {
+                                                    "type": "integer"
+                                                },
+                                                "data": {
+                                                    "type": "string"
+                                                },
+                                                "first_page_url": {
+                                                    "type": "string"
+                                                },
+                                                "from": {
+                                                    "type": [
+                                                        "integer",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "last_page": {
+                                                    "type": "string"
+                                                },
+                                                "last_page_url": {
+                                                    "type": "string"
+                                                },
+                                                "links": {
+                                                    "type": "object",
+                                                    "additionalProperties": {}
+                                                },
+                                                "next_page_url": {
+                                                    "type": "string"
+                                                },
+                                                "path": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "per_page": {
+                                                    "type": "integer"
+                                                },
+                                                "prev_page_url": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "to": {
+                                                    "type": [
+                                                        "integer",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "total": {
+                                                    "type": "string"
+                                                }
+                                            },
+                                            "required": [
+                                                "current_page",
+                                                "data",
+                                                "first_page_url",
+                                                "from",
+                                                "last_page",
+                                                "last_page_url",
+                                                "links",
+                                                "next_page_url",
+                                                "path",
+                                                "per_page",
+                                                "prev_page_url",
+                                                "to",
+                                                "total"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "success",
+                                        "message",
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/motor-stocks/{id}": {
+            "get": {
+                "operationId": "motorStock.show",
+                "summary": "Detail 1 baris stok motor beserta daftar unit fisik di dalamnya",
+                "tags": [
+                    "MotorStock"
+                ],
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "500": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "const": "Terjadi kesalahan pada server. Silakan coba lagi."
+                                        }
+                                    },
+                                    "required": [
+                                        "success",
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "const": "Detail stok motor berhasil ditemukan."
+                                        },
+                                        "data": {
+                                            "anyOf": [
+                                                {
+                                                    "$ref": "#/components/schemas/MotorStock"
+                                                },
+                                                {
+                                                    "type": "null"
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "success",
+                                        "message",
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "const": "Data stok motor tidak ditemukan."
+                                        }
+                                    },
+                                    "required": [
+                                        "success",
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/motor-units": {
+            "get": {
+                "operationId": "motorUnit.index",
+                "summary": "Ambil daftar seluruh unit fisik motor terpaginasi (filter nomor rangka, nomor mesin, dealer, status)",
+                "tags": [
+                    "MotorUnit"
+                ],
+                "parameters": [
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "item_code",
+                        "in": "query",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "status",
+                        "in": "query",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "500": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "const": "Terjadi kesalahan pada server. Silakan coba lagi."
+                                        }
+                                    },
+                                    "required": [
+                                        "success",
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "const": "Daftar unit fisik motor berhasil diambil."
+                                        },
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "current_page": {
+                                                    "type": "integer"
+                                                },
+                                                "data": {
+                                                    "type": "string"
+                                                },
+                                                "first_page_url": {
+                                                    "type": "string"
+                                                },
+                                                "from": {
+                                                    "type": [
+                                                        "integer",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "last_page": {
+                                                    "type": "string"
+                                                },
+                                                "last_page_url": {
+                                                    "type": "string"
+                                                },
+                                                "links": {
+                                                    "type": "object",
+                                                    "additionalProperties": {}
+                                                },
+                                                "next_page_url": {
+                                                    "type": "string"
+                                                },
+                                                "path": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "per_page": {
+                                                    "type": "integer"
+                                                },
+                                                "prev_page_url": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "to": {
+                                                    "type": [
+                                                        "integer",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "total": {
+                                                    "type": "string"
+                                                }
+                                            },
+                                            "required": [
+                                                "current_page",
+                                                "data",
+                                                "first_page_url",
+                                                "from",
+                                                "last_page",
+                                                "last_page_url",
+                                                "links",
+                                                "next_page_url",
+                                                "path",
+                                                "per_page",
+                                                "prev_page_url",
+                                                "to",
+                                                "total"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "success",
+                                        "message",
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            },
+            "post": {
+                "operationId": "motorUnit.store",
+                "summary": "Input penerimaan unit fisik motor baru dari AHM (nomor rangka & nomor mesin)",
+                "tags": [
+                    "MotorUnit"
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/StoreMotorUnitRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "500": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "const": "Terjadi kesalahan pada server. Silakan coba lagi."
+                                        }
+                                    },
+                                    "required": [
+                                        "success",
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "const": "Unit fisik motor baru berhasil diinput ke sistem."
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/MotorUnit"
+                                        }
+                                    },
+                                    "required": [
+                                        "success",
+                                        "message",
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/motor-units/{id}": {
+            "get": {
+                "operationId": "motorUnit.show",
+                "summary": "Detail 1 unit fisik motor beserta riwayat mutasinya",
+                "tags": [
+                    "MotorUnit"
+                ],
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "500": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "const": "Terjadi kesalahan pada server. Silakan coba lagi."
+                                        }
+                                    },
+                                    "required": [
+                                        "success",
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "const": "Detail unit fisik motor berhasil ditemukan."
+                                        },
+                                        "data": {
+                                            "anyOf": [
+                                                {
+                                                    "$ref": "#/components/schemas/MotorUnit"
+                                                },
+                                                {
+                                                    "type": "null"
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "success",
+                                        "message",
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "const": "Unit fisik motor tidak ditemukan."
+                                        }
+                                    },
+                                    "required": [
+                                        "success",
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
             },
             "put": {
-                "operationId": "motor.update",
+                "operationId": "motorUnit.update",
+                "summary": "Perbarui data unit fisik motor",
                 "tags": [
-                    "Motor"
+                    "MotorUnit"
+                ],
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/UpdateMotorUnitRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "500": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "const": "Terjadi kesalahan pada server. Silakan coba lagi."
+                                        }
+                                    },
+                                    "required": [
+                                        "success",
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "const": "Data unit fisik motor berhasil diperbarui."
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/MotorUnit"
+                                        }
+                                    },
+                                    "required": [
+                                        "success",
+                                        "message",
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            },
+            "delete": {
+                "operationId": "motorUnit.destroy",
+                "summary": "Hapus unit fisik motor (hanya jika belum terjual)",
+                "tags": [
+                    "MotorUnit"
+                ],
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "500": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "const": "Terjadi kesalahan pada server. Silakan coba lagi."
+                                        }
+                                    },
+                                    "required": [
+                                        "success",
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "success",
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "const": "Unit fisik motor berhasil dihapus."
+                                        }
+                                    },
+                                    "required": [
+                                        "success",
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/motor-units/{id}/reserve": {
+            "post": {
+                "operationId": "motorUnit.reserve_138",
+                "summary": "Kunci / reservasi unit fisik motor saat proses penjualan dimulai",
+                "tags": [
+                    "MotorUnit"
                 ],
                 "parameters": [
                     {
@@ -10662,7 +11225,7 @@
                     "content": {
                         "application/json": {
                             "schema": {
-                                "$ref": "#/components/schemas/MotorRequest"
+                                "$ref": "#/components/schemas/ReserveMotorUnitRequest"
                             }
                         }
                     }
@@ -10691,48 +11254,8 @@
                             }
                         }
                     },
-                    "409": {
-                        "description": "",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "success": {
-                                            "type": "boolean"
-                                        },
-                                        "message": {
-                                            "type": "string",
-                                            "const": "Kode item motor sudah terdaftar."
-                                        },
-                                        "errors": {
-                                            "type": "object",
-                                            "properties": {
-                                                "kode_item": {
-                                                    "type": "array",
-                                                    "prefixItems": [
-                                                        {
-                                                            "type": "string",
-                                                            "const": "Kombinasi kode tipe dan kode warna sudah terdaftar."
-                                                        }
-                                                    ],
-                                                    "minItems": 1,
-                                                    "maxItems": 1
-                                                }
-                                            },
-                                            "required": [
-                                                "kode_item"
-                                            ]
-                                        }
-                                    },
-                                    "required": [
-                                        "success",
-                                        "message",
-                                        "errors"
-                                    ]
-                                }
-                            }
-                        }
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
                     },
                     "200": {
                         "description": "",
@@ -10746,10 +11269,10 @@
                                         },
                                         "message": {
                                             "type": "string",
-                                            "const": "Data motor berhasil diperbarui."
+                                            "const": "Unit fisik motor berhasil dikunci untuk proses penjualan."
                                         },
                                         "data": {
-                                            "$ref": "#/components/schemas/Motor"
+                                            "$ref": "#/components/schemas/MotorUnit"
                                         }
                                     },
                                     "required": [
@@ -10761,43 +11284,18 @@
                             }
                         }
                     },
-                    "404": {
-                        "description": "",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "success": {
-                                            "type": "boolean"
-                                        },
-                                        "message": {
-                                            "type": "string",
-                                            "const": "Data motor tidak ditemukan."
-                                        }
-                                    },
-                                    "required": [
-                                        "success",
-                                        "message"
-                                    ]
-                                }
-                            }
-                        }
-                    },
                     "401": {
                         "$ref": "#/components/responses/AuthenticationException"
-                    },
-                    "422": {
-                        "$ref": "#/components/responses/ValidationException"
                     }
                 }
             }
         },
-        "/motors/{id}/status": {
-            "put": {
-                "operationId": "motor.status",
+        "/motor-units/{id}/lock": {
+            "post": {
+                "operationId": "motorUnit.reserve_139",
+                "summary": "Kunci / reservasi unit fisik motor saat proses penjualan dimulai",
                 "tags": [
-                    "Motor"
+                    "MotorUnit"
                 ],
                 "parameters": [
                     {
@@ -10810,14 +11308,353 @@
                     }
                 ],
                 "requestBody": {
+                    "required": true,
                     "content": {
                         "application/json": {
                             "schema": {
-                                "$ref": "#/components/schemas/GeografisStatusRequest"
+                                "$ref": "#/components/schemas/ReserveMotorUnitRequest"
                             }
                         }
                     }
                 },
+                "responses": {
+                    "500": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "const": "Terjadi kesalahan pada server. Silakan coba lagi."
+                                        }
+                                    },
+                                    "required": [
+                                        "success",
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "const": "Unit fisik motor berhasil dikunci untuk proses penjualan."
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/MotorUnit"
+                                        }
+                                    },
+                                    "required": [
+                                        "success",
+                                        "message",
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/motor-units/{id}/release": {
+            "post": {
+                "operationId": "motorUnit.release_140",
+                "summary": "Lepas kunci unit fisik motor jika penjualan dibatalkan, kembali ke AVAILABLE",
+                "tags": [
+                    "MotorUnit"
+                ],
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ReleaseMotorUnitRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "500": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "const": "Terjadi kesalahan pada server. Silakan coba lagi."
+                                        }
+                                    },
+                                    "required": [
+                                        "success",
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "const": "Kunci unit fisik motor berhasil dilepas dan kembali AVAILABLE."
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/MotorUnit"
+                                        }
+                                    },
+                                    "required": [
+                                        "success",
+                                        "message",
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/motor-units/{id}/unlock": {
+            "post": {
+                "operationId": "motorUnit.release_141",
+                "summary": "Lepas kunci unit fisik motor jika penjualan dibatalkan, kembali ke AVAILABLE",
+                "tags": [
+                    "MotorUnit"
+                ],
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ReleaseMotorUnitRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "500": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "const": "Terjadi kesalahan pada server. Silakan coba lagi."
+                                        }
+                                    },
+                                    "required": [
+                                        "success",
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "const": "Kunci unit fisik motor berhasil dilepas dan kembali AVAILABLE."
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/MotorUnit"
+                                        }
+                                    },
+                                    "required": [
+                                        "success",
+                                        "message",
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/motor-units/{id}/sell": {
+            "post": {
+                "operationId": "motorUnit.sell",
+                "summary": "Finalisasi penjualan unit fisik motor (status menjadi SOLD)",
+                "tags": [
+                    "MotorUnit"
+                ],
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/SellMotorUnitRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "500": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "const": "Terjadi kesalahan pada server. Silakan coba lagi."
+                                        }
+                                    },
+                                    "required": [
+                                        "success",
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "const": "Penjualan unit fisik motor berhasil diselesaikan (SOLD)."
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/MotorUnit"
+                                        }
+                                    },
+                                    "required": [
+                                        "success",
+                                        "message",
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/motor-units/{id}/movements": {
+            "get": {
+                "operationId": "motorUnit.movements",
+                "summary": "Ambil riwayat mutasi / pergerakan unit fisik motor",
+                "tags": [
+                    "MotorUnit"
+                ],
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
                 "responses": {
                     "500": {
                         "description": "",
@@ -10854,10 +11691,79 @@
                                         },
                                         "message": {
                                             "type": "string",
-                                            "const": "Status motor berhasil diubah."
+                                            "const": "Riwayat mutasi unit fisik motor berhasil diambil."
                                         },
                                         "data": {
-                                            "$ref": "#/components/schemas/Motor"
+                                            "type": "object",
+                                            "properties": {
+                                                "current_page": {
+                                                    "type": "integer"
+                                                },
+                                                "data": {
+                                                    "type": "string"
+                                                },
+                                                "first_page_url": {
+                                                    "type": "string"
+                                                },
+                                                "from": {
+                                                    "type": [
+                                                        "integer",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "last_page": {
+                                                    "type": "string"
+                                                },
+                                                "last_page_url": {
+                                                    "type": "string"
+                                                },
+                                                "links": {
+                                                    "type": "object",
+                                                    "additionalProperties": {}
+                                                },
+                                                "next_page_url": {
+                                                    "type": "string"
+                                                },
+                                                "path": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "per_page": {
+                                                    "type": "integer"
+                                                },
+                                                "prev_page_url": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "to": {
+                                                    "type": [
+                                                        "integer",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "total": {
+                                                    "type": "string"
+                                                }
+                                            },
+                                            "required": [
+                                                "current_page",
+                                                "data",
+                                                "first_page_url",
+                                                "from",
+                                                "last_page",
+                                                "last_page_url",
+                                                "links",
+                                                "next_page_url",
+                                                "path",
+                                                "per_page",
+                                                "prev_page_url",
+                                                "to",
+                                                "total"
+                                            ]
                                         }
                                     },
                                     "required": [
@@ -10881,7 +11787,7 @@
                                         },
                                         "message": {
                                             "type": "string",
-                                            "const": "Data motor tidak ditemukan."
+                                            "const": "Unit fisik motor tidak ditemukan."
                                         }
                                     },
                                     "required": [
@@ -10894,9 +11800,6 @@
                     },
                     "401": {
                         "$ref": "#/components/responses/AuthenticationException"
-                    },
-                    "422": {
-                        "$ref": "#/components/responses/ValidationException"
                     }
                 }
             }
@@ -17239,6 +18142,21 @@
                 },
                 "title": "GeografisStatusRequest"
             },
+            "ImportMotorRequest": {
+                "type": "object",
+                "properties": {
+                    "file": {
+                        "type": "string",
+                        "format": "binary",
+                        "contentMediaType": "application/octet-stream",
+                        "description": "Maximum file size: 500 kilobytes."
+                    }
+                },
+                "required": [
+                    "file"
+                ],
+                "title": "ImportMotorRequest"
+            },
             "ImportRequest": {
                 "type": "object",
                 "properties": {
@@ -18077,40 +18995,37 @@
                     "id": {
                         "type": "integer"
                     },
-                    "kode_item": {
+                    "item_code": {
                         "type": "string"
                     },
-                    "kode_tipe": {
+                    "type_code": {
                         "type": "string"
                     },
-                    "deskripsi_tipe": {
+                    "type_description": {
                         "type": "string"
                     },
-                    "kode_warna": {
+                    "color_code": {
                         "type": "string"
                     },
-                    "deskripsi_warna": {
+                    "color_description": {
                         "type": "string"
                     },
-                    "nama_pasar": {
+                    "market_name": {
                         "type": "string"
                     },
-                    "kelas": {
+                    "class": {
                         "type": "string"
                     },
-                    "tgl_awal": {
+                    "start_date": {
                         "type": "string",
                         "format": "date"
                     },
-                    "tgl_akhir": {
+                    "end_date": {
                         "type": [
                             "string",
                             "null"
                         ],
                         "format": "date"
-                    },
-                    "status": {
-                        "type": "boolean"
                     },
                     "created_at": {
                         "type": [
@@ -18129,53 +19044,52 @@
                 },
                 "required": [
                     "id",
-                    "kode_item",
-                    "kode_tipe",
-                    "deskripsi_tipe",
-                    "kode_warna",
-                    "deskripsi_warna",
-                    "nama_pasar",
-                    "kelas",
-                    "tgl_awal",
-                    "tgl_akhir",
-                    "status",
+                    "item_code",
+                    "type_code",
+                    "type_description",
+                    "color_code",
+                    "color_description",
+                    "market_name",
+                    "class",
+                    "start_date",
+                    "end_date",
                     "created_at",
                     "updated_at"
                 ],
                 "title": "Motor"
             },
-            "MotorRequest": {
+            "MotorStock": {
                 "type": "object",
                 "properties": {
-                    "kode_tipe": {
-                        "type": "string",
-                        "maxLength": 15
+                    "id": {
+                        "type": "integer"
                     },
-                    "deskripsi_tipe": {
-                        "type": "string",
-                        "maxLength": 100
+                    "dealer_id": {
+                        "type": "integer"
                     },
-                    "kode_warna": {
-                        "type": "string",
-                        "maxLength": 10
+                    "item_code": {
+                        "type": "string"
                     },
-                    "deskripsi_warna": {
-                        "type": "string",
-                        "maxLength": 100
+                    "stok_tersedia": {
+                        "type": "integer"
                     },
-                    "nama_pasar": {
-                        "type": "string",
-                        "maxLength": 150
+                    "stok_dalam_proses": {
+                        "type": "integer"
                     },
-                    "kelas": {
-                        "type": "string",
-                        "maxLength": 50
+                    "stok_gudang": {
+                        "type": "integer"
                     },
-                    "tgl_awal": {
-                        "type": "string",
+                    "stok_terjual": {
+                        "type": "integer"
+                    },
+                    "created_at": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
                         "format": "date-time"
                     },
-                    "tgl_akhir": {
+                    "updated_at": {
                         "type": [
                             "string",
                             "null"
@@ -18184,15 +19098,99 @@
                     }
                 },
                 "required": [
-                    "kode_tipe",
-                    "deskripsi_tipe",
-                    "kode_warna",
-                    "deskripsi_warna",
-                    "nama_pasar",
-                    "kelas",
-                    "tgl_awal"
+                    "id",
+                    "dealer_id",
+                    "item_code",
+                    "stok_tersedia",
+                    "stok_dalam_proses",
+                    "stok_gudang",
+                    "stok_terjual",
+                    "created_at",
+                    "updated_at"
                 ],
-                "title": "MotorRequest"
+                "title": "MotorStock"
+            },
+            "MotorUnit": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "integer"
+                    },
+                    "motor_stock_id": {
+                        "type": "integer"
+                    },
+                    "dealer_id": {
+                        "type": "integer"
+                    },
+                    "item_code": {
+                        "type": "string"
+                    },
+                    "nomor_rangka": {
+                        "type": "string"
+                    },
+                    "nomor_mesin": {
+                        "type": "string"
+                    },
+                    "status": {
+                        "type": "string"
+                    },
+                    "referensi_transaksi": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "dikunci_oleh": {
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
+                    },
+                    "dikunci_sampai": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date-time"
+                    },
+                    "tanggal_terjual": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date-time"
+                    },
+                    "created_at": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date-time"
+                    },
+                    "updated_at": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date-time"
+                    }
+                },
+                "required": [
+                    "id",
+                    "motor_stock_id",
+                    "dealer_id",
+                    "item_code",
+                    "nomor_rangka",
+                    "nomor_mesin",
+                    "status",
+                    "referensi_transaksi",
+                    "dikunci_oleh",
+                    "dikunci_sampai",
+                    "tanggal_terjual",
+                    "created_at",
+                    "updated_at"
+                ],
+                "title": "MotorUnit"
             },
             "Pekerjaan": {
                 "type": "object",
@@ -18413,6 +19411,53 @@
                 ],
                 "title": "RegisterRequest"
             },
+            "ReleaseMotorUnitRequest": {
+                "type": "object",
+                "properties": {
+                    "kode_referensi": {
+                        "type": "string",
+                        "maxLength": 100
+                    },
+                    "catatan": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "maxLength": 500
+                    }
+                },
+                "required": [
+                    "kode_referensi"
+                ],
+                "title": "ReleaseMotorUnitRequest"
+            },
+            "ReserveMotorUnitRequest": {
+                "type": "object",
+                "properties": {
+                    "kode_referensi": {
+                        "type": "string",
+                        "maxLength": 100
+                    },
+                    "dikunci_sampai": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date-time"
+                    },
+                    "catatan": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "maxLength": 500
+                    }
+                },
+                "required": [
+                    "kode_referensi"
+                ],
+                "title": "ReserveMotorUnitRequest"
+            },
             "ResetPasswordRequest": {
                 "type": "object",
                 "properties": {
@@ -18524,6 +19569,26 @@
                 ],
                 "title": "SectorJob"
             },
+            "SellMotorUnitRequest": {
+                "type": "object",
+                "properties": {
+                    "kode_referensi": {
+                        "type": "string",
+                        "maxLength": 100
+                    },
+                    "catatan": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "maxLength": 500
+                    }
+                },
+                "required": [
+                    "kode_referensi"
+                ],
+                "title": "SellMotorUnitRequest"
+            },
             "SendOtpRequest": {
                 "type": "object",
                 "properties": {
@@ -18565,6 +19630,47 @@
                     "nonaktif"
                 ],
                 "title": "StatusUser"
+            },
+            "StoreMotorUnitRequest": {
+                "type": "object",
+                "properties": {
+                    "item_code": {
+                        "type": "string",
+                        "maxLength": 6
+                    },
+                    "dealer_id": {
+                        "type": "integer"
+                    },
+                    "nomor_rangka": {
+                        "type": "string",
+                        "maxLength": 50
+                    },
+                    "nomor_mesin": {
+                        "type": "string",
+                        "maxLength": 50
+                    },
+                    "kode_referensi": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "maxLength": 100
+                    },
+                    "catatan": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "maxLength": 500
+                    }
+                },
+                "required": [
+                    "item_code",
+                    "dealer_id",
+                    "nomor_rangka",
+                    "nomor_mesin"
+                ],
+                "title": "StoreMotorUnitRequest"
             },
             "TempKonsumen": {
                 "type": "object",
@@ -18782,6 +19888,37 @@
                     "revisi"
                 ],
                 "title": "TypeTempKonsumen"
+            },
+            "UpdateMotorUnitRequest": {
+                "type": "object",
+                "properties": {
+                    "nomor_rangka": {
+                        "type": "string",
+                        "maxLength": 50
+                    },
+                    "nomor_mesin": {
+                        "type": "string",
+                        "maxLength": 50
+                    },
+                    "status": {
+                        "type": "string",
+                        "enum": [
+                            "AVAILABLE",
+                            "RESERVED",
+                            "SOLD",
+                            "IN_TRANSIT",
+                            "DAMAGED"
+                        ]
+                    },
+                    "catatan": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "maxLength": 500
+                    }
+                },
+                "title": "UpdateMotorUnitRequest"
             },
             "UpdatePhotoRequest": {
                 "type": "object",

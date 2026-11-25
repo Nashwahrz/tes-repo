@@ -36,6 +36,7 @@ class RoleMenuSeeder extends Seeder
                 'url-ip-logins',
                 'app-key-ocrs',
                 'motors',
+                'motor-stocks',
             ],
             'Kacab' => [
                 'dashboard',
