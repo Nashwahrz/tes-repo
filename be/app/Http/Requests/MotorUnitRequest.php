@@ -4,10 +4,11 @@ namespace App\Http\Requests;
 
 use App\Models\Dealer;
 use App\Models\Motor;
+use App\Models\MotorUnit;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
-class StoreMotorUnitRequest extends FormRequest
+class MotorUnitRequest extends FormRequest
 {
     public function authorize(): bool
     {
@@ -35,12 +36,42 @@ class StoreMotorUnitRequest extends FormRequest
 
     public function rules(): array
     {
+        $isUpdate = $this->isMethod('put') || $this->isMethod('patch');
+        $id       = $this->route('id') ?? $this->route('motor_unit');
+        $reqRule  = $isUpdate ? ['sometimes', 'required'] : ['required'];
+
         return [
-            'item_code'      => ['required', 'string', 'max:6', Rule::exists(Motor::class, 'item_code')],
-            'dealer_id'      => ['required', 'integer', Rule::exists(Dealer::class, 'id')],
-            'nomor_rangka'   => ['required', 'string', 'max:50', 'unique:motor_units,nomor_rangka'],
-            'nomor_mesin'    => ['required', 'string', 'max:50', 'unique:motor_units,nomor_mesin'],
-            'catatan'        => ['nullable', 'string', 'max:500'],
+            'item_code'    => [...$reqRule, 'string', 'max:6', Rule::exists(Motor::class, 'item_code')],
+            'dealer_id'    => [...$reqRule, 'integer', Rule::exists(Dealer::class, 'id')],
+            'nomor_rangka' => [
+                ...$reqRule,
+                'string',
+                'max:50',
+                $isUpdate
+                    ? Rule::unique('motor_units', 'nomor_rangka')->ignore($id)
+                    : Rule::unique('motor_units', 'nomor_rangka'),
+            ],
+            'nomor_mesin'  => [
+                ...$reqRule,
+                'string',
+                'max:50',
+                $isUpdate
+                    ? Rule::unique('motor_units', 'nomor_mesin')->ignore($id)
+                    : Rule::unique('motor_units', 'nomor_mesin'),
+            ],
+            'status'       => [
+                'sometimes',
+                'required',
+                'string',
+                Rule::in([
+                    MotorUnit::STATUS_AVAILABLE,
+                    MotorUnit::STATUS_RESERVED,
+                    MotorUnit::STATUS_SOLD,
+                    MotorUnit::STATUS_IN_TRANSIT,
+                    MotorUnit::STATUS_DAMAGED,
+                ]),
+            ],
+            'catatan'      => ['nullable', 'string', 'max:500'],
         ];
     }
 
@@ -58,6 +89,7 @@ class StoreMotorUnitRequest extends FormRequest
             'nomor_mesin.required'  => 'Nomor mesin wajib diisi.',
             'nomor_mesin.max'       => 'Nomor mesin maksimal 50 karakter.',
             'nomor_mesin.unique'    => 'Nomor mesin sudah terdaftar pada unit lain.',
+            'status.in'             => 'Status unit tidak valid.',
             'catatan.max'           => 'Catatan maksimal 500 karakter.',
         ];
     }

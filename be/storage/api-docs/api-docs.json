@@ -10860,7 +10860,7 @@
                     "content": {
                         "application/json": {
                             "schema": {
-                                "$ref": "#/components/schemas/StoreMotorUnitRequest"
+                                "$ref": "#/components/schemas/MotorUnitRequest"
                             }
                         }
                     }
@@ -11045,10 +11045,11 @@
                     }
                 ],
                 "requestBody": {
+                    "required": true,
                     "content": {
                         "application/json": {
                             "schema": {
-                                "$ref": "#/components/schemas/UpdateMotorUnitRequest"
+                                "$ref": "#/components/schemas/MotorUnitRequest"
                             }
                         }
                     }
@@ -11203,97 +11204,10 @@
                 }
             }
         },
-        "/motor-units/{id}/reserve": {
-            "post": {
-                "operationId": "motorUnit.reserve_138",
-                "summary": "Kunci / reservasi unit fisik motor saat proses penjualan dimulai",
-                "tags": [
-                    "MotorUnit"
-                ],
-                "parameters": [
-                    {
-                        "name": "id",
-                        "in": "path",
-                        "required": true,
-                        "schema": {
-                            "type": "integer"
-                        }
-                    }
-                ],
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "$ref": "#/components/schemas/ReserveMotorUnitRequest"
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "500": {
-                        "description": "",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "success": {
-                                            "type": "boolean"
-                                        },
-                                        "message": {
-                                            "type": "string",
-                                            "const": "Terjadi kesalahan pada server. Silakan coba lagi."
-                                        }
-                                    },
-                                    "required": [
-                                        "success",
-                                        "message"
-                                    ]
-                                }
-                            }
-                        }
-                    },
-                    "422": {
-                        "$ref": "#/components/responses/ValidationException"
-                    },
-                    "200": {
-                        "description": "",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "success": {
-                                            "type": "boolean"
-                                        },
-                                        "message": {
-                                            "type": "string",
-                                            "const": "Unit fisik motor berhasil dikunci untuk proses penjualan."
-                                        },
-                                        "data": {
-                                            "$ref": "#/components/schemas/MotorUnit"
-                                        }
-                                    },
-                                    "required": [
-                                        "success",
-                                        "message",
-                                        "data"
-                                    ]
-                                }
-                            }
-                        }
-                    },
-                    "401": {
-                        "$ref": "#/components/responses/AuthenticationException"
-                    }
-                }
-            }
-        },
         "/motor-units/{id}/lock": {
             "post": {
-                "operationId": "motorUnit.reserve_139",
-                "summary": "Kunci / reservasi unit fisik motor saat proses penjualan dimulai",
+                "operationId": "motorUnit.lock",
+                "summary": "Kunci unit fisik motor saat proses penjualan dimulai",
                 "tags": [
                     "MotorUnit"
                 ],
@@ -11308,11 +11222,10 @@
                     }
                 ],
                 "requestBody": {
-                    "required": true,
                     "content": {
                         "application/json": {
                             "schema": {
-                                "$ref": "#/components/schemas/ReserveMotorUnitRequest"
+                                "$ref": "#/components/schemas/MotorUnitActionRequest"
                             }
                         }
                     }
@@ -11357,93 +11270,6 @@
                                         "message": {
                                             "type": "string",
                                             "const": "Unit fisik motor berhasil dikunci untuk proses penjualan."
-                                        },
-                                        "data": {
-                                            "$ref": "#/components/schemas/MotorUnit"
-                                        }
-                                    },
-                                    "required": [
-                                        "success",
-                                        "message",
-                                        "data"
-                                    ]
-                                }
-                            }
-                        }
-                    },
-                    "401": {
-                        "$ref": "#/components/responses/AuthenticationException"
-                    }
-                }
-            }
-        },
-        "/motor-units/{id}/release": {
-            "post": {
-                "operationId": "motorUnit.release_140",
-                "summary": "Lepas kunci unit fisik motor jika penjualan dibatalkan, kembali ke AVAILABLE",
-                "tags": [
-                    "MotorUnit"
-                ],
-                "parameters": [
-                    {
-                        "name": "id",
-                        "in": "path",
-                        "required": true,
-                        "schema": {
-                            "type": "integer"
-                        }
-                    }
-                ],
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "$ref": "#/components/schemas/ReleaseMotorUnitRequest"
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "500": {
-                        "description": "",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "success": {
-                                            "type": "boolean"
-                                        },
-                                        "message": {
-                                            "type": "string",
-                                            "const": "Terjadi kesalahan pada server. Silakan coba lagi."
-                                        }
-                                    },
-                                    "required": [
-                                        "success",
-                                        "message"
-                                    ]
-                                }
-                            }
-                        }
-                    },
-                    "422": {
-                        "$ref": "#/components/responses/ValidationException"
-                    },
-                    "200": {
-                        "description": "",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "success": {
-                                            "type": "boolean"
-                                        },
-                                        "message": {
-                                            "type": "string",
-                                            "const": "Kunci unit fisik motor berhasil dilepas dan kembali AVAILABLE."
                                         },
                                         "data": {
                                             "$ref": "#/components/schemas/MotorUnit"
@@ -11466,7 +11292,7 @@
         },
         "/motor-units/{id}/unlock": {
             "post": {
-                "operationId": "motorUnit.release_141",
+                "operationId": "motorUnit.unlock",
                 "summary": "Lepas kunci unit fisik motor jika penjualan dibatalkan, kembali ke AVAILABLE",
                 "tags": [
                     "MotorUnit"
@@ -11482,11 +11308,10 @@
                     }
                 ],
                 "requestBody": {
-                    "required": true,
                     "content": {
                         "application/json": {
                             "schema": {
-                                "$ref": "#/components/schemas/ReleaseMotorUnitRequest"
+                                "$ref": "#/components/schemas/MotorUnitActionRequest"
                             }
                         }
                     }
@@ -11569,11 +11394,10 @@
                     }
                 ],
                 "requestBody": {
-                    "required": true,
                     "content": {
                         "application/json": {
                             "schema": {
-                                "$ref": "#/components/schemas/SellMotorUnitRequest"
+                                "$ref": "#/components/schemas/MotorUnitActionRequest"
                             }
                         }
                     }
@@ -19134,12 +18958,6 @@
                     "status": {
                         "type": "string"
                     },
-                    "referensi_transaksi": {
-                        "type": [
-                            "string",
-                            "null"
-                        ]
-                    },
                     "dikunci_oleh": {
                         "type": [
                             "integer",
@@ -19183,7 +19001,6 @@
                     "nomor_rangka",
                     "nomor_mesin",
                     "status",
-                    "referensi_transaksi",
                     "dikunci_oleh",
                     "dikunci_sampai",
                     "tanggal_terjual",
@@ -19191,6 +19008,70 @@
                     "updated_at"
                 ],
                 "title": "MotorUnit"
+            },
+            "MotorUnitActionRequest": {
+                "type": "object",
+                "properties": {
+                    "dikunci_sampai": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date-time"
+                    },
+                    "catatan": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "maxLength": 500
+                    }
+                },
+                "title": "MotorUnitActionRequest"
+            },
+            "MotorUnitRequest": {
+                "type": "object",
+                "properties": {
+                    "item_code": {
+                        "type": "string",
+                        "maxLength": 6
+                    },
+                    "dealer_id": {
+                        "type": "integer"
+                    },
+                    "nomor_rangka": {
+                        "type": "string",
+                        "maxLength": 50
+                    },
+                    "nomor_mesin": {
+                        "type": "string",
+                        "maxLength": 50
+                    },
+                    "status": {
+                        "type": "string",
+                        "enum": [
+                            "AVAILABLE",
+                            "RESERVED",
+                            "SOLD",
+                            "IN_TRANSIT",
+                            "DAMAGED"
+                        ]
+                    },
+                    "catatan": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "maxLength": 500
+                    }
+                },
+                "required": [
+                    "item_code",
+                    "dealer_id",
+                    "nomor_rangka",
+                    "nomor_mesin"
+                ],
+                "title": "MotorUnitRequest"
             },
             "Pekerjaan": {
                 "type": "object",
@@ -19411,53 +19292,6 @@
                 ],
                 "title": "RegisterRequest"
             },
-            "ReleaseMotorUnitRequest": {
-                "type": "object",
-                "properties": {
-                    "kode_referensi": {
-                        "type": "string",
-                        "maxLength": 100
-                    },
-                    "catatan": {
-                        "type": [
-                            "string",
-                            "null"
-                        ],
-                        "maxLength": 500
-                    }
-                },
-                "required": [
-                    "kode_referensi"
-                ],
-                "title": "ReleaseMotorUnitRequest"
-            },
-            "ReserveMotorUnitRequest": {
-                "type": "object",
-                "properties": {
-                    "kode_referensi": {
-                        "type": "string",
-                        "maxLength": 100
-                    },
-                    "dikunci_sampai": {
-                        "type": [
-                            "string",
-                            "null"
-                        ],
-                        "format": "date-time"
-                    },
-                    "catatan": {
-                        "type": [
-                            "string",
-                            "null"
-                        ],
-                        "maxLength": 500
-                    }
-                },
-                "required": [
-                    "kode_referensi"
-                ],
-                "title": "ReserveMotorUnitRequest"
-            },
             "ResetPasswordRequest": {
                 "type": "object",
                 "properties": {
@@ -19569,26 +19403,6 @@
                 ],
                 "title": "SectorJob"
             },
-            "SellMotorUnitRequest": {
-                "type": "object",
-                "properties": {
-                    "kode_referensi": {
-                        "type": "string",
-                        "maxLength": 100
-                    },
-                    "catatan": {
-                        "type": [
-                            "string",
-                            "null"
-                        ],
-                        "maxLength": 500
-                    }
-                },
-                "required": [
-                    "kode_referensi"
-                ],
-                "title": "SellMotorUnitRequest"
-            },
             "SendOtpRequest": {
                 "type": "object",
                 "properties": {
@@ -19630,47 +19444,6 @@
                     "nonaktif"
                 ],
                 "title": "StatusUser"
-            },
-            "StoreMotorUnitRequest": {
-                "type": "object",
-                "properties": {
-                    "item_code": {
-                        "type": "string",
-                        "maxLength": 6
-                    },
-                    "dealer_id": {
-                        "type": "integer"
-                    },
-                    "nomor_rangka": {
-                        "type": "string",
-                        "maxLength": 50
-                    },
-                    "nomor_mesin": {
-                        "type": "string",
-                        "maxLength": 50
-                    },
-                    "kode_referensi": {
-                        "type": [
-                            "string",
-                            "null"
-                        ],
-                        "maxLength": 100
-                    },
-                    "catatan": {
-                        "type": [
-                            "string",
-                            "null"
-                        ],
-                        "maxLength": 500
-                    }
-                },
-                "required": [
-                    "item_code",
-                    "dealer_id",
-                    "nomor_rangka",
-                    "nomor_mesin"
-                ],
-                "title": "StoreMotorUnitRequest"
             },
             "TempKonsumen": {
                 "type": "object",
@@ -19888,37 +19661,6 @@
                     "revisi"
                 ],
                 "title": "TypeTempKonsumen"
-            },
-            "UpdateMotorUnitRequest": {
-                "type": "object",
-                "properties": {
-                    "nomor_rangka": {
-                        "type": "string",
-                        "maxLength": 50
-                    },
-                    "nomor_mesin": {
-                        "type": "string",
-                        "maxLength": 50
-                    },
-                    "status": {
-                        "type": "string",
-                        "enum": [
-                            "AVAILABLE",
-                            "RESERVED",
-                            "SOLD",
-                            "IN_TRANSIT",
-                            "DAMAGED"
-                        ]
-                    },
-                    "catatan": {
-                        "type": [
-                            "string",
-                            "null"
-                        ],
-                        "maxLength": 500
-                    }
-                },
-                "title": "UpdateMotorUnitRequest"
             },
             "UpdatePhotoRequest": {
                 "type": "object",

@@ -2,11 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\ReleaseMotorUnitRequest;
-use App\Http\Requests\ReserveMotorUnitRequest;
-use App\Http\Requests\SellMotorUnitRequest;
-use App\Http\Requests\StoreMotorUnitRequest;
-use App\Http\Requests\UpdateMotorUnitRequest;
+use App\Http\Requests\MotorUnitActionRequest;
+use App\Http\Requests\MotorUnitRequest;
 use App\Http\Responses\MotorUnitResponse;
 use App\Repositories\MotorUnitRepository;
 use App\Services\MotorUnitService;
@@ -74,7 +71,7 @@ class MotorUnitController extends Controller
     /**
      * Input penerimaan unit fisik motor baru dari AHM (nomor rangka & nomor mesin).
      */
-    public function store(StoreMotorUnitRequest $request): JsonResponse
+    public function store(MotorUnitRequest $request): JsonResponse
     {
         try {
             $userId = $request->user()?->id;
@@ -94,7 +91,7 @@ class MotorUnitController extends Controller
     /**
      * Perbarui data unit fisik motor.
      */
-    public function update(UpdateMotorUnitRequest $request, int $id): JsonResponse
+    public function update(MotorUnitRequest $request, int $id): JsonResponse
     {
         try {
             $userId = $request->user()?->id;
@@ -132,9 +129,9 @@ class MotorUnitController extends Controller
     }
 
     /**
-     * Kunci / reservasi unit fisik motor saat proses penjualan dimulai.
+     * Kunci unit fisik motor saat proses penjualan dimulai.
      */
-    public function reserve(ReserveMotorUnitRequest $request, int $id): JsonResponse
+    public function lock(MotorUnitActionRequest $request, int $id): JsonResponse
     {
         try {
             $validated     = $request->validated();
@@ -162,7 +159,7 @@ class MotorUnitController extends Controller
     /**
      * Lepas kunci unit fisik motor jika penjualan dibatalkan, kembali ke AVAILABLE.
      */
-    public function release(ReleaseMotorUnitRequest $request, int $id): JsonResponse
+    public function unlock(MotorUnitActionRequest $request, int $id): JsonResponse
     {
         try {
             $validated = $request->validated();
@@ -188,7 +185,7 @@ class MotorUnitController extends Controller
     /**
      * Finalisasi penjualan unit fisik motor (status menjadi SOLD).
      */
-    public function sell(SellMotorUnitRequest $request, int $id): JsonResponse
+    public function sell(MotorUnitActionRequest $request, int $id): JsonResponse
     {
         try {
             $validated = $request->validated();

@@ -4,7 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class ReserveMotorUnitRequest extends FormRequest
+class MotorUnitActionRequest extends FormRequest
 {
     public function authorize(): bool
     {
