@@ -99,6 +99,10 @@ class RolePermissionSeeder extends Seeder
                 'motor-units.tambah',
                 'motor-units.ubah',
                 'motor-units.hapus',
+                'penjualans.lihat',
+                'penjualans.tambah',
+                'penjualans.ubah',
+                'penjualans.hapus',
             ],
             'Kacab' => [
                 'dealers.lihat',
@@ -117,6 +121,10 @@ class RolePermissionSeeder extends Seeder
                 'kabupaten-kotas.lihat-aktif',
                 'kecamatans.lihat-aktif',
                 'kelurahans.lihat-aktif',
+                'penjualans.lihat',
+                'penjualans.tambah',
+                'penjualans.ubah',
+                'penjualans.hapus',
             ],
             'ADH' => [
                 'dealers.lihat',
@@ -133,6 +141,9 @@ class RolePermissionSeeder extends Seeder
                 'kabupaten-kotas.lihat-aktif',
                 'kecamatans.lihat-aktif',
                 'kelurahans.lihat-aktif',
+                'penjualans.lihat',
+                'penjualans.tambah',
+                'penjualans.ubah',
             ],
             'ME' => [
                 'dealers.lihat',
@@ -147,6 +158,8 @@ class RolePermissionSeeder extends Seeder
                 'kabupaten-kotas.lihat-aktif',
                 'kecamatans.lihat-aktif',
                 'kelurahans.lihat-aktif',
+                'penjualans.lihat',
+                'penjualans.tambah',
             ],
             'Kasir' => [
                 'dealers.lihat',
@@ -159,6 +172,8 @@ class RolePermissionSeeder extends Seeder
                 'kabupaten-kotas.lihat-aktif',
                 'kecamatans.lihat-aktif',
                 'kelurahans.lihat-aktif',
+                'penjualans.lihat',
+                'penjualans.ubah',
             ],
         ];
         foreach ($akses as $namaRole => $daftarPermission) {

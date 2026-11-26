@@ -15,6 +15,7 @@ use App\Http\Controllers\LogBlockedUserController;
 use App\Http\Controllers\LogUserController;
 use App\Http\Controllers\OtpController;
 use App\Http\Controllers\PekerjaanController;
+use App\Http\Controllers\PenjualanController;
 use App\Http\Controllers\ProvinsiController;
 use App\Http\Controllers\RoleMenuController;
 use App\Http\Controllers\RolePermissionController;
@@ -252,6 +253,14 @@ use Illuminate\Support\Facades\Route;
             Route::post('/{id}/unlock', [MotorUnitController::class, 'unlock'])->middleware('permission:motors.ubah,motor-stocks.ubah,motor-units.ubah');
             Route::post('/{id}/sell', [MotorUnitController::class, 'sell'])->middleware('permission:motors.ubah,motor-stocks.ubah,motor-units.ubah');
             Route::get('/{id}/movements', [MotorUnitController::class, 'movements'])->middleware('permission:motors.lihat,motor-stocks.lihat,motor-units.lihat');
+        });
+        Route::prefix('penjualans')->middleware('menu.access:penjualan')->group(function () {
+            Route::get('/', [PenjualanController::class, 'index'])->middleware('permission:penjualans.lihat');
+            Route::get('/summary', [PenjualanController::class, 'summary'])->middleware('permission:penjualans.lihat');
+            Route::post('/', [PenjualanController::class, 'store'])->middleware('permission:penjualans.tambah');
+            Route::get('/{id}', [PenjualanController::class, 'show'])->middleware('permission:penjualans.lihat');
+            Route::post('/{id}/lunas', [PenjualanController::class, 'lunas'])->middleware('permission:penjualans.ubah');
+            Route::post('/{id}/batal', [PenjualanController::class, 'batal'])->middleware('permission:penjualans.ubah');
         });
 
     });
