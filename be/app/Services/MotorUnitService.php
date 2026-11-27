@@ -5,11 +5,9 @@ namespace App\Services;
 use App\Enums\RoleEnum;
 use App\Models\Dealer;
 use App\Models\Motor;
-use App\Models\MotorPrice;
 use App\Models\MotorUnit;
 use App\Models\MotorUnitMovement;
 use App\Models\TempMotor;
-use App\Repositories\MotorPriceRepository;
 use App\Repositories\MotorStockRepository;
 use App\Repositories\MotorUnitRepository;
 use Carbon\CarbonInterface;
@@ -24,8 +22,7 @@ class MotorUnitService
 {
     public function __construct(
         protected MotorStockRepository $stockRepo,
-        protected MotorUnitRepository $unitRepo,
-        protected MotorPriceRepository $priceRepo
+        protected MotorUnitRepository $unitRepo
     ) {}
 
     /**
@@ -47,18 +44,13 @@ class MotorUnitService
                 throw new RuntimeException("Unit dengan nomor mesin {$nomorMesin} sudah terdaftar.");
             }
 
-            $stock = $this->stockRepo->findOrCreate($data['dealer_id'], $itemCode);
-            $motorPriceId = $this->resolveMotorPriceId(
-                $itemCode,
-                $nomorRangka,
-                isset($data['motor_price_id']) ? (int) $data['motor_price_id'] : null
-            );
+            $dealerId = isset($data['dealer_id']) && $data['dealer_id'] !== '' ? (int) $data['dealer_id'] : null;
+            $stock    = $this->stockRepo->findOrCreate($dealerId, $itemCode);
 
             $unit = MotorUnit::query()->create([
                 'motor_stock_id' => $stock->id,
-                'dealer_id'      => $data['dealer_id'],
+                'dealer_id'      => $dealerId,
                 'item_code'      => $itemCode,
-                'motor_price_id' => $motorPriceId,
                 'nomor_rangka'   => $nomorRangka,
                 'nomor_mesin'    => $nomorMesin,
                 'status'         => MotorUnit::STATUS_AVAILABLE,
@@ -75,14 +67,14 @@ class MotorUnitService
 
             $stock->syncFromUnits();
 
-            return $unit->fresh(['stock', 'motor', 'motorPrice', 'dealer']);
+            return $unit->fresh(['stock', 'motor', 'motorPrices', 'dealer']);
         });
     }
 
     /**
      * Import data penerimaan unit fisik motor secara massal dari file Excel (.xlsx / .xls).
      * Format kolom wajib: dealer_id, item_code, nomor_rangka, nomor_mesin
-     * Format kolom opsional: motor_price_id, catatan
+     * Format kolom opsional: catatan
      */
     public function importFromExcel(string $filePath, ?int $userId = null): array
     {
@@ -108,7 +100,7 @@ class MotorUnitService
             return [
                 'success'  => 0,
                 'failed'   => 0,
-                'errors'   => ['Header Excel tidak sesuai format. Harus: ' . implode(', ', $expectedHeader) . ' (opsional: motor_price_id, catatan)'],
+                'errors'   => ['Header Excel tidak sesuai format. Harus: ' . implode(', ', $expectedHeader) . ' (opsional: catatan)'],
                 'imported' => [],
             ];
         }
@@ -116,16 +108,16 @@ class MotorUnitService
         $columnMap = array_flip($normalizedHeader);
 
         $rules = [
-            'dealer_id'      => ['required', 'integer', Rule::exists(Dealer::class, 'id')],
+            // 'dealer_id'      => ['required', 'integer', Rule::exists(Dealer::class, 'id')],
+            'dealer_id'      => ['nullable', 'integer', Rule::exists(Dealer::class, 'id')],
             'item_code'      => ['required', 'string', 'max:6', Rule::exists(Motor::class, 'item_code')],
             'nomor_rangka'   => ['required', 'string', 'max:50'],
             'nomor_mesin'    => ['required', 'string', 'max:50'],
-            'motor_price_id' => ['nullable', 'integer', Rule::exists(MotorPrice::class, 'id')],
             'catatan'        => ['nullable', 'string', 'max:500'],
         ];
 
         $messages = [
-            'dealer_id.required'      => 'ID dealer wajib diisi.',
+            // 'dealer_id.required'      => 'ID dealer wajib diisi.',
             'dealer_id.integer'       => 'ID dealer harus berupa angka.',
             'dealer_id.exists'        => 'Data dealer tidak ditemukan.',
             'item_code.required'      => 'Kode item motor wajib diisi.',
@@ -135,8 +127,6 @@ class MotorUnitService
             'nomor_rangka.max'        => 'Nomor rangka maksimal 50 karakter.',
             'nomor_mesin.required'    => 'Nomor mesin wajib diisi.',
             'nomor_mesin.max'         => 'Nomor mesin maksimal 50 karakter.',
-            'motor_price_id.integer'  => 'ID master harga harus berupa angka.',
-            'motor_price_id.exists'   => 'Master harga motor tidak ditemukan.',
             'catatan.max'             => 'Catatan maksimal 500 karakter.',
         ];
 
@@ -164,7 +154,6 @@ class MotorUnitService
             $itemCode    = strtoupper(trim((string) ($row[$columnMap['item_code']] ?? '')));
             $nomorRangka = strtoupper(trim((string) ($row[$columnMap['nomor_rangka']] ?? '')));
             $nomorMesin  = strtoupper(trim((string) ($row[$columnMap['nomor_mesin']] ?? '')));
-            $priceRaw    = isset($columnMap['motor_price_id']) ? trim((string) ($row[$columnMap['motor_price_id']] ?? '')) : '';
             $catatanRaw  = isset($columnMap['catatan']) ? trim((string) ($row[$columnMap['catatan']] ?? '')) : '';
 
             if ($dealerRaw === '' && $itemCode === '' && $nomorRangka === '' && $nomorMesin === '') {
@@ -172,11 +161,10 @@ class MotorUnitService
             }
 
             $rowData = [
-                'dealer_id'      => is_numeric($dealerRaw) ? (int) $dealerRaw : $dealerRaw,
+                'dealer_id'      => $dealerRaw !== '' ? (is_numeric($dealerRaw) ? (int) $dealerRaw : $dealerRaw) : null,
                 'item_code'      => $itemCode,
                 'nomor_rangka'   => $nomorRangka,
                 'nomor_mesin'    => $nomorMesin,
-                'motor_price_id' => $priceRaw !== '' ? (is_numeric($priceRaw) ? (int) $priceRaw : $priceRaw) : null,
                 'catatan'        => $catatanRaw !== '' ? $catatanRaw : null,
             ];
 
@@ -188,10 +176,14 @@ class MotorUnitService
                 continue;
             }
 
-            if ($restrictedDealerId !== null && (int) $rowData['dealer_id'] !== $restrictedDealerId) {
-                $failed++;
-                $errors[] = "Baris {$rowNumber}: Anda tidak memiliki akses menginput unit untuk dealer ID {$rowData['dealer_id']}.";
-                continue;
+            if ($restrictedDealerId !== null) {
+                if ($rowData['dealer_id'] === null) {
+                    $rowData['dealer_id'] = $restrictedDealerId;
+                } elseif ((int) $rowData['dealer_id'] !== $restrictedDealerId) {
+                    $failed++;
+                    $errors[] = "Baris {$rowNumber}: Anda tidak memiliki akses menginput unit untuk dealer ID {$rowData['dealer_id']}.";
+                    continue;
+                }
             }
 
             try {
@@ -225,10 +217,6 @@ class MotorUnitService
             }
 
             $updatePayload = [];
-
-            if (array_key_exists('motor_price_id', $data)) {
-                $updatePayload['motor_price_id'] = $data['motor_price_id'];
-            }
 
             if (isset($data['nomor_rangka'])) {
                 $newRangka = strtoupper(trim((string) $data['nomor_rangka']));
@@ -430,50 +418,5 @@ class MotorUnitService
             'catatan'          => $catatan,
             'created_at'       => now(),
         ]);
-    }
-
-    /**
-     * Tentukan motor_price_id secara otomatis dari VIN (digit ke-10 ISO 3779) atau fallback tahun berjalan.
-     */
-    private function resolveMotorPriceId(string $itemCode, string $nomorRangka, ?int $givenPriceId = null): ?int
-    {
-        if ($givenPriceId !== null && $givenPriceId > 0) {
-            return $givenPriceId;
-        }
-
-        $tahunProduksi = $this->detectProductionYearFromVin($nomorRangka);
-        $price = $this->priceRepo->findByItemAndYear($itemCode, $tahunProduksi);
-
-        return $price?->id;
-    }
-
-    /**
-     * Ekstrak tahun produksi dari digit ke-10 Nomor Rangka (VIN 17 karakter).
-     */
-    private function detectProductionYearFromVin(string $nomorRangka): int
-    {
-        $vin = strtoupper(trim($nomorRangka));
-        if (strlen($vin) === 17) {
-            $yearCode = $vin[9];
-            $map = [
-                'L' => 2020,
-                'M' => 2021,
-                'N' => 2022,
-                'P' => 2023,
-                'R' => 2024,
-                'S' => 2025,
-                'T' => 2026,
-                'V' => 2027,
-                'W' => 2028,
-                'X' => 2029,
-                'Y' => 2030,
-            ];
-
-            if (isset($map[$yearCode])) {
-                return $map[$yearCode];
-            }
-        }
-
-        return (int) date('Y');
     }
 }

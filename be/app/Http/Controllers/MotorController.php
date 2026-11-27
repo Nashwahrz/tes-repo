@@ -25,6 +25,8 @@ class MotorController extends Controller
     public function index(Request $request)
     {
         try {
+            $request->integer('page', 1);
+            $request->integer('per_page', PaginateController::DEFAULT_PER_PAGE);
             $perPage = $this->paginateController->getPerPage($request);
             $motors  = $this->motorRepository->index($perPage, $request->query('search'));
             return $this->motorResponse->list($motors);

@@ -20,6 +20,8 @@ class MotorStockController extends Controller
     public function index(Request $request): JsonResponse
     {
         try {
+            $request->integer('page', 1);
+            $request->integer('per_page', PaginateController::DEFAULT_PER_PAGE);
             $perPage  = $this->paginateController->getPerPage($request);
             $search   = $request->query('search');
             $dealerId = $request->query('dealer_id') ? (int) $request->query('dealer_id') : null;

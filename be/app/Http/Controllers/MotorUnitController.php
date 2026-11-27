@@ -29,6 +29,8 @@ class MotorUnitController extends Controller
     public function index(Request $request): JsonResponse
     {
         try {
+            $request->integer('page', 1);
+            $request->integer('per_page', PaginateController::DEFAULT_PER_PAGE);
             $perPage  = $this->paginateController->getPerPage($request);
             $search   = $request->query('search');
             $dealerId = $request->query('dealer_id') ? (int) $request->query('dealer_id') : null;
@@ -155,6 +157,8 @@ class MotorUnitController extends Controller
                 return $this->response->notFound('Unit fisik motor tidak ditemukan.');
             }
 
+            $request->integer('page', 1);
+            $request->integer('per_page', 15);
             $perPage   = $this->paginateController->getPerPage($request);
             $movements = $this->repository->getMovements($id, $perPage);
 
@@ -170,6 +174,8 @@ class MotorUnitController extends Controller
     public function logs(Request $request): JsonResponse
     {
         try {
+            $request->integer('page', 1);
+            $request->integer('per_page', PaginateController::DEFAULT_PER_PAGE);
             $perPage         = $this->paginateController->getPerPage($request);
             $search          = $request->query('search');
             $dealerId        = $request->query('dealer_id') ? (int) $request->query('dealer_id') : null;

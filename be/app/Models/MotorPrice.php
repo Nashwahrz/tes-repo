@@ -57,6 +57,6 @@ class MotorPrice extends Model
 
     public function units(): HasMany
     {
-        return $this->hasMany(MotorUnit::class, 'motor_price_id');
+        return $this->hasMany(MotorUnit::class, 'item_code', 'item_code');
     }
 }

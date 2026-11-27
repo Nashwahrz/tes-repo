@@ -4,7 +4,6 @@ namespace Database\Seeders;
 
 use App\Models\Dealer;
 use App\Models\Motor;
-use App\Models\MotorPrice;
 use App\Models\MotorStock;
 use App\Models\MotorUnit;
 use App\Models\MotorUnitMovement;
@@ -33,10 +32,6 @@ class MotorUnitSeeder extends Seeder
             ->pluck('id')
             ->flip();
 
-        $validPriceIds = MotorPrice::query()
-            ->pluck('id')
-            ->flip();
-
         $actorId = User::query()->value('id');
 
         $reader = IOFactory::createReaderForFile($path);
@@ -51,7 +46,6 @@ class MotorUnitSeeder extends Seeder
             $sheetRows,
             $validItemCodes,
             $validDealerIds,
-            $validPriceIds,
             $actorId,
             &$seededCount,
             &$skippedCount,
@@ -62,8 +56,7 @@ class MotorUnitSeeder extends Seeder
                 $itemCode     = strtoupper($this->clean($cols[1] ?? ''));
                 $nomorRangka  = strtoupper($this->clean($cols[2] ?? ''));
                 $nomorMesin   = strtoupper($this->clean($cols[3] ?? ''));
-                $motorPriceId = $this->clean($cols[4] ?? '');
-                $status       = strtoupper($this->clean($cols[5] ?? 'AVAILABLE'));
+                $status       = strtoupper($this->clean($cols[4] ?? 'AVAILABLE'));
 
                 if ($dealerId === '' && $itemCode === '' && $nomorRangka === '' && $nomorMesin === '') {
                     continue;
@@ -74,7 +67,7 @@ class MotorUnitSeeder extends Seeder
                     continue;
                 }
 
-                if ($itemCode === '' || $dealerId === '' || $nomorRangka === '' || $nomorMesin === '') {
+                if ($itemCode === '' || $nomorRangka === '' || $nomorMesin === '') {
                     $this->command?->warn('Baris ' . ($i + 1) . ' dilewati (data kurang).');
                     $skippedCount++;
                     continue;
@@ -86,16 +79,11 @@ class MotorUnitSeeder extends Seeder
                     continue;
                 }
 
-                $dealerIdInt = (int) $dealerId;
-                if (! $validDealerIds->has($dealerIdInt)) {
+                $dealerIdInt = is_numeric($dealerId) ? (int) $dealerId : null;
+                if ($dealerIdInt !== null && ! $validDealerIds->has($dealerIdInt)) {
                     $this->command?->warn('Baris ' . ($i + 1) . " dilewati (dealer_id '{$dealerIdInt}' tidak ditemukan di master.dealers).");
                     $skippedCount++;
                     continue;
-                }
-
-                $priceIdInt = is_numeric($motorPriceId) ? (int) $motorPriceId : null;
-                if ($priceIdInt !== null && ! $validPriceIds->has($priceIdInt)) {
-                    $priceIdInt = null;
                 }
 
                 // Lewati jika nomor rangka atau nomor mesin sudah ada
@@ -114,7 +102,6 @@ class MotorUnitSeeder extends Seeder
                     'motor_stock_id' => $stock->id,
                     'dealer_id'      => $dealerIdInt,
                     'item_code'      => $itemCode,
-                    'motor_price_id' => $priceIdInt,
                     'nomor_rangka'   => $nomorRangka,
                     'nomor_mesin'    => $nomorMesin,
                     'status'         => $unitStatus,
