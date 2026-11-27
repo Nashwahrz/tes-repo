@@ -24,6 +24,8 @@ class MotorPriceController extends Controller
     public function index(Request $request): JsonResponse
     {
         try {
+            $request->integer('page', 1);
+            $request->integer('per_page', PaginateController::DEFAULT_PER_PAGE);
             $perPage       = $this->paginateController->getPerPage($request);
             $search        = $request->query('search');
             $tahunProduksi = $request->query('tahun_produksi') ? (int) $request->query('tahun_produksi') : null;

@@ -10045,6 +10045,21 @@
                 ],
                 "parameters": [
                     {
+                        "name": "page",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "default": 1
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
                         "name": "search",
                         "in": "query",
                         "schema": {
@@ -10448,6 +10463,21 @@
                     "MotorPrice"
                 ],
                 "parameters": [
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "default": 1
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
                     {
                         "name": "search",
                         "in": "query",
@@ -11162,6 +11192,21 @@
                 ],
                 "parameters": [
                     {
+                        "name": "page",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "default": 1
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
                         "name": "search",
                         "in": "query",
                         "schema": {
@@ -11413,6 +11458,21 @@
                 ],
                 "parameters": [
                     {
+                        "name": "page",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "default": 1
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
                         "name": "search",
                         "in": "query",
                         "schema": {
@@ -11641,6 +11701,21 @@
                     "MotorUnit"
                 ],
                 "parameters": [
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "default": 1
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
                     {
                         "name": "search",
                         "in": "query",
@@ -12254,6 +12329,22 @@
                         "required": true,
                         "schema": {
                             "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "default": 1
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "default": 15
                         }
                     }
                 ],
@@ -19858,12 +19949,6 @@
                         ],
                         "format": "date-time"
                     },
-                    "motor_price_id": {
-                        "type": [
-                            "integer",
-                            "null"
-                        ]
-                    },
                     "dealer_id": {
                         "type": [
                             "integer",
@@ -19881,7 +19966,6 @@
                     "tanggal_terjual",
                     "created_at",
                     "updated_at",
-                    "motor_price_id",
                     "dealer_id"
                 ],
                 "title": "MotorUnit"
@@ -19913,14 +19997,12 @@
                         "type": "string",
                         "maxLength": 6
                     },
-                    "motor_price_id": {
+                    "dealer_id": {
                         "type": [
                             "integer",
                             "null"
-                        ]
-                    },
-                    "dealer_id": {
-                        "type": "integer"
+                        ],
+                        "description": "'dealer_id'      => [...$reqRule, 'integer', Rule::exists(Dealer::class, 'id')],"
                     },
                     "nomor_rangka": {
                         "type": "string",
@@ -19950,7 +20032,6 @@
                 },
                 "required": [
                     "item_code",
-                    "dealer_id",
                     "nomor_rangka",
                     "nomor_mesin"
                 ],

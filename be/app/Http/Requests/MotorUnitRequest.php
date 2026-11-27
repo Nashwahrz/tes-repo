@@ -5,7 +5,6 @@ namespace App\Http\Requests;
 use App\Http\Responses\MotorUnitResponse;
 use App\Models\Dealer;
 use App\Models\Motor;
-use App\Models\MotorPrice;
 use App\Models\MotorUnit;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
@@ -46,8 +45,8 @@ class MotorUnitRequest extends FormRequest
 
         return [
             'item_code'      => [...$reqRule, 'string', 'max:6', Rule::exists(Motor::class, 'item_code')],
-            'motor_price_id' => ['nullable', 'integer', Rule::exists(MotorPrice::class, 'id')],
-            'dealer_id'      => [...$reqRule, 'integer', Rule::exists(Dealer::class, 'id')],
+            // 'dealer_id'      => [...$reqRule, 'integer', Rule::exists(Dealer::class, 'id')],
+            'dealer_id'      => ['nullable', 'integer', Rule::exists(Dealer::class, 'id')],
             'nomor_rangka' => [
                 ...$reqRule,
                 'string',
@@ -86,9 +85,8 @@ class MotorUnitRequest extends FormRequest
             'item_code.required'     => 'Kode item motor wajib diisi.',
             'item_code.max'          => 'Kode item motor maksimal 6 karakter.',
             'item_code.exists'       => 'Kode item motor tidak ditemukan di master motor.',
-            'motor_price_id.integer' => 'ID master harga harus berupa angka.',
-            'motor_price_id.exists'  => 'Master harga motor tidak ditemukan.',
-            'dealer_id.required'     => 'Dealer wajib dipilih.',
+            // 'dealer_id.required'     => 'Dealer wajib dipilih.',
+            'dealer_id.integer'      => 'ID dealer harus berupa angka.',
             'dealer_id.exists'       => 'Data dealer tidak ditemukan.',
             'nomor_rangka.required'  => 'Nomor rangka wajib diisi.',
             'nomor_rangka.max'       => 'Nomor rangka maksimal 50 karakter.',

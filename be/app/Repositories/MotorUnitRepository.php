@@ -25,7 +25,7 @@ class MotorUnitRepository
             ->with([
                 'stock',
                 'motor:id,item_code,type_code,type_description,color_code,color_description,market_name,class',
-                'motorPrice',
+                'motorPrices' => fn ($q) => $q->where('status', true)->orderByDesc('tahun_produksi'),
                 'dealer:id,dealer_name,address',
                 'tempMotor.dikunciOleh:id,name,email',
             ]);
@@ -71,7 +71,7 @@ class MotorUnitRepository
         $relations = [
             'stock',
             'motor',
-            'motorPrice',
+            'motorPrices' => fn ($q) => $q->where('status', true)->orderByDesc('tahun_produksi'),
             'dealer',
             'tempMotor.dikunciOleh:id,name,email',
         ];
