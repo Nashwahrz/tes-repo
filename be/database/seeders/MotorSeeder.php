@@ -10,7 +10,7 @@ class MotorSeeder extends Seeder
 {
     public function run(): void
     {
-        $path = database_path('seeders/data/master_motor_utc.utc');
+        $path = database_path('seeders/data/master_motor.utc');
 
         if (! is_file($path)) {
             $this->command?->error("File tidak ditemukan: {$path}");
@@ -88,7 +88,7 @@ class MotorSeeder extends Seeder
             }
         });
 
-        $this->command?->info(count($rows) . ' master motor di-seed dari master_motor_utc.utc.');
+        $this->command?->info(count($rows) . ' master motor di-seed dari master_motor.utc.');
     }
 
     private function parseDate(?string $raw): ?string

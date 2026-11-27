@@ -2,8 +2,6 @@
 
 namespace App\Services;
 
-use App\Enums\RoleEnum;
-use App\Models\Dealer;
 use App\Models\Motor;
 use App\Models\MotorPrice;
 use App\Models\MotorUnit;
@@ -13,7 +11,6 @@ use App\Repositories\MotorPriceRepository;
 use App\Repositories\MotorStockRepository;
 use App\Repositories\MotorUnitRepository;
 use Carbon\CarbonInterface;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
@@ -47,7 +44,7 @@ class MotorUnitService
                 throw new RuntimeException("Unit dengan nomor mesin {$nomorMesin} sudah terdaftar.");
             }
 
-            $stock = $this->stockRepo->findOrCreate($data['dealer_id'], $itemCode);
+            $stock = $this->stockRepo->findOrCreate(null, $itemCode);
             $motorPriceId = $this->resolveMotorPriceId(
                 $itemCode,
                 $nomorRangka,
@@ -56,7 +53,6 @@ class MotorUnitService
 
             $unit = MotorUnit::query()->create([
                 'motor_stock_id' => $stock->id,
-                'dealer_id'      => $data['dealer_id'],
                 'item_code'      => $itemCode,
                 'motor_price_id' => $motorPriceId,
                 'nomor_rangka'   => $nomorRangka,
@@ -75,13 +71,13 @@ class MotorUnitService
 
             $stock->syncFromUnits();
 
-            return $unit->fresh(['stock', 'motor', 'motorPrice', 'dealer']);
+            return $unit->fresh(['stock', 'motor', 'motorPrice']);
         });
     }
 
     /**
      * Import data penerimaan unit fisik motor secara massal dari file Excel (.xlsx / .xls).
-     * Format kolom wajib: dealer_id, item_code, nomor_rangka, nomor_mesin
+     * Format kolom wajib: item_code, nomor_rangka, nomor_mesin
      * Format kolom opsional: motor_price_id, catatan
      */
     public function importFromExcel(string $filePath, ?int $userId = null): array
@@ -101,7 +97,7 @@ class MotorUnitService
 
         $header           = array_shift($rows);
         $normalizedHeader = array_map(fn ($h) => strtolower(trim((string) $h)), $header);
-        $expectedHeader   = ['dealer_id', 'item_code', 'nomor_rangka', 'nomor_mesin'];
+        $expectedHeader   = ['item_code', 'nomor_rangka', 'nomor_mesin'];
         $actualHeader     = array_values(array_filter($normalizedHeader, fn ($h) => $h !== ''));
 
         if (array_slice($actualHeader, 0, count($expectedHeader)) !== $expectedHeader) {
@@ -116,7 +112,6 @@ class MotorUnitService
         $columnMap = array_flip($normalizedHeader);
 
         $rules = [
-            'dealer_id'      => ['required', 'integer', Rule::exists(Dealer::class, 'id')],
             'item_code'      => ['required', 'string', 'max:6', Rule::exists(Motor::class, 'item_code')],
             'nomor_rangka'   => ['required', 'string', 'max:50'],
             'nomor_mesin'    => ['required', 'string', 'max:50'],
@@ -125,9 +120,6 @@ class MotorUnitService
         ];
 
         $messages = [
-            'dealer_id.required'      => 'ID dealer wajib diisi.',
-            'dealer_id.integer'       => 'ID dealer harus berupa angka.',
-            'dealer_id.exists'        => 'Data dealer tidak ditemukan.',
             'item_code.required'      => 'Kode item motor wajib diisi.',
             'item_code.max'           => 'Kode item motor maksimal 6 karakter.',
             'item_code.exists'        => 'Kode item motor tidak ditemukan di master motor.',
@@ -140,18 +132,6 @@ class MotorUnitService
             'catatan.max'             => 'Catatan maksimal 500 karakter.',
         ];
 
-        $restrictedDealerId = null;
-        if (Auth::check()) {
-            $authUser = Auth::user();
-            $roleName = $authUser->relationLoaded('role')
-                ? $authUser->role?->role_name
-                : $authUser->role()->value('role_name');
-
-            if ($roleName !== RoleEnum::SuperAdmin->value && $authUser->fk_dealer) {
-                $restrictedDealerId = (int) $authUser->fk_dealer;
-            }
-        }
-
         $success  = 0;
         $failed   = 0;
         $errors   = [];
@@ -160,19 +140,17 @@ class MotorUnitService
         foreach ($rows as $rowIndex => $row) {
             $rowNumber = $rowIndex + 1;
 
-            $dealerRaw     = trim((string) ($row[$columnMap['dealer_id']] ?? ''));
-            $itemCode      = strtoupper(trim((string) ($row[$columnMap['item_code']] ?? '')));
-            $nomorRangka   = strtoupper(trim((string) ($row[$columnMap['nomor_rangka']] ?? '')));
-            $nomorMesin    = strtoupper(trim((string) ($row[$columnMap['nomor_mesin']] ?? '')));
-            $priceRaw      = isset($columnMap['motor_price_id']) ? trim((string) ($row[$columnMap['motor_price_id']] ?? '')) : '';
-            $catatanRaw    = isset($columnMap['catatan']) ? trim((string) ($row[$columnMap['catatan']] ?? '')) : '';
+            $itemCode    = strtoupper(trim((string) ($row[$columnMap['item_code']] ?? '')));
+            $nomorRangka = strtoupper(trim((string) ($row[$columnMap['nomor_rangka']] ?? '')));
+            $nomorMesin  = strtoupper(trim((string) ($row[$columnMap['nomor_mesin']] ?? '')));
+            $priceRaw    = isset($columnMap['motor_price_id']) ? trim((string) ($row[$columnMap['motor_price_id']] ?? '')) : '';
+            $catatanRaw  = isset($columnMap['catatan']) ? trim((string) ($row[$columnMap['catatan']] ?? '')) : '';
 
-            if ($dealerRaw === '' && $itemCode === '' && $nomorRangka === '' && $nomorMesin === '') {
+            if ($itemCode === '' && $nomorRangka === '' && $nomorMesin === '') {
                 continue;
             }
 
             $rowData = [
-                'dealer_id'      => is_numeric($dealerRaw) ? (int) $dealerRaw : $dealerRaw,
                 'item_code'      => $itemCode,
                 'nomor_rangka'   => $nomorRangka,
                 'nomor_mesin'    => $nomorMesin,
@@ -185,12 +163,6 @@ class MotorUnitService
             if ($validator->fails()) {
                 $failed++;
                 $errors[] = "Baris {$rowNumber}: " . implode(', ', $validator->errors()->all());
-                continue;
-            }
-
-            if ($restrictedDealerId !== null && (int) $rowData['dealer_id'] !== $restrictedDealerId) {
-                $failed++;
-                $errors[] = "Baris {$rowNumber}: Anda tidak memiliki akses menginput unit untuk dealer ID {$rowData['dealer_id']}.";
                 continue;
             }
 
@@ -266,7 +238,7 @@ class MotorUnitService
                 $unit->stock?->syncFromUnits();
             }
 
-            return $unit->fresh(['stock', 'motor', 'dealer', 'tempMotor.dikunciOleh']);
+            return $unit->fresh(['stock', 'motor', 'tempMotor.dikunciOleh']);
         });
     }
 
@@ -318,7 +290,7 @@ class MotorUnitService
 
             $unit->stock?->syncFromUnits();
 
-            return $unit->fresh(['stock', 'motor', 'dealer', 'tempMotor.dikunciOleh']);
+            return $unit->fresh(['stock', 'motor', 'tempMotor.dikunciOleh']);
         });
     }
 
@@ -362,7 +334,7 @@ class MotorUnitService
 
             $unit->stock?->syncFromUnits();
 
-            return $unit->fresh(['stock', 'motor', 'dealer', 'tempMotor']);
+            return $unit->fresh(['stock', 'motor', 'tempMotor']);
         });
     }
 
@@ -406,7 +378,7 @@ class MotorUnitService
 
             $unit->stock?->syncFromUnits();
 
-            return $unit->fresh(['stock', 'motor', 'dealer']);
+            return $unit->fresh(['stock', 'motor']);
         });
     }
 
@@ -421,7 +393,7 @@ class MotorUnitService
         MotorUnitMovement::query()->create([
             'motor_unit_id'    => $unit->id,
             'motor_stock_id'   => $unit->motor_stock_id,
-            'dealer_id'        => $unit->dealer_id,
+            'dealer_id'        => null,
             'item_code'        => $unit->item_code,
             'jenis_pergerakan' => $jenisPergerakan,
             'status_awal'      => $statusAwal,

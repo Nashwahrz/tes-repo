@@ -2,7 +2,6 @@
 
 namespace Database\Seeders;
 
-use App\Models\Dealer;
 use App\Models\Motor;
 use App\Models\MotorPrice;
 use App\Models\MotorStock;
@@ -29,10 +28,6 @@ class MotorUnitSeeder extends Seeder
             ->map(fn ($code) => strtoupper(trim((string) $code)))
             ->flip();
 
-        $validDealerIds = Dealer::withoutGlobalScopes()
-            ->pluck('id')
-            ->flip();
-
         $validPriceIds = MotorPrice::query()
             ->pluck('id')
             ->flip();
@@ -50,7 +45,6 @@ class MotorUnitSeeder extends Seeder
         DB::transaction(function () use (
             $sheetRows,
             $validItemCodes,
-            $validDealerIds,
             $validPriceIds,
             $actorId,
             &$seededCount,
@@ -58,23 +52,22 @@ class MotorUnitSeeder extends Seeder
             &$affectedStockIds
         ) {
             foreach ($sheetRows as $i => $cols) {
-                $dealerId     = $this->clean($cols[0] ?? '');
-                $itemCode     = strtoupper($this->clean($cols[1] ?? ''));
-                $nomorRangka  = strtoupper($this->clean($cols[2] ?? ''));
-                $nomorMesin   = strtoupper($this->clean($cols[3] ?? ''));
-                $motorPriceId = $this->clean($cols[4] ?? '');
-                $status       = strtoupper($this->clean($cols[5] ?? 'AVAILABLE'));
+                $itemCode     = strtoupper($this->clean($cols[0] ?? ''));
+                $nomorRangka  = strtoupper($this->clean($cols[1] ?? ''));
+                $nomorMesin   = strtoupper($this->clean($cols[2] ?? ''));
+                $motorPriceId = $this->clean($cols[3] ?? '');
+                $status       = strtoupper($this->clean($cols[4] ?? 'AVAILABLE'));
 
-                if ($dealerId === '' && $itemCode === '' && $nomorRangka === '' && $nomorMesin === '') {
+                if ($itemCode === '' && $nomorRangka === '' && $nomorMesin === '') {
                     continue;
                 }
 
                 // Lewati baris header
-                if ($i === 0 && strtolower($dealerId) === 'dealer_id') {
+                if ($i === 0 && strtolower($itemCode) === 'item_code') {
                     continue;
                 }
 
-                if ($itemCode === '' || $dealerId === '' || $nomorRangka === '' || $nomorMesin === '') {
+                if ($itemCode === '' || $nomorRangka === '' || $nomorMesin === '') {
                     $this->command?->warn('Baris ' . ($i + 1) . ' dilewati (data kurang).');
                     $skippedCount++;
                     continue;
@@ -82,13 +75,6 @@ class MotorUnitSeeder extends Seeder
 
                 if (! $validItemCodes->has($itemCode)) {
                     $this->command?->warn('Baris ' . ($i + 1) . " dilewati (item_code '{$itemCode}' tidak ditemukan di master.motors).");
-                    $skippedCount++;
-                    continue;
-                }
-
-                $dealerIdInt = (int) $dealerId;
-                if (! $validDealerIds->has($dealerIdInt)) {
-                    $this->command?->warn('Baris ' . ($i + 1) . " dilewati (dealer_id '{$dealerIdInt}' tidak ditemukan di master.dealers).");
                     $skippedCount++;
                     continue;
                 }
@@ -104,7 +90,7 @@ class MotorUnitSeeder extends Seeder
                 }
 
                 $stock = MotorStock::firstOrCreate(
-                    ['dealer_id' => $dealerIdInt, 'item_code' => $itemCode],
+                    ['dealer_id' => null, 'item_code' => $itemCode],
                     ['stok_tersedia' => 0, 'stok_dalam_proses' => 0, 'stok_gudang' => 0, 'stok_terjual' => 0]
                 );
 
@@ -112,7 +98,6 @@ class MotorUnitSeeder extends Seeder
 
                 $unit = MotorUnit::query()->create([
                     'motor_stock_id' => $stock->id,
-                    'dealer_id'      => $dealerIdInt,
                     'item_code'      => $itemCode,
                     'motor_price_id' => $priceIdInt,
                     'nomor_rangka'   => $nomorRangka,
@@ -123,7 +108,7 @@ class MotorUnitSeeder extends Seeder
                 MotorUnitMovement::query()->create([
                     'motor_unit_id'    => $unit->id,
                     'motor_stock_id'   => $stock->id,
-                    'dealer_id'        => $dealerIdInt,
+                    'dealer_id'        => null,
                     'item_code'        => $itemCode,
                     'jenis_pergerakan' => MotorUnitMovement::TYPE_STOCK_IN,
                     'status_awal'      => null,

@@ -300,32 +300,39 @@ class MotorRepository
                     continue;
                 }
 
-                $itemCodeRaw     = trim($cols[0] ?? '');
-                $typeCode        = strtoupper(trim($cols[1] ?? ''));
-                $typeDescription = trim($cols[2] ?? '');
-                $colorCode       = strtoupper(trim($cols[3] ?? ''));
-                $colorDescription= trim($cols[4] ?? '');
-                $marketName      = trim($cols[5] ?? '');
-                // $cols[6] adalah kapasitas CC mesin -> diabaikan sesuai kolom database
-                $class           = trim($cols[7] ?? '');
-                $startDateRaw    = trim($cols[8] ?? '');
-                $endDateRaw      = trim($cols[9] ?? '');
+                $itemCodeRaw      = trim($cols[0] ?? '');
+                $typeCode         = strtoupper(trim($cols[1] ?? ''));
+                $typeDescription  = trim($cols[2] ?? '');
+                $colorCode        = strtoupper(trim($cols[3] ?? ''));
+                $colorDescription = trim($cols[4] ?? '');
+                $marketName       = trim($cols[5] ?? '');
 
-                if ($startDateRaw !== '' && !preg_match('/^(\d{2})(\d{2})(\d{4})$/', $startDateRaw) && !preg_match('/^\d{4}-\d{2}-\d{2}$/', $startDateRaw)) {
+                if (count($cols) >= 10) {
+                    // Format 10 kolom: $cols[6] adalah kapasitas CC mesin -> diabaikan sesuai kolom database
+                    $class        = trim($cols[7] ?? '');
+                    $startDateRaw = trim($cols[8] ?? '');
+                    $endDateRaw   = trim($cols[9] ?? '');
+                } else {
+                    // Format 9 kolom (seperti master_motor.utc)
+                    $class        = trim($cols[6] ?? '');
+                    $startDateRaw = trim($cols[7] ?? '');
+                    $endDateRaw   = trim($cols[8] ?? '');
+                }
+
+                $startDate = $this->parseUtcDate($startDateRaw);
+                if ($startDateRaw !== '' && $startDate === null) {
                     $failed++;
-                    $errors[] = "Baris {$lineNumber}: Format tanggal awal ('{$startDateRaw}') tidak valid (harus 8 digit ddmmyyyy).";
+                    $errors[] = "Baris {$lineNumber}: Format tanggal awal ('{$startDateRaw}') tidak valid (gunakan ddmmyyyy, mm/dd/yyyy, atau yyyy-mm-dd).";
                     continue;
                 }
 
                 $isEndDateEmpty = ($endDateRaw === '' || $endDateRaw === '0' || $endDateRaw === '00000000');
-                if (!$isEndDateEmpty && !preg_match('/^(\d{2})(\d{2})(\d{4})$/', $endDateRaw) && !preg_match('/^\d{4}-\d{2}-\d{2}$/', $endDateRaw)) {
+                $endDate        = $this->parseUtcDate($endDateRaw);
+                if (!$isEndDateEmpty && $endDate === null) {
                     $failed++;
-                    $errors[] = "Baris {$lineNumber}: Format tanggal akhir ('{$endDateRaw}') tidak valid (harus 8 digit ddmmyyyy).";
+                    $errors[] = "Baris {$lineNumber}: Format tanggal akhir ('{$endDateRaw}') tidak valid (gunakan ddmmyyyy, mm/dd/yyyy, atau yyyy-mm-dd).";
                     continue;
                 }
-
-                $startDate = $this->parseUtcDate($startDateRaw);
-                $endDate   = $this->parseUtcDate($endDateRaw);
 
                 // Validasi kesesuaian kode item dengan kode tipe & kode warna
                 $expectedItemCode   = "{$typeCode}-{$colorCode}";
@@ -505,6 +512,15 @@ class MotorRepository
         // Format YYYY-MM-DD
         if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $raw)) {
             return $raw;
+        }
+
+        // Format n/j/Y (contoh: 9/11/2026 atau 12/31/2100)
+        if (preg_match('/^\d{1,2}\/\d{1,2}\/\d{4}$/', $raw)) {
+            try {
+                return \Carbon\Carbon::createFromFormat('n/j/Y', $raw)->format('Y-m-d');
+            } catch (\Throwable) {
+                return null;
+            }
         }
 
         try {

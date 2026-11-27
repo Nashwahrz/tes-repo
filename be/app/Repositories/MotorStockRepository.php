@@ -65,9 +65,9 @@ class MotorStockRepository
     }
 
     /**
-     * Cari atau buat baris di tabel motor_stocks untuk dealer & item_code motor tertentu.
+     * Cari atau buat baris di tabel motor_stocks untuk dealer (opsional) & item_code motor tertentu.
      */
-    public function findOrCreate(int $dealerId, string $itemCode): MotorStock
+    public function findOrCreate(?int $dealerId, string $itemCode): MotorStock
     {
         return MotorStock::firstOrCreate(
             ['dealer_id' => $dealerId, 'item_code' => strtoupper(trim($itemCode))],

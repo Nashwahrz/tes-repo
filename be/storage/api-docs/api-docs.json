@@ -19768,7 +19768,10 @@
                         "type": "integer"
                     },
                     "dealer_id": {
-                        "type": "integer"
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
                     },
                     "item_code": {
                         "type": "string"
@@ -19822,9 +19825,6 @@
                     "motor_stock_id": {
                         "type": "integer"
                     },
-                    "dealer_id": {
-                        "type": "integer"
-                    },
                     "item_code": {
                         "type": "string"
                     },
@@ -19868,7 +19868,6 @@
                 "required": [
                     "id",
                     "motor_stock_id",
-                    "dealer_id",
                     "item_code",
                     "nomor_rangka",
                     "nomor_mesin",
@@ -19913,9 +19912,6 @@
                             "null"
                         ]
                     },
-                    "dealer_id": {
-                        "type": "integer"
-                    },
                     "nomor_rangka": {
                         "type": "string",
                         "maxLength": 50
@@ -19944,7 +19940,6 @@
                 },
                 "required": [
                     "item_code",
-                    "dealer_id",
                     "nomor_rangka",
                     "nomor_mesin"
                 ],
