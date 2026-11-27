@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\ImportRequest;
 use App\Http\Requests\MotorUnitActionRequest;
 use App\Http\Requests\MotorUnitRequest;
+use App\Http\Responses\ImportResponse;
 use App\Http\Responses\MotorUnitResponse;
 use App\Repositories\MotorUnitRepository;
 use App\Services\MotorUnitService;
@@ -20,12 +22,10 @@ class MotorUnitController extends Controller
         protected MotorUnitRepository $repository,
         protected MotorUnitService $service,
         protected MotorUnitResponse $response,
+        protected ImportResponse $importResponse,
         protected PaginateController $paginateController
     ) {}
 
-    /**
-     * Ambil daftar seluruh unit fisik motor terpaginasi (filter nomor rangka, nomor mesin, dealer, status).
-     */
     public function index(Request $request): JsonResponse
     {
         try {
@@ -47,9 +47,6 @@ class MotorUnitController extends Controller
         }
     }
 
-    /**
-     * Detail 1 unit fisik motor beserta riwayat mutasinya.
-     */
     public function show(int $id): JsonResponse
     {
         try {
@@ -68,9 +65,6 @@ class MotorUnitController extends Controller
         }
     }
 
-    /**
-     * Input penerimaan unit fisik motor baru dari AHM (nomor rangka & nomor mesin).
-     */
     public function store(MotorUnitRequest $request): JsonResponse
     {
         try {
@@ -88,9 +82,6 @@ class MotorUnitController extends Controller
         }
     }
 
-    /**
-     * Perbarui data unit fisik motor.
-     */
     public function update(MotorUnitRequest $request, int $id): JsonResponse
     {
         try {
@@ -108,29 +99,6 @@ class MotorUnitController extends Controller
         }
     }
 
-    /**
-     * Hapus unit fisik motor (hanya jika belum terjual).
-     */
-    public function destroy(int $id, Request $request): JsonResponse
-    {
-        try {
-            $userId = $request->user()?->id;
-            $this->service->deleteUnit($id, $userId);
-
-            return $this->response->deleted('Unit fisik motor berhasil dihapus.');
-        } catch (RuntimeException $e) {
-            return $this->response->error($e->getMessage(), 422);
-        } catch (Throwable $e) {
-            Log::error("Gagal menghapus unit fisik motor ID {$id}: " . $e->getMessage(), [
-                'trace' => $e->getTraceAsString(),
-            ]);
-            return $this->response->serverError();
-        }
-    }
-
-    /**
-     * Kunci unit fisik motor saat proses penjualan dimulai.
-     */
     public function lock(MotorUnitActionRequest $request, int $id): JsonResponse
     {
         try {
@@ -156,9 +124,6 @@ class MotorUnitController extends Controller
         }
     }
 
-    /**
-     * Lepas kunci unit fisik motor jika penjualan dibatalkan, kembali ke AVAILABLE.
-     */
     public function unlock(MotorUnitActionRequest $request, int $id): JsonResponse
     {
         try {
@@ -182,35 +147,6 @@ class MotorUnitController extends Controller
         }
     }
 
-    /**
-     * Finalisasi penjualan unit fisik motor (status menjadi SOLD).
-     */
-    public function sell(MotorUnitActionRequest $request, int $id): JsonResponse
-    {
-        try {
-            $validated = $request->validated();
-            $userId    = $request->user()?->id;
-
-            $unit = $this->service->sellUnit(
-                unitId: $id,
-                userId: $userId,
-                catatan: $validated['catatan'] ?? null,
-            );
-
-            return $this->response->success($unit, 'Penjualan unit fisik motor berhasil diselesaikan (SOLD).');
-        } catch (RuntimeException $e) {
-            return $this->response->error($e->getMessage(), 422);
-        } catch (Throwable $e) {
-            Log::error("Gagal menjual unit motor ID {$id}: " . $e->getMessage(), [
-                'trace' => $e->getTraceAsString(),
-            ]);
-            return $this->response->serverError();
-        }
-    }
-
-    /**
-     * Ambil riwayat mutasi / pergerakan unit fisik motor.
-     */
     public function movements(int $id, Request $request): JsonResponse
     {
         try {
@@ -228,6 +164,54 @@ class MotorUnitController extends Controller
                 'trace' => $e->getTraceAsString(),
             ]);
             return $this->response->serverError();
+        }
+    }
+
+    public function logs(Request $request): JsonResponse
+    {
+        try {
+            $perPage         = $this->paginateController->getPerPage($request);
+            $search          = $request->query('search');
+            $dealerId        = $request->query('dealer_id') ? (int) $request->query('dealer_id') : null;
+            $itemCode        = $request->query('item_code');
+            $jenisPergerakan = $request->query('jenis_pergerakan');
+            $motorUnitId     = $request->query('motor_unit_id') ? (int) $request->query('motor_unit_id') : null;
+
+            $logs = $this->repository->getAllMovements(
+                $perPage,
+                $search,
+                $dealerId,
+                $itemCode,
+                $jenisPergerakan,
+                $motorUnitId
+            );
+
+            return $this->response->list($logs, 'Daftar log pergerakan unit motor berhasil diambil.');
+        } catch (Throwable $e) {
+            Log::error('Gagal mengambil log pergerakan unit motor: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString(),
+            ]);
+            return $this->response->serverError();
+        }
+    }
+
+    public function import(ImportRequest $request): JsonResponse
+    {
+        try {
+            $filePath = $request->file('file')->getRealPath();
+            $userId   = $request->user()?->id;
+            $result   = $this->service->importFromExcel($filePath, $userId);
+
+            if ($result['success'] === 0 && !empty($result['errors'])) {
+                return $this->importResponse->formatError($result['errors']);
+            }
+
+            return $this->importResponse->success($result, 'Unit Fisik Motor');
+        } catch (Throwable $e) {
+            Log::error('Gagal import unit fisik motor dari Excel: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString(),
+            ]);
+            return $this->importResponse->serverError('Gagal import unit fisik motor. Silakan coba lagi.');
         }
     }
 }

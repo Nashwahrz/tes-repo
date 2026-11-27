@@ -21,6 +21,7 @@ use App\Http\Controllers\RolePermissionController;
 use App\Http\Controllers\UrlIpLoginController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\MotorController;
+use App\Http\Controllers\MotorPriceController;
 use App\Http\Controllers\MotorStockController;
 use App\Http\Controllers\MotorUnitController;
 use Illuminate\Http\Request;
@@ -244,14 +245,23 @@ use Illuminate\Support\Facades\Route;
         });
         Route::prefix('motor-units')->group(function () {
             Route::get('/', [MotorUnitController::class, 'index'])->middleware('permission:motors.lihat,motor-stocks.lihat,motor-units.lihat');
+            Route::get('/logs', [MotorUnitController::class, 'logs'])->middleware('permission:motors.lihat,motor-stocks.lihat,motor-units.lihat');
+            Route::post('/import', [MotorUnitController::class, 'import'])->middleware('permission:motors.tambah,motor-stocks.tambah,motor-units.tambah');
             Route::get('/{id}', [MotorUnitController::class, 'show'])->middleware('permission:motors.lihat,motor-stocks.lihat,motor-units.lihat');
             Route::post('/', [MotorUnitController::class, 'store'])->middleware('permission:motors.tambah,motor-stocks.tambah,motor-units.tambah');
             Route::put('/{id}', [MotorUnitController::class, 'update'])->middleware('permission:motors.ubah,motor-stocks.ubah,motor-units.ubah');
-            Route::delete('/{id}', [MotorUnitController::class, 'destroy'])->middleware('permission:motors.hapus,motor-stocks.hapus,motor-units.hapus');
             Route::post('/{id}/lock', [MotorUnitController::class, 'lock'])->middleware('permission:motors.ubah,motor-stocks.ubah,motor-units.ubah');
             Route::post('/{id}/unlock', [MotorUnitController::class, 'unlock'])->middleware('permission:motors.ubah,motor-stocks.ubah,motor-units.ubah');
-            Route::post('/{id}/sell', [MotorUnitController::class, 'sell'])->middleware('permission:motors.ubah,motor-stocks.ubah,motor-units.ubah');
             Route::get('/{id}/movements', [MotorUnitController::class, 'movements'])->middleware('permission:motors.lihat,motor-stocks.lihat,motor-units.lihat');
+        });
+        Route::prefix('motor-prices')->group(function () {
+            Route::get('/', [MotorPriceController::class, 'index'])->middleware('permission:motors.lihat,motor-prices.lihat');
+            Route::post('/', [MotorPriceController::class, 'store'])->middleware('permission:motors.tambah,motor-prices.tambah');
+            Route::post('/import', [MotorPriceController::class, 'import'])->middleware('permission:motors.tambah,motor-prices.tambah');
+            Route::get('/{id}', [MotorPriceController::class, 'show'])->middleware('permission:motors.lihat,motor-prices.lihat');
+            Route::put('/{id}', [MotorPriceController::class, 'update'])->middleware('permission:motors.ubah,motor-prices.ubah');
+            Route::put('/{id}/status', [MotorPriceController::class, 'status'])->middleware('permission:motors.ubah,motor-prices.ubah');
+            Route::delete('/{id}', [MotorPriceController::class, 'destroy'])->middleware('permission:motors.hapus,motor-prices.hapus');
         });
 
     });

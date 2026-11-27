@@ -37,6 +37,7 @@ class RoleMenuSeeder extends Seeder
                 'app-key-ocrs',
                 'motors',
                 'motor-stocks',
+                'motor-prices',
             ],
             'Kacab' => [
                 'dashboard',

@@ -39,6 +39,7 @@ class MenuSeeder extends Seeder
             ['menu_name' => 'Log OTP',       'url' => 'log-otps',         'sequence' => 23, 'status' => true],
             ['menu_name' => 'Master Motor',          'url' => 'motors','sequence' => 24, 'status' => true],
             ['menu_name' => 'Stok Motor',            'url' => 'motor-stocks','sequence' => 25, 'status' => true],
+            ['menu_name' => 'Master Harga Motor',    'url' => 'motor-prices','sequence' => 26, 'status' => true],
             
         ];
          $menus = array_map(fn ($m) => $m + [

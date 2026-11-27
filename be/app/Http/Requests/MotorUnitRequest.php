@@ -2,10 +2,14 @@
 
 namespace App\Http\Requests;
 
+use App\Http\Responses\MotorUnitResponse;
 use App\Models\Dealer;
 use App\Models\Motor;
+use App\Models\MotorPrice;
 use App\Models\MotorUnit;
+use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Validation\Rule;
 
 class MotorUnitRequest extends FormRequest
@@ -41,23 +45,24 @@ class MotorUnitRequest extends FormRequest
         $reqRule  = $isUpdate ? ['sometimes', 'required'] : ['required'];
 
         return [
-            'item_code'    => [...$reqRule, 'string', 'max:6', Rule::exists(Motor::class, 'item_code')],
-            'dealer_id'    => [...$reqRule, 'integer', Rule::exists(Dealer::class, 'id')],
+            'item_code'      => [...$reqRule, 'string', 'max:6', Rule::exists(Motor::class, 'item_code')],
+            'motor_price_id' => ['nullable', 'integer', Rule::exists(MotorPrice::class, 'id')],
+            'dealer_id'      => [...$reqRule, 'integer', Rule::exists(Dealer::class, 'id')],
             'nomor_rangka' => [
                 ...$reqRule,
                 'string',
                 'max:50',
                 $isUpdate
-                    ? Rule::unique('motor_units', 'nomor_rangka')->ignore($id)
-                    : Rule::unique('motor_units', 'nomor_rangka'),
+                    ? Rule::unique(MotorUnit::class, 'nomor_rangka')->ignore($id)
+                    : Rule::unique(MotorUnit::class, 'nomor_rangka'),
             ],
             'nomor_mesin'  => [
                 ...$reqRule,
                 'string',
                 'max:50',
                 $isUpdate
-                    ? Rule::unique('motor_units', 'nomor_mesin')->ignore($id)
-                    : Rule::unique('motor_units', 'nomor_mesin'),
+                    ? Rule::unique(MotorUnit::class, 'nomor_mesin')->ignore($id)
+                    : Rule::unique(MotorUnit::class, 'nomor_mesin'),
             ],
             'status'       => [
                 'sometimes',
@@ -78,19 +83,28 @@ class MotorUnitRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'item_code.required'    => 'Kode item motor wajib diisi.',
-            'item_code.max'         => 'Kode item motor maksimal 6 karakter.',
-            'item_code.exists'      => 'Kode item motor tidak ditemukan di master motor.',
-            'dealer_id.required'    => 'Dealer wajib dipilih.',
-            'dealer_id.exists'      => 'Data dealer tidak ditemukan.',
-            'nomor_rangka.required' => 'Nomor rangka wajib diisi.',
-            'nomor_rangka.max'      => 'Nomor rangka maksimal 50 karakter.',
-            'nomor_rangka.unique'   => 'Nomor rangka sudah terdaftar pada unit lain.',
-            'nomor_mesin.required'  => 'Nomor mesin wajib diisi.',
-            'nomor_mesin.max'       => 'Nomor mesin maksimal 50 karakter.',
-            'nomor_mesin.unique'    => 'Nomor mesin sudah terdaftar pada unit lain.',
-            'status.in'             => 'Status unit tidak valid.',
-            'catatan.max'           => 'Catatan maksimal 500 karakter.',
+            'item_code.required'     => 'Kode item motor wajib diisi.',
+            'item_code.max'          => 'Kode item motor maksimal 6 karakter.',
+            'item_code.exists'       => 'Kode item motor tidak ditemukan di master motor.',
+            'motor_price_id.integer' => 'ID master harga harus berupa angka.',
+            'motor_price_id.exists'  => 'Master harga motor tidak ditemukan.',
+            'dealer_id.required'     => 'Dealer wajib dipilih.',
+            'dealer_id.exists'       => 'Data dealer tidak ditemukan.',
+            'nomor_rangka.required'  => 'Nomor rangka wajib diisi.',
+            'nomor_rangka.max'       => 'Nomor rangka maksimal 50 karakter.',
+            'nomor_rangka.unique'    => 'Nomor rangka sudah terdaftar pada unit lain.',
+            'nomor_mesin.required'   => 'Nomor mesin wajib diisi.',
+            'nomor_mesin.max'        => 'Nomor mesin maksimal 50 karakter.',
+            'nomor_mesin.unique'     => 'Nomor mesin sudah terdaftar pada unit lain.',
+            'status.in'              => 'Status unit tidak valid.',
+            'catatan.max'            => 'Catatan maksimal 500 karakter.',
         ];
+    }
+
+    protected function failedValidation(Validator $validator): void
+    {
+        throw new HttpResponseException(
+            app(MotorUnitResponse::class)->validationError($validator->errors()->toArray())
+        );
     }
 }
