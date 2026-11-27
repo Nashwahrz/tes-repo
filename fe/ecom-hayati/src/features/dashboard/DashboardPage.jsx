@@ -228,9 +228,16 @@ function DashboardPage() {
             <div className="dash-card">
               <Suspense fallback={<Loading rows={4} />}>
                 <MotorPanel
+                  dealers={dealers}
                   can={{
-                    import: can('motors.tambah'),
+                    import: can('motors.tambah')|| can('motor-units.tambah') || can('motor-prices.tambah'),
                     export: can('motors.lihat'),
+                    lihatMotor: can('motors.lihat'),
+                    lihatUnit: can('motors.lihat') || can('motor-stocks.lihat') || can('motor-units.lihat'),
+                    lihatPrice: can('motors.lihat') || can('motor-prices.lihat'),
+                    createUnit: can('motors.tambah') || can('motor-stocks.tambah') || can('motor-units.tambah'),
+                    createPrice: can('motors.tambah') || can('motor-prices.tambah'),
+                    updatePrice: can('motors.ubah') || can('motor-prices.ubah'),
                   }}
                 />
               </Suspense>

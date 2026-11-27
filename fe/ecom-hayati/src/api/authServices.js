@@ -6,6 +6,8 @@ export * from './dealers';
 export * from './master';
 export * from './konsumens';
 export * from './motors';
+export * from './motorUnits';
+export * from './motorPrices';
 export * from './whitelist';
 export * from './emailSmtp';
 export * from './urlIpLogin';
