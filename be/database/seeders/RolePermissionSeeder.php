@@ -99,6 +99,10 @@ class RolePermissionSeeder extends Seeder
                 'motor-units.tambah',
                 'motor-units.ubah',
                 'motor-units.hapus',
+                'motor-prices.lihat',
+                'motor-prices.tambah',
+                'motor-prices.ubah',
+                'motor-prices.hapus',
             ],
             'Kacab' => [
                 'dealers.lihat',

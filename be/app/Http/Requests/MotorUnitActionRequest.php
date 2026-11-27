@@ -2,7 +2,10 @@
 
 namespace App\Http\Requests;
 
+use App\Http\Responses\MotorUnitResponse;
+use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Http\Exceptions\HttpResponseException;
 
 class MotorUnitActionRequest extends FormRequest
 {
@@ -25,5 +28,12 @@ class MotorUnitActionRequest extends FormRequest
             'dikunci_sampai.date' => 'Format batas waktu kunci tidak valid.',
             'catatan.max'         => 'Catatan maksimal 500 karakter.',
         ];
+    }
+
+    protected function failedValidation(Validator $validator): void
+    {
+        throw new HttpResponseException(
+            app(MotorUnitResponse::class)->validationError($validator->errors()->toArray())
+        );
     }
 }

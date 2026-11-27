@@ -27,6 +27,9 @@ class DatabaseSeeder extends Seeder
             KabupatenKotaSeeder::class,
             KecamatanSeeder::class,
             KelurahanSeeder::class,
+            MotorSeeder::class,
+            MotorPriceSeeder::class,
+            MotorUnitSeeder::class,
         ]);
     }
 }

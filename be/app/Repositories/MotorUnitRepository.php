@@ -25,8 +25,9 @@ class MotorUnitRepository
             ->with([
                 'stock',
                 'motor:id,item_code,type_code,type_description,color_code,color_description,market_name,class',
+                'motorPrice',
                 'dealer:id,dealer_name,address',
-                'dikunciOleh:id,name,username',
+                'tempMotor.dikunciOleh:id,name,email',
             ]);
 
         $this->applyDealerScope($query, $dealerId);
@@ -70,12 +71,13 @@ class MotorUnitRepository
         $relations = [
             'stock',
             'motor',
+            'motorPrice',
             'dealer',
-            'dikunciOleh:id,name,username',
+            'tempMotor.dikunciOleh:id,name,email',
         ];
 
         if ($withMovements) {
-            $relations['movements'] = fn ($q) => $q->with('user:id,name,username')->latest('id');
+            $relations['movements'] = fn ($q) => $q->with('user:id,name,email')->latest('id');
         }
 
         $query = MotorUnit::query()->with($relations);
@@ -90,7 +92,7 @@ class MotorUnitRepository
     public function findByNomorRangka(string $nomorRangka): ?MotorUnit
     {
         return MotorUnit::query()
-            ->with(['stock', 'motor', 'dealer', 'dikunciOleh'])
+            ->with(['stock', 'motor', 'dealer', 'tempMotor.dikunciOleh:id,name,email'])
             ->where('nomor_rangka', strtoupper(trim($nomorRangka)))
             ->first();
     }
@@ -101,7 +103,7 @@ class MotorUnitRepository
     public function findByNomorMesin(string $nomorMesin): ?MotorUnit
     {
         return MotorUnit::query()
-            ->with(['stock', 'motor', 'dealer', 'dikunciOleh'])
+            ->with(['stock', 'motor', 'dealer', 'tempMotor.dikunciOleh:id,name,email'])
             ->where('nomor_mesin', strtoupper(trim($nomorMesin)))
             ->first();
     }
@@ -112,11 +114,70 @@ class MotorUnitRepository
     public function getMovements(int $motorUnitId, int $perPage = 15): LengthAwarePaginator
     {
         return MotorUnitMovement::query()
-            ->with(['user:id,name,username', 'motor:id,item_code,market_name', 'dealer:id,dealer_name'])
+            ->with(['user:id,name,email', 'motor:id,item_code,market_name', 'dealer:id,dealer_name'])
             ->where('motor_unit_id', $motorUnitId)
             ->latest('id')
             ->paginate($perPage)
             ->withQueryString();
+    }
+
+    /**
+     * Ambil seluruh log pergerakan unit fisik motor lintas unit (terpaginasi & terfilter).
+     */
+    public function getAllMovements(
+        int $perPage = 15,
+        ?string $search = null,
+        ?int $dealerId = null,
+        ?string $itemCode = null,
+        ?string $jenisPergerakan = null,
+        ?int $motorUnitId = null
+    ): LengthAwarePaginator {
+        $query = MotorUnitMovement::query()
+            ->with([
+                'unit:id,nomor_rangka,nomor_mesin,status',
+                'user:id,name,email',
+                'motor:id,item_code,type_code,market_name,color_description',
+                'dealer:id,dealer_name',
+            ]);
+
+        $this->applyDealerScope($query, $dealerId);
+
+        if ($motorUnitId !== null && $motorUnitId > 0) {
+            $query->where('motor_unit_id', $motorUnitId);
+        }
+
+        if ($itemCode !== null && trim($itemCode) !== '') {
+            $query->where('item_code', strtoupper(trim($itemCode)));
+        }
+
+        if ($jenisPergerakan !== null && trim($jenisPergerakan) !== '') {
+            $query->where('jenis_pergerakan', strtoupper(trim($jenisPergerakan)));
+        }
+
+        if ($search !== null && trim($search) !== '') {
+            $term = trim($search);
+            $query->where(function ($q) use ($term) {
+                $q->where('item_code', 'ILIKE', "%{$term}%")
+                    ->orWhere('jenis_pergerakan', 'ILIKE', "%{$term}%")
+                    ->orWhere('catatan', 'ILIKE', "%{$term}%")
+                    ->orWhereHas('unit', function ($uq) use ($term) {
+                        $uq->where('nomor_rangka', 'ILIKE', "%{$term}%")
+                            ->orWhere('nomor_mesin', 'ILIKE', "%{$term}%");
+                    })
+                    ->orWhereHas('motor', function ($mq) use ($term) {
+                        $mq->where('market_name', 'ILIKE', "%{$term}%")
+                            ->orWhere('type_code', 'ILIKE', "%{$term}%");
+                    })
+                    ->orWhereHas('dealer', function ($dq) use ($term) {
+                        $dq->where('dealer_name', 'ILIKE', "%{$term}%");
+                    })
+                    ->orWhereHas('user', function ($usq) use ($term) {
+                        $usq->where('name', 'ILIKE', "%{$term}%");
+                    });
+            });
+        }
+
+        return $query->latest('id')->paginate($perPage)->withQueryString();
     }
 
     private function applyDealerScope($query, ?int $filterDealerId = null): void

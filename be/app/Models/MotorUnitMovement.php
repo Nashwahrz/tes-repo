@@ -16,7 +16,7 @@ class MotorUnitMovement extends Model
 
     public const UPDATED_AT = null;
 
-    protected $table = 'motor_unit_movements';
+    protected $table = 'log.log_motor_unit_movements';
 
     protected $fillable = [
         'motor_unit_id',

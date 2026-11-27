@@ -101,6 +101,10 @@ class PermissionSeeder extends Seeder
             'motor-units.tambah',
             'motor-units.ubah',
             'motor-units.hapus',
+            'motor-prices.lihat',
+            'motor-prices.tambah',
+            'motor-prices.ubah',
+            'motor-prices.hapus',
             
         ];
         $rows = array_map(fn ($nama) => [

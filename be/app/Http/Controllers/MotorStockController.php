@@ -17,9 +17,6 @@ class MotorStockController extends Controller
         protected PaginateController $paginateController
     ) {}
 
-    /**
-     * Ambil daftar stok motor terpaginasi dari tabel motor_stocks.
-     */
     public function index(Request $request): JsonResponse
     {
         try {
@@ -39,9 +36,6 @@ class MotorStockController extends Controller
         }
     }
 
-    /**
-     * Detail 1 baris stok motor beserta daftar unit fisik di dalamnya.
-     */
     public function show(int $id): JsonResponse
     {
         try {

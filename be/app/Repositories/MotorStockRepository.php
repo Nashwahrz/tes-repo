@@ -55,7 +55,7 @@ class MotorStockRepository
     {
         $relations = ['motor', 'dealer'];
         if ($withUnits) {
-            $relations['units'] = fn ($q) => $q->with('dikunciOleh:id,name,username')->latest('id');
+            $relations['units'] = fn ($q) => $q->with('tempMotor.dikunciOleh:id,name,email')->latest('id');
         }
 
         $query = MotorStock::query()->with($relations);

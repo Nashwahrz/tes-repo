@@ -45,7 +45,7 @@ class MotorStock extends Model
     }
 
     /**
-     * Hitung ulang (SUM) kuantitas di tabel motor_stocks dari status unit fisik di motor_units.
+     * Hitung ulang (SUM) kuantitas di tabel motor_stocks dari status unit fisik di master.master_units.
      */
     public function syncFromUnits(): self
     {
