@@ -7,6 +7,8 @@ export const getMotorsPage = async (params = {}) => {
   return toPage(response.data);
 };
 
+export const getAllMotors = () => fetchAllPages('/motors');
+
 export const importMotors = async (file) => {
   const formData = new FormData();
   formData.append('file', file);
