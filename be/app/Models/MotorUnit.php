@@ -19,6 +19,7 @@ class MotorUnit extends Model
 
     protected $fillable = [
         'motor_stock_id',
+        'dealer_id',
         'item_code',
         'motor_price_id',
         'nomor_rangka',
@@ -37,6 +38,11 @@ class MotorUnit extends Model
     public function stock(): BelongsTo
     {
         return $this->belongsTo(MotorStock::class, 'motor_stock_id');
+    }
+
+    public function dealer(): BelongsTo
+    {
+        return $this->belongsTo(Dealer::class, 'dealer_id');
     }
 
     public function motor(): BelongsTo

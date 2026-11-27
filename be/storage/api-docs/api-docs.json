@@ -19863,6 +19863,12 @@
                             "integer",
                             "null"
                         ]
+                    },
+                    "dealer_id": {
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
                     }
                 },
                 "required": [
@@ -19875,7 +19881,8 @@
                     "tanggal_terjual",
                     "created_at",
                     "updated_at",
-                    "motor_price_id"
+                    "motor_price_id",
+                    "dealer_id"
                 ],
                 "title": "MotorUnit"
             },
@@ -19912,6 +19919,9 @@
                             "null"
                         ]
                     },
+                    "dealer_id": {
+                        "type": "integer"
+                    },
                     "nomor_rangka": {
                         "type": "string",
                         "maxLength": 50
@@ -19940,6 +19950,7 @@
                 },
                 "required": [
                     "item_code",
+                    "dealer_id",
                     "nomor_rangka",
                     "nomor_mesin"
                 ],

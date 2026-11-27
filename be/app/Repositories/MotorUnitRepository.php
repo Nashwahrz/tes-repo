@@ -16,6 +16,7 @@ class MotorUnitRepository
     public function index(
         int $perPage = 10,
         ?string $search = null,
+        ?int $dealerId = null,
         ?string $itemCode = null,
         ?int $stockId = null,
         ?string $status = null
@@ -25,8 +26,11 @@ class MotorUnitRepository
                 'stock',
                 'motor:id,item_code,type_code,type_description,color_code,color_description,market_name,class',
                 'motorPrice',
+                'dealer:id,dealer_name,address',
                 'tempMotor.dikunciOleh:id,name,email',
             ]);
+
+        $this->applyDealerScope($query, $dealerId);
 
         if ($itemCode !== null && trim($itemCode) !== '') {
             $query->where('item_code', strtoupper(trim($itemCode)));
@@ -49,6 +53,9 @@ class MotorUnitRepository
                     ->orWhereHas('motor', function ($mq) use ($term) {
                         $mq->where('type_code', 'ILIKE', "%{$term}%")
                             ->orWhere('market_name', 'ILIKE', "%{$term}%");
+                    })
+                    ->orWhereHas('dealer', function ($dq) use ($term) {
+                        $dq->where('dealer_name', 'ILIKE', "%{$term}%");
                     });
             });
         }
@@ -65,6 +72,7 @@ class MotorUnitRepository
             'stock',
             'motor',
             'motorPrice',
+            'dealer',
             'tempMotor.dikunciOleh:id,name,email',
         ];
 
@@ -72,7 +80,10 @@ class MotorUnitRepository
             $relations['movements'] = fn ($q) => $q->with('user:id,name,email')->latest('id');
         }
 
-        return MotorUnit::query()->with($relations)->find($id);
+        $query = MotorUnit::query()->with($relations);
+        $this->applyDealerScope($query);
+
+        return $query->find($id);
     }
 
     /**
@@ -81,7 +92,7 @@ class MotorUnitRepository
     public function findByNomorRangka(string $nomorRangka): ?MotorUnit
     {
         return MotorUnit::query()
-            ->with(['stock', 'motor', 'tempMotor.dikunciOleh:id,name,email'])
+            ->with(['stock', 'motor', 'dealer', 'tempMotor.dikunciOleh:id,name,email'])
             ->where('nomor_rangka', strtoupper(trim($nomorRangka)))
             ->first();
     }
@@ -92,7 +103,7 @@ class MotorUnitRepository
     public function findByNomorMesin(string $nomorMesin): ?MotorUnit
     {
         return MotorUnit::query()
-            ->with(['stock', 'motor', 'tempMotor.dikunciOleh:id,name,email'])
+            ->with(['stock', 'motor', 'dealer', 'tempMotor.dikunciOleh:id,name,email'])
             ->where('nomor_mesin', strtoupper(trim($nomorMesin)))
             ->first();
     }
@@ -129,9 +140,7 @@ class MotorUnitRepository
                 'dealer:id,dealer_name',
             ]);
 
-        if ($dealerId !== null && $dealerId > 0) {
-            $query->where('dealer_id', $dealerId);
-        }
+        $this->applyDealerScope($query, $dealerId);
 
         if ($motorUnitId !== null && $motorUnitId > 0) {
             $query->where('motor_unit_id', $motorUnitId);

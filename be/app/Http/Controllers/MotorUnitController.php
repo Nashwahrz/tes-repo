@@ -31,11 +31,12 @@ class MotorUnitController extends Controller
         try {
             $perPage  = $this->paginateController->getPerPage($request);
             $search   = $request->query('search');
+            $dealerId = $request->query('dealer_id') ? (int) $request->query('dealer_id') : null;
             $itemCode = $request->query('item_code');
             $stockId  = $request->query('stock_id') ? (int) $request->query('stock_id') : null;
             $status   = $request->query('status');
 
-            $units = $this->repository->index($perPage, $search, $itemCode, $stockId, $status);
+            $units = $this->repository->index($perPage, $search, $dealerId, $itemCode, $stockId, $status);
 
             return $this->response->list($units, 'Daftar unit fisik motor berhasil diambil.');
         } catch (Throwable $e) {
